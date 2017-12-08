@@ -86,15 +86,16 @@ class MapAuthoring(object):
 
     def __createWaypoints(self):
         self.__waypoints = {}
-        for pointID in map(lambda x: x["PID"], self.__vectorMap.dtlane.values()):
+        for pointID, direction in map(lambda x: (x["PID"], x["Dir"]), self.__vectorMap.dtlane.values()):
             point = self.__vectorMap.point[pointID]
             self.__waypoints[pointID] = {
                 "waypointID": pointID,
                 "lat": point["lat"],
                 "lng": point["lng"],
-                "x": point["Bx"],
-                "y": point["Ly"],
+                "x": point["Ly"],
+                "y": point["Bx"],
                 "z": point["H"],
+                "yaw": float(direction),
             }
 
     def __createArrows_(self):
@@ -384,13 +385,11 @@ def api_response(code=200, message={}):
 
 @app.route('/')
 def root():
-    """
     return send_from_directory(
         directory="./", filename="mapViewer.html")
     """
     return send_from_directory(
         directory="./", filename="map3DViewer.html")
-    """
     return send_from_directory(
         directory="./", filename="mapVRViewer.html")
     """
@@ -443,4 +442,4 @@ if __name__ == '__main__':
     # vectorMap = VectorMap()
     # vectorMap.load(pathDir)
     # vectorMap.dumpData()
-    app.run(host="10.254.0.12", port=5000, debug=True)
+    app.run(host="localhost", port=5000, debug=True)
