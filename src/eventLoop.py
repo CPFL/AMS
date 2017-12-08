@@ -56,7 +56,7 @@ class EventLoop(object):
     def connect(self):
         self.__client = mqtt.Client(protocol=mqtt.MQTTv311, userdata=self.__userData)
         self.__client.on_message = self.__onMessage
-        self.__client.connect(env["MQTT_BROKER_HOST"], port=env["MQTT_BROKER_PORT"], keepalive=CONST.KEEPALIVE)
+        self.__client.connect(env["MQTT_BROKER_HOST"], port=int(env["MQTT_BROKER_PORT"]), keepalive=CONST.KEEPALIVE)
 
     def start(self):
         self.connect()
