@@ -34,7 +34,7 @@
       const date = new Date() ;
       let prevUpdateTime = date.getTime();
 
-      const socket = io.connect('ws://localhost:5000/ams');
+      const socket = io.connect("ws://" + window.location.hostname + ":" + window.location.port + "/ams");
 
       socket.addEventListener('userStatus', function (message) {
         setUsers(message);
@@ -594,7 +594,7 @@
         drawIntersections();
 
         const xhttpFleetStatus = new XMLHttpRequest();
-        xhttpFleetStatus.open("GET", "http://localhost:5000/getFleetStatus", true);
+        xhttpFleetStatus.open("GET", "http://" + window.location.hostname + ":" + window.location.port + "/getFleetStatus", true);
         xhttpFleetStatus.send();
       }
 
@@ -606,7 +606,7 @@
                 initMap();
             }
         };
-        xhttpWaypoints.open("GET", "http://localhost:5000/getViewData", true);
+        xhttpWaypoints.open("GET", "http://" + window.location.hostname + ":" + window.location.port + "/getViewData", true);
         xhttpWaypoints.send();
       };
     </script>

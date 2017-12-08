@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
+from config.env import env
 from waypoint import Waypoint
 from arrow import Arrow
 from intersection import Intersection
@@ -25,8 +26,8 @@ with app.app_context():
 
 CORS(app)
 
-app.config['MQTT_BROKER_URL'] = 'localhost'
-app.config['MQTT_BROKER_PORT'] = 1883
+app.config['MQTT_BROKER_URL'] = env["MQTT_BROKER_HOST"]
+app.config['MQTT_BROKER_PORT'] = int(env["MQTT_BROKER_PORT"])
 # app.config['MQTT_KEEPALIVE'] = 5
 # app.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app)
@@ -131,4 +132,4 @@ def handle_mqtt_ontopic_fleet_status(client, userdata, message):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='localhost', port=5000, use_reloader=True, debug=True)
+    socketio.run(app, host=env["AMS_HOST"], port=int(env["AMS_PORT"]), use_reloader=True, debug=True)

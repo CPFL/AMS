@@ -3,9 +3,11 @@
 
 from uuid import uuid1 as uuid
 import paho.mqtt.client as mqtt
-from const import CONST as env
 import os
 from signal import SIGKILL
+
+from config.env import env
+from const import CONST
 
 
 class EventLoop(object):
@@ -16,7 +18,7 @@ class EventLoop(object):
         self.__client = None
         self.__mainLoop = None
         self.__pid = os.getpid()
-        self.setSubscriber(env.TOPICS.EVENTLOOP)
+        self.setSubscriber(CONST.TOPICS.EVENTLOOP)
         self.__onMessageFunction = lambda topic, message, userdata: print("no onMessageFunction")
         self.__userData = None
 
@@ -54,13 +56,13 @@ class EventLoop(object):
     def connect(self):
         self.__client = mqtt.Client(protocol=mqtt.MQTTv311, userdata=self.__userData)
         self.__client.on_message = self.__onMessage
-        self.__client.connect(env.HOST, port=env.PORT, keepalive=env.KEEPALIVE)
+        self.__client.connect(env["MQTT_BROKER_HOST"], port=env["MQTT_BROKER_PORT"], keepalive=CONST.KEEPALIVE)
 
     def start(self):
         self.connect()
         for subscriber in self.__subscribers.values():
             self.__client.subscribe(subscriber["topic"])
-        self.publish(env.TOPICS.EVENTLOOP, " ".join(["start", self.__eventLoopID, str(self.__pid)]))
+        self.publish(CONST.TOPICS.EVENTLOOP, " ".join(["start", self.__eventLoopID, str(self.__pid)]))
 
         if self.__mainLoop is None:
             self.__client.loop_forever()
@@ -75,7 +77,7 @@ class EventLoop(object):
 
     def __check(self):
         # todo: mainLoop zombie
-        self.publish(env.TOPICS.EVENTLOOP, " ".join([self.__eventLoopID, str(self.__pid), "ok"]))
+        self.publish(CONST.TOPICS.EVENTLOOP, " ".join([self.__eventLoopID, str(self.__pid), "ok"]))
 
     def getEventLoopID(self):
         return self.__eventLoopID

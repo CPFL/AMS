@@ -4,8 +4,6 @@ from sys import float_info
 
 
 class CONST(object):
-    HOST = 'localhost'
-    PORT = 1883
     KEEPALIVE = 60
 
     BL_PER_METER = 0.000009925558312655087

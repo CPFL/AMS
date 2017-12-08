@@ -283,9 +283,9 @@ if __name__ == '__main__':
     """
     import random
     arrow = Arrow()
-    arrow.load("./res/arrow.json")
+    arrow.load("../res/arrow.json")
     waypoint = Waypoint()
-    waypoint.load("./res/waypoint.json")
+    waypoint.load("../res/waypoint.json")
     from route import Route
     route = Route()
     route.setWaypoint(waypoint)

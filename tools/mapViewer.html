@@ -374,7 +374,65 @@
         // drawDTLanes();
         // drawNodes();
         // drawPoints();
+        drawDIDs();
       };
+
+      function drawDIDs() {
+        for(const sdid of Object.keys(viewData.toDIDs)) {
+          const spid = viewData.dtlane[sdid]["PID"];
+          const dids = viewData.toDIDs[sdid];
+          for(const edid of dids) {
+            const epid = viewData.dtlane[edid]["PID"];
+            var todid = new google.maps.Polyline({
+              label: {sdid: sdid, edid: edid},
+              path: [
+                {lat: viewData.point[spid]["lat"], lng: viewData.point[spid]["lng"] },
+                {lat: viewData.point[epid]["lat"], lng: viewData.point[epid]["lng"] }
+              ],
+              icons: [{
+                icon: {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                },
+                offset: '100%'
+              }],
+              strokeColor: "#00FF00",
+              strokeOpacity: 0.5,
+              map: map
+            });
+            todid.addListener('click', function() {
+              console.log(this.label);
+            });
+          }
+        }
+
+
+        for(const edid of Object.keys(viewData.fromDIDs)) {
+          const epid = viewData.dtlane[edid]["PID"];
+          const dids = viewData.fromDIDs[edid];
+          for(const sdid of dids) {
+            const spid = viewData.dtlane[sdid]["PID"];
+            var fromdid = new google.maps.Polyline({
+              label: {sdid: sdid, edid: edid},
+              path: [
+                {lat: viewData.point[spid]["lat"], lng: viewData.point[spid]["lng"] },
+                {lat: viewData.point[epid]["lat"], lng: viewData.point[epid]["lng"] }
+              ],
+              icons: [{
+                icon: {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                },
+                offset: '100%'
+              }],
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.5,
+              map: map
+            });
+            fromdid.addListener('click', function() {
+              console.log(this.label);
+            });
+          }
+        }
+      }
 
       function onLoad() {
         const xhttpWaypoints = new XMLHttpRequest();

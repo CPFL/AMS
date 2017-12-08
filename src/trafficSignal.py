@@ -135,11 +135,11 @@ if __name__ == '__main__':
     cycles = {
         "A": {
             "baseTime": currentTime,
-            "period": 134.0,
+            "period": 124.0,
             "phases": [
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.GREEN,
-                    "duration": 50.0,
+                    "duration": 70.0,
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.YELLOW,
@@ -147,17 +147,17 @@ if __name__ == '__main__':
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.RED,
-                    "duration": 79.0,
+                    "duration": 49.0,
                 },
             ],
         },
         "B": {
             "baseTime": currentTime,
-            "period": 134.0,
+            "period": 124.0,
             "phases": [
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.GREEN,
-                    "duration": 60.0,
+                    "duration": 80.0,
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.YELLOW,
@@ -165,17 +165,17 @@ if __name__ == '__main__':
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.RED,
-                    "duration": 69.0,
+                    "duration": 39.0,
                 },
             ],
         },
         "C": {
-            "baseTime": currentTime + 67,
-            "period": 134.0,
+            "baseTime": currentTime + 87,
+            "period": 124.0,
             "phases": [
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.GREEN,
-                    "duration": 50.0,
+                    "duration": 30.0,
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.YELLOW,
@@ -183,25 +183,7 @@ if __name__ == '__main__':
                 },
                 {
                     "state": CONST.TRAFFICSIGNAL_STATE.RED,
-                    "duration": 79.0,
-                },
-            ],
-        },
-        "D": {
-            "baseTime": currentTime + 67,
-            "period": 134.0,
-            "phases": [
-                {
-                    "state": CONST.TRAFFICSIGNAL_STATE.GREEN,
-                    "duration": 60.0,
-                },
-                {
-                    "state": CONST.TRAFFICSIGNAL_STATE.YELLOW,
-                    "duration": 5.0,
-                },
-                {
-                    "state": CONST.TRAFFICSIGNAL_STATE.RED,
-                    "duration": 69.0,
+                    "duration": 89.0,
                 },
             ],
         },
@@ -240,11 +222,6 @@ if __name__ == '__main__':
                 "9887/9563/9568/10106/10121",
                 "9553/9563/9568/9572/9587/9591/9600",
                 "9887/9563/9568/9572/9587/9591/9600",
-            ]
-        },
-        "D": {
-            "groupID": "D",
-            "entryExitRouteIDs": [
                 "9143/9151/9155/10106/10121",
                 "9143/9151/9155/9159/10027/9335",
                 "9553/9563/9568/9572/10578/10471/9686",
@@ -292,3 +269,6 @@ if __name__ == '__main__':
     # pp(trafficSignal.getCycleToSchedule(cycles[intersectionID+"_A"], currentTime+51))
 
     print("start processes", trafficSignal.start())
+
+
+

@@ -19,11 +19,52 @@ class MapAuthoring(object):
             }
         }
 
+        self.__getWaypointBranches()
+
         self.__createWaypoints()
         self.__createArrows()
-        self.__createIntersections()
+        # self.__createIntersections()
 
         self.__getViewPoint()
+
+    def __getWaypointBranches(self):
+        toDIDs = {}
+        fromDIDs = {}
+        for laneID, lane in self.__vectorMap.lane.items():
+            for i in ["", "2", "3", "4"]:
+                if lane["FLID"+i] != "0":
+                    did = lane["DID"]
+                    fdid = self.__vectorMap.lane[lane["FLID"+i]]["DID"]
+                    if did != fdid:
+                        waypointIDs = toDIDs.get(did, [])
+                        if fdid not in waypointIDs:
+                            if "1293" in [did, fdid]:
+                                bdid = self.__vectorMap.lane[lane["BLID" + i]]["DID"]
+                                pp(["f", i, bdid, did, fdid])
+                                if did in [fdid, bdid]:
+                                    continue
+                            #     continue
+                            waypointIDs.append(fdid)
+                            toDIDs[did] = waypointIDs
+
+                if lane["BLID"+i] != "0":
+                    did = lane["DID"]
+                    bdid = self.__vectorMap.lane[lane["BLID" + i]]["DID"]
+                    if did != bdid:
+                        waypointIDs = fromDIDs.get(did, [])
+                        if bdid not in waypointIDs:
+                            if "1293" in [did, bdid]:
+                                fdid = self.__vectorMap.lane[lane["FLID" + i]]["DID"]
+                                pp(["b", i, fdid, did, bdid])
+                                if did in [fdid, bdid]:
+                                    continue
+                            #     continue
+                            waypointIDs.append(bdid)
+                            fromDIDs[did] = waypointIDs
+
+        self.__toDIDs = dict(filter(lambda x: 1 < len(x[1]), toDIDs.items()))
+        self.__fromDIDs = dict(filter(lambda x: 1 < len(x[1]), fromDIDs.items()))
+        return self.__toDIDs, self.__fromDIDs
 
     def __getShapes(self):
         import json
@@ -45,18 +86,26 @@ class MapAuthoring(object):
 
     def __createWaypoints(self):
         self.__waypoints = {}
-        shapes = self.__getShapes()
-        for shape in shapes:
-            for pointID in shape:
-                point = self.__vectorMap.point[pointID]
-                self.__waypoints[pointID] = {
-                    "waypointID": pointID,
-                    "lat": point["lat"],
-                    "lng": point["lng"],
-                    "height": point["H"],
-                    "x": point["Bx"],
-                    "y": point["Ly"],
-                }
+        for pointID in map(lambda x: x["PID"], self.__vectorMap.dtlane.values()):
+            point = self.__vectorMap.point[pointID]
+            self.__waypoints[pointID] = {
+                "waypointID": pointID,
+                "lat": point["lat"],
+                "lng": point["lng"],
+                "x": point["Bx"],
+                "y": point["Ly"],
+                "z": point["H"],
+            }
+
+    def __createArrows_(self):
+        toDIDs, fromDIDs = self.__getWaypointBranches()
+        for did, pointID, dist in map(lambda x: (x["DID"], x["PID"], x["Dist"]), self.__vectorMap.dtlane.values()):
+            print(did, pointID, dist)
+            if did in toDIDs:
+                print("to", did)
+            if did in fromDIDs:
+                print("from", did)
+        exit()
 
     def __createArrows(self):
         shapes = self.__getShapes()
@@ -264,8 +313,17 @@ class MapAuthoring(object):
         latMax = max(self.__vectorMap.point.values(), key=lambda x: x["lat"])["lat"]
         lngMin = min(self.__vectorMap.point.values(), key=lambda x: x["lng"])["lng"]
         lngMax = max(self.__vectorMap.point.values(), key=lambda x: x["lng"])["lng"]
+        bxMin = min(self.__vectorMap.point.values(), key=lambda x: x["Bx"])["Bx"]
+        bxMax = max(self.__vectorMap.point.values(), key=lambda x: x["Bx"])["Bx"]
+        lyMin = min(self.__vectorMap.point.values(), key=lambda x: x["Ly"])["Ly"]
+        lyMax = max(self.__vectorMap.point.values(), key=lambda x: x["Ly"])["Ly"]
+        hMin = min(self.__vectorMap.point.values(), key=lambda x: x["H"])["H"]
+        hMax = max(self.__vectorMap.point.values(), key=lambda x: x["H"])["H"]
         self.__viewData["viewPoint"]["lat"] = 0.5*(latMax + latMin)
         self.__viewData["viewPoint"]["lng"] = 0.5*(lngMax + lngMin)
+        self.__viewData["viewPoint"]["Bx"] = 0.5*(bxMax + bxMin)
+        self.__viewData["viewPoint"]["Ly"] = 0.5*(lyMax + lyMin)
+        self.__viewData["viewPoint"]["Hz"] = 0.5*(hMax + hMin)
 
     def getViewData(self):
         self.__viewData.update({
@@ -279,7 +337,17 @@ class MapAuthoring(object):
             "arrows": self.__arrows,
             "toArrows": self.__toArrows,
             "fromArrows": self.__fromArrows,
-            "intersections": self.__intersections,
+            "intersections": self.__intersections if "__intersections" in dir(self) else [],
+            "toDIDs": self.__toDIDs,
+            "fromDIDs": self.__fromDIDs,
+        })
+        return self.__viewData
+
+    def get3DViewData(self):
+        self.__viewData.update({
+            "vectorMapPolylines": self.__vectorMap.get3DViewData()["polylines"],
+            "arrows": self.__arrows,
+            "waypoints": self.__waypoints
         })
         return self.__viewData
 
@@ -304,7 +372,7 @@ class MapAuthoring(object):
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="./lib")
 CORS(app)
 
 
@@ -316,8 +384,16 @@ def api_response(code=200, message={}):
 
 @app.route('/')
 def root():
+    """
     return send_from_directory(
         directory="./", filename="mapViewer.html")
+    """
+    return send_from_directory(
+        directory="./", filename="map3DViewer.html")
+    """
+    return send_from_directory(
+        directory="./", filename="mapVRViewer.html")
+    """
 
 
 @app.route("/getViewData")
@@ -327,6 +403,29 @@ def getViewData():
     vectorMap.load(pathDir)
     mapAutoring = MapAuthoring(vectorMap)
     return api_response(code=200, message=mapAutoring.getViewData())
+
+
+@app.route("/get3DViewData")
+def get3DViewData():
+    pathDir = sys.argv[1] if sys.argv[1][-1] == "/" else sys.argv[1]+"/"
+    vectorMap = VectorMap()
+    vectorMap.load(pathDir)
+    mapAutoring = MapAuthoring(vectorMap)
+    return api_response(code=200, message=mapAutoring.get3DViewData())
+
+
+@app.route('/getPCDFileNames')
+def getPCDFileNames():
+    from os import listdir
+    pathDir = sys.argv[2] if sys.argv[2][-1] == "/" else sys.argv[2]+"/"
+    return api_response(code=200, message=listdir(pathDir))
+
+
+@app.route('/getPCDFile/<filename>')
+def getPCDFile(filename):
+    pathDir = sys.argv[2] if sys.argv[2][-1] == "/" else sys.argv[2]+"/"
+    return send_from_directory(
+        directory=pathDir, filename=filename, as_attachment=True)
 
 
 @app.route("/dumpData")
@@ -344,4 +443,4 @@ if __name__ == '__main__':
     # vectorMap = VectorMap()
     # vectorMap.load(pathDir)
     # vectorMap.dumpData()
-    app.run(debug=True)
+    app.run(host="10.254.0.12", port=5000, debug=True)
