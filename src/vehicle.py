@@ -47,7 +47,6 @@ class Vehicle(EventLoop):
         self.heading = self.arrow.getHeading(self.arrowID, self.waypointID)
 
 
-        self.state = CONST.VEHICLE_STATE.STOP
         self.__stayEndTime = time() + self.stayTime
 
         self.setOnMessageFunction(
@@ -109,7 +108,7 @@ class Vehicle(EventLoop):
         arrowIDs = arrowIDs[arrowIDs.index(self.arrowID):]
         route = {
             "startWaypointID": self.waypointID,
-            "goalWaypointID": self.arrow.getWaypointIds(self.schedules[0]["content"]["route"]["arrowIDs"][-1])[-1],
+            "goalWaypointID": self.arrow.getWaypointIDs(self.schedules[0]["content"]["route"]["arrowIDs"][-1])[-1],
             "arrowIDs": arrowIDs
         }
         return self.route.getSlicedRoute(route, distance)
@@ -193,7 +192,7 @@ class Vehicle(EventLoop):
                     # get pass waypointIDs
                     waypointIDs = []
                     for arrowID in self.schedules[0]["content"]["route"]["arrowIDs"][0:2]:
-                        waypointIDs.extend(self.arrow.getWaypointIds(arrowID))
+                        waypointIDs.extend(self.arrow.getWaypointIDs(arrowID))
                     passWaypointIDs = waypointIDs[waypointIDs.index(prevWaypointID):waypointIDs.index(self.waypointID)+1]
                     # print("updateState", [prevWaypointID], [self.waypointID], passWaypointIDs, [goalWaypointID], goalWaypointID in passWaypointIDs)
 

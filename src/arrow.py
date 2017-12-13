@@ -37,7 +37,7 @@ class Arrow(object):
     def getFromArrows(self):
         return self.__fromArrows
 
-    def getWaypointIds(self, arrowID):
+    def getWaypointIDs(self, arrowID):
         return self.__arrows[arrowID]["waypointIDs"]
 
     def getApproximateDistance(self, lat1, lng1, lat2, lng2):
