@@ -46,17 +46,23 @@ class User(EventLoop):
         self.setWaypoint(startWaypointID, goalWaypointID)
 
     def setWaypoint(self, startWaypointID, goalWaypointID):
+        self.setStartWaypoint(startWaypointID)
+        self.setGoalWaypoint(goalWaypointID)
+
+    def setStartWaypoint(self, startWaypointID):
         self.__startWaypointID = startWaypointID
+
+    def setGoalWaypoint(self, goalWaypointID):
         self.__goalWaypointID = goalWaypointID
 
     def updateState(self, message):
         vehicleID, stoppedWaypointID = message.split(",")
-        if self.__state == CONST.USER_STATE.WAITING and self.__startWaypointID == stoppedWaypointID:
+        if self.__state == CONST.USER_STATE.WAITING:  # and self.__startWaypointID == stoppedWaypointID:
             self.__vehicleID = vehicleID
             self.__state = CONST.USER_STATE.MOVING
             self.__publisUserState()
         elif self.__state == CONST.USER_STATE.MOVING:
-            if self.__vehicleID == vehicleID and self.__goalWaypointID == stoppedWaypointID:
+            if self.__vehicleID == vehicleID:  # and self.__goalWaypointID == stoppedWaypointID:
                 self.__state = CONST.USER_STATE.GOT_OUT
                 self.__publisUserState()
 

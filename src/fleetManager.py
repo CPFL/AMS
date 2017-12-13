@@ -91,7 +91,7 @@ class FleetManager(EventLoop):
             return
         pickUpRoute = min(routes.items(), key=lambda x: x[1]["cost"])[1]
 
-
+        vehicleID = pickUpRoute["goalID"]
 
         startPoint = {
             "arrowID": self.arrow.getArrowIDsFromWaypointID(userStatus["startWaypointID"])[0],
@@ -110,9 +110,9 @@ class FleetManager(EventLoop):
 
 
 
-        print("dispatch", self.vehicles[pickUpRoute["goalID"]])
-        if self.vehicles[pickUpRoute["goalID"]]["schedules"][-1]["content"]["type"] == "standBy":
-            self.vehicles[pickUpRoute["goalID"]]["schedules"].pop()
+        print("dispatch", self.vehicles[vehicleID])
+        if self.vehicles[vehicleID]["schedules"][-1]["content"]["type"] == "standBy":
+            self.vehicles[vehicleID]["schedules"].pop()
         currentTime = time()
         self.vehicles[pickUpRoute["goalID"]]["schedules"].extend([
             {
@@ -122,6 +122,7 @@ class FleetManager(EventLoop):
                 "content": {
                     "type": CONST.VEHICLE_STATE.MOVE,
                     "route": {
+                        "startWaypointID": pickUpRoute["goalWaypointID"],
                         "goalWaypointID": pickUpRoute["startWaypointID"],
                         "arrowIDs": pickUpRoute["arrowIDs"]
                     }
@@ -143,6 +144,7 @@ class FleetManager(EventLoop):
                 "content": {
                     "type": CONST.VEHICLE_STATE.MOVE,
                     "route": {
+                        "startWaypointID": carryRoute["startWaypointID"],
                         "goalWaypointID": carryRoute["goalWaypointID"],
                         "arrowIDs": carryRoute["arrowIDs"]
                     }
@@ -184,9 +186,9 @@ class FleetManager(EventLoop):
             self.updateVehicleSchedule(vehicleID, vehicleSchedule)
 
         # user notice
-        if self.vehicles[vehicleID]["schedules"][0]["content"]["type"] in [CONST.VEHICLE_STATE.STOP, CONST.VEHICLE_STATE.STANDBY]:
-            message = ",".join([vehicleID, self.vehicles[vehicleID]["waypointID"]])
-            self.publish(CONST.TOPICS.NOTICE, message)
+        # if self.vehicles[vehicleID]["schedules"][0]["content"]["type"] in [CONST.VEHICLE_STATE.STOP, CONST.VEHICLE_STATE.STANDBY]:
+        #     message = ",".join([vehicleID, self.vehicles[vehicleID]["waypointID"]])
+        #     self.publish(CONST.TOPICS.NOTICE, message)
 
     def updateVehicleSchedule(self, vehicleID, schedule):
         i = list(map(lambda x: x["scheduleID"], self.vehicles[vehicleID]["schedules"])).index(schedule["scheduleID"])
