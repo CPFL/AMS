@@ -25,6 +25,9 @@ class Waypoint(object):
     def getLatLng(self, waypointID):
         return self.__waypoints[waypointID]["lat"], self.__waypoints[waypointID]["lng"]
 
+    def getWaypoint(self, waypointID):
+        return self.__waypoints[waypointID]
+
 
 if __name__ == '__main__':
     from pprint import PrettyPrinter

@@ -20,6 +20,10 @@ class CONST(object):
         DIRECTIONS = "vehicleDirections"  # json(vehicleID, schedules)
         TRAFFICSIGNAL_DIRECTIONS = "trafficSignalDirections"  # json(traffocSignalID, schedules)
         NOTICE = "notice"  # vehicleID, stoppedSpotID
+        class AUTOWARE(object):
+            POSE = "pose"
+            CLOSEST_WAYPOINT = "closestWaypoint"
+            LANES = "lanes"
 
     class USER_STATE(object):
         WAITING = "waiting"

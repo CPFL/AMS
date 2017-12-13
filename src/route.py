@@ -42,6 +42,25 @@ class Route(object):
             "arrowIDs": [arrowID]
         }
 
+    def getArrowWaypointArray(self, route):
+        arrowIDs = route["arrowIDs"]
+        startWaypointID = route["startWaypointID"]
+        goalWaypointID = route["goalWaypointID"]
+        arrowWaypointArray = []
+        for arrowID in arrowIDs:
+            waypointIDs = self.__arrows[arrowID]["waypointIDs"]
+            js = 0
+            if startWaypointID in waypointIDs:
+                js = waypointIDs.index(startWaypointID)
+            je = len(waypointIDs)
+            if goalWaypointID in waypointIDs:
+                je = waypointIDs.index(goalWaypointID) + 1
+            for i in range(js+1, je):
+                arrowWaypointArray.append({"waypointID": waypointIDs[i - 1], "arrowID": arrowID})
+            if arrowID == arrowIDs[-1]:
+                arrowWaypointArray.append({"waypointID": waypointIDs[je - 1], "arrowID": arrowID})
+        return arrowWaypointArray
+
     def getRouteWaypointIDs(self, route):
         arrowIDs = route["arrowIDs"]
         startWaypointID = route["startWaypointID"]
