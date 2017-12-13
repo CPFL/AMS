@@ -19,12 +19,15 @@ class EventLoop(object):
         self.__mainLoop = None
         self.__pid = os.getpid()
         self.setSubscriber(CONST.TOPICS.EVENTLOOP)
-        self.__onMessageFunction = lambda topic, message, userdata: print("no onMessageFunction")
+        self.__onMessageFunction = self.__defaultOnMessageFunction
         self.__userData = None
 
     def __del__(self):
         if self.__client is not None:
             self.__client.disconnect()
+
+    def __defaultOnMessageFunction(self, client, userData, topic, message):
+        return None
 
     def setSubscriber(self, topic):
         self.__subscribers[str(uuid())] = {"topic": topic}
