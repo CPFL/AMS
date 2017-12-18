@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>MapViewer</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+    <script>
+      let map=null;
+      let viewData = {};
+
+      function drawPoint(pid, color="#000000") {
+        const lat = viewData["point"][pid]["lat"];
+        const lng = viewData["point"][pid]["lng"];
+        var circle = new google.maps.Circle({
+            strokeColor: color,
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            //fillColor: '#00a3e0',
+            fillOpacity: 0.0,
+            map: map,
+            center: {lat: lat, lng: lng},
+            radius: 0.2
+        });
+      }
+
+      function drawPoints() {
+        for(const pid in viewData["point"]) {
+          // if(viewData["point"][pid]["NIDS"].length < 1) { continue; }
+          const lat = viewData["point"][pid]["lat"];
+          const lng = viewData["point"][pid]["lng"];
+          var circle = new google.maps.Circle({
+              strokeColor: "#000000",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              //fillColor: '#00a3e0',
+              fillOpacity: 0.0,
+              map: map,
+              center: {lat: lat, lng: lng},
+              radius: 0.2
+          });
+        }
+      }
+
+      function drawLine(lid, strokeColor="#FFFFFF", icons=null) {
+        const bpid = viewData["line"][lid]["BPID"];
+        const fpid = viewData["line"][lid]["FPID"];
+        const path = [
+          {lat: viewData["point"][bpid]["lat"], lng: viewData["point"][bpid]["lng"]},
+          {lat: viewData["point"][fpid]["lat"], lng: viewData["point"][fpid]["lng"]}
+        ];
+        var arrow = new google.maps.Polyline({
+          path: path,
+          icons: icons,
+          /*
+          icons: [{
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            },
+            offset: '100%'
+          }],
+          */
+          //geodesic: true,
+          strokeColor: strokeColor,
+          strokeOpacity: 0.5,
+          //strokeWeight: 2,
+          map: map
+        });
+      }
+
+      function drawLines() {
+        for(const lid in viewData["line"]) {
+          const icons = [{
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              },
+              offset: '10%'
+            }];
+          drawLine(lid, "#A9A9A9", icons);
+        }
+      }
+
+      function drawArea(aid) {
+        let paths = [];
+        let nextLID = viewData["area"][aid]["SLID"];
+        while(1){
+          const nextLine = viewData["line"][nextLID];
+          const point = viewData["point"][nextLine["BPID"]];
+          paths.push({
+            lat: point["lat"], lng: point["lng"]
+          });
+          nextLID = nextLine["FLID"];
+          if(nextLID == viewData["area"][aid]["ELID"]) {
+            const nextLine = viewData["line"][nextLID];
+            const point = viewData["point"][nextLine["BPID"]];
+            paths.push({
+              lat: point["lat"], lng: point["lng"]
+            });
+            break;
+          }
+        }
+
+        const area = new google.maps.Polygon({
+          paths: paths,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35,
+          map: map
+        });
+      }
+
+      function drawIntersections() {
+        for(const intersection of Object.values(viewData["intersection"])) {
+          drawArea(intersection["AID"]);
+        }
+        for(const intersection of Object.values(viewData["intersections"])) {
+          for(const borderPoint of intersection["borderPoints"]) {
+            const rgb = borderPoint["toIn"] ? "#00FF00" : "#0000FF";
+            const pid = borderPoint["nextWaypointID"];
+            // drawArrow(borderPoint["arrowID"], rgb);
+            drawPoint(pid, rgb);
+          }
+        }
+      }
+
+      function drawStopLines() {
+        for(const stopLineID in viewData["stopLine"]) {
+          if(viewData["stopLine"][stopLineID]["TLID"] == "0") {
+            drawLine(viewData["stopLine"][stopLineID]["LID"]);
+          }
+          else {
+            drawLine(viewData["stopLine"][stopLineID]["LID"], "#FF0000");
+          }
+        }
+      }
+
+      function drawToArrow() {
+        for(const arrowID in viewData["toArrows"]) {
+          if (1 < viewData["toArrows"][arrowID].length) {
+            const ie = viewData["arrows"][arrowID]["waypointIDs"].length - 1;
+            const EndWaypointID = viewData["arrows"][arrowID]["waypointIDs"][ie];
+
+            var circle = new google.maps.Circle({
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                map: map,
+                center: {lat: viewData["point"][EndWaypointID]["lat"], lng: viewData["point"][EndWaypointID]["lng"]},
+                radius: 0.2
+            });
+          }
+        }
+      }
+
+      function drawFromArrow() {
+        for(const arrowID in viewData["fromArrows"]) {
+          if (1 < viewData["fromArrows"][arrowID].length) {
+            const EndWaypointID = viewData["arrows"][arrowID]["waypointIDs"][0];
+
+            var circle = new google.maps.Circle({
+                strokeColor: "#00FF00",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillOpacity: 0.0,
+                map: map,
+                center: {lat: viewData["point"][EndWaypointID]["lat"], lng: viewData["point"][EndWaypointID]["lng"]},
+                radius: 0.2
+            });
+          }
+        }
+      }
+
+      function drawArrow(arrowID, strokeColor="#000000") {
+        const splittedArrowID = arrowID.split("/");
+
+        let path = [];
+
+        for(const pid of viewData["arrows"][arrowID]["waypointIDs"]){
+          path.push({
+            lat: viewData["point"][pid]["lat"], lng: viewData["point"][pid]["lng"]
+          })
+        }
+
+        var arrow = new google.maps.Polyline({
+          path: path,
+          icons: [{
+            icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            },
+            offset: '100%'
+          }],
+          //geodesic: true,
+          strokeColor: strokeColor,
+          strokeOpacity: 0.3,
+          //strokeWeight: 2,
+          map: map
+        });
+      }
+
+      function drawArrows() {
+        for(const arrowID in viewData["arrows"]) {
+          const splittedArrowID = arrowID.split("/");
+
+          let path = [];
+
+          for(const pid of viewData["arrows"][arrowID]["waypointIDs"]){
+            path.push({
+              lat: viewData["point"][pid]["lat"], lng: viewData["point"][pid]["lng"]
+            })
+          }
+
+          rgb = '#A9A9A9';
+          /*
+          // if(1 < viewData["fromArrows"][arrowID].length && 1 <= viewData["toArrows"][arrowID].length) {
+          if(1 < viewData["fromArrows"][arrowID].length) {
+            rgb = "#000000";
+          }
+          console.log(arrowID, viewData["toArrows"][arrowID], viewData["fromArrows"][arrowID], rgb);
+          */
+
+          var arrow = new google.maps.Polyline({
+            path: path,
+            icons: [{
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              },
+              offset: '100%'
+            }],
+            //geodesic: true,
+            strokeColor: rgb,
+            strokeOpacity: 0.3,
+            //strokeWeight: 2,
+            map: map
+          });
+
+          if("intersectionBorderPoints" in viewData["arrows"][arrowID]){
+            for(const intersectionBorderPoint of viewData["arrows"][arrowID]["intersectionBorderPoints"]) {
+              if(intersectionBorderPoint["toIn"]) {
+                var circle = new google.maps.Circle({
+                    strokeColor: "#00FF00",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillOpacity: 0.0,
+                    map: map,
+                    center: {
+                      lat: intersectionBorderPoint["lat"],
+                      lng: intersectionBorderPoint["lng"]
+                    },
+                    radius: 0.2
+                });
+              }
+            }
+          }
+
+          /*
+          for(const index in viewData["arrows"][arrowID]["waypointIDs"]){
+            const pid = viewData["arrows"][arrowID]["waypointIDs"][index];
+            let icon = {
+              url: "https://cdn.mist.com/wp-content/uploads/blue-dot.png",
+              size: new google.maps.Size(1, 1),
+            };
+            if(index == 0 || index == viewData["arrows"][arrowID]["waypointIDs"].length-1) {
+              icon = null
+            }
+            var marker = new google.maps.Marker({
+              label: {
+                text: pid,
+                fontSize: "3px"
+              },
+              icon: icon,
+              map: map,
+              draggable: false,
+              opacity: 0.5,
+              position: {
+                lat: viewData["point"][pid]["lat"], lng: viewData["point"][pid]["lng"]
+              }
+            });
+          }
+          */
+        }
+      }
+
+      function drawDTLanes() {
+        for(const did in viewData["dtlane"]) {
+          const pid = viewData["dtlane"][did]["PID"];
+          const lat = viewData["point"][pid]["lat"];
+          const lng = viewData["point"][pid]["lng"];
+
+          let rgb = "#00a3e0";
+          let fillOpacity = 0.0;
+          if(viewData["dtlane"][did]["Dist"]=="0"){
+            rgb = "#FF0000";
+            fillOpacity = 1.0;
+          }
+
+          var circle = new google.maps.Circle({
+              strokeColor: rgb,
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: rgb,
+              fillOpacity: fillOpacity,
+              map: map,
+              center: {lat: lat, lng: lng},
+              radius: 0.2
+          });
+        }
+      }
+
+      function drawNodes() {
+        for(const nid in viewData["node"]) {
+          const pid = viewData["node"][nid]["PID"];
+          const lat = viewData["point"][pid]["lat"];
+          const lng = viewData["point"][pid]["lng"];
+          /*
+          var circle = new google.maps.Circle({
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              //fillColor: '#00a3e0',
+              fillOpacity: 0.0,
+              map: map,
+              center: {lat: lat, lng: lng},
+              radius: 0.2
+          });
+          */
+          var marker = new google.maps.Marker({
+            label: {
+              text: pid,
+              fontSize: "5px"
+            },
+            icon: {
+              url: "https://cdn.mist.com/wp-content/uploads/blue-dot.png",
+              size: new google.maps.Size(1, 1),
+            },
+            map: map,
+            draggable: false,
+            position: {lat: lat, lng: lng}
+          });
+        }
+      };
+
+      function initMap() {
+        console.log("initMap", viewData);
+
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 19,
+          center: {lat: parseFloat(viewData["viewPoint"]["lat"]), lng: parseFloat(viewData["viewPoint"]["lng"])},
+          mapTypeId: 'terrain'
+        });
+
+        // drawPoints();
+        drawIntersections();
+        drawStopLines();
+        drawArrows();
+        // drawToArrow();
+        // drawFromArrow();
+        // drawLines();
+        // drawDTLanes();
+        // drawNodes();
+        // drawPoints();
+        drawDIDs();
+      };
+
+      function drawDIDs() {
+        for(const sdid of Object.keys(viewData.toDIDs)) {
+          const spid = viewData.dtlane[sdid]["PID"];
+          const dids = viewData.toDIDs[sdid];
+          for(const edid of dids) {
+            const epid = viewData.dtlane[edid]["PID"];
+            var todid = new google.maps.Polyline({
+              label: {sdid: sdid, edid: edid},
+              path: [
+                {lat: viewData.point[spid]["lat"], lng: viewData.point[spid]["lng"] },
+                {lat: viewData.point[epid]["lat"], lng: viewData.point[epid]["lng"] }
+              ],
+              icons: [{
+                icon: {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                },
+                offset: '100%'
+              }],
+              strokeColor: "#00FF00",
+              strokeOpacity: 0.5,
+              map: map
+            });
+            todid.addListener('click', function() {
+              console.log(this.label);
+            });
+          }
+        }
+
+
+        for(const edid of Object.keys(viewData.fromDIDs)) {
+          const epid = viewData.dtlane[edid]["PID"];
+          const dids = viewData.fromDIDs[edid];
+          for(const sdid of dids) {
+            const spid = viewData.dtlane[sdid]["PID"];
+            var fromdid = new google.maps.Polyline({
+              label: {sdid: sdid, edid: edid},
+              path: [
+                {lat: viewData.point[spid]["lat"], lng: viewData.point[spid]["lng"] },
+                {lat: viewData.point[epid]["lat"], lng: viewData.point[epid]["lng"] }
+              ],
+              icons: [{
+                icon: {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                },
+                offset: '100%'
+              }],
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.5,
+              map: map
+            });
+            fromdid.addListener('click', function() {
+              console.log(this.label);
+            });
+          }
+        }
+      }
+
+      function onLoad() {
+        const xhttpWaypoints = new XMLHttpRequest();
+        xhttpWaypoints.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                viewData = JSON.parse(this.responseText);
+                initMap();
+            }
+        };
+        xhttpWaypoints.open("GET", "http://localhost:5000/getViewData", true);
+        xhttpWaypoints.send();
+      };
+    </script>
+  </head>
+  <body onLoad="onLoad()">
+    <div id="map"></div>
+
+    <!--<script async defer-->
+    <!--src="https://maps.googleapis.com/maps/api/js?callback=initMap">-->
+    <!--</script>-->
+  </body>
+</html>
