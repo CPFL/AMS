@@ -57,14 +57,14 @@ class Autoware(Vehicle):
         waypoints = []
         schedule = self.schedules[0]
 
-        arrow_waypoint_array = self.route.getArrowWaypointArray({
-            "startWaypointID": schedule["route"]["start"]["waypoint_id"],
-            "goalWaypointID": schedule["route"]["goal"]["waypoint_id"],
-            "arrowIDs": schedule["route"]["arrow_ids"]
+        arrow_waypoint_array = self.route.get_arrow_waypoint_array({
+            "start_waypoint_id": schedule["route"]["start"]["waypoint_id"],
+            "goal_waypoint_id": schedule["route"]["goal"]["waypoint_id"],
+            "arrow_ids": schedule["route"]["arrow_ids"]
         })
         for arrowWaypoint in arrow_waypoint_array:
             waypoint_id = arrowWaypoint["waypoint_id"]
-            waypoint = self.waypoint.getWaypoint(waypoint_id)
+            waypoint = self.waypoint.get_waypoint(waypoint_id)
             w, x, y, z = axangle2quat([0, 0, 1], waypoint["yaw"])
             waypoints.append({
                 "position": {
