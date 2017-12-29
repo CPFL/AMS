@@ -2,50 +2,44 @@
 # coding: utf-8
 
 import rospy
-from eventLoop import EventLoop
-from topic import Topic
+from ams import Topic
+from ams.nodes import EventLoop, Autoware
+from ams.messages import autoware_message
 
 import message_filters
 from std_msgs.msg import Int32
 from time import time
-from const.autoware import AUTOWARE
 
 import pprint
 pp = pprint.PrettyPrinter(indent=2)
 
 
 class ClosestWaypointSubscriber(EventLoop):
-    def __init__(self, name):
+    def __init__(self, name, host, port):
         super(ClosestWaypointSubscriber, self).__init__()
 
         self.autowareSubscribeTopic = Topic()
-        self.autowareSubscribeTopic.setID(name)
-        self.autowareSubscribeTopic.setRoot(AUTOWARE.TOPIC.SUBSCRIBE)
-        self.autowareSubscribeTopic.load(AUTOWARE.TOPIC.MESSAGE_FILE)
+        self.autowareSubscribeTopic.set_id(name)
+        self.autowareSubscribeTopic.set_root(Autoware.TOPIC.SUBSCRIBE)
+        self.autowareSubscribeTopic.set_message(autoware_message)
 
         self.__previous_time = time()
         self.__period = 1.0  # [sec]
 
-        self.connect()
-        self.setMainLoop(rospy.spin)
+        self.connect(host, port)
+        self.set_main_loop(rospy.spin)
 
         rospy.init_node("ams_closest_waypoint_subscriber", anonymous=True)
-        self.__ROSSubscriber = message_filters.Subscriber(AUTOWARE.ROSTOPIC.SUBSCRIBE, Int32)
-        self.__ROSSubscriber.registerCallback(self.onMessageFromROS, self.publish)
+        self.__ROSSubscriber = message_filters.Subscriber(Autoware.ROSTOPIC.SUBSCRIBE, Int32)
+        self.__ROSSubscriber.registerCallback(self.on_message_from_ros, self.publish)
 
-    def onMessageFromROS(self, messageData, publish):
+    def on_message_from_ros(self, messageData, publish):
         current_time = time()
         if self.__period < current_time - self.__previous_time:
             self.__previous_time += (1+int((current_time - self.__previous_time)/self.__period)) * self.__period
 
-            message = self.autowareSubscribeTopic.getTemplate()["closest_waypoint"]
+            message = self.autowareSubscribeTopic.get_template()["closest_waypoint"]
             message["index"] = messageData.data
             payload = self.autowareSubscribeTopic.serialize(message)
             publish(self.autowareSubscribeTopic.private+"/closest_waypoint", payload)
 
-
-if __name__ == '__main__':
-    import sys
-    closestWaypointSubscriber = ClosestWaypointSubscriber(name=sys.argv[1])
-    print("closestWaypointSubscriber {} on {}".format(closestWaypointSubscriber.getEventLoopID(), closestWaypointSubscriber.getPid()))
-    closestWaypointSubscriber.start()

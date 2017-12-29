@@ -10,6 +10,10 @@ from ams.messages import autoware_message
 
 class Autoware(Vehicle):
 
+    class ROSTOPIC(object):
+        PUBLISH = "/based/lane_waypoints_array"
+        SUBSCRIBE = "/closest_waypoint"
+
     class TOPIC(object):
         PUBLISH = "pub_autoware"
         SUBSCRIBE = "sub_autoware"

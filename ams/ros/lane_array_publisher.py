@@ -5,9 +5,10 @@ import rospy
 from autoware_msgs.msg import LaneArray
 from autoware_msgs.msg import lane as Lane
 from autoware_msgs.msg import waypoint as Waypoint
-from eventLoop import EventLoop
-from topic import Topic
-from const.autoware import AUTOWARE
+
+from ams import Topic
+from ams.nodes import EventLoop, Autoware
+from ams.messages import autoware_message
 
 
 class LaneArrayPublisher(EventLoop):
@@ -15,17 +16,17 @@ class LaneArrayPublisher(EventLoop):
         super(LaneArrayPublisher, self).__init__()
 
         self.autowarePublishTopic = Topic()
-        self.autowarePublishTopic.setID(name)
-        self.autowarePublishTopic.setRoot(AUTOWARE.TOPIC.PUBLISH)
-        self.autowarePublishTopic.load(AUTOWARE.TOPIC.MESSAGE_FILE)
+        self.autowarePublishTopic.set_id(name)
+        self.autowarePublishTopic.set_root(Autoware.TOPIC.PUBLISH)
+        self.autowarePublishTopic.set_message(autoware_message)
 
-        self.add_on_message_function(self.publishToROS)
-        self.setSubscriber(self.autowarePublishTopic.private+"/waypoints")
+        self.add_on_message_function(self.publish_to_ros)
+        self.set_subscriber(self.autowarePublishTopic.private+"/waypoints")
 
         rospy.init_node("ams_lane_array_publisher", anonymous=True)
-        self.__ROSPublisher = rospy.Publisher(AUTOWARE.ROSTOPIC.PUBLISH, LaneArray)
+        self.__ROSPublisher = rospy.Publisher(Autoware.ROSTOPIC.PUBLISH, LaneArray)
 
-    def publishToROS(self, client, userdata, topic, payload):
+    def publish_to_ros(self, client, userdata, topic, payload):
         if topic == self.autowarePublishTopic.private+"/waypoints":
             # print(message)
             waypointMessages = self.autowarePublishTopic.unserialize(payload)
@@ -51,9 +52,3 @@ class LaneArrayPublisher(EventLoop):
             laneArray.lanes = [lane]
             self.__ROSPublisher.publish(laneArray)
 
-
-if __name__ == '__main__':
-    import sys
-    laneArrayPublisher = LaneArrayPublisher(name=sys.argv[1])
-    print("laneArrayPublisher {} on {}".format(laneArrayPublisher.getEventLoopID(), laneArrayPublisher.getPid()))
-    laneArrayPublisher.start()
