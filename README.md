@@ -5,6 +5,7 @@
 ## Requirements
 
 ## Installing
+python setup.py install
 
 ## Running
 
