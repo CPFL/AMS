@@ -18,12 +18,12 @@ message = {
                 "time": None,
                 "waypoint_id": None
             },
-            "arrow_ids": None
+            "arrow_codes": None
         }
     }],
     "pose": {
         "time": None,
-        "arrow_id": None,
+        "arrow_code": None,
         "position": {
             "time": None,
             "lat": None,

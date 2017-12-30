@@ -28,7 +28,7 @@ class SimTaxi(SimCar):
         current_time = time()
         # print("SimTaxi.update_status", self.state)
         if self.state == SimTaxi.STATE.STANDBY:
-            print(SimTaxi.STATE.STANDBY, len(self.schedules))
+            # print(SimTaxi.STATE.STANDBY, len(self.schedules))
             if 1 < len(self.schedules):
                 self.schedules.pop(0)
 
@@ -37,16 +37,16 @@ class SimTaxi(SimCar):
                 self.schedules[0]["start_time"] += dif_time
                 self.schedules[0]["duration_time"] = dif_time
 
-                print(self.schedules[0])
+                # print(self.schedules[0])
                 self.state = SimTaxi.STATE.MOVE_TO_USER
 
         elif self.state == SimTaxi.STATE.MOVE_TO_USER:
             self.update_pose()
             if self.is_achieved():
-                print("*** arrival ***")
+                # print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
                 self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -57,8 +57,8 @@ class SimTaxi(SimCar):
 
                 self.state = SimTaxi.STATE.STOP_FOR_PICKING_UP
             else:
-                arrow_ids = self.schedules[0]["route"]["arrow_ids"]
-                self.schedules[0]["route"]["arrow_ids"] = arrow_ids[arrow_ids.index(self.arrow_id):]
+                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
 
         elif self.state == SimTaxi.STATE.STOP_FOR_PICKING_UP:
             if self.schedules[0]["action"] == Vehicle.ACTION.MOVE or \
@@ -74,10 +74,10 @@ class SimTaxi(SimCar):
         elif self.state == SimTaxi.STATE.MOVE_TO_USER_DESTINATION:
             self.update_pose()
             if self.is_achieved():
-                print("*** arrival ***")
+                # print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
                 self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -88,8 +88,8 @@ class SimTaxi(SimCar):
 
                 self.state = SimTaxi.STATE.STOP_FOR_DISCHARGING
             else:
-                arrow_ids = self.schedules[0]["route"]["arrow_ids"]
-                self.schedules[0]["route"]["arrow_ids"] = arrow_ids[arrow_ids.index(self.arrow_id):]
+                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
 
         elif self.state == SimTaxi.STATE.STOP_FOR_DISCHARGING:
             if self.schedules[0]["start_time"] + self.schedules[0]["duration"] < current_time:

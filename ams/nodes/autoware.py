@@ -45,10 +45,10 @@ class Autoware(Vehicle):
             if 0 <= message["index"] < len(self.current_poses):
                 self.pose_index = message["index"]
                 print(self.current_poses[self.pose_index])
-                self.arrow_id = self.current_poses[self.pose_index]["arrow_id"]
+                self.arrow_code = self.current_poses[self.pose_index]["arrow_code"]
                 self.waypoint_id = self.current_poses[self.pose_index]["waypoint_id"]
                 self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
             else:
                 print("Lost Autoware.")
 
@@ -60,7 +60,7 @@ class Autoware(Vehicle):
         arrow_waypoint_array = self.route.get_arrow_waypoint_array({
             "start_waypoint_id": schedule["route"]["start"]["waypoint_id"],
             "goal_waypoint_id": schedule["route"]["goal"]["waypoint_id"],
-            "arrow_ids": schedule["route"]["arrow_ids"]
+            "arrow_codes": schedule["route"]["arrow_codes"]
         })
         for arrowWaypoint in arrow_waypoint_array:
             waypoint_id = arrowWaypoint["waypoint_id"]
