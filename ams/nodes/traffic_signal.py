@@ -46,7 +46,7 @@ class TrafficSignal(EventLoop):
         self.set_subscriber(self.trafficSignalSubscribeTopic.private+"/routes")
         self.set_subscriber(self.trafficSignalSubscribeTopic.private+"/schedules")
         self.set_subscriber(self.trafficSignalSubscribeTopic.private+"/cycles")
-        self.set_main_loop(self.__mainLoop)
+        self.set_main_loop(self.__main_loop)
 
     def publish_status(self):
         message = self.trafficSignalPublishTopic.get_template()

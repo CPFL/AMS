@@ -4,9 +4,9 @@
 from ams import Waypoint, Arrow, Route
 from ams.nodes import FleetManager
 
-WAYPOINT_FILE = "../res/waypoint.json"
-ARROW_FILE = "../res/arrow.json"
-ROUTE_FILE = "../res/route.json"
+WAYPOINT_FILE = "../../res/waypoint.json"
+ARROW_FILE = "../../res/arrow.json"
+ROUTE_FILE = "../../res/route.json"
 
 if __name__ == '__main__':
     waypoint = Waypoint()

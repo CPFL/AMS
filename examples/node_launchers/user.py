@@ -5,7 +5,7 @@ import sys
 from ams import Waypoint
 from ams.nodes import User
 
-WAYPOINT_FILE = "../res/waypoint.json"
+WAYPOINT_FILE = "../../res/waypoint.json"
 
 
 if __name__ == '__main__':
