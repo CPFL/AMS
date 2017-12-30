@@ -58,7 +58,7 @@ class AutowareTaxi(Autoware):
                 print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
                 self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -69,8 +69,8 @@ class AutowareTaxi(Autoware):
 
                 self.state = AutowareTaxi.STATE.STOP_FOR_PICKING_UP
             else:
-                arrow_ids = self.schedules[0]["route"]["arrow_ids"]
-                self.schedules[0]["route"]["arrow_ids"] = arrow_ids[arrow_ids.index(self.arrow_id):]
+                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
 
         elif self.state == AutowareTaxi.STATE.STOP_FOR_PICKING_UP:
             if self.schedules[0]["action"] == Vehicle.ACTION.MOVE or \
@@ -91,7 +91,7 @@ class AutowareTaxi(Autoware):
                 print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
                 self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -102,8 +102,8 @@ class AutowareTaxi(Autoware):
 
                 self.state = AutowareTaxi.STATE.STOP_FOR_DISCHARGING
             else:
-                arrow_ids = self.schedules[0]["route"]["arrow_ids"]
-                self.schedules[0]["route"]["arrow_ids"] = arrow_ids[arrow_ids.index(self.arrow_id):]
+                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
 
         elif self.state == AutowareTaxi.STATE.STOP_FOR_DISCHARGING:
             if self.schedules[0]["start_time"] + self.schedules[0]["duration"] < current_time:

@@ -93,7 +93,7 @@ class User(EventLoop):
         self.__goal_waypoint_id = goal_waypoint_id
 
     def update_action(self, _client, _userdata, topic, payload):
-        print(topic)
+        # print(topic)
         if topic == self.topicUserSubscribe.private+"/schedules":
             message = self.topicUserSubscribe.unserialize(payload)
             self.action = message["schedules"][0]["action"]
@@ -104,7 +104,7 @@ class User(EventLoop):
             self.event = message["event"]
 
     def update_status(self):
-        print(self.state, self.event, self.action)
+        # print(self.state, self.event, self.action)
         if self.state == User.STATE.LOGIN:
             if self.action == User.ACTION.WAIT:
                 self.state = User.STATE.WAITING
@@ -132,3 +132,4 @@ class User(EventLoop):
             sleep(self.dt)
             self.update_status()
             self.publish_status()
+        sleep(2)

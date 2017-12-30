@@ -1,37 +1,26 @@
 # Autoware-Management-System
+Open-source software for the fleet management and simulation system of vehicles powered by Autoware.
 
-[demo2](https://drive.google.com/open?id=1tFfS3x77OTAZ2zB2cgNi74JiX2px8N__)
+[![Autoware Taxi](http://drive.google.com/uc?export=view&id=1liFH9UgKBOVA7zZDmJQhCUcoCYG2eDEs)](https://drive.google.com/file/d/1wLBVNnebWPo6zA8Bcraoo0q2_lMYRAVx/view)
+
+[![Sim Taxi](http://drive.google.com/uc?export=view&id=1j_DvBoJ1yivr1UzUhhRdUCUPadhdL9rf)](https://drive.google.com/open?id=1tFfS3x77OTAZ2zB2cgNi74JiX2px8N__)
 
 ## Requirements
 
+- mqtt broker ( ex. mosquitto )
+
 ## Installing
+
+```
 python setup.py install
+```
 
 ## Running
 
-* Please pre-execution mosquitto
+1. Launch Flask server and nodes(fleet_manager, vehicle, user, traffic_signal).
 
-launch flask server
-```
-src$ python router.py
-```
-
-launch vehicle
-```
-src$ python vehicle.py vehicle1
+```terminal
+examples/sim_taxi $ python launcher.py
 ```
 
-launch fleetManager
-```
-src$ python fleetManager.py
-```
-
-launch trafficSignal
-```
-src$ python trafficSignal.py 599
-```
-
-launch user
-```
-src$ python user.py user1
-```
+2. Access localhost:5000

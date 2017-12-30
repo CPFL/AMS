@@ -63,9 +63,9 @@ class Vehicle(EventLoop):
         self.schedules = schedules
         self.dt = dt
 
-        self.arrow_id = self.arrow.get_arrow_ids_from_waypoint_id(waypoint_id)[0]
+        self.arrow_code = self.arrow.get_arrow_codes_from_waypoint_id(waypoint_id)[0]
         self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
-        self.yaw = self.arrow.get_heading(self.arrow_id, self.waypoint_id)
+        self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
 
         self.add_on_message_function(self.update_schedules)
         self.add_on_message_function(self.update_event)
@@ -81,7 +81,7 @@ class Vehicle(EventLoop):
         message["pose"]["position"]["lat"] = self.lat
         message["pose"]["position"]["lng"] = self.lng
         message["pose"]["orientation"]["yaw"] = self.yaw
-        message["pose"]["arrow_id"] = self.arrow_id
+        message["pose"]["arrow_code"] = self.arrow_code
         message["pose"]["position"]["waypoint_id"] = self.waypoint_id
         message["schedules"] = self.schedules
         # message["schedules"][0]["action"] = self.action

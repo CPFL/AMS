@@ -3,10 +3,15 @@
 from math import hypot
 import json
 from sys import float_info
+
+from ams import Arrow
+
 METER_PER_BL = 100749.999999999998464
 
 
 class Route(object):
+    DELIMITER = ":"
+
     def __init__(self):
         self.__getRouteCost = self.get_route_length
         self.__waypoint = None
@@ -25,7 +30,7 @@ class Route(object):
 
     def set_cost_function(self, cost_function):
         """
-        cost_function(arg = route{"start_waypoint_id": X, "goal_waypoint_id": X, "arrow_ids": X})
+        cost_function(arg = route{"start_waypoint_id": X, "goal_waypoint_id": X, "arrow_codes": X})
         :param cost_function: 
         :return: 
         """
@@ -39,21 +44,21 @@ class Route(object):
     def get_fixed_route(self, route_code):
         return self.__fixed_routes[route_code]
 
-    def __arrow_id_to_route(self, arrow_id):
-        arrow = self.__arrows[arrow_id]
+    def __arrow_code_to_route(self, arrow_code):
+        arrow = self.__arrows[arrow_code]
         return {
             "start_waypoint_id": arrow["waypointIDs"][0],
             "goal_waypoint_id": arrow["waypointIDs"][-1],
-            "arrow_ids": [arrow_id]
+            "arrow_codes": [arrow_code]
         }
 
     def get_arrow_waypoint_array(self, route):
-        arrow_ids = route["arrow_ids"]
+        arrow_codes = route["arrow_codes"]
         start_waypoint_id = route["start_waypoint_id"]
         goal_waypoint_id = route["goal_waypoint_id"]
         arrow_waypoint_array = []
-        for arrow_id in arrow_ids:
-            waypoint_ids = self.__arrows[arrow_id]["waypointIDs"]
+        for arrow_code in arrow_codes:
+            waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
             js = 0
             if start_waypoint_id in waypoint_ids:
                 js = waypoint_ids.index(start_waypoint_id)
@@ -61,18 +66,18 @@ class Route(object):
             if goal_waypoint_id in waypoint_ids:
                 je = waypoint_ids.index(goal_waypoint_id) + 1
             for i in range(js+1, je):
-                arrow_waypoint_array.append({"waypoint_id": waypoint_ids[i - 1], "arrow_id": arrow_id})
-            if arrow_id == arrow_ids[-1]:
-                arrow_waypoint_array.append({"waypoint_id": waypoint_ids[je - 1], "arrow_id": arrow_id})
+                arrow_waypoint_array.append({"waypoint_id": waypoint_ids[i - 1], "arrow_code": arrow_code})
+            if arrow_code == arrow_codes[-1]:
+                arrow_waypoint_array.append({"waypoint_id": waypoint_ids[je - 1], "arrow_code": arrow_code})
         return arrow_waypoint_array
 
     def get_route_waypoint_ids(self, route):
-        arrow_ids = route["arrow_ids"]
+        arrow_codes = route["arrow_codes"]
         start_waypoint_id = route["start_waypoint_id"]
         goal_waypoint_id = route["goal_waypoint_id"]
         route_waypoint_ids = []
-        for arrow_id in arrow_ids:
-            waypoint_ids = self.__arrows[arrow_id]["waypointIDs"]
+        for arrow_code in arrow_codes:
+            waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
             js = 0
             if start_waypoint_id in waypoint_ids:
                 js = waypoint_ids.index(start_waypoint_id)
@@ -81,17 +86,17 @@ class Route(object):
                 je = waypoint_ids.index(goal_waypoint_id) + 1
             for i in range(js+1, je):
                 route_waypoint_ids.append(waypoint_ids[i - 1])
-            if arrow_id == arrow_ids[-1]:
+            if arrow_code == arrow_codes[-1]:
                 route_waypoint_ids.append(waypoint_ids[je - 1])
         return route_waypoint_ids
 
     def get_route_length(self, route):
-        arrow_ids = route["arrow_ids"]
+        arrow_codes = route["arrow_codes"]
         start_waypoint_id = route["start_waypoint_id"]
         goal_waypoint_id = route["goal_waypoint_id"]
         length = 0.0
-        for arrow_id in arrow_ids:
-            waypoint_ids = self.__arrows[arrow_id]["waypointIDs"]
+        for arrow_code in arrow_codes:
+            waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
             js = 0
             if start_waypoint_id in waypoint_ids:
                 js = waypoint_ids.index(start_waypoint_id)
@@ -100,7 +105,7 @@ class Route(object):
                 je = waypoint_ids.index(goal_waypoint_id) + 1
 
             if js == 0 and je == len(waypoint_ids):
-                length += self.__arrows[arrow_id]["length"]
+                length += self.__arrows[arrow_code]["length"]
             else:
                 for i in range(js+1, je):
                     waypoint1 = self.__waypoints[waypoint_ids[i - 1]]
@@ -109,8 +114,8 @@ class Route(object):
                         waypoint1["lat"] - waypoint2["lat"], waypoint1["lng"] - waypoint2["lng"])
         return length
 
-    def __is_directly_reach(self, arrow_id, start_waypoint_id, goal_waypoint_id, reverse):
-        waypoint_ids = self.__arrows[arrow_id]["waypointIDs"]
+    def __is_directly_reach(self, arrow_code, start_waypoint_id, goal_waypoint_id, reverse):
+        waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
         is_directly_reach = waypoint_ids.index(start_waypoint_id) <= waypoint_ids.index(goal_waypoint_id)
         return is_directly_reach if not reverse else not is_directly_reach
 
@@ -124,14 +129,14 @@ class Route(object):
         return distance
 
     def get_sliced_route(self, route, length):
-        arrow_ids = route["arrow_ids"]
+        arrow_codes = route["arrow_codes"]
         start_waypoint_id = route["start_waypoint_id"]
         goal_waypoint_id = route["goal_waypoint_id"]
         total_length = 0.0
         sliced_goal_waypoint_id = start_waypoint_id
-        sliced_arrow_ids = []
-        for arrow_id in arrow_ids:
-            waypoint_ids = self.__arrows[arrow_id]["waypointIDs"]
+        sliced_arrow_codes = []
+        for arrow_code in arrow_codes:
+            waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
             js = 0
             if start_waypoint_id in waypoint_ids:
                 js = waypoint_ids.index(start_waypoint_id)
@@ -147,10 +152,10 @@ class Route(object):
                     return {
                         "start_waypoint_id": start_waypoint_id,
                         "goal_waypoint_id": sliced_goal_waypoint_id,
-                        "arrow_ids": sliced_arrow_ids
+                        "arrow_codes": sliced_arrow_codes
                     }
-                if len(sliced_arrow_ids) == 0 or sliced_arrow_ids[-1] != arrow_id:
-                    sliced_arrow_ids.append(arrow_id)
+                if len(sliced_arrow_codes) == 0 or sliced_arrow_codes[-1] != arrow_code:
+                    sliced_arrow_codes.append(arrow_code)
                 sliced_goal_waypoint_id = waypoint_ids[i]
 
         return route
@@ -178,35 +183,35 @@ class Route(object):
         # Dijkstra's algorithm
         """
         next_arrows = self.__arrow.get_to_arrows()
-        waypoint_id_end = self.__arrows[start["arrow_id"]]["waypointIDs"][-1]
+        waypoint_id_end = self.__arrows[start["arrow_code"]]["waypointIDs"][-1]
         local_start_waypoint_id = start["waypoint_id"]
         local_goal_waypoint_id = waypoint_id_end
         if reverse:
             next_arrows = self.__arrow.get_from_arrows()
-            waypoint_id_end = self.__arrows[start["arrow_id"]]["waypointIDs"][0]
+            waypoint_id_end = self.__arrows[start["arrow_code"]]["waypointIDs"][0]
             local_start_waypoint_id = waypoint_id_end
             local_goal_waypoint_id = start["waypoint_id"]
 
         cost_start_to_end = self.__getRouteCost({
             "start_waypoint_id": local_start_waypoint_id,
             "goal_waypoint_id": local_goal_waypoint_id,
-            "arrow_ids": [start["arrow_id"]]
+            "arrow_codes": [start["arrow_code"]]
         })
 
         goal_arrow_candidates = self.__get_goal_arrow_candidates(goals, reverse)
 
-        checked_arrow_id = []
-        current_arrow_id = start["arrow_id"]
+        checked_arrow_code = []
+        current_arrow_code = start["arrow_code"]
 
-        end_arrows = {current_arrow_id: {"cost": cost_start_to_end, "prevArrows": []}}
+        end_arrows = {current_arrow_code: {"cost": cost_start_to_end, "prevArrows": []}}
         shortest_routes = {}
 
         # check same arrow
         for goal_points in goal_arrow_candidates.values():
             for goal_candidate in goal_points.values():
-                if start["arrow_id"] == goal_candidate["arrow_id"]:
+                if start["arrow_code"] == goal_candidate["arrow_code"]:
                     if self.__is_directly_reach(
-                            start["arrow_id"], start["waypoint_id"], goal_candidate["waypoint_id"], reverse):
+                            start["arrow_code"], start["waypoint_id"], goal_candidate["waypoint_id"], reverse):
                         print("both start and goal on same arrow. and reach directly")
                         local_start_waypoint_id = start["waypoint_id"]
                         local_goal_waypoint_id = goal_candidate["waypoint_id"]
@@ -216,40 +221,40 @@ class Route(object):
                         cost_start_to_goal = self.__getRouteCost({
                             "start_waypoint_id": local_start_waypoint_id,
                             "goal_waypoint_id": local_goal_waypoint_id,
-                            "arrow_ids": [start["arrow_id"]]
+                            "arrow_codes": [start["arrow_code"]]
                         })
                         shortest_routes[goal_candidate["goal_id"]] = {
                             "goal_id": goal_candidate["goal_id"],
                             "start_waypoint_id": start["waypoint_id"],
                             "goal_waypoint_id": goal_candidate["waypoint_id"],
                             "cost": cost_start_to_goal,
-                            "arrow_ids": [start["arrow_id"]],
+                            "arrow_codes": [start["arrow_code"]],
                         }
 
         while True:
-            next_arrow_ids = next_arrows[current_arrow_id]
+            next_arrow_codes = next_arrows[current_arrow_code]
 
-            if 0 == len(next_arrow_ids):
-                end_arrows[current_arrow_id]["cost"] = float_info.max
+            if 0 == len(next_arrow_codes):
+                end_arrows[current_arrow_code]["cost"] = float_info.max
 
                 end_arrows_filtered = dict(filter(lambda x: x[1]["cost"] < cost_limit, end_arrows.items()))
                 if len(end_arrows_filtered) == 0:
                     break
-                current_arrow_id = min(end_arrows_filtered.items(), key=lambda x: x[1]["cost"])[0]
+                current_arrow_code = min(end_arrows_filtered.items(), key=lambda x: x[1]["cost"])[0]
 
                 continue
 
-            for nextArrowID in next_arrow_ids:
-                if nextArrowID in checked_arrow_id and nextArrowID != start["arrow_id"]:
+            for nextArrowID in next_arrow_codes:
+                if nextArrowID in checked_arrow_code and nextArrowID != start["arrow_code"]:
                     continue
                 if nextArrowID in end_arrows:
                     continue
 
                 # update end_arrows
                 end_arrows[nextArrowID] = {
-                    "cost": end_arrows[current_arrow_id]["cost"] + self.__getRouteCost(
-                        self.__arrow_id_to_route(current_arrow_id)),
-                    "prevArrows": [current_arrow_id] + end_arrows[current_arrow_id]["prevArrows"]
+                    "cost": end_arrows[current_arrow_code]["cost"] + self.__getRouteCost(
+                        self.__arrow_code_to_route(current_arrow_code)),
+                    "prevArrows": [current_arrow_code] + end_arrows[current_arrow_code]["prevArrows"]
                 }
 
                 for goal_candidate in goal_arrow_candidates.get(nextArrowID, {}).values():
@@ -259,12 +264,12 @@ class Route(object):
                             "start_waypoint_id": start["waypoint_id"],
                             "goal_waypoint_id": goal_candidate["waypoint_id"],
                             "cost": end_arrows[nextArrowID]["cost"] + goal_candidate["cost"],
-                            "arrow_ids": [nextArrowID] + end_arrows[nextArrowID]["prevArrows"],
+                            "arrow_codes": [nextArrowID] + end_arrows[nextArrowID]["prevArrows"],
                         }
                         shortest_routes[goal_candidate["goal_id"]] = shortest_route
 
-            end_arrows.pop(current_arrow_id)
-            checked_arrow_id.append(current_arrow_id)
+            end_arrows.pop(current_arrow_code)
+            checked_arrow_code.append(current_arrow_code)
 
             if len(shortest_routes) == len(goal_arrow_candidates):
                 break
@@ -272,12 +277,12 @@ class Route(object):
             end_arrows_filtered = dict(filter(lambda x: x[1]["cost"] < cost_limit, end_arrows.items()))
             if len(end_arrows_filtered) == 0:
                 break
-            current_arrow_id = min(end_arrows_filtered.items(), key=lambda x: x[1]["cost"])[0]
+            current_arrow_code = min(end_arrows_filtered.items(), key=lambda x: x[1]["cost"])[0]
 
-        # reverse arrow_ids
+        # reverse arrow_codes
         if not reverse:
             for routeID in shortest_routes:
-                shortest_routes[routeID]["arrow_ids"].reverse()
+                shortest_routes[routeID]["arrow_codes"].reverse()
 
         return shortest_routes
 
@@ -290,31 +295,42 @@ class Route(object):
         goal_arrow_candidates = {}
         for goal in goals:
             goal_id = goal["goal_id"]
-            arrow_id = goal["arrow_id"]
+            arrow_code = goal["arrow_code"]
             if reverse:
-                end_waypoint_id = self.__arrows[arrow_id]["waypointIDs"][-1]
+                end_waypoint_id = self.__arrows[arrow_code]["waypointIDs"][-1]
             else:
-                end_waypoint_id = self.__arrows[arrow_id]["waypointIDs"][0]
+                end_waypoint_id = self.__arrows[arrow_code]["waypointIDs"][0]
             cost = self.__getRouteCost({
                 "start_waypoint_id": end_waypoint_id,
                 "goal_waypoint_id": goal["waypoint_id"],
-                "arrow_ids": [arrow_id]
+                "arrow_codes": [arrow_code]
             })
 
-            goal_points = goal_arrow_candidates.get(arrow_id, {})
+            goal_points = goal_arrow_candidates.get(arrow_code, {})
             goal_points[goal_id] = {
-                "arrow_id": arrow_id,
+                "arrow_code": arrow_code,
                 "goal_id": goal_id,
                 "waypoint_id": goal["waypoint_id"],
                 "cost": cost,
             }
-            goal_arrow_candidates[arrow_id] = goal_points
+            goal_arrow_candidates[arrow_code] = goal_points
 
         return goal_arrow_candidates
 
     @staticmethod
     def get_route_code(route):
-        arrow_ids_code = "_".join(
-            list(map(lambda x: x.split("/")[0], route["arrow_ids"])) + [route["arrow_ids"][-1].split("/")[-1]])
-        route_code = ":".join(map(str, [route["start_waypoint_id"], arrow_ids_code, route["goal_waypoint_id"]]))
+        joined_arrow_codes = Arrow.DELIMITER.join(list(map(
+            lambda x: x.split(Arrow.DELIMITER)[0],
+            route["arrow_codes"])) + [route["arrow_codes"][-1].split(Arrow.DELIMITER)[-1]])
+        route_code = Route.DELIMITER.join(map(
+            str, [route["start_waypoint_id"], joined_arrow_codes, route["goal_waypoint_id"]]))
         return route_code
+
+    @staticmethod
+    def split_route_code(route_code):
+        start_waypoint_id, joined_arrow_codes, goal_waypoint_id = route_code.split(Route.DELIMITER)
+        waypoint_ids = joined_arrow_codes.split(Arrow.DELIMITER)
+        arrow_codes = []
+        for i in range(1, len(waypoint_ids)):
+            arrow_codes.append(Arrow.DELIMITER.join(waypoint_ids[i-1:i+1]))
+        return start_waypoint_id, arrow_codes, goal_waypoint_id
