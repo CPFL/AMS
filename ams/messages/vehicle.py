@@ -21,18 +21,18 @@ message = {
             "arrow_codes": None
         }
     }],
+    "location": {
+        "time": None,
+        "waypoint_id": None,
+        "arrow_code": None,
+        "geohash": None,
+    },
     "pose": {
         "time": None,
-        "arrow_code": None,
         "position": {
-            "time": None,
-            "lat": None,
-            "lng": None,
-            "height": None,
             "x": None,
             "y": None,
             "z": None,
-            "waypoint_id": None
         },
         "orientation": {
             "time": None,

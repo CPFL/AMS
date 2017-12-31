@@ -13,14 +13,19 @@ from ams.messages import vehicle_message
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
-WAYPOINT_FILE = "../res/waypoint.json"
-ARROW_FILE = "../res/arrow.json"
+WAYPOINT_FILE = "../../res/waypoint.json"
+ARROW_FILE = "../../res/arrow.json"
+
 
 if __name__ == '__main__':
     start_waypoint_id = "9566"  # 9232
     waypoint = Waypoint()
     waypoint.load(WAYPOINT_FILE)
-    lat, lng = waypoint.get_latlng(start_waypoint_id)
+    arrow = Arrow()
+    arrow.load(ARROW_FILE)
+    route = Route()
+    route.set_waypoint(waypoint)
+    route.set_arrow(arrow)
 
     currentTime = time()
 
@@ -33,17 +38,10 @@ if __name__ == '__main__':
     schedules[0]["route"] = None
 
     # """
-    arrow = Arrow()
-    arrow.load(ARROW_FILE)
-    waypoint = Waypoint()
-    waypoint.load(WAYPOINT_FILE)
-    route = Route()
-    route.set_waypoint(waypoint)
-    route.set_arrow(arrow)
     next_start_waypoint_id = start_waypoint_id
     for i in range(10):
         start_point = {
-            "arrow_id": arrow.get_arrow_ids_from_waypoint_id(next_start_waypoint_id)[0],
+            "arrow_code": arrow.get_arrow_codes_from_waypoint_id(next_start_waypoint_id)[0],
             "waypoint_id": next_start_waypoint_id,
         }
         goal_waypoint_id = random.choice([
@@ -74,7 +72,7 @@ if __name__ == '__main__':
         goalID = "route" + goal_waypoint_id
         goal_points = [{
             "goal_id": goalID,
-            "arrow_id": arrow.get_arrow_ids_from_waypoint_id(goal_waypoint_id)[0],
+            "arrow_code": arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0],
             "waypoint_id": goal_waypoint_id,
         }]
         pp([start_point, goal_points])
@@ -88,7 +86,7 @@ if __name__ == '__main__':
         schedules[-1]["action"] = Vehicle.ACTION.MOVE
         schedules[-1]["route"]["start"]["waypoint_id"] = next_start_waypoint_id
         schedules[-1]["route"]["goal"]["waypoint_id"] = routes[goalID]["goal_waypoint_id"]
-        schedules[-1]["route"]["arrow_ids"] = routes[goalID]["arrow_ids"]
+        schedules[-1]["route"]["arrow_codes"] = routes[goalID]["arrow_codes"]
 
         next_start_waypoint_id = routes[goalID]["goal_waypoint_id"]
 
@@ -98,23 +96,13 @@ if __name__ == '__main__':
     schedules[-1]["action"] = Vehicle.STATE.STOP
     # """
 
-    waypoint = Waypoint()
-    waypoint.load("../res/waypoint.json")
-
-    arrow = Arrow(waypoint)
-    arrow.load("../res/arrow.json")
-
-    route = Route()
-    route.set_waypoint(waypoint)
-    route.set_arrow(arrow)
-
     vehicle = Vehicle(
         name=sys.argv[1],
         waypoint=waypoint,
         arrow=arrow,
         route=route,
         waypoint_id=start_waypoint_id,
-        velocity=0.00003333,
+        velocity=3.0,
         schedules=schedules,
         dt=0.5
     )

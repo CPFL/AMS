@@ -45,7 +45,7 @@ class SimTaxi(SimCar):
             if self.is_achieved():
                 # print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+                self.position = self.waypoint.get_position(self.waypoint_id)
                 self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
@@ -76,7 +76,7 @@ class SimTaxi(SimCar):
             if self.is_achieved():
                 # print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+                self.position = self.waypoint.get_position(self.waypoint_id)
                 self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 

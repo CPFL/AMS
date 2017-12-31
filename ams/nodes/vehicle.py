@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time, sleep
+from time import sleep
 import Geohash
 
 from ams import Topic
@@ -13,8 +13,6 @@ pp = PrettyPrinter(indent=2).pprint
 
 
 class Vehicle(EventLoop):
-
-    GEOHASH_PRECISION = 15
 
     class TOPIC(object):
         PUBLISH = "pub_vehicle"
@@ -59,12 +57,13 @@ class Vehicle(EventLoop):
         self.arrow = arrow
         self.route = route
         self.waypoint_id = waypoint_id
+        self.position = self.waypoint.get_position(self.waypoint_id)
         self.velocity = velocity
         self.schedules = schedules
         self.dt = dt
 
         self.arrow_code = self.arrow.get_arrow_codes_from_waypoint_id(waypoint_id)[0]
-        self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+        self.position = self.waypoint.get_position(self.waypoint_id)
         self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
 
         self.add_on_message_function(self.update_schedules)
@@ -74,21 +73,24 @@ class Vehicle(EventLoop):
         self.set_main_loop(self.__main_loop)
 
     def publish_status(self):
+        xyz = self.position.data[:]
         message = self.topicVehiclePublish.get_template()
         message["name"] = self.name
         message["state"] = self.state
         message["event"] = self.event
-        message["pose"]["position"]["lat"] = self.lat
-        message["pose"]["position"]["lng"] = self.lng
+        message["location"]["waypoint_id"] = self.waypoint_id
+        message["location"]["geohash"] = self.waypoint.get_geohash(self.waypoint_id)
+        message["location"]["arrow_code"] = self.arrow_code
+        message["pose"]["position"]["x"] = xyz[0]
+        message["pose"]["position"]["y"] = xyz[1]
+        message["pose"]["position"]["z"] = xyz[2]
         message["pose"]["orientation"]["yaw"] = self.yaw
-        message["pose"]["arrow_code"] = self.arrow_code
-        message["pose"]["position"]["waypoint_id"] = self.waypoint_id
         message["schedules"] = self.schedules
-        # message["schedules"][0]["action"] = self.action
         payload = self.topicVehiclePublish.serialize(message)
         self.publish(self.topicVehiclePublish.private, payload)
-        geohash = Geohash.encode(float(self.lat), float(self.lng), precision=Vehicle.GEOHASH_PRECISION)
-        self.publish(self.topicGeoVehiclePublish.root+"/"+"/".join(geohash), self.event_loop_id)
+        self.publish(
+            self.topicGeoVehiclePublish.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
+            self.event_loop_id)
 
     def update_schedules(self, _client, _userdata, topic, payload):
         if topic == self.topicVehicleSubscribe.private+"/schedules":

@@ -2,7 +2,8 @@
 # coding: utf-8
 
 import eventlet
-from flask import Flask, send_from_directory, jsonify, render_template
+from sys import float_info
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
@@ -56,12 +57,21 @@ def root():
 
 @app.route("/getViewData")
 def get_view_data():
-    waypoints = app.waypoint.get_waypoints()
+    waypoint_ids = app.waypoint.get_waypoint_ids()
+    waypoints = {}
     arrows = app.arrow.get_arrows()
-    lat_min = min(waypoints.values(), key=lambda x: x["lat"])["lat"]
-    lat_max = max(waypoints.values(), key=lambda x: x["lat"])["lat"]
-    lng_min = min(waypoints.values(), key=lambda x: x["lng"])["lng"]
-    lng_max = max(waypoints.values(), key=lambda x: x["lng"])["lng"]
+    lat_min, lng_min = float_info.max, float_info.max
+    lat_max, lng_max = 0.0, 0.0
+    for waypoint_id in waypoint_ids:
+        lat, lng = app.waypoint.get_latlng(waypoint_id)
+        lat_min = min(lat_min, lat)
+        lat_max = max(lat_max, lat)
+        lng_min = min(lng_min, lng)
+        lng_max = max(lng_max, lng)
+        waypoints[waypoint_id] = {
+            "geohash": app.waypoint.get_geohash(waypoint_id),
+            "position": dict(zip(["x", "y", "z"], app.waypoint.get_xyz(waypoint_id)))
+        }
     return api_response(code=200, message={
         "viewPoint": {
             "lat": 0.5*(lat_max + lat_min),
@@ -77,21 +87,6 @@ def get_view_data():
     })
 
 
-@app.route("/get_waypoints")
-def get_waypoints():
-    return api_response(code=200, message=app.waypoint.get_waypoints())
-
-
-@app.route("/get_arrows")
-def get_arrows():
-    return api_response(code=200, message=app.arrow.get_arrows())
-
-
-@app.route("/getIntersections")
-def get_intersections():
-    return api_response(code=200, message=app.intersection.getIntersections())
-
-
 @app.route("/requestFleetRelations")
 def request_fleet_relations():
     topic = Topic()
@@ -101,6 +96,7 @@ def request_fleet_relations():
     message["action"] = FleetManager.ACTION.PUBLISH_RELATIONS
     mqtt.publish(topic.root, topic.serialize(message))
     return api_response(code=200, message={"result": "requested"})
+
 
 @socketio.on('message')
 def handle_message(message):

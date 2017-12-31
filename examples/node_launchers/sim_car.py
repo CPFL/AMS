@@ -13,9 +13,9 @@ from ams.messages import vehicle_message
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
-WAYPOINT_FILE = "../res/waypoint.json"
-ARROW_FILE = "../res/arrow.json"
-INTERSECTION_FILE = "../res/intersection.json"
+WAYPOINT_FILE = "../../res/waypoint.json"
+ARROW_FILE = "../../res/arrow.json"
+INTERSECTION_FILE = "../../res/intersection.json"
 
 
 if __name__ == '__main__':
@@ -33,7 +33,6 @@ if __name__ == '__main__':
     intersection.load(INTERSECTION_FILE)
 
     start_waypoint_id = "9566"  # 9232
-    lat, lng = waypoint.get_latlng(start_waypoint_id)
 
     currentTime = time()
 
@@ -45,12 +44,11 @@ if __name__ == '__main__':
     schedules[0]["action"] = Vehicle.ACTION.STOP
     # schedules[0]["route"] = None
 
-
     # """
     next_start_waypoint_id = start_waypoint_id
     for i in range(10):
         startPoint = {
-            "arrow_id": arrow.get_arrow_ids_from_waypoint_id(next_start_waypoint_id)[0],
+            "arrow_code": arrow.get_arrow_codes_from_waypoint_id(next_start_waypoint_id)[0],
             "waypoint_id": next_start_waypoint_id,
         }
         goalWaypointID = random.choice([
@@ -73,7 +71,7 @@ if __name__ == '__main__':
         goalID = "route" + goalWaypointID
         goalPoints = [{
             "goal_id": goalID,
-            "arrow_id": arrow.get_arrow_ids_from_waypoint_id(goalWaypointID)[0],
+            "arrow_code": arrow.get_arrow_codes_from_waypoint_id(goalWaypointID)[0],
             "waypoint_id": goalWaypointID,
         }]
         # pp([startPoint, goalPoints])
@@ -87,8 +85,8 @@ if __name__ == '__main__':
         schedules[-1]["action"] = Vehicle.ACTION.MOVE
         schedules[-1]["route"]["start"]["waypoint_id"] = next_start_waypoint_id
         schedules[-1]["route"]["goal"]["waypoint_id"] = routes[goalID]["goal_waypoint_id"]
-        schedules[-1]["route"]["arrow_ids"] = routes[goalID]["arrow_ids"]
-        print(schedules[-1]["action"], schedules[-1]["route"]["arrow_ids"][0], schedules[-1]["route"]["arrow_ids"][-1])
+        schedules[-1]["route"]["arrow_codes"] = routes[goalID]["arrow_codes"]
+        print(schedules[-1]["action"], schedules[-1]["route"]["arrow_codes"][0], schedules[-1]["route"]["arrow_codes"][-1])
 
         next_start_waypoint_id = routes[goalID]["goal_waypoint_id"]
 
@@ -107,7 +105,7 @@ if __name__ == '__main__':
         route=route,
         intersection=intersection,
         waypoint_id=start_waypoint_id,
-        velocity=0.00003333,
+        velocity=3.0,
         schedules=schedules,
         dt=0.5
     )

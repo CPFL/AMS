@@ -77,25 +77,27 @@ function setUser(userID, message) {
     const user = JSON.parse(message);
     user.userID = userID;
     user.toID = null;
-    if(Object.keys(fleetStatus.relations).includes(userID))
-    {
-        user.toID = fleetStatus.relations[userID];
-    }
-    switch (user.state) {
-        case "waiting":
-            user.color = "#FF0000";
-            break;
-        case "moving":
-            user.color = "#00a3e0";
-            break;
-        case "gettingOn":
-        case "gettingOut":
-            user.color = "#00FF00";
-            break;
-        case "login":
-        default:
-            user.color = "#000000";
-            break;
+    if(Object.keys(fleetStatus).includes("relations")) {
+        if(Object.keys(fleetStatus.relations).includes(userID))
+        {
+            user.toID = fleetStatus.relations[userID];
+        }
+        switch (user.state) {
+            case "waiting":
+                user.color = "#FF0000";
+                break;
+            case "moving":
+                user.color = "#00a3e0";
+                break;
+            case "gettingOn":
+            case "gettingOut":
+                user.color = "#00FF00";
+                break;
+            case "login":
+            default:
+                user.color = "#000000";
+                break;
+        }
     }
     users[userID] = user;
 }
@@ -129,16 +131,13 @@ function setTrafficSignals(trafficSignalID, message) {
 function drawUsers() {
     for(const key in users) {
         const waypoint = viewData.waypoints[users[key].schedules[0].start.waypoint_id];
+        let latLng = geohashToLatLng(waypoint.geohash);
         const goalWaypoint = viewData.waypoints[users[key].schedules[0].goal.waypoint_id];
-        const goalLat = goalWaypoint.lat;
-        const goalLng = goalWaypoint.lng;
+        const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
 
         if(waypoint === undefined) { continue; }
-        let lat = waypoint.lat;
-        let lng = waypoint.lng;
         if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut", "gotOut"].includes(users[key].state)) {
-            lat = vehicles[users[key].toID].pose.position.lat;
-            lng = vehicles[users[key].toID].pose.position.lng;
+            latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
         }
 
         if (users[key].state == "gotOut") {
@@ -152,7 +151,7 @@ function drawUsers() {
         }
 
         if (key in userMarkers) {
-            userMarkers[key]["icon"].setPosition( new google.maps.LatLng( lat, lng ) );
+            userMarkers[key]["icon"].setPosition( latLng );
             userMarkers[key]["icon"].setIcon({
                 url: "http://download.seaicons.com/icons/custom-icon-design/mono-business/24/user-icon.png",
                 size: new google.maps.Size(20, 32),
@@ -164,7 +163,7 @@ function drawUsers() {
             userMarkers[key] = {
                 "icon": new google.maps.Marker({
                     label: users[key].name,
-                    position: {lat: lat, lng: lng},
+                    position: latLng,
                     map: map,
                     draggable: false,
                     icon: {
@@ -178,7 +177,7 @@ function drawUsers() {
                     }
                 }),
                 "destination": new google.maps.Polyline({
-                    path: [{lat: lat, lng: lng}, {lat: goalLat, lng: goalLng}],
+                    path: [latLng, goalLatLng],
                     icons: [{
                         icon: {
                             path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
@@ -198,12 +197,10 @@ function drawUsers() {
 
 function drawTrafficSignal(routeCode, color) {
     const route = getRouteFromRouteCode(routeCode);
-    console.log(route, color);
     trafficSignalPolylines[routeCode] = drawRoute(route, color, strokeWidth=5, strokeOpacity=1.0);
 }
 
 function drawTrafficSignals() {
-    console.log(trafficSignals);
     for(const trafficSignalID in trafficSignals) {
         for (const route of trafficSignals[trafficSignalID].routes) {
             if (route.route_code in trafficSignalPolylines) {
@@ -237,9 +234,14 @@ function drawTrafficSignals() {
     }
 }
 
+function geohashToLatLng(geohash) {
+    const latLng3 = decodeGeoHash(geohash);
+    return {"lat": latLng3.latitude[2], "lng": latLng3.longitude[2]};
+}
+
 function drawVehicles() {
     for(const key in vehicles) {
-        const latLng = new google.maps.LatLng( vehicles[key].pose.position.lat, vehicles[key].pose.position.lng );
+        const latLng = new google.maps.LatLng( geohashToLatLng(vehicles[key].location.geohash) );
         if( key in vehicleMarkers ) {
             vehicleMarkers[key].setPosition( latLng );
             vehicleMarkers[key].setLabel(vehicles[key].name+"@"+vehicles[key].state);
@@ -335,10 +337,7 @@ function drawAutowareWaypoints() {
                 }
                 for(let j=js; j<je; j++) {
                     const waypoint_id = viewData.arrows[arrowCode].waypointIDs[j];
-                    centers.push({
-                        lat: viewData.waypoints[waypoint_id].lat,
-                        lng: viewData.waypoints[waypoint_id].lng
-                    });
+                    centers.push(geohashToLatLng(viewData.waypoints[waypoint_id].geohash));
                 }
             }
             for(const key in centers) {
@@ -389,10 +388,7 @@ function getRoutePaths(route) {
         }
         for(let j=js; j<je; j++) {
             const waypoint_id = viewData.arrows[arrowCode].waypointIDs[j];
-            paths.push({
-                lat: viewData.waypoints[waypoint_id].lat,
-                lng: viewData.waypoints[waypoint_id].lng
-            });
+            paths.push(geohashToLatLng(viewData.waypoints[waypoint_id].geohash));
         }
     }
     return paths;
@@ -424,10 +420,7 @@ function drawArrows() {
     for(const key in arrows) {
         let path = [];
         for(const waypoint_id of arrows[key].waypointIDs) {
-            path.push({
-                lat: viewData.waypoints[waypoint_id].lat,
-                lng: viewData.waypoints[waypoint_id].lng
-            });
+            path.push(geohashToLatLng(viewData.waypoints[waypoint_id].geohash));
         }
 
         var arrow = new google.maps.Polyline({
