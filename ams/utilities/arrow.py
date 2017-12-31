@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-import math
-import json
 
+import json
+import numpy as np
 
 class Arrow(object):
     DELIMITER = "_"
@@ -40,84 +40,68 @@ class Arrow(object):
         return self.__arrows[arrow_code]["waypointIDs"]
 
     @staticmethod
-    def get_approximate_distance(lat1, lng1, lat2, lng2):
-        distance = math.hypot(lat1-lat2, lng1-lng2)
-        return distance
+    def get_distance(position1, position2):
+        return np.linalg.norm(np.subtract(position1, position2))
 
     def get_heading(self, arrow_code, waypoint_id):
         waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
         index = waypoint_ids.index(waypoint_id)
-        lat1, lng1 = self.waypoint.get_latlng(waypoint_ids[max([0, index - 1])])
-        lat2, lng2 = self.waypoint.get_latlng(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])])
-        return 180+math.degrees(math.atan2(lng1 - lng2, lat1 - lat2))
+        sub_position = np.subtract(
+            self.waypoint.get_position(waypoint_ids[max([0, index - 1])]),
+            self.waypoint.get_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])]))
+        return 180+np.degrees(np.arctan2(sub_position[0], sub_position[1]))
 
-    def get_arrow_heading(self, arrow_code):
-        """
-        arrowの方角(deg)取得。
-        :param arrow_code:
-        :return:
-        """
-        return 180+math.degrees(math.atan2(
-            self.__arrows[arrow_code]["lng1"] - self.__arrows[arrow_code]["lng2"],
-            self.__arrows[arrow_code]["lat1"] - self.__arrows[arrow_code]["lat2"]
-        ))
-
-    def get_point_to_edge(self, point_lat, point_lng, edge_lat1, edge_lng1, edge_lat2, edge_lng2):
-        lat12 = edge_lat2 - edge_lat1
-        lng12 = edge_lng2 - edge_lng1
-        lat1p = point_lat - edge_lat1
-        lng1p = point_lng - edge_lng1
+    def get_point_to_edge(self, point_position, edge_position1, edge_position2):
+        vector_12 = np.subtract(edge_position2, edge_position1)
+        vector_1p = np.subtract(point_position, edge_position1)
 
         # get unit vector
-        len12 = math.hypot(lat12, lng12)
-        u_lat12 = lat12 / len12
-        u_lng12 = lng12 / len12
+        len_12 = np.linalg.norm(vector_12)
+        unit_vector_12 = vector_12 / len_12
 
         # dot product
-        distance1x = u_lat12 * lat1p + u_lng12 * lng1p
-        if len12 < distance1x:
-            return edge_lat2, edge_lng2, self.get_approximate_distance(point_lat, point_lng, edge_lat2, edge_lng2)
+        distance1x = np.dot(unit_vector_12, vector_1p)
+        if len_12 < distance1x:
+            return edge_position2, self.get_distance(point_position, edge_position2)
         elif distance1x < 0.0:
-            return edge_lat1, edge_lng1, self.get_approximate_distance(point_lat, point_lng, edge_lat1, edge_lng1)
+            return edge_position1, self.get_distance(point_position, edge_position1)
         else:
-            lat = edge_lat1 + (u_lat12 * distance1x)
-            lng = edge_lng1 + (u_lng12 * distance1x)
-            return lat, lng, self.get_approximate_distance(point_lat, point_lng, lat, lng)
+            distance1x_vector_12 = unit_vector_12 * distance1x
+            position = np.add(edge_position1, distance1x_vector_12)
+            return position, self.get_distance(point_position, position)
 
-    def get_point_to_arrow(self, point_lat, point_lng, arrow_code):
+    def get_point_to_arrow(self, point_position, arrow_code):
         matched_waypoints = {}
-        prev_lat, prev_lng = None, None
+        prev_position = None
         for waypoint_id in self.__arrows[arrow_code]["waypointIDs"]:
-            lat, lng = self.waypoint.get_latlng(waypoint_id)
-            if None not in [prev_lat, prev_lng]:
-                lat_on_edge, lng_on_edge, distance = self.get_point_to_edge(
-                    point_lat, point_lng, prev_lat, prev_lng, lat, lng)
+            position = self.waypoint.get_position(waypoint_id)
+            if prev_position is not None:
+                position_on_edge, distance = self.get_point_to_edge(point_position, prev_position, position)
                 matched_waypoints[waypoint_id] = {
                     "waypoint_id": waypoint_id,
-                    "lat": lat_on_edge,
-                    "lng": lng_on_edge,
+                    "position": position_on_edge,
                     "distance": distance
                 }
-            prev_lat, prev_lng = lat, lng
+            prev_position = position
 
         if len(matched_waypoints) == 0:
             raise Exception
 
         most_matched_waypoint = min(matched_waypoints.values(), key=lambda x: x["distance"])
-        return most_matched_waypoint["waypoint_id"], most_matched_waypoint["lat"], most_matched_waypoint["lng"], \
+        return most_matched_waypoint["waypoint_id"], \
+            most_matched_waypoint["position"], \
             most_matched_waypoint["distance"]
 
-    def get_point_to_arrows(self, point_lat, point_lng, arrows=None):
+    def get_point_to_arrows(self, point_position, arrows=None):
         matched_waypoints = {}
         if arrows is None:
             arrows = self.__arrows
         for arrow_code in arrows:
-            waypoint_id, lat, lng, distance = self.get_point_to_arrow(point_lat, point_lng, arrow_code)
+            waypoint_id, position, distance = self.get_point_to_arrow(point_position, arrow_code)
             matched_waypoints[waypoint_id] = {
                 "arrow_code": arrow_code,
                 "waypoint_id": waypoint_id,
-                "lat": lat,
-                "lng": lng,
+                "position": position,
                 "distance": distance
             }
 
@@ -125,95 +109,42 @@ class Arrow(object):
             raise Exception
 
         most_matched_waypoint = min(matched_waypoints.values(), key=lambda x: x["distance"])
-        return most_matched_waypoint["arrow_code"], most_matched_waypoint["waypoint_id"], most_matched_waypoint["lat"], \
-            most_matched_waypoint["lng"], most_matched_waypoint["distance"]
+        return most_matched_waypoint["arrow_code"],\
+            most_matched_waypoint["waypoint_id"],\
+            most_matched_waypoint["position"], \
+            most_matched_waypoint["distance"]
 
-    def get_advanced_latlng_in_arrow(self, lat, lng, delta_distance, arrow_code, next_waypoint_id=None):
+    def get_advanced_position_in_arrow(self, position, delta_distance, arrow_code, next_waypoint_id=None):
         if next_waypoint_id is None:
-            next_waypoint_id, lat_on_edge, lng_on_edge, _ = self.get_point_to_arrow(lat, lng, arrow_code)
+            next_waypoint_id, position_on_edge, _ = self.get_point_to_arrow(position, arrow_code)
         else:
-            lat_on_edge, lng_on_edge = lat, lng
+            position_on_edge = position
 
-        next_lat, next_lng = self.waypoint.get_latlng(next_waypoint_id)
-        remaining_distance = self.get_approximate_distance(lat_on_edge, lng_on_edge, next_lat, next_lng)
+        next_position = self.waypoint.get_position(next_waypoint_id)
+        remaining_distance = self.get_distance(position_on_edge, next_position)
         if delta_distance <= remaining_distance:
-            lat12 = next_lat - lat_on_edge
-            lng12 = next_lng - lng_on_edge
-            len12 = math.hypot(lat12, lng12)
-            u_lat12 = lat12 / len12
-            u_lng12 = lng12 / len12
-            advanced_lat = lat_on_edge + (u_lat12 * delta_distance)
-            advanced_lng = lng_on_edge + (u_lng12 * delta_distance)
-            return advanced_lat, advanced_lng, 0.0
+            vector_12 = np.subtract(next_position, position_on_edge)
+            advanced_position = np.add(
+                position_on_edge, delta_distance * vector_12 / np.linalg.norm(vector_12))
+            return advanced_position, 0.0
         else:
             waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
             index = waypoint_ids.index(next_waypoint_id) + 1
             if index == len(waypoint_ids):
-                return next_lat, next_lng, delta_distance - remaining_distance
-            return self.get_advanced_latlng_in_arrow(
-                next_lat, next_lng, delta_distance - remaining_distance, arrow_code, waypoint_ids[index])
+                return next_position, delta_distance - remaining_distance
+            return self.get_advanced_position_in_arrow(
+                next_position, delta_distance - remaining_distance, arrow_code, waypoint_ids[index])
 
-    def get_advanced_latlng_in_arrows(self, lat, lng, delta_distance, arrows, next_arrows):
-        arrow_code, _, _, _, _ = self.get_point_to_arrows(lat, lng, arrows)
+    def get_advanced_position_in_arrows(self, position, delta_distance, arrows, next_arrows):
+        arrow_code, _, _, _ = self.get_point_to_arrows(position, arrows)
         remaining_distance = delta_distance
-        advanced_lat, advanced_lng = lat, lng
+        advanced_position = position
         while True:
-            advanced_lat, advanced_lng, remaining_distance = self.get_advanced_latlng_in_arrow(
-                advanced_lat, advanced_lng, remaining_distance, arrow_code)
+            advanced_position, remaining_distance = self.get_advanced_position_in_arrow(
+                advanced_position, remaining_distance, arrow_code)
             if remaining_distance == 0 or arrow_code not in next_arrows:
-                return advanced_lat, advanced_lng, arrow_code
+                return advanced_position, arrow_code
             arrow_code = next_arrows[arrow_code][0]
-
-    def get_next_latlng(self, lat, lng, delta_distance, arrow_code=None, arrows=None, to_arrows=None):
-        if arrows is None:
-            arrows = self.__arrows
-        if to_arrows is None:
-            to_arrows = self.__to_arrows
-        lat_on_arrow, lng_on_arrow = lat, lng
-        if arrow_code is None:
-            arrow_code, _, lat_on_arrow, lng_on_arrow, _ = self.get_point_to_arrows(lat, lng, arrows=arrows)
-        remaining_distance = self.get_approximate_distance(
-            lat_on_arrow, lng_on_arrow, arrows[arrow_code]["lat2"], arrows[arrow_code]["lng2"])
-        if delta_distance <= remaining_distance:
-            lat12 = arrows[arrow_code]["lat2"] - lat_on_arrow
-            lng12 = arrows[arrow_code]["lng2"] - lng_on_arrow
-            len12 = math.hypot(lat12, lng12)
-            u_lat12 = lat12 / len12
-            u_lng12 = lng12 / len12
-            advanced_lat = lat_on_arrow + (u_lat12 * delta_distance)
-            advanced_lng = lng_on_arrow + (u_lng12 * delta_distance)
-            return advanced_lat, advanced_lng
-        else:
-            next_arrow = arrows[to_arrows[arrow_code][0]]
-            return self.get_next_latlng(
-                next_arrow["lat1"], next_arrow["lng1"], delta_distance - remaining_distance, next_arrow["name"],
-                arrows=arrows, to_arrows=to_arrows)
-
-    def get_advanced_latlng(self, lat, lng, delta_distance, arrow_code=None, arrows=None, to_arrows=None):
-        print("get_advanced_latlng", arrows.keys(), to_arrows.keys())
-        if arrows is None:
-            arrows = self.__arrows
-        if to_arrows is None:
-            to_arrows = self.__to_arrows
-        lat_on_arrow, lng_on_arrow = lat, lng
-        if arrow_code is None:
-            arrow_code, _, lat_on_arrow, lng_on_arrow, _ = self.get_point_to_arrows(lat, lng, arrows=arrows)
-        remaining_distance = self.get_approximate_distance(
-            lat_on_arrow, lng_on_arrow, arrows[arrow_code]["lat2"], arrows[arrow_code]["lng2"])
-        if delta_distance <= remaining_distance:
-            lat12 = arrows[arrow_code]["lat2"] - lat_on_arrow
-            lng12 = arrows[arrow_code]["lng2"] - lng_on_arrow
-            len12 = math.hypot(lat12, lng12)
-            u_lat12 = lat12 / len12
-            u_lng12 = lng12 / len12
-            advanced_lat = lat_on_arrow + (u_lat12 * delta_distance)
-            advanced_lng = lng_on_arrow + (u_lng12 * delta_distance)
-            return advanced_lat, advanced_lng
-        else:
-            next_arrow = arrows[to_arrows[arrow_code][0]]
-            return self.get_advanced_latlng(
-                next_arrow["lat1"], next_arrow["lng1"], delta_distance - remaining_distance, next_arrow["name"],
-                arrows=arrows, to_arrows=to_arrows)
 
     def get_arrow_codes_to_arrows(self, arrow_codes):
         arrows = {}
@@ -243,4 +174,4 @@ class Arrow(object):
 
     @staticmethod
     def split_arrow_code(arrow_code):
-        return arrow_code.split("_")
+        return arrow_code.split(Arrow.DELIMITER)

@@ -54,7 +54,7 @@ class FleetManager(EventLoop):
         self.route = route
 
         self.users = {}
-        self.vehicles = {}  # vehicle_id: {lat: [float], lng: [float], schedule: }
+        self.vehicles = {}
         self.traffic_signals = {}
         self.relations = {}  # vehicle_id -> user_id, user_id -> vehicle_id
 
@@ -195,7 +195,7 @@ class FleetManager(EventLoop):
 
         goal_points = []
         for vehicle_id, goal_waypoint_id in map(
-                lambda x: (x[0], x[1]["pose"]["position"]["waypoint_id"]), vehicles.items()):
+                lambda x: (x[0], x[1]["location"]["waypoint_id"]), vehicles.items()):
             goal_points.append({
                 "goal_id": vehicle_id,
                 "arrow_code": self.arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0],

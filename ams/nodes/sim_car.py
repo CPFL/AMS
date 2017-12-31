@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import json
 from sys import float_info
 from time import time
 
@@ -46,7 +45,7 @@ class SimCar(Vehicle):
     def set_other_vehicle_poses(self, _client, _user_data, topic, payload):
         if self.topicVehiclePublish.private not in topic and \
                 self.topicVehiclePublish.root in topic:
-            vehicle_id = self.topicVehiclePublish.getID(topic)
+            vehicle_id = self.topicVehiclePublish.get_id(topic)
             message = self.topicVehiclePublish.unserialize(payload)
 
             # todo: localize
@@ -69,8 +68,7 @@ class SimCar(Vehicle):
         inter_vehicle_distance = SimCar.FLOAT_MAX
         if self.arrow_code is not None and 0 < len(self.other_vehicles):
             other_vehicles_waypoint_ids = list(map(
-                lambda x: x["pose"]["position"]["waypoint_id"], self.other_vehicles.values()))
-            # print("other_vehicles_waypoint_ids", other_vehicles_waypoint_ids)
+                lambda x: x["location"]["waypoint_id"], self.other_vehicles.values()))
             for i, monitored_waypoint_id in enumerate(monitored_waypoint_ids):
                 if monitored_waypoint_id in other_vehicles_waypoint_ids:
                     inter_vehicle_distance = self.route.get_distance_of_waypoints(monitored_waypoint_ids[0:i + 1])
@@ -135,11 +133,10 @@ class SimCar(Vehicle):
 
     def update_pose(self):
         movable_distance = self.__get_movable_distance()
-        # print("movable_distance", movable_distance)
         delta_distance = min(self.velocity * self.dt, movable_distance)
         if 0.0 < delta_distance:
             self.__prev_waypoint_id = self.waypoint_id
-            self.lat, self.lng, self.yaw, self.arrow_code, self.waypoint_id = self.get_next_pose(delta_distance)
+            self.position, self.yaw, self.arrow_code, self.waypoint_id = self.get_next_pose(delta_distance)
 
     def is_achieved(self):
         goal_waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
@@ -155,16 +152,15 @@ class SimCar(Vehicle):
     def get_next_pose(self, delta_distance):
         arrows, to_arrows, _ = self.arrow.get_arrow_codes_to_arrows(
             self.schedules[0]["route"]["arrow_codes"][0:2])
-        lat, lng, arrow_code = self.arrow.get_advanced_latlng_in_arrows(
-            self.lat, self.lng, delta_distance, arrows=arrows, next_arrows=to_arrows)
-        waypoint_id, lat, lng, _ = self.arrow.get_point_to_arrow(lat, lng, arrow_code)
+        position, arrow_code = self.arrow.get_advanced_position_in_arrows(
+            self.position, delta_distance, arrows=arrows, next_arrows=to_arrows)
+        waypoint_id, position, _ = self.arrow.get_point_to_arrow(position, arrow_code)
         heading = self.arrow.get_heading(arrow_code, waypoint_id)
-        return lat, lng, heading, arrow_code, waypoint_id
+        return position, heading, arrow_code, waypoint_id
 
     def update_status(self):
         current_time = time()
         if self.state == Vehicle.STATE.STOP:
-            print("state:stop action:" + str(self.schedules[0]["action"]))
             if self.schedules[0]["action"] == Vehicle.ACTION.MOVE:
                 self.state = Vehicle.STATE.MOVE
             else:
@@ -177,16 +173,14 @@ class SimCar(Vehicle):
                         self.schedules[0]["start_time"] += dif_time
                         self.schedules[0]["duration_time"] = dif_time
 
-                        print(self.schedules[0])
                         self.state = Vehicle.STATE.MOVE
 
         elif self.state == Vehicle.STATE.MOVE:
             self.update_pose()
             if self.is_achieved():
-                print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
                 self.arrow_code = self.schedules[0]["route"]["goal"]["arrow_codes"][-1]
-                self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+                self.position = self.waypoint.get_position(self.waypoint_id)
                 self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 

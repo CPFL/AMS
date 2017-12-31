@@ -28,7 +28,6 @@ class LaneArrayPublisher(EventLoop):
 
     def publish_to_ros(self, client, userdata, topic, payload):
         if topic == self.autowarePublishTopic.private+"/waypoints":
-            # print(message)
             waypointMessages = self.autowarePublishTopic.unserialize(payload)
             laneArray = LaneArray()
 

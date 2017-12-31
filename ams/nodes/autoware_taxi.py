@@ -38,7 +38,6 @@ class AutowareTaxi(Autoware):
     def update_status(self):
         current_time = time()
         if self.state == AutowareTaxi.STATE.STANDBY:
-            print(AutowareTaxi.STATE.STANDBY, len(self.schedules))
             if 1 < len(self.schedules):
                 self.schedules.pop(0)
 
@@ -49,15 +48,13 @@ class AutowareTaxi(Autoware):
                 self.schedules[0]["start_time"] += dif_time
                 self.schedules[0]["duration_time"] = dif_time
 
-                print(self.schedules[0])
                 self.state = AutowareTaxi.STATE.MOVE_TO_USER
 
         elif self.state == AutowareTaxi.STATE.MOVE_TO_USER:
             self.update_pose()
             if self.is_achieved():
-                print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+                self.position = self.waypoint.get_position(self.waypoint_id)
                 self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
@@ -88,9 +85,8 @@ class AutowareTaxi(Autoware):
         elif self.state == AutowareTaxi.STATE.MOVE_TO_USER_DESTINATION:
             self.update_pose()
             if self.is_achieved():
-                print("*** arrival ***")
                 self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.lat, self.lng = self.waypoint.get_latlng(self.waypoint_id)
+                self.position = self.waypoint.get_position(self.waypoint_id)
                 self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
