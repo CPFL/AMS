@@ -4,6 +4,6 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv(os.path.abspath(os.path.dirname(__file__))+'/.env')
+load_dotenv(os.path.abspath(os.path.dirname(__file__))+'/sample.env')
 
 env = dict(os.environ)
