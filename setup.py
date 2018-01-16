@@ -33,6 +33,7 @@ setup(
         "Flask-SocketIO==2.9.2",
         "Flask-MQTT==0.0.8",
         "python-geohash==0.8.5",
+        "Geohash==1.0",
         "eventlet==0.21.0",
     ],
     test_suite="tests"
