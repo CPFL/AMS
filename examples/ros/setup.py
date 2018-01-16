@@ -1,19 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
-# source ~/workspace/Autoware/ros/devel/setup.bash
-# curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
-# echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
-# echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-# echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-# source ~/.bashrc
-# pyenv -v
-#
-# pyenv install 3.6.2
-# pyenv local 3.6.2
-
-
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
