@@ -1,2 +1,4 @@
-from ams.ros.closest_waypoint_subscriber import ClosestWaypointSubscriber
 from ams.ros.lane_array_publisher import LaneArrayPublisher
+from ams.ros.closest_waypoint_subscriber import ClosestWaypointSubscriber
+from ams.ros.light_color_managed_publisher import LightColorManagedPublisher
+

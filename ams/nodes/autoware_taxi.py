@@ -23,9 +23,6 @@ class AutowareTaxi(Autoware):
         super().__init__(name, waypoint, arrow, route, waypoint_id, velocity, schedules, dt)
         self.state = AutowareTaxi.STATE.STANDBY
 
-    def update_pose(self):
-        return
-
     def is_achieved(self):
         if len(self.current_poses) - self.pose_index <= 3:
             return True
@@ -51,11 +48,7 @@ class AutowareTaxi(Autoware):
                 self.state = AutowareTaxi.STATE.MOVE_TO_USER
 
         elif self.state == AutowareTaxi.STATE.MOVE_TO_USER:
-            self.update_pose()
             if self.is_achieved():
-                self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -67,7 +60,10 @@ class AutowareTaxi(Autoware):
                 self.state = AutowareTaxi.STATE.STOP_FOR_PICKING_UP
             else:
                 arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
+                i_s = 0
+                if self.arrow_code in arrow_codes:
+                    i_s = arrow_codes.index(self.arrow_code)
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[i_s:]
 
         elif self.state == AutowareTaxi.STATE.STOP_FOR_PICKING_UP:
             if self.schedules[0]["action"] == Vehicle.ACTION.MOVE or \
@@ -83,11 +79,7 @@ class AutowareTaxi(Autoware):
 
                 self.state = AutowareTaxi.STATE.MOVE_TO_USER_DESTINATION
         elif self.state == AutowareTaxi.STATE.MOVE_TO_USER_DESTINATION:
-            self.update_pose()
             if self.is_achieved():
-                self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
                 # update next schedule
@@ -99,7 +91,10 @@ class AutowareTaxi(Autoware):
                 self.state = AutowareTaxi.STATE.STOP_FOR_DISCHARGING
             else:
                 arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
+                i_s = 0
+                if self.arrow_code in arrow_codes:
+                    i_s = arrow_codes.index(self.arrow_code)
+                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[i_s:]
 
         elif self.state == AutowareTaxi.STATE.STOP_FOR_DISCHARGING:
             if self.schedules[0]["start_time"] + self.schedules[0]["duration"] < current_time:
@@ -114,3 +109,4 @@ class AutowareTaxi(Autoware):
 
         elif self.state == AutowareTaxi.STATE.MOVE_TO_STANDBY:
             pass
+

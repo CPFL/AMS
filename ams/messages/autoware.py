@@ -15,5 +15,6 @@ message = {
             "z": None
         },
         "velocity": None
-    }]
+    }],
+    "traffic_light": None
 }

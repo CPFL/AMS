@@ -30,7 +30,7 @@ class ClosestWaypointSubscriber(EventLoop):
         self.set_main_loop(rospy.spin)
 
         rospy.init_node("ams_closest_waypoint_subscriber", anonymous=True)
-        self.__ROSSubscriber = message_filters.Subscriber(Autoware.ROSTOPIC.SUBSCRIBE, Int32)
+        self.__ROSSubscriber = message_filters.Subscriber(Autoware.ROSTOPIC.CLOSEST_WAYPOINT, Int32)
         self.__ROSSubscriber.registerCallback(self.on_message_from_ros, self.publish)
 
     def on_message_from_ros(self, messageData, publish):
