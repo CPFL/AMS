@@ -23,9 +23,6 @@ class Autoware(Vehicle):
         TRAFFIC_LIGHT = "/light_color_managed"
         CLOSEST_WAYPOINT = "/closest_waypoint"
 
-        PUBLISH = "/based/lane_waypoints_array"
-        SUBSCRIBE = "/closest_waypoint"
-
     class TOPIC(object):
         PUBLISH = "pub_autoware"
         SUBSCRIBE = "sub_autoware"
@@ -169,4 +166,3 @@ class Autoware(Vehicle):
                 else:
                     payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.GREEN})
             self.publish(self.autowarePublishTopic.private+"/traffic_light", payload)
-

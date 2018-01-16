@@ -24,7 +24,7 @@ class LaneArrayPublisher(EventLoop):
         self.set_subscriber(self.autowarePublishTopic.private+"/waypoints")
 
         rospy.init_node("ams_lane_array_publisher", anonymous=True)
-        self.__ROSPublisher = rospy.Publisher(Autoware.ROSTOPIC.PUBLISH, LaneArray)
+        self.__ROSPublisher = rospy.Publisher(Autoware.ROSTOPIC.WAYPOINTS, LaneArray)
 
     def publish_to_ros(self, client, userdata, topic, payload):
         if topic == self.autowarePublishTopic.private+"/waypoints":
