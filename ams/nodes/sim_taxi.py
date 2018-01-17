@@ -35,7 +35,7 @@ class SimTaxi(SimCar):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 # print(self.schedules[0])
                 self.state = SimTaxi.STATE.MOVE_TO_USER
@@ -53,7 +53,7 @@ class SimTaxi(SimCar):
                 new_start_time = time()
                 dif_time = new_start_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = SimTaxi.STATE.STOP_FOR_PICKING_UP
             else:
@@ -68,7 +68,7 @@ class SimTaxi(SimCar):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = SimTaxi.STATE.MOVE_TO_USER_DESTINATION
         elif self.state == SimTaxi.STATE.MOVE_TO_USER_DESTINATION:
@@ -84,7 +84,7 @@ class SimTaxi(SimCar):
                 new_start_time = time()
                 dif_time = new_start_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = SimTaxi.STATE.STOP_FOR_DISCHARGING
             else:
@@ -98,7 +98,7 @@ class SimTaxi(SimCar):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = SimTaxi.STATE.STANDBY
 

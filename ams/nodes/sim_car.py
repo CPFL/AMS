@@ -171,7 +171,7 @@ class SimCar(Vehicle):
                         # update next schedule
                         dif_time = current_time - self.schedules[0]["start_time"]
                         self.schedules[0]["start_time"] += dif_time
-                        self.schedules[0]["duration_time"] = dif_time
+                        self.schedules[0]["duration"] = dif_time
 
                         self.state = Vehicle.STATE.MOVE
 
@@ -188,7 +188,7 @@ class SimCar(Vehicle):
                 new_start_time = time()
                 dif_time = new_start_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = Vehicle.STATE.STOP
             else:
