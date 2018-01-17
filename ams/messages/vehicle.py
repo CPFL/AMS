@@ -9,13 +9,10 @@ message = {
         "start_time": None,
         "duration": None,
         "route": {
-            "time": None,
             "start": {
-                "time": None,
                 "waypoint_id": None
             },
             "goal": {
-                "time": None,
                 "waypoint_id": None
             },
             "arrow_codes": None
