@@ -2,24 +2,7 @@
 # coding: utf-8
 
 from copy import deepcopy
-from ams import Validator
-
-
-class AttrDict(dict):
-    def __getattr__(self, name):
-        if name in self:
-            return self[name]
-        else:
-            raise AttributeError("No such attribute: " + name)
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-    def __delattr__(self, name):
-        if name in self:
-            del self[name]
-        else:
-            raise AttributeError("No such attribute: " + name)
+from ams import Validator, AttrDict
 
 
 def get_base_class(template, schema):
