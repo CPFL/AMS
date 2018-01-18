@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from copy import deepcopy
 from numpy import pi
-from ams import Validator
+from ams.structures import get_base_class
 
 pi2 = 2.0*pi
 
@@ -38,15 +37,5 @@ schema = {
 }
 
 
-class Rpy(Validator):
-    def __init__(self):
-        self.__template = template
-        super().__init__(schema)
-
-    @staticmethod
-    def get_template():
-        return deepcopy(template)
-
-    @staticmethod
-    def get_schema():
-        return deepcopy(schema)
+class Rpy(get_base_class(template, schema)):
+    pass

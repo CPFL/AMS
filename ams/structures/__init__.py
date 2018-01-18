@@ -1,3 +1,4 @@
+from ams.structures.base import get_base_class
 from ams.structures.rpy import Rpy
 from ams.structures.quaternion import Quaternion
 from ams.structures.position import Position

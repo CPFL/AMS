@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from copy import deepcopy
-from ams import Validator
-from ams.structures import Rpy, Quaternion
+from ams.structures import get_base_class, Rpy, Quaternion
 
 template = {
     "rpy": Rpy.get_template(),
@@ -26,15 +24,5 @@ schema = {
 }
 
 
-class Orientation(Validator):
-    def __init__(self):
-        self.__template = template
-        super().__init__(schema)
-
-    @staticmethod
-    def get_template():
-        return deepcopy(template)
-
-    @staticmethod
-    def get_schema():
-        return deepcopy(schema)
+class Orientation(get_base_class(template, schema)):
+    pass
