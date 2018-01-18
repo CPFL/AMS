@@ -11,6 +11,8 @@ def get_base_class(template, schema):
     for key, value in template.items():
         attr_template[key] = value
 
+    validator = Validator(schema)
+
     class Base(Validator):
         def __init__(self):
             self.__template = attr_template
@@ -30,4 +32,13 @@ def get_base_class(template, schema):
         @staticmethod
         def get_schema():
             return deepcopy(schema)
+
+        @staticmethod
+        def check_data(data):
+            return validator.validate(data)
+
+        @staticmethod
+        def get_errors():
+            return validator.validate_errors()
+
     return Base
