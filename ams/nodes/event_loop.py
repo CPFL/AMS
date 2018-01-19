@@ -72,8 +72,9 @@ class EventLoop(object):
         }
 
     def publish(self, topic, payload, qos=0, retain=False):
-        # payload = self.__subscribeTopic.serialize(message)
         self.__client.publish(topic, payload=payload, qos=qos, retain=retain)
+        if 0 < qos:
+            self.__client.loop_start()
 
     def __on_message(self, client, userdata, message_data):
         payload = message_data.payload.decode("utf-8")
