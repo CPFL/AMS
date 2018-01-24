@@ -24,6 +24,7 @@ schema = {
         "type": "dict",
         "schema": Route.get_schema(),
         "required": False,
+        "nullable": True,
     }
 }
 
