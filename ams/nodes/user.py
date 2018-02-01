@@ -1,135 +1,82 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import random
-from time import sleep
+from time import time, sleep
 
-from ams import Topic
+from ams import Topic, Schedule
 from ams.nodes import EventLoop
-from ams.messages import user_message
+from ams.messages import UserStatus, UserSchedules
 
 
 class User(EventLoop):
+
     class TOPIC(object):
         PUBLISH = "pubUser"
         SUBSCRIBE = "subUser"
 
     class STATE(object):
-        LOGIN = "login"
-        WAITING = "waiting"
-        GETTING_ON = "gettingOn"
-        GOT_ON = "gotOn"
-        MOVING = "moving"
-        GETTING_OUT = "gettingOut"
-        GOT_OUT = "gotOut"
+        LOG_IN = "login"
+        LOG_OUT = "logout"
 
     class ACTION(object):
-        WAIT = "wait"
-        GET_ON = "getOn"
-        GET_OUT = "getOut"
+        REQUEST = "request"
 
-    class EVENT(object):
-        MOVE_VEHICLE = "moveVehicle"
-
-    def __init__(self, name, waypoint, dt=1.0):
+    def __init__(self, name, trip_schedules, dt=1.0):
         super().__init__()
 
-        self.topicUserPublish = Topic()
-        self.topicUserPublish.set_id(self.event_loop_id)
-        self.topicUserPublish.set_root(User.TOPIC.PUBLISH)
-        self.topicUserPublish.set_message(user_message)
+        self.topicStatus = Topic()
+        self.topicStatus.set_id(self.event_loop_id)
+        self.topicStatus.set_root(User.TOPIC.PUBLISH)
 
-        self.topicUserSubscribe = Topic()
-        self.topicUserSubscribe.set_id(self.event_loop_id)
-        self.topicUserSubscribe.set_root(User.TOPIC.SUBSCRIBE)
-        self.topicUserSubscribe.set_message(user_message)
+        self.topicSchedules = Topic()
+        self.topicSchedules.set_id(self.event_loop_id)
+        self.topicSchedules.set_root(User.TOPIC.SUBSCRIBE)
 
         self.name = name
-        self.id = self.event_loop_id
-        self.state = User.STATE.LOGIN
-        self.event = None
-        self.action = None
+        self.state = User.STATE.LOG_IN
+        self.trip_schedules = trip_schedules
+        self.vehicle_id = None
+        self.schedules = [Schedule.get_schedule(
+            event=User.ACTION.REQUEST,
+            start_time=trip_schedules[0].period.start,
+            end_time=trip_schedules[0].period.end
+        )]
         self.dt = dt
-        self.__start_waypoint_id = None
-        self.__goal_waypoint_id = None
-        self.__vehicleID = None
 
-        self.__waypoint = waypoint
-
-        self.add_on_message_function(self.update_action)
-        self.add_on_message_function(self.update_event)
-
-        self.set_subscriber(self.topicUserSubscribe.private+"/schedules")
-        self.set_subscriber(self.topicUserSubscribe.private+"/event")
+        self.add_on_message_function(self.update_schedules)
+        self.set_subscriber(self.topicSchedules.private+"/schedules")
         self.set_main_loop(self.__main_loop)
 
+    def get_status(self):
+        return UserStatus.get_data(
+            name=self.name,
+            time=time(),
+            trip_schedules=self.trip_schedules,
+            state=self.state,
+            schedule=self.schedules[0]
+        )
+
     def publish_status(self):
-        message = self.topicUserPublish.get_template()
-        message["name"] = self.name
-        message["state"] = self.state
-        message["event"] = self.event
-        message["schedules"][0]["action"] = self.action
-        message["schedules"][0]["start"]["waypoint_id"] = self.__start_waypoint_id
-        message["schedules"][0]["goal"]["waypoint_id"] = self.__goal_waypoint_id
-        payload = self.topicUserPublish.serialize(message)
-        self.publish(self.topicUserPublish.private, payload)
+        message = self.get_status()
+        payload = self.topicStatus.serialize(message)
+        self.publish(self.topicStatus.private, payload)
 
-    def set_waypoint_at_random(self, waypoint_ids=None):
-        if waypoint_ids is None:
-            waypoint_ids = self.__waypoint.get_waypoint_ids()
-        start_waypoint_id = random.choice(waypoint_ids)
-        waypoint_ids.remove(start_waypoint_id)
-        goal_waypoint_id = random.choice(waypoint_ids)
-        self.set_waypoint(start_waypoint_id, goal_waypoint_id)
-
-    def set_waypoint(self, start_waypoint_id, goal_waypoint_id):
-        self.set_start_waypoint(start_waypoint_id)
-        self.set_goal_waypoint(goal_waypoint_id)
-
-    def set_start_waypoint(self, start_waypoint_id):
-        self.__start_waypoint_id = start_waypoint_id
-
-    def set_goal_waypoint(self, goal_waypoint_id):
-        self.__goal_waypoint_id = goal_waypoint_id
-
-    def update_action(self, _client, _userdata, topic, payload):
-        # print(topic)
-        if topic == self.topicUserSubscribe.private+"/schedules":
-            message = self.topicUserSubscribe.unserialize(payload)
-            self.action = message["schedules"][0]["action"]
-
-    def update_event(self, _client, _userdata, topic, payload):
-        if topic == self.topicUserSubscribe.private+"/event":
-            message = self.topicUserSubscribe.unserialize(payload)
-            self.event = message["event"]
+    def update_schedules(self, _client, _userdata, topic, payload):
+        if topic == self.topicSchedules.private+"/schedules":
+            message = self.topicSchedules.unserialize(payload)
+            self.schedules = UserSchedules.get_data(message)
 
     def update_status(self):
-        # print(self.state, self.event, self.action)
-        if self.state == User.STATE.LOGIN:
-            if self.action == User.ACTION.WAIT:
-                self.state = User.STATE.WAITING
-                self.action = None
-        elif self.state == User.STATE.WAITING:
-            if self.action == User.ACTION.GET_ON:
-                self.state = User.STATE.GETTING_ON
-                self.action = None
-        elif self.state == User.STATE.GETTING_ON:
-            self.state = User.STATE.GOT_ON
-        elif self.state == User.STATE.GOT_ON:
-            if self.event == User.EVENT.MOVE_VEHICLE:
-                self.state = User.STATE.MOVING
-                self.event = None
-        elif self.state == User.STATE.MOVING:
-            if self.action == User.ACTION.GET_OUT:
-                self.state = User.STATE.GETTING_OUT
-                self.action = None
-        elif self.state == User.STATE.GETTING_OUT:
-            self.state = User.STATE.GOT_OUT
+        return
 
     def __main_loop(self):
+        sleep(1)
+
         self.publish_status()
-        while self.state != User.STATE.GOT_OUT:
+
+        while self.state != User.STATE.LOG_OUT:
             sleep(self.dt)
             self.update_status()
             self.publish_status()
-        sleep(2)
+
+        return True

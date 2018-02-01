@@ -2,11 +2,11 @@
 # coding: utf-8
 
 from time import sleep
-import Geohash
 
 from ams import Topic
 from ams.nodes import EventLoop
-from ams.messages import vehicle_message, geo_vehicle_message
+from ams.structures import Location, Pose, Position, Orientation, Rpy
+from ams.messages import GeoTopic, VehicleStatus, VehicleSchedules
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -16,6 +16,7 @@ class Vehicle(EventLoop):
 
     class TOPIC(object):
         PUBLISH = "pub_vehicle"
+        PUBLISH_GEO = "pub_vehicle_geo"
         SUBSCRIBE = "sub_vehicle"
 
         class GEO(object):
@@ -31,76 +32,81 @@ class Vehicle(EventLoop):
         MOVE = "move"
         STOP = "stop"
 
-    def __init__(self, name, waypoint, arrow, route, waypoint_id, velocity, schedules=None, dt=1.0):
+    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, schedules, dt=1.0):
         super().__init__()
 
-        self.topicVehiclePublish = Topic()
-        self.topicVehiclePublish.set_id(self.event_loop_id)
-        self.topicVehiclePublish.set_root(Vehicle.TOPIC.PUBLISH)
-        self.topicVehiclePublish.set_message(vehicle_message)
+        self.topicStatus = Topic()
+        self.topicStatus.set_id(self.event_loop_id)
+        self.topicStatus.set_root(Vehicle.TOPIC.PUBLISH)
 
-        self.topicVehicleSubscribe = Topic()
-        self.topicVehicleSubscribe.set_id(self.event_loop_id)
-        self.topicVehicleSubscribe.set_root(Vehicle.TOPIC.SUBSCRIBE)
-        self.topicVehicleSubscribe.set_message(vehicle_message)
+        self.topicSchedules = Topic()
+        self.topicSchedules.set_id(self.event_loop_id)
+        self.topicSchedules.set_root(Vehicle.TOPIC.SUBSCRIBE)
 
-        self.topicGeoVehiclePublish = Topic()
-        self.topicGeoVehiclePublish.set_id(self.event_loop_id)
-        self.topicGeoVehiclePublish.set_root(Vehicle.TOPIC.GEO.PUBLISH)
-        self.topicGeoVehiclePublish.set_message(geo_vehicle_message)
+        self.topicGeo = Topic()
+        self.topicGeo.set_id(self.event_loop_id)
+        self.topicGeo.set_root(Vehicle.TOPIC.GEO.PUBLISH)
 
         self.name = name
         self.state = Vehicle.STATE.STOP
-        self.event = None
-        self.action = None
         self.waypoint = waypoint
         self.arrow = arrow
         self.route = route
-        self.waypoint_id = waypoint_id
-        self.position = self.waypoint.get_position(self.waypoint_id)
         self.velocity = velocity
         self.schedules = schedules
         self.dt = dt
-
-        self.arrow_code = self.arrow.get_arrow_codes_from_waypoint_id(waypoint_id)[0]
+        self.waypoint_id = waypoint_id
+        self.arrow_code = arrow_code
         self.position = self.waypoint.get_position(self.waypoint_id)
-        self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
+        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
         self.add_on_message_function(self.update_schedules)
-        self.add_on_message_function(self.update_event)
-        self.set_subscriber(self.topicVehicleSubscribe.private+"/schedules")
-        self.set_subscriber(self.topicVehicleSubscribe.private+"/event")
+        self.set_subscriber(self.topicSchedules.private+"/schedules")
         self.set_main_loop(self.__main_loop)
 
+    def get_location(self):
+        return Location.get_data(
+            waypoint_id=self.waypoint_id,
+            arrow_code=self.arrow_code,
+            geohash=self.waypoint.get_geohash(self.waypoint_id)
+        )
+
+    def get_pose(self):
+        return Pose.get_data(
+            position=Position.get_data(
+                x=self.position.data[0],
+                y=self.position.data[1],
+                z=self.position.data[2],
+            ),
+            orientation=Orientation.get_data(
+                rpy=Rpy.get_data(
+                    yaw=self.yaw
+                )
+            )
+        )
+
+    def get_status(self):
+        return VehicleStatus.get_data(
+            name=self.name,
+            state=self.state,
+            schedule=self.schedules[0],
+            location=self.get_location(),
+            pose=self.get_pose()
+        )
+
     def publish_status(self):
-        xyz = self.position.data[:]
-        message = self.topicVehiclePublish.get_template()
-        message["name"] = self.name
-        message["state"] = self.state
-        message["event"] = self.event
-        message["location"]["waypoint_id"] = self.waypoint_id
-        message["location"]["geohash"] = self.waypoint.get_geohash(self.waypoint_id)
-        message["location"]["arrow_code"] = self.arrow_code
-        message["pose"]["position"]["x"] = xyz[0]
-        message["pose"]["position"]["y"] = xyz[1]
-        message["pose"]["position"]["z"] = xyz[2]
-        message["pose"]["orientation"]["yaw"] = self.yaw
-        message["schedules"] = self.schedules
-        payload = self.topicVehiclePublish.serialize(message)
-        self.publish(self.topicVehiclePublish.private, payload)
+        payload = self.topicStatus.serialize(self.get_status())
+        self.publish(self.topicStatus.private, payload)
         self.publish(
-            self.topicGeoVehiclePublish.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-            self.event_loop_id)
+            self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
+            self.topicGeo.serialize(GeoTopic.get_data(node="vehicle", id=self.event_loop_id))
+        )
 
     def update_schedules(self, _client, _userdata, topic, payload):
-        if topic == self.topicVehicleSubscribe.private+"/schedules":
-            message = self.topicVehicleSubscribe.unserialize(payload)
-            self.schedules = message["schedules"]
-
-    def update_event(self, _client, _userdata, topic, payload):
-        if topic == self.topicVehicleSubscribe.private+"/event":
-            message = self.topicVehicleSubscribe.unserialize(payload)
-            self.event = message["event"]
+        if topic == self.topicSchedules.private+"/schedules":
+            # print("update_schedules")
+            message = self.topicSchedules.unserialize(payload)
+            self.schedules = VehicleSchedules.get_data(message)
 
     def update_status(self):
         return
