@@ -1,3 +1,0 @@
-message = {
-    "id": None
-}
