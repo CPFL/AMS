@@ -11,7 +11,7 @@ from flask_socketio import SocketIO
 from config.env import env
 from ams import Waypoint, Arrow, Intersection, Topic
 from ams.nodes import Vehicle, User, TrafficSignal, FleetManager
-from ams.messages import fleet_manager_message
+# from ams.messages import FleetStatus
 
 eventlet.monkey_patch()
 
@@ -89,12 +89,12 @@ def get_view_data():
 
 @app.route("/requestFleetRelations")
 def request_fleet_relations():
-    topic = Topic()
-    topic.set_root(FleetManager.TOPIC.SUBSCRIBE)
-    topic.set_message(fleet_manager_message)
-    message = topic.get_template()
-    message["action"] = FleetManager.ACTION.PUBLISH_RELATIONS
-    mqtt.publish(topic.root, topic.serialize(message))
+    # topic = Topic()
+    # topic.set_root(FleetManager.TOPIC.SUBSCRIBE)
+    # topic.set_message(fleet_manager_message)
+    # message = topic.get_template()
+    # message["action"] = FleetManager.ACTION.PUBLISH_RELATIONS
+    # mqtt.publish(topic.root, topic.serialize(message))
     return api_response(code=200, message={"result": "requested"})
 
 
