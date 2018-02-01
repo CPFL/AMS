@@ -10,3 +10,4 @@ from ams.structures.arrow import Arrow
 from ams.structures.route import Route
 from ams.structures.period import Period
 from ams.structures.schedule import Schedule
+from ams.structures.cycle import Cycle
