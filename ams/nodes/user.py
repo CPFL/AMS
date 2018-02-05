@@ -3,7 +3,7 @@
 
 from time import time, sleep
 
-from ams import Topic, Schedule
+from ams import Topic, Schedule, Target
 from ams.nodes import EventLoop
 from ams.messages import UserStatus, UserSchedules
 
@@ -21,7 +21,7 @@ class User(EventLoop):
     class ACTION(object):
         REQUEST = "request"
 
-    def __init__(self, name, trip_schedules, dt=1.0):
+    def __init__(self, name, dt=1.0):
         super().__init__()
 
         self.topicStatus = Topic()
@@ -34,18 +34,23 @@ class User(EventLoop):
 
         self.name = name
         self.state = User.STATE.LOG_IN
-        self.trip_schedules = trip_schedules
+        self.trip_schedules = None
+        self.schedules = None
         self.vehicle_id = None
-        self.schedules = [Schedule.get_schedule(
-            event=User.ACTION.REQUEST,
-            start_time=trip_schedules[0].period.start,
-            end_time=trip_schedules[0].period.end
-        )]
         self.dt = dt
 
         self.add_on_message_function(self.update_schedules)
         self.set_subscriber(self.topicSchedules.private+"/schedules")
         self.set_main_loop(self.__main_loop)
+
+    def set_trip_schedules(self, trip_schedules):
+        self.trip_schedules = trip_schedules
+        self.schedules = [Schedule.get_schedule(
+            targets=[Target.get_target(self)],
+            event=User.ACTION.REQUEST,
+            start_time=trip_schedules[0].period.start,
+            end_time=trip_schedules[0].period.end
+        )]
 
     def get_status(self):
         return UserStatus.get_data(

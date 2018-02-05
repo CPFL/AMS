@@ -18,8 +18,9 @@ class Schedule(object):
         self.__route = route
 
     @staticmethod
-    def get_schedule(event, start_time, end_time, route=None):
+    def get_schedule(targets, event, start_time, end_time, route=None):
         return Structure.get_data(
+            targets=targets,
             event=event,
             period=Period.get_data(
                 start=start_time,
@@ -45,7 +46,7 @@ class Schedule(object):
         return schedules_1
 
     @staticmethod
-    def get_schedule_from_cycle(cycle, start_time):
+    def get_schedule_from_cycle(targets, cycle, start_time):
         base_time = cycle.time
         period = cycle.period
         phase_time = (start_time - base_time) % period
@@ -58,4 +59,4 @@ class Schedule(object):
             end_time = start_time + (elapse_time - phase_time)
             if phase_time < elapse_time:
                 break
-        return Schedule.get_schedule(state, start_time, end_time)
+        return Schedule.get_schedule(targets, state, start_time, end_time)

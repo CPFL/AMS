@@ -22,14 +22,13 @@ class SimTaxi(SimCar):
         MOVE_TO_STANDBY = "moveToDeploy"
 
     def __init__(
-            self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity,
-            schedules=None, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, schedules, dt)
+            self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt=1.0):
+        super().__init__(name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt)
         self.state = SimTaxi.STATE.STANDBY
 
     def update_status(self):
         current_time = time()
-        # print("SimTaxi.update_status", self.state)
+        # print("SimTaxi.update_status", self.state, self.schedules[0].event)
         if self.state == SimTaxi.STATE.STANDBY:
             # print(SimTaxi.STATE.STANDBY, len(self.schedules))
             if 1 < len(self.schedules):

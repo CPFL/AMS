@@ -23,11 +23,11 @@ class TaxiUser(User):
     class EVENT(object):
         MOVE_VEHICLE = "moveVehicle"
 
-    def __init__(self, name, trip_schedules, dt=1.0):
-        super().__init__(name, trip_schedules, dt)
+    def __init__(self, name, dt=1.0):
+        super().__init__(name, dt)
 
     def update_status(self):
-        # print(self.state, self.event, self.schedules[0].event)
+        # print(self.name, self.state, self.schedules[0].event)
         if self.state == User.STATE.LOG_IN:
             self.state = TaxiUser.STATE.CALLING
             self.publish_status()

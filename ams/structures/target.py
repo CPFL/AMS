@@ -3,18 +3,18 @@
 
 from ams.structures import get_base_class
 
-geo_topic = {
-    "node": "EventLoop",
-    "id": "id"
+template = {
+    "id": "uuid",
+    "node": "EventLoop"
 }
 
-geo_topic_schema = {
-    "node": {
+schema = {
+    "id": {
         "type": "string",
         "required": True,
         "nullable": False,
     },
-    "id": {
+    "node": {
         "type": "string",
         "required": True,
         "nullable": False,
@@ -22,5 +22,5 @@ geo_topic_schema = {
 }
 
 
-class GeoTopic(get_base_class(geo_topic, geo_topic_schema)):
+class Target(get_base_class(template, schema)):
     pass

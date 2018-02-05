@@ -5,8 +5,8 @@ from time import sleep
 
 from ams import Topic
 from ams.nodes import EventLoop
-from ams.structures import Location, Pose, Position, Orientation, Rpy
-from ams.messages import GeoTopic, VehicleStatus, VehicleSchedules
+from ams.structures import Location, Pose, Position, Orientation, Rpy, Target
+from ams.messages import VehicleStatus, VehicleSchedules
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -32,7 +32,7 @@ class Vehicle(EventLoop):
         MOVE = "move"
         STOP = "stop"
 
-    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, schedules, dt=1.0):
+    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt=1.0):
         super().__init__()
 
         self.topicStatus = Topic()
@@ -53,7 +53,7 @@ class Vehicle(EventLoop):
         self.arrow = arrow
         self.route = route
         self.velocity = velocity
-        self.schedules = schedules
+        self.schedules = None
         self.dt = dt
         self.waypoint_id = waypoint_id
         self.arrow_code = arrow_code
@@ -63,6 +63,9 @@ class Vehicle(EventLoop):
         self.add_on_message_function(self.update_schedules)
         self.set_subscriber(self.topicSchedules.private+"/schedules")
         self.set_main_loop(self.__main_loop)
+
+    def set_schedules(self, schedules):
+        self.schedules = schedules
 
     def get_location(self):
         return Location.get_data(
@@ -97,9 +100,11 @@ class Vehicle(EventLoop):
     def publish_status(self):
         payload = self.topicStatus.serialize(self.get_status())
         self.publish(self.topicStatus.private, payload)
+
+    def publish_geo_topic(self):
         self.publish(
             self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-            self.topicGeo.serialize(GeoTopic.get_data(node="vehicle", id=self.event_loop_id))
+            self.topicGeo.serialize(Target.get_data(id=self.event_loop_id, node="Vehicle"))
         )
 
     def update_schedules(self, _client, _userdata, topic, payload):
@@ -115,10 +120,12 @@ class Vehicle(EventLoop):
         sleep(1)
 
         self.publish_status()
+        self.publish_geo_topic()
 
         while self.schedules is not None:
                 sleep(self.dt)
                 self.update_status()
                 self.publish_status()
+                self.publish_geo_topic()
 
         return True

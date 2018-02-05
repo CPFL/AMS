@@ -18,8 +18,8 @@ class SimCar(Vehicle):
     FLOAT_MAX = float_info.max
     ACCELERATION_MAX = 0.3  # [m/s^2]
 
-    def __init__(self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, schedules=None, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, schedules, dt)
+    def __init__(self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt=1.0):
+        super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt)
 
         self.topicTrafficSignalStatus = Topic()
         self.topicTrafficSignalStatus.set_root(TrafficSignal.TOPIC.PUBLISH)

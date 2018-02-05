@@ -5,7 +5,7 @@ from time import time, sleep
 
 from ams import Topic, Schedule
 from ams.nodes import EventLoop
-from ams.structures import Cycle
+from ams.structures import Cycle, Target
 from ams.messages import TrafficSignalStatus as Status
 from ams.messages import TrafficSignalSchedules as Schedules
 
@@ -90,7 +90,8 @@ class TrafficSignal(EventLoop):
                     start_time = current_time
                 else:
                     start_time = schedules[-1].period.end
-                schedules.append(Schedule.get_schedule_from_cycle(self.cycle, start_time))
+                schedules.append(Schedule.get_schedule_from_cycle(
+                    [Target.get_data(id=self.event_loop_id, node="TrafficSignal")], self.cycle, start_time))
         self.schedules = schedules
 
     def update_status(self):

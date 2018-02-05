@@ -4,7 +4,7 @@
 import random
 from argparse import ArgumentParser
 from time import time
-from ams import Waypoint, Arrow, Route, Schedule
+from ams import Waypoint, Arrow, Route, Schedule, Target
 from ams.nodes import User, TaxiUser
 
 parser = ArgumentParser()
@@ -58,14 +58,14 @@ if __name__ == '__main__':
     goal_waypoint_id = random.choice(stop_waypoint_ids)
     goal_arrow_code = arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0]
 
+    taxi_user = TaxiUser(
+        name=args.name,
+        dt=3.0
+    )
     trip_schedule = Schedule.get_schedule(
+        [Target.get_target(taxi_user)],
         User.ACTION.REQUEST, start_time, start_time+9999,
         Route.get_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )
-
-    taxi_user = TaxiUser(
-        name=args.name,
-        trip_schedules=[trip_schedule],
-        dt=3.0
-    )
+    taxi_user.set_trip_schedules([trip_schedule])
     taxi_user.start(host=args.host, port=args.port)

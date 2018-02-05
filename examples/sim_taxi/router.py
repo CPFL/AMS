@@ -51,7 +51,6 @@ def root():
     mqtt.subscribe(Vehicle.TOPIC.PUBLISH+"/#")
     mqtt.subscribe(TrafficSignal.TOPIC.PUBLISH+"/#")
     mqtt.subscribe(FleetManager.TOPIC.PUBLISH+"/#")
-    print("socketio", socketio)
     return render_template("index.html", title="ams", name="test_name")
 
 

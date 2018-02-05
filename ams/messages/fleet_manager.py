@@ -58,7 +58,6 @@ user_schedules_schema = {
     "type": "list",
     "valueschema": {
         "schema": Schedule.get_schema(),
-        "minlength": 1
     }
 }
 
@@ -73,7 +72,6 @@ vehicle_schedules_schema = {
     "type": "list",
     "valueschema": {
         "schema": Schedule.get_schema(),
-        "minlength": 1
     }
 }
 
