@@ -28,7 +28,8 @@ class Waypoint(object):
                 "geohash": Geohash.encode(
                     float(x[1]["lat"]), float(x[1]["lng"]), precision=Waypoint.GEOHASH_PRECISION),
                 "position": np_array([x[1]["x"], x[1]["y"], x[1]["z"]]),
-                "yaw": x[1]["yaw"]
+                "yaw": x[1]["yaw"],
+                "speed_limit": x[1]["speedLimit"]
             }),
             waypoints.items()))
 
@@ -49,3 +50,6 @@ class Waypoint(object):
 
     def get_yaw(self, waypoint_id):
         return self.__waypoints[waypoint_id]["yaw"]
+
+    def get_speed_limit(self, waypoint_id):
+        return self.__waypoints[waypoint_id]["speed_limit"]

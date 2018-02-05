@@ -43,7 +43,7 @@ class AutowareTaxi(Autoware):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = AutowareTaxi.STATE.MOVE_TO_USER
 
@@ -55,7 +55,7 @@ class AutowareTaxi(Autoware):
                 new_start_time = time()
                 dif_time = new_start_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = AutowareTaxi.STATE.STOP_FOR_PICKING_UP
             else:
@@ -75,7 +75,7 @@ class AutowareTaxi(Autoware):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = AutowareTaxi.STATE.MOVE_TO_USER_DESTINATION
         elif self.state == AutowareTaxi.STATE.MOVE_TO_USER_DESTINATION:
@@ -86,7 +86,7 @@ class AutowareTaxi(Autoware):
                 new_start_time = time()
                 dif_time = new_start_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = AutowareTaxi.STATE.STOP_FOR_DISCHARGING
             else:
@@ -103,7 +103,7 @@ class AutowareTaxi(Autoware):
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["start_time"]
                 self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+                self.schedules[0]["duration"] = dif_time
 
                 self.state = AutowareTaxi.STATE.STANDBY
 

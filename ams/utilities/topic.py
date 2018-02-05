@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import json
+from copy import deepcopy
 
 
 class Topic(object):
@@ -31,7 +32,7 @@ class Topic(object):
             self.template = json.load(f)
 
     def get_template(self):
-        return self.template
+        return deepcopy(self.template)
 
     @staticmethod
     def get_root(topic):
@@ -47,6 +48,7 @@ class Topic(object):
 
     @staticmethod
     def serialize(message):
+        # self.validate(message)
         return json.dumps(message)
 
     @staticmethod
