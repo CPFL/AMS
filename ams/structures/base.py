@@ -31,7 +31,7 @@ def get_base_class(template, schema):
             return deepcopy(attr_template)
 
         @staticmethod
-        def get_data(*args, **kwargs):
+        def new_data(*args, **kwargs):
             if isinstance(template, list):
                 data = []
                 for _element in args[0]:
@@ -54,7 +54,7 @@ def get_base_class(template, schema):
             return deepcopy(schema)
 
         @staticmethod
-        def check_data(data):
+        def validate_data(data):
             _data = data
             if isinstance(template, list):
                 _data = {"list": data}

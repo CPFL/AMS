@@ -62,10 +62,10 @@ if __name__ == '__main__':
         name=args.name,
         dt=3.0
     )
-    trip_schedule = Schedule.get_schedule(
-        [Target.get_target(taxi_user)],
+    trip_schedule = Schedule.new_schedule(
+        [Target.new_target(taxi_user)],
         User.ACTION.REQUEST, start_time, start_time+9999,
-        Route.get_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
+        Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )
     taxi_user.set_trip_schedules([trip_schedule])
     taxi_user.start(host=args.host, port=args.port)

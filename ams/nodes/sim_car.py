@@ -39,14 +39,14 @@ class SimCar(Vehicle):
 
     def update_traffic_signals(self, _client, _user_data, topic, payload):
         if self.topicTrafficSignalStatus.root in topic:
-            traffic_signal_status = TrafficSignalStatus.get_data(**self.topicTrafficSignalStatus.unserialize(payload))
+            traffic_signal_status = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
             self.traffic_signals[traffic_signal_status["route_code"]] = traffic_signal_status
 
     def update_other_vehicles(self, _client, _user_data, topic, payload):
         if self.topicStatus.private not in topic and \
                 self.topicStatus.root in topic:
             vehicle_id = self.topicStatus.get_id(topic)
-            vehicle_status = VehicleStatus.get_data(**self.topicStatus.unserialize(payload))
+            vehicle_status = VehicleStatus.new_data(**self.topicStatus.unserialize(payload))
 
             # todo: localize
             self.other_vehicles[vehicle_id] = vehicle_status
@@ -57,7 +57,7 @@ class SimCar(Vehicle):
         # return self.schedules[0].route
         arrow_codes = self.schedules[0].route.arrow_codes
         arrow_codes = arrow_codes[arrow_codes.index(self.arrow_code):]
-        route = Route.get_route(
+        route = Route.new_route(
             self.waypoint_id,
             self.arrow.get_waypoint_ids(self.schedules[0].route.arrow_codes[-1])[-1],
             arrow_codes)
@@ -94,7 +94,7 @@ class SimCar(Vehicle):
                         waypoint_ids = self.arrow.get_waypoint_ids(monitored_arrow_code)
                         if self.waypoint_id not in waypoint_ids or \
                                 waypoint_ids.index(self.waypoint_id) <= waypoint_ids.index(start_waypoint_id):
-                            new_monitored_route = Route.get_route(
+                            new_monitored_route = Route.new_route(
                                 monitored_route.start_waypoint_id, start_waypoint_id, monitored_arrow_codes[:i+1])
                             break
             if new_monitored_route is not None:

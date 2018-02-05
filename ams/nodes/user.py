@@ -45,15 +45,15 @@ class User(EventLoop):
 
     def set_trip_schedules(self, trip_schedules):
         self.trip_schedules = trip_schedules
-        self.schedules = [Schedule.get_schedule(
-            targets=[Target.get_target(self)],
+        self.schedules = [Schedule.new_schedule(
+            targets=[Target.new_target(self)],
             event=User.ACTION.REQUEST,
             start_time=trip_schedules[0].period.start,
             end_time=trip_schedules[0].period.end
         )]
 
     def get_status(self):
-        return UserStatus.get_data(
+        return UserStatus.new_data(
             name=self.name,
             time=time(),
             trip_schedules=self.trip_schedules,
@@ -69,7 +69,7 @@ class User(EventLoop):
     def update_schedules(self, _client, _userdata, topic, payload):
         if topic == self.topicSchedules.private+"/schedules":
             message = self.topicSchedules.unserialize(payload)
-            self.schedules = UserSchedules.get_data(message)
+            self.schedules = UserSchedules.new_data(message)
 
     def update_status(self):
         return

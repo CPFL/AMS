@@ -50,7 +50,7 @@ class FleetManager(EventLoop):
         self.set_main_loop(self.__main_loop)
 
     def get_status(self):
-        return FleetStatus.get_data(
+        return FleetStatus.new_data(
             name=self.name,
             time=time(),
             state=self.state,
@@ -64,7 +64,7 @@ class FleetManager(EventLoop):
 
     def update_traffic_signal_status(self, _client, _userdata, topic, payload):
         if self.topicTrafficSignalStatus.root in topic:
-            traffic_signal = TrafficSignalStatus.get_data(**self.topicTrafficSignalStatus.unserialize(payload))
+            traffic_signal = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
             self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
 
     def update_status(self):

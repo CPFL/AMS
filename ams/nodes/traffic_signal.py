@@ -57,7 +57,7 @@ class TrafficSignal(EventLoop):
 
     @staticmethod
     def get_status(route_code, state):
-        return Status.get_data(
+        return Status.new_data(
             route_code=route_code,
             time=time(),
             state=state
@@ -70,12 +70,12 @@ class TrafficSignal(EventLoop):
 
     def update_schedules(self, _client, _userdata, topic, payload):
         if topic == self.topicSchedules.private:
-            self.schedules = Schedules.get_data(self.topicSchedules.unserialize(payload))
+            self.schedules = Schedules.new_data(self.topicSchedules.unserialize(payload))
             self.__publish_flag = True
 
     def update_cycles(self, _client, _userdata, topic, payload):
         if topic == self.topicCycle.private:
-            self.cycle = Cycle.get_data(**self.topicCycle.unserialize(payload))
+            self.cycle = Cycle.new_data(**self.topicCycle.unserialize(payload))
             self.__publish_flag = True
 
     def __update_schedules(self):
@@ -91,7 +91,7 @@ class TrafficSignal(EventLoop):
                 else:
                     start_time = schedules[-1].period.end
                 schedules.append(Schedule.get_schedule_from_cycle(
-                    [Target.get_data(id=self.event_loop_id, node="TrafficSignal")], self.cycle, start_time))
+                    [Target.new_data(id=self.event_loop_id, node="TrafficSignal")], self.cycle, start_time))
         self.schedules = schedules
 
     def update_status(self):

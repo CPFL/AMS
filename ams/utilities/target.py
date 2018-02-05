@@ -7,11 +7,11 @@ from ams.structures import Target as Structure
 class Target(object):
 
     @staticmethod
-    def get_target(instance):
-        return Structure.get_data(
+    def new_target(instance):
+        return Structure.new_data(
             id=instance.event_loop_id,
             node=instance.__class__.__name__
         )
 
-    check_route = Structure.check_data
+    validate_target = Structure.validatie_data
     get_errors = Structure.get_errors

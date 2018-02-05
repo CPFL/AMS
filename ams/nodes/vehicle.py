@@ -5,8 +5,9 @@ from time import sleep
 
 from ams import Topic
 from ams.nodes import EventLoop
-from ams.structures import Location, Pose, Position, Orientation, Rpy, Target
 from ams.messages import VehicleStatus, VehicleSchedules
+from ams.utilities import Location
+from ams.structures import Pose, Position, Orientation, Rpy, Target
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -67,33 +68,29 @@ class Vehicle(EventLoop):
     def set_schedules(self, schedules):
         self.schedules = schedules
 
-    def get_location(self):
-        return Location.get_data(
-            waypoint_id=self.waypoint_id,
-            arrow_code=self.arrow_code,
-            geohash=self.waypoint.get_geohash(self.waypoint_id)
-        )
+    def new_location(self):
+        return Location.new_location(self.waypoint_id, self.arrow_code, self.waypoint.get_geohash(self.waypoint_id))
 
     def get_pose(self):
-        return Pose.get_data(
-            position=Position.get_data(
+        return Pose.new_data(
+            position=Position.new_data(
                 x=self.position.data[0],
                 y=self.position.data[1],
                 z=self.position.data[2],
             ),
-            orientation=Orientation.get_data(
-                rpy=Rpy.get_data(
+            orientation=Orientation.new_data(
+                rpy=Rpy.new_data(
                     yaw=self.yaw
                 )
             )
         )
 
     def get_status(self):
-        return VehicleStatus.get_data(
+        return VehicleStatus.new_data(
             name=self.name,
             state=self.state,
             schedule=self.schedules[0],
-            location=self.get_location(),
+            location=self.new_location(),
             pose=self.get_pose()
         )
 
@@ -104,14 +101,14 @@ class Vehicle(EventLoop):
     def publish_geo_topic(self):
         self.publish(
             self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-            self.topicGeo.serialize(Target.get_data(id=self.event_loop_id, node="Vehicle"))
+            self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, node="Vehicle"))
         )
 
     def update_schedules(self, _client, _userdata, topic, payload):
         if topic == self.topicSchedules.private+"/schedules":
             # print("update_schedules")
             message = self.topicSchedules.unserialize(payload)
-            self.schedules = VehicleSchedules.get_data(message)
+            self.schedules = VehicleSchedules.new_data(message)
 
     def update_status(self):
         return

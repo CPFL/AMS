@@ -19,7 +19,7 @@ class Route(object):
         self.__getRouteCost = self.get_route_length
         self.__waypoint = None
         self.__arrow = None
-        self.__fixed_routes = None
+        self.__routes = None
 
     def set_waypoint(self, waypoint):
         self.__waypoint = waypoint
@@ -28,14 +28,14 @@ class Route(object):
         self.__arrow = arrow
 
     @staticmethod
-    def get_route(start_waypoint_id, goal_waypoint_id, arrow_codes):
-        return Structure.get_data(
+    def new_route(start_waypoint_id, goal_waypoint_id, arrow_codes):
+        return Structure.new_data(
             start_waypoint_id=start_waypoint_id,
             goal_waypoint_id=goal_waypoint_id,
             arrow_codes=arrow_codes
         )
 
-    check_route = Structure.check_data
+    validate_route = Structure.validatie_data
     get_errors = Structure.get_errors
 
     def set_cost_function(self, cost_function):
@@ -43,15 +43,16 @@ class Route(object):
 
     def load(self, path):
         with open(path, "r") as f:
-            self.__fixed_routes = json.load(f)
+            data = json.load(f)
+            self.__routes = data["routes"]
         return True
 
     def get_fixed_route(self, route_code):
-        return self.__fixed_routes[route_code]
+        return self.__routes[route_code]
 
     def __arrow_code_to_route(self, arrow_code):
         arrow = self.__arrow.get_arrow(arrow_code)
-        return self.get_route(
+        return self.new_route(
             arrow["waypointIDs"][0], arrow["waypointIDs"][-1], [arrow_code])
 
     def get_arrow_waypoint_array(self, route):
@@ -147,7 +148,7 @@ class Route(object):
                 total_length += self.__arrow.get_distance(
                     self.__waypoint.get_position(waypoint_ids[i]), self.__waypoint.get_position(waypoint_ids[i-1]))
                 if length <= total_length:
-                    return Route.get_route(start_waypoint_id, sliced_goal_waypoint_id, sliced_arrow_codes)
+                    return Route.new_route(start_waypoint_id, sliced_goal_waypoint_id, sliced_arrow_codes)
                 if len(sliced_arrow_codes) == 0 or sliced_arrow_codes[-1] != arrow_code:
                     sliced_arrow_codes.append(arrow_code)
                 sliced_goal_waypoint_id = waypoint_ids[i]
@@ -167,7 +168,7 @@ class Route(object):
             local_start_waypoint_id = waypoint_id_end
             local_goal_waypoint_id = start["waypoint_id"]
 
-        local_route = Route.get_route(local_start_waypoint_id, local_goal_waypoint_id, [start["arrow_code"]])
+        local_route = Route.new_route(local_start_waypoint_id, local_goal_waypoint_id, [start["arrow_code"]])
         cost_start_to_end = self.__getRouteCost(local_route)
 
         goal_arrow_candidates = self.__get_goal_arrow_candidates(goals, reverse)
@@ -189,9 +190,9 @@ class Route(object):
                         if reverse:
                             local_start_waypoint_id = goal_candidate["waypoint_id"]
                             local_goal_waypoint_id = start["waypoint_id"]
-                        cost_start_to_goal = self.__getRouteCost(Route.get_route(
+                        cost_start_to_goal = self.__getRouteCost(Route.new_route(
                             local_start_waypoint_id, local_goal_waypoint_id, [start["arrow_code"]]))
-                        shortest_routes[goal_candidate["goal_id"]] = Route.get_route(
+                        shortest_routes[goal_candidate["goal_id"]] = Route.new_route(
                             start["waypoint_id"], goal_candidate["waypoint_id"], [start["arrow_code"]])
                         shortest_routes[goal_candidate["goal_id"]].update({
                             "goal_id": goal_candidate["goal_id"],
@@ -226,7 +227,7 @@ class Route(object):
 
                 for goal_candidate in goal_arrow_candidates.get(next_arrow_id, {}).values():
                     if end_arrows[next_arrow_id]["cost"] + goal_candidate["cost"] < cost_limit:
-                        shortest_route = Route.get_route(
+                        shortest_route = Route.new_route(
                             start["waypoint_id"], goal_candidate["waypoint_id"],
                             [next_arrow_id] + end_arrows[next_arrow_id]["prev_arrows"])
                         shortest_route.update({
@@ -267,7 +268,7 @@ class Route(object):
                 end_waypoint_id = self.__arrow.get_waypoint_ids(arrow_code)[-1]
             else:
                 end_waypoint_id = self.__arrow.get_waypoint_ids(arrow_code)[0]
-            cost = self.__getRouteCost(Route.get_route(end_waypoint_id, goal["waypoint_id"], [arrow_code]))
+            cost = self.__getRouteCost(Route.new_route(end_waypoint_id, goal["waypoint_id"], [arrow_code]))
 
             goal_points = goal_arrow_candidates.get(arrow_code, {})
             goal_points[goal_id] = {
@@ -308,7 +309,7 @@ class Route(object):
             self.__arrow.get_point_to_arrows(position, route.arrow_codes)
 
         arrow_codes = route.arrow_codes[route.arrow_codes.index(arrow_code):]
-        arrow_waypoint_array = self.get_arrow_waypoint_array(self.get_route(
+        arrow_waypoint_array = self.get_arrow_waypoint_array(self.new_route(
             waypoint_id,
             route.goal_waypoint_id,
             arrow_codes

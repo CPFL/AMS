@@ -49,7 +49,7 @@ class TaxiFleet(FleetManager):
     def update_user_status(self, _client, _userdata, topic, payload):
         if self.topicUserPublish.root in topic:
             user_id = self.topicUserPublish.get_id(topic)
-            user_status = UserStatus.get_data(**self.topicUserPublish.unserialize(payload))
+            user_status = UserStatus.new_data(**self.topicUserPublish.unserialize(payload))
             self.user_statuses[user_id] = user_status
             if user_id not in self.user_schedules:
                 self.user_schedules[user_id] = [user_status.schedule]
@@ -57,7 +57,7 @@ class TaxiFleet(FleetManager):
     def update_vehicle_status(self, _client, _userdata, topic, payload):
         if self.topicVehicleStatus.root in topic:
             vehicle_id = self.topicVehicleStatus.get_id(topic)
-            vehicle_status = VehicleStatus.get_data(**self.topicVehicleStatus.unserialize(payload))
+            vehicle_status = VehicleStatus.new_data(**self.topicVehicleStatus.unserialize(payload))
             if vehicle_id not in self.vehicle_schedules:
                 self.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
             else:
@@ -134,54 +134,54 @@ class TaxiFleet(FleetManager):
         if self.vehicle_schedules[vehicle_id][-1].event == SimTaxi.ACTION.STANDBY:
             current_time = self.vehicle_schedules[vehicle_id][-1].period.start
             # self.vehicle_schedules[vehicle_id].pop()
-        pick_up_route = Route.get_route(
+        pick_up_route = Route.new_route(
             pick_up_route_reverse.goal_waypoint_id, pick_up_route_reverse.start_waypoint_id,
             pick_up_route_reverse.arrow_codes)
-        vehicle_schedule = Schedule.get_schedule(
+        vehicle_schedule = Schedule.new_schedule(
             [
-                Target.get_data(id=vehicle_id, node="SimTaxi"),
-                Target.get_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=user_id, node="TaxiUser")
             ],
             Vehicle.ACTION.MOVE, current_time, current_time+1000, pick_up_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             self.vehicle_schedules[vehicle_id], [vehicle_schedule])
 
-        take_on_route = Route.get_route(
+        take_on_route = Route.new_route(
             pick_up_route.goal_waypoint_id, pick_up_route.goal_waypoint_id, [pick_up_route.arrow_codes[-1]])
-        vehicle_schedule = Schedule.get_schedule(
+        vehicle_schedule = Schedule.new_schedule(
             [
-                Target.get_data(id=vehicle_id, node="SimTaxi"),
-                Target.get_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=user_id, node="TaxiUser")
             ],
             Vehicle.ACTION.STOP, current_time+1000, current_time+1010, take_on_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
-        vehicle_schedule = Schedule.get_schedule(
+        vehicle_schedule = Schedule.new_schedule(
             [
-                Target.get_data(id=vehicle_id, node="SimTaxi"),
-                Target.get_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=user_id, node="TaxiUser")
             ],
             Vehicle.ACTION.MOVE, current_time+1010, current_time+2010, carry_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
-        discharge_route = Route.get_route(
+        discharge_route = Route.new_route(
             carry_route.goal_waypoint_id, carry_route.goal_waypoint_id, [carry_route.arrow_codes[-1]])
-        vehicle_schedule = Schedule.get_schedule(
+        vehicle_schedule = Schedule.new_schedule(
             [
-                Target.get_data(id=vehicle_id, node="SimTaxi"),
-                Target.get_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=user_id, node="TaxiUser")
             ],
             Vehicle.ACTION.STOP, current_time+2010, current_time+2020, discharge_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
-        stand_by_route = Route.get_route(
+        stand_by_route = Route.new_route(
             discharge_route.goal_waypoint_id, discharge_route.goal_waypoint_id, [discharge_route.arrow_codes[-1]])
-        vehicle_schedule = Schedule.get_schedule(
+        vehicle_schedule = Schedule.new_schedule(
             [
-                Target.get_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=vehicle_id, node="SimTaxi"),
             ],
             SimTaxi.ACTION.STANDBY, current_time+2020, current_time+86400, stand_by_route)
         vehicle_schedules = Schedule.get_merged_schedules(

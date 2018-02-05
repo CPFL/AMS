@@ -64,7 +64,7 @@ class EventLoop(object):
 
     @staticmethod
     def get_message(event, pid):
-        return EventLoopMessage.get_data(
+        return EventLoopMessage.new_data(
             time=time(),
             event=event,
             pid=pid
@@ -96,7 +96,7 @@ class EventLoop(object):
         payload = message_data.payload.decode("utf-8")
         if self.__topicSub.root in message_data.topic and \
                 self.__topicSub.get_id(message_data.topic) == self.event_loop_id:
-            event_loop_message = EventLoopMessage.get_data(**self.__topicSub.unserialize(payload))
+            event_loop_message = EventLoopMessage.new_data(**self.__topicSub.unserialize(payload))
             if event_loop_message.event == EventLoop.STATE.START:
                 print(self.__topicSub.root, event_loop_message)
             if event_loop_message.event == EventLoop.ACTION.KILL:
