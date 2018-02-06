@@ -50,7 +50,7 @@ class TrafficSignal(EventLoop):
         self.__publish_flag = False
 
         self.add_on_message_function(self.update_schedules)
-        self.add_on_message_function(self.update_cycles)
+        self.add_on_message_function(self.update_cycle)
         self.set_subscriber(self.topicSchedules.private)
         self.set_subscriber(self.topicCycle.private)
         self.set_main_loop(self.__main_loop)
@@ -73,7 +73,7 @@ class TrafficSignal(EventLoop):
             self.schedules = Schedules.new_data(self.topicSchedules.unserialize(payload))
             self.__publish_flag = True
 
-    def update_cycles(self, _client, _userdata, topic, payload):
+    def update_cycle(self, _client, _userdata, topic, payload):
         if topic == self.topicCycle.private:
             self.cycle = Cycle.new_data(**self.topicCycle.unserialize(payload))
             self.__publish_flag = True
