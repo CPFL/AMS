@@ -47,7 +47,7 @@ class User(EventLoop):
     def set_trip_schedules(self, trip_schedules):
         self.trip_schedules = trip_schedules
         self.schedules = [Schedule.new_schedule(
-            targets=[Target.new_target(self)],
+            targets=[Target.new_node_target(self)],
             event=User.ACTION.REQUEST,
             start_time=trip_schedules[0].period.start,
             end_time=trip_schedules[0].period.end
