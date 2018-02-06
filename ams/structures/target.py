@@ -12,7 +12,7 @@ schema = {
     "id": {
         "type": "string",
         "required": True,
-        "nullable": False,
+        "nullable": True,
     },
     "node": {
         "type": "string",

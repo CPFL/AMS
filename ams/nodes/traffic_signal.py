@@ -5,9 +5,8 @@ from time import time, sleep
 
 from ams import Topic, Schedule
 from ams.nodes import EventLoop
-from ams.structures import Cycle, Target
+from ams.structures import Cycle, Target, Schedules
 from ams.messages import TrafficSignalStatus as Status
-from ams.messages import TrafficSignalSchedules as Schedules
 
 
 class TrafficSignal(EventLoop):

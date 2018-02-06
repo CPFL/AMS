@@ -109,7 +109,8 @@ class TaxiFleet(FleetManager):
         if len(routes) == 0:
             print("no pick_up_route")
             return None, None
-        pick_up_route_reverse = min(routes.items(), key=lambda x: x[1]["cost"] + self.vehicle_schedules[x[0]][-1].period.end)[1]
+        pick_up_route_reverse = \
+            min(routes.items(), key=lambda x: x[1]["cost"] + self.vehicle_schedules[x[0]][-1].period.end)[1]
 
         vehicle_id = pick_up_route_reverse["goal_id"]
 
@@ -131,7 +132,7 @@ class TaxiFleet(FleetManager):
         carry_route.pop("goal_id")
 
         current_time = time()
-        if self.vehicle_schedules[vehicle_id][-1].event == SimTaxi.ACTION.STANDBY:
+        if self.vehicle_schedules[vehicle_id][-1].event == SimTaxi.STATE.STANDBY:
             current_time = self.vehicle_schedules[vehicle_id][-1].period.start
             # self.vehicle_schedules[vehicle_id].pop()
         pick_up_route = Route.new_route(
@@ -183,7 +184,7 @@ class TaxiFleet(FleetManager):
             [
                 Target.new_data(id=vehicle_id, node="SimTaxi"),
             ],
-            SimTaxi.ACTION.STANDBY, current_time+2020, current_time+86400, stand_by_route)
+            SimTaxi.STATE.STANDBY, current_time+2020, current_time+86400, stand_by_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 

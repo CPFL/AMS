@@ -41,3 +41,18 @@ schema = {
 
 class Schedule(get_base_class(template, schema)):
     pass
+
+
+schedules = [Schedule.get_template()]
+
+schedules_schema = {
+    "type": "list",
+    "valueschema": {
+        "schema": Schedule.get_schema(),
+        "minlength": 1
+    }
+}
+
+
+class Schedules(get_base_class(schedules, schedules_schema)):
+    pass

@@ -3,11 +3,10 @@
 
 from time import sleep
 
-from ams import Topic
+from ams import Topic, Location
 from ams.nodes import EventLoop
-from ams.messages import VehicleStatus, VehicleSchedules
-from ams.utilities import Location
-from ams.structures import Pose, Position, Orientation, Rpy, Target
+from ams.messages import VehicleStatus
+from ams.structures import Pose, Position, Orientation, Rpy, Target, Schedules
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -108,7 +107,7 @@ class Vehicle(EventLoop):
         if topic == self.topicSchedules.private+"/schedules":
             # print("update_schedules")
             message = self.topicSchedules.unserialize(payload)
-            self.schedules = VehicleSchedules.new_data(message)
+            self.schedules = Schedules.new_data(message)
 
     def update_status(self):
         return

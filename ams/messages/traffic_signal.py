@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Schedule
+from ams.structures import get_base_class
 
 status = {
     "route_code": "0:0_1:1",
@@ -29,19 +29,4 @@ status_schema = {
 
 
 class Status(get_base_class(status, status_schema)):
-    pass
-
-
-schedules = [Schedule.get_template()]
-
-schedules_schema = {
-    "type": "list",
-    "valueschema": {
-        "schema": Schedule.get_schema(),
-        "minlength": 1
-    }
-}
-
-
-class Schedules(get_base_class(schedules, schedules_schema)):
     pass

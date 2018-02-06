@@ -5,7 +5,8 @@ from time import time, sleep
 
 from ams import Topic, Schedule, Target
 from ams.nodes import EventLoop
-from ams.messages import UserStatus, UserSchedules
+from ams.messages import UserStatus
+from ams.structures import Schedules
 
 
 class User(EventLoop):
@@ -69,7 +70,7 @@ class User(EventLoop):
     def update_schedules(self, _client, _userdata, topic, payload):
         if topic == self.topicSchedules.private+"/schedules":
             message = self.topicSchedules.unserialize(payload)
-            self.schedules = UserSchedules.new_data(message)
+            self.schedules = Schedules.new_data(message)
 
     def update_status(self):
         return
