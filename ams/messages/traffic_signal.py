@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Schedule, Cycle
+from ams.structures import get_base_class, Schedule
 
 status = {
     "route_code": "0:0_1:1",
