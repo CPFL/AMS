@@ -61,7 +61,7 @@ if __name__ == '__main__':
         dt=3.0
     )
     trip_schedule = Schedule.new_schedule(
-        [Target.new_target(taxi_user)],
+        [Target.new_node_target(taxi_user)],
         User.ACTION.REQUEST, start_time, start_time+9999,
         Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )

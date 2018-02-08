@@ -42,7 +42,7 @@ class FleetManager(EventLoop):
         self.route = route
 
         self.traffic_signals = {}
-        self.relations = {}  # vehicle_id -> user_id, user_id -> vehicle_id
+        self.relations = {}  # user_id <-> vehicle_id, route_id <-> vehicle_id
 
         self.add_on_message_function(self.update_traffic_signal_status)
 

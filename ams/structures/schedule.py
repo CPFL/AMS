@@ -1,25 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Target, Period, Route
+from ams.structures import get_base_class, Targets, Period, Route
 
 template = {
-    "targets": [Target.get_template()],
+    "targets": Targets.get_template(),
     "event": "default",
     "period": Period.get_template(),
     "route": Route.get_template(),
 }
 
 schema = {
-    "targets": {
-        "type": "list",
-        "required": True,
-        "nullable": False,
-        "valueschema": {
-            "schema": Target.get_schema(),
-            "minlength": 1
-        }
-    },
+    "targets": Targets.get_schema(),
     "event": {
         "type": "string",
         "required": True,
@@ -49,8 +41,11 @@ schedules_schema = {
     "type": "list",
     "valueschema": {
         "schema": Schedule.get_schema(),
-        "minlength": 1
-    }
+        "required": True,
+        "nullable": False,
+    },
+    "nullable": True,
+    "minlength": 1
 }
 
 

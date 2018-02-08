@@ -90,7 +90,7 @@ class TrafficSignal(EventLoop):
                 else:
                     start_time = schedules[-1].period.end
                 schedules.append(Schedule.get_schedule_from_cycle(
-                    [Target.new_data(id=self.event_loop_id, node="TrafficSignal")], self.cycle, start_time))
+                    [Target.new_data(id=self.event_loop_id, group="TrafficSignal")], self.cycle, start_time))
         self.schedules = schedules
 
     def update_status(self):

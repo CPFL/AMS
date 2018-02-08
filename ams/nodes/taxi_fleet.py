@@ -140,19 +140,18 @@ class TaxiFleet(FleetManager):
             pick_up_route_reverse.arrow_codes)
         vehicle_schedule = Schedule.new_schedule(
             [
-                Target.new_data(id=vehicle_id, node="SimTaxi"),
-                Target.new_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, group="SimTaxi"),
+                Target.new_data(id=user_id, group="TaxiUser")
             ],
             Vehicle.ACTION.MOVE, current_time, current_time+1000, pick_up_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             self.vehicle_schedules[vehicle_id], [vehicle_schedule])
 
-        take_on_route = Route.new_route(
-            pick_up_route.goal_waypoint_id, pick_up_route.goal_waypoint_id, [pick_up_route.arrow_codes[-1]])
+        take_on_route = Route.new_point_route(pick_up_route.goal_waypoint_id, pick_up_route.arrow_codes[-1])
         vehicle_schedule = Schedule.new_schedule(
             [
-                Target.new_data(id=vehicle_id, node="SimTaxi"),
-                Target.new_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, group="SimTaxi"),
+                Target.new_data(id=user_id, group="TaxiUser")
             ],
             Vehicle.ACTION.STOP, current_time+1000, current_time+1010, take_on_route)
         vehicle_schedules = Schedule.get_merged_schedules(
@@ -160,29 +159,27 @@ class TaxiFleet(FleetManager):
 
         vehicle_schedule = Schedule.new_schedule(
             [
-                Target.new_data(id=vehicle_id, node="SimTaxi"),
-                Target.new_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, group="SimTaxi"),
+                Target.new_data(id=user_id, group="TaxiUser")
             ],
             Vehicle.ACTION.MOVE, current_time+1010, current_time+2010, carry_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
-        discharge_route = Route.new_route(
-            carry_route.goal_waypoint_id, carry_route.goal_waypoint_id, [carry_route.arrow_codes[-1]])
+        discharge_route = Route.new_point_route(carry_route.goal_waypoint_id, carry_route.arrow_codes[-1])
         vehicle_schedule = Schedule.new_schedule(
             [
-                Target.new_data(id=vehicle_id, node="SimTaxi"),
-                Target.new_data(id=user_id, node="TaxiUser")
+                Target.new_data(id=vehicle_id, group="SimTaxi"),
+                Target.new_data(id=user_id, group="TaxiUser")
             ],
             Vehicle.ACTION.STOP, current_time+2010, current_time+2020, discharge_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
-        stand_by_route = Route.new_route(
-            discharge_route.goal_waypoint_id, discharge_route.goal_waypoint_id, [discharge_route.arrow_codes[-1]])
+        stand_by_route = Route.new_point_route(discharge_route.goal_waypoint_id, discharge_route.arrow_codes[-1])
         vehicle_schedule = Schedule.new_schedule(
             [
-                Target.new_data(id=vehicle_id, node="SimTaxi"),
+                Target.new_data(id=vehicle_id, group="SimTaxi"),
             ],
             SimTaxi.STATE.STANDBY, current_time+2020, current_time+86400, stand_by_route)
         vehicle_schedules = Schedule.get_merged_schedules(
@@ -216,8 +213,6 @@ class TaxiFleet(FleetManager):
                 if user_id not in self.relations:
                     vehicle_id, vehicle_schedules = self.get_taxi_schedules(user_id, user_status)
                     if vehicle_id is not None:
-                        print("dispatched user", user_id, "to vehicle", vehicle_id)
-                        pp(vehicle_schedules)
                         self.vehicle_schedules[vehicle_id] = vehicle_schedules
                         payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
                         self.publish(self.topicVehicleSchedules.root + "/" + vehicle_id + "/schedules", payload)

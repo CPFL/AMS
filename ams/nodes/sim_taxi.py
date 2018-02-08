@@ -10,8 +10,6 @@ pp = PrettyPrinter(indent=2).pprint
 
 
 class SimTaxi(SimCar):
-    class ACTION(object):
-        STANDBY = "standBy"
 
     class STATE(object):
         STANDBY = "standBy"

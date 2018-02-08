@@ -64,7 +64,7 @@ class SimCar(Vehicle):
         return self.route.get_sliced_route(route, distance)
 
     def __get_inter_vehicle_distance(self, monitored_route):
-        monitored_waypoint_ids = self.route.get_route_waypoint_ids(monitored_route)
+        monitored_waypoint_ids = self.route.get_waypoint_ids(monitored_route)
         inter_vehicle_distance = SimCar.FLOAT_MAX
         if self.arrow_code is not None and 0 < len(self.other_vehicles):
             other_vehicles_waypoint_ids = list(map(
@@ -89,7 +89,7 @@ class SimCar(Vehicle):
         for i, monitored_arrow_code in enumerate(monitored_arrow_codes):
             for not_green_traffic_signal_route_code in not_green_traffic_signal_route_codes:
                 if monitored_arrow_code in not_green_traffic_signal_route_code:
-                    start_waypoint_id, arrow_codes, _ = self.route.split_route_code(not_green_traffic_signal_route_code)
+                    start_waypoint_id, arrow_codes, _ = Route.decode_route_code(not_green_traffic_signal_route_code)
                     if monitored_arrow_code == arrow_codes[0]:
                         waypoint_ids = self.arrow.get_waypoint_ids(monitored_arrow_code)
                         if self.waypoint_id not in waypoint_ids or \

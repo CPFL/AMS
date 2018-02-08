@@ -27,5 +27,5 @@ class Location(object):
             geohash=geohash
         )
 
-    validate_location = Structure.validatie_data
+    validate_location = Structure.validate_data
     get_errors = Structure.get_errors

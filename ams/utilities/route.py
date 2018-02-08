@@ -7,6 +7,7 @@ import numpy as np
 
 from ams import Arrow
 from ams.structures import Route as Structure
+from ams.structures import Routes as Structures
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -29,14 +30,28 @@ class Route(object):
 
     @staticmethod
     def new_route(start_waypoint_id, goal_waypoint_id, arrow_codes):
+        # if start_waypoint_id == goal_waypoint_id:
+        #     print("USE Route.new_point_route().")
         return Structure.new_data(
             start_waypoint_id=start_waypoint_id,
             goal_waypoint_id=goal_waypoint_id,
             arrow_codes=arrow_codes
         )
 
-    validate_route = Structure.validatie_data
+    validate_route = Structure.validate_data
     get_errors = Structure.get_errors
+
+    @staticmethod
+    def new_point_route(waypoint_id, arrow_code):
+        return Structure.new_data(
+            start_waypoint_id=waypoint_id,
+            goal_waypoint_id=waypoint_id,
+            arrow_codes=[arrow_code]
+        )
+
+    @staticmethod
+    def new_routes(routes):
+        return Structures.new_data(routes)
 
     def set_cost_function(self, cost_function):
         self.__getRouteCost = cost_function
@@ -44,11 +59,19 @@ class Route(object):
     def load(self, path):
         with open(path, "r") as f:
             data = json.load(f)
-            self.__routes = data["routes"]
+            self.__routes = dict(map(lambda x: (x["ID"], x), data["routes"]))
         return True
 
-    def get_fixed_route(self, route_code):
-        return self.__routes[route_code]
+    def get_route_ids(self):
+        return self.__routes.keys()
+
+    def get_route(self, route_id):
+        start_waypoint_id, arrow_codes, goal_waypoint_id = \
+            self.split_route_code(self.__routes[route_id]["code"])
+        return Route.new_route(
+            start_waypoint_id=start_waypoint_id,
+            goal_waypoint_id=goal_waypoint_id,
+            arrow_codes=arrow_codes)
 
     def __arrow_code_to_route(self, arrow_code):
         arrow = self.__arrow.get_arrow(arrow_code)
@@ -74,24 +97,36 @@ class Route(object):
                 arrow_waypoint_array.append({"waypoint_id": waypoint_ids[je - 1], "arrow_code": arrow_code})
         return arrow_waypoint_array
 
+    @staticmethod
+    def get_route_node_arrow_waypoint_array(route):
+        route_node_arrow_waypoint_array = []
+        for arrow_code in route.arrow_codes[1:]:
+            waypoint_id1, _ = Arrow.split_arrow_code(arrow_code)
+            route_node_arrow_waypoint_array.append({"waypoint_id": waypoint_id1, "arrow_code": arrow_code})
+        return route_node_arrow_waypoint_array
+
     def get_route_waypoint_ids(self, route):
+        print("Use route.get_waypoint_ids()")
+        return self.get_waypoint_ids(route)
+
+    def get_waypoint_ids(self, route):
         arrow_codes = route.arrow_codes
         start_waypoint_id = route.start_waypoint_id
         goal_waypoint_id = route.goal_waypoint_id
-        route_waypoint_ids = []
+        waypoint_ids = []
         for i, arrow_code in enumerate(arrow_codes):
-            waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
+            arrow_waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
             js = 0
-            if i == 0 and start_waypoint_id in waypoint_ids:
-                js = waypoint_ids.index(start_waypoint_id)
-            je = len(waypoint_ids)
-            if i == len(arrow_codes)-1 and goal_waypoint_id in waypoint_ids:
-                je = waypoint_ids.index(goal_waypoint_id) + 1
+            if i == 0 and start_waypoint_id in arrow_waypoint_ids:
+                js = arrow_waypoint_ids.index(start_waypoint_id)
+            je = len(arrow_waypoint_ids)
+            if i == len(arrow_codes)-1 and goal_waypoint_id in arrow_waypoint_ids:
+                je = arrow_waypoint_ids.index(goal_waypoint_id) + 1
             for j in range(js+1, je):
-                route_waypoint_ids.append(waypoint_ids[j - 1])
+                waypoint_ids.append(arrow_waypoint_ids[j - 1])
             if arrow_code == arrow_codes[-1]:
-                route_waypoint_ids.append(waypoint_ids[je - 1])
-        return route_waypoint_ids
+                waypoint_ids.append(arrow_waypoint_ids[je - 1])
+        return waypoint_ids
 
     def get_route_length(self, route):
         arrow_codes = route.arrow_codes
@@ -283,6 +318,16 @@ class Route(object):
 
     @staticmethod
     def get_route_code(route):
+        print("Use Route.encode_route().")
+        return Route.encode_route(route)
+
+    @staticmethod
+    def split_route_code(route_code):
+        print("Use Route.decode_route_code().")
+        return Route.decode_route_code(route_code)
+
+    @staticmethod
+    def encode_route(route):
         joined_arrow_codes = Arrow.DELIMITER.join(list(map(
             lambda x: x.split(Arrow.DELIMITER)[0],
             route.arrow_codes)) + [route.arrow_codes[-1].split(Arrow.DELIMITER)[-1]])
@@ -291,13 +336,13 @@ class Route(object):
         return route_code
 
     @staticmethod
-    def split_route_code(route_code):
+    def decode_route_code(route_code):
         start_waypoint_id, joined_arrow_codes, goal_waypoint_id = route_code.split(Route.DELIMITER)
         waypoint_ids = joined_arrow_codes.split(Arrow.DELIMITER)
         arrow_codes = []
         for i in range(1, len(waypoint_ids)):
             arrow_codes.append(Arrow.DELIMITER.join(waypoint_ids[i-1:i+1]))
-        return start_waypoint_id, arrow_codes, goal_waypoint_id
+        return Route.new_route(start_waypoint_id, goal_waypoint_id, arrow_codes)
 
     def get_speed_limits(self, route):
         waypoint_ids = self.get_route_waypoint_ids(route)
@@ -308,6 +353,8 @@ class Route(object):
         arrow_code, waypoint_id, _, moved_distance = \
             self.__arrow.get_point_to_arrows(position, route.arrow_codes)
 
+        # print(waypoint_id)
+
         arrow_codes = route.arrow_codes[route.arrow_codes.index(arrow_code):]
         arrow_waypoint_array = self.get_arrow_waypoint_array(self.new_route(
             waypoint_id,
@@ -315,15 +362,27 @@ class Route(object):
             arrow_codes
         ))
 
+        # print(
+        #     waypoint_id,
+        #     route.goal_waypoint_id,
+        #     arrow_code,
+        #     arrow_waypoint_array[0],
+        #     arrow_waypoint_array[1],
+        #     len(arrow_waypoint_array),
+        #     len(arrow_codes),
+        #     len(route.arrow_codes)
+        # )
+
         for i in range(0, len(arrow_waypoint_array)-1):
             p1 = self.__waypoint.get_position(arrow_waypoint_array[i]["waypoint_id"])
             p2 = self.__waypoint.get_position(arrow_waypoint_array[i+1]["waypoint_id"])
             d = self.__arrow.get_distance(p1, p2)
+            # print(distance, moved_distance, d)
             if distance <= moved_distance + d:
                 vector_12 = np.subtract(p2, p1)
                 return np.add(p1, d * vector_12 / np.linalg.norm(vector_12)),\
-                       arrow_waypoint_array[i+1]["waypoint_id"],\
-                       arrow_waypoint_array[i+1]["arrow_code"]
+                    arrow_waypoint_array[i+1]["waypoint_id"],\
+                    arrow_waypoint_array[i+1]["arrow_code"]
             moved_distance += d
 
         return self.__waypoint.get_position(arrow_waypoint_array[-1]["waypoint_id"]), \

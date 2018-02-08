@@ -1,0 +1,23 @@
+{
+  "busRoutes": [
+    {
+      "ID": "0",
+      "selectiveRoutesAndSpotIDs": [
+        {
+          "selectiveRoute": {
+            "mainRouteCode": "9335:9335_9354_9362_9377_9550:9550",
+            "subRouteCodes": ["9335:9335_9354_9496_9536_9550:9550"]
+          },
+          "spotIDs": ["0"]
+        },
+        {
+          "selectiveRoute": {
+            "mainRouteCode": "9550:9550_9553_9563_9568_10027_9335:9335",
+            "subRouteCodes": ["9550:9550_9553_9563_9568_9572_9587_9591_9600_9276_9313_9315_9335:9335"]
+          },
+          "spotIDs": ["1"]
+        }
+      ]
+    }
+  ]
+}

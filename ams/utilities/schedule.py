@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from ams.structures import Schedule as Structure
-from ams.structures import Period
+from ams.structures import Period, Targets
 
 
 class Schedule(object):
@@ -29,7 +29,7 @@ class Schedule(object):
             route=route
         )
 
-    validate_schedule = Structure.validatie_data
+    validate_schedule = Structure.validate_data
     get_errors = Structure.get_errors
 
     @staticmethod

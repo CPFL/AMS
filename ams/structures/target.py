@@ -35,6 +35,7 @@ targets_schema = {
         "required": True,
         "nullable": False,
     },
+    "nullable": True,
     "minlength": 1
 }
 

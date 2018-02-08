@@ -100,7 +100,7 @@ class Vehicle(EventLoop):
     def publish_geo_topic(self):
         self.publish(
             self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-            self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, node="Vehicle"))
+            self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, group="Vehicle"))
         )
 
     def update_schedules(self, _client, _userdata, topic, payload):
