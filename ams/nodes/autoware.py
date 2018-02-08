@@ -2,11 +2,12 @@
 # coding: utf-8
 
 from sys import float_info
+from time import time
 from transforms3d.quaternions import axangle2quat
 
-from ams import Topic
+from ams import Topic, Route, Schedule
 from ams.nodes import Vehicle, TrafficSignal
-from ams.messages import autoware_message, traffic_signal_message
+from ams.messages import autoware_message, TrafficSignalStatus
 
 
 class Autoware(Vehicle):
@@ -27,8 +28,8 @@ class Autoware(Vehicle):
         PUBLISH = "pub_autoware"
         SUBSCRIBE = "sub_autoware"
 
-    def __init__(self, name, waypoint, arrow, route, waypoint_id, velocity, schedules=None, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, waypoint_id, velocity, schedules, dt)
+    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt=1.0):
+        super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt)
 
         self.name = name
 
@@ -42,20 +43,19 @@ class Autoware(Vehicle):
         self.autowareSubscribeTopic.set_root(Autoware.TOPIC.SUBSCRIBE)
         self.autowareSubscribeTopic.set_message(autoware_message)
 
-        self.topicTrafficSignalPublish = Topic()
-        self.topicTrafficSignalPublish.set_root(TrafficSignal.TOPIC.PUBLISH)
-        self.topicTrafficSignalPublish.set_message(traffic_signal_message)
+        self.topicTrafficSignalStatus = Topic()
+        self.topicTrafficSignalStatus.set_root(TrafficSignal.TOPIC.PUBLISH)
 
         self.pose_index = 0
         self.current_poses = []
         self.traffic_signals = {}
 
-        self.add_on_message_function(self.set_autoware_pose)
-        self.add_on_message_function(self.set_traffic_signals)
+        self.add_on_message_function(self.update_autoware_pose)
+        self.add_on_message_function(self.update_traffic_signals)
         self.set_subscriber(self.autowareSubscribeTopic.private+"/closest_waypoint")
-        self.set_subscriber(self.topicTrafficSignalPublish.all)
+        self.set_subscriber(self.topicTrafficSignalStatus.all)
 
-    def set_autoware_pose(self, _client, _userdata, topic, payload):
+    def update_autoware_pose(self, _client, _userdata, topic, payload):
         if topic == self.autowareSubscribeTopic.private+"/closest_waypoint":
             message = self.autowareSubscribeTopic.unserialize(payload)
             if 0 <= message["index"] < len(self.current_poses):
@@ -64,21 +64,17 @@ class Autoware(Vehicle):
                 self.arrow_code = self.current_poses[self.pose_index]["arrow_code"]
                 self.waypoint_id = self.current_poses[self.pose_index]["waypoint_id"]
                 self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
+                self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
                 self.set_autoware_traffic_light()
             else:
                 print("Lost Autoware.")
 
-    def set_autoware_waypoints(self):
+    def update_autoware_waypoints(self):
         waypoints = []
         schedule = self.schedules[0]
 
-        arrow_waypoint_array = self.route.get_arrow_waypoint_array({
-            "start_waypoint_id": schedule["route"]["start"]["waypoint_id"],
-            "goal_waypoint_id": schedule["route"]["goal"]["waypoint_id"],
-            "arrow_codes": schedule["route"]["arrow_codes"]
-        })
+        arrow_waypoint_array = self.route.get_arrow_waypoint_array(schedule["route"])
         for arrowWaypoint in arrow_waypoint_array:
             waypoint_id = arrowWaypoint["waypoint_id"]
             waypoints.append({
@@ -95,10 +91,11 @@ class Autoware(Vehicle):
             payload = self.autowarePublishTopic.serialize(waypoints)
             self.publish(self.autowarePublishTopic.private+"/waypoints", payload)
 
-    def set_traffic_signals(self, _client, _user_data, topic, payload):
-        if self.topicTrafficSignalPublish.root in topic:
-            message = self.topicTrafficSignalPublish.unserialize(payload)
-            self.traffic_signals.update(dict(map(lambda x: (x["route_code"], x), message["routes"])))
+    def update_traffic_signals(self, _client, _user_data, topic, payload):
+        if self.topicTrafficSignalStatus.root in topic:
+            traffic_signal_status = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
+            # print(traffic_signal_status)
+            self.traffic_signals[traffic_signal_status["route_code"]] = traffic_signal_status
 
     def __get_inter_traffic_signal_distance(self, monitored_route):
         monitored_arrow_codes = monitored_route["arrow_codes"]
@@ -109,11 +106,7 @@ class Autoware(Vehicle):
                 lambda x: x["state"] in [TrafficSignal.STATE.YELLOW, TrafficSignal.STATE.RED],
                 self.traffic_signals.values())))
 
-        new_monitored_route = {
-            "start_waypoint_id": monitored_route["start_waypoint_id"],
-            "arrow_codes": None,
-            "goal_waypoint_id": None
-        }
+        new_monitored_route = None
         for i, monitored_arrow_code in enumerate(monitored_arrow_codes):
             for not_green_traffic_signal_route_code in not_green_traffic_signal_route_codes:
                 if monitored_arrow_code in not_green_traffic_signal_route_code:
@@ -122,13 +115,13 @@ class Autoware(Vehicle):
                         waypoint_ids = self.arrow.get_waypoint_ids(monitored_arrow_code)
                         if self.waypoint_id not in waypoint_ids or \
                                 waypoint_ids.index(self.waypoint_id) <= waypoint_ids.index(start_waypoint_id):
-                            new_monitored_route["goal_waypoint_id"] = start_waypoint_id
-                            new_monitored_route["arrow_codes"] = monitored_arrow_codes[:i]
+                            new_monitored_route = Route.new_route(
+                                monitored_route.start_waypoint_id, start_waypoint_id, monitored_arrow_codes[:i + 1])
                             break
-            if new_monitored_route["arrow_codes"] is not None:
+            if new_monitored_route is not None:
                 break
 
-        if new_monitored_route["arrow_codes"] is not None:
+        if new_monitored_route is not None:
             inter_traffic_signal_distance = self.route.get_route_length(new_monitored_route)
 
         # print("inter_traffic_signal_distance {}[m]".format(inter_traffic_signal_distance))
@@ -146,15 +139,14 @@ class Autoware(Vehicle):
         if self.arrow_code in arrow_codes:
             i_s = arrow_codes.index(self.arrow_code)
         arrow_codes = arrow_codes[i_s:]
-        route = {
-            "start_waypoint_id": self.waypoint_id,
-            "goal_waypoint_id": self.arrow.get_waypoint_ids(self.schedules[0]["route"]["arrow_codes"][-1])[-1],
-            "arrow_codes": arrow_codes
-        }
+        route = Route.new_route(
+            self.waypoint_id,
+            self.arrow.get_waypoint_ids(self.schedules[0]["route"]["arrow_codes"][-1])[-1],
+            arrow_codes)
         return self.route.get_sliced_route(route, distance)
 
     def set_autoware_traffic_light(self):
-        if self.schedules[0]["action"] == Vehicle.ACTION.MOVE:
+        if self.schedules[0]["event"] == Vehicle.ACTION.MOVE:
             monitored_route = self.get_monitored_route()
             if monitored_route is None:
                 payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.RED})
@@ -165,4 +157,23 @@ class Autoware(Vehicle):
                     payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.RED})
                 else:
                     payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.GREEN})
+            print("set_autoware_traffic_light", payload)
             self.publish(self.autowarePublishTopic.private+"/traffic_light", payload)
+
+    def on_start_moving(self):
+        self.update_autoware_waypoints()
+
+    def update_status(self):
+        current_time = time()
+        print("state", self.state)
+        if self.state == Vehicle.STATE.STOP:
+            if self.schedules[0]["period"]["end"] < current_time:
+                self.schedules.pop(0)
+
+                self.on_start_moving()
+
+                # update next schedule
+                dif_time = current_time - self.schedules[0]["period"]["start"]
+                self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
+
+                self.state = Vehicle.STATE.MOVE
