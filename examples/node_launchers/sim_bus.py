@@ -21,8 +21,6 @@ parser.add_argument("-A", "--path_arrow_json", type=str,
                     default="../../res/arrow.json", help="arrow.json path")
 parser.add_argument("-I", "--path_intersection_json", type=str,
                     default="../../res/intersection.json", help="intersection.json path")
-parser.add_argument("-R", "--path_route_json", type=str,
-                    default="../../res/route.json", help="route.json path")
 parser.add_argument("-WID", "--start_waypoint_id", type=str,
                     default=None, help="start waypoint id")
 parser.add_argument("-RID", "--circular_route_id", type=str,
@@ -41,7 +39,6 @@ if __name__ == '__main__':
     route = Route()
     route.set_waypoint(waypoint)
     route.set_arrow(arrow)
-    route.load(args.path_route_json)
 
     intersection = Intersection()
     intersection.load(args.path_intersection_json)
