@@ -6,35 +6,26 @@ from time import time, sleep
 from ams import Topic, Schedule, Target
 from ams.nodes import EventLoop
 from ams.messages import UserStatus
-from ams.structures import Schedules
+from ams.structures import Schedules, USER
 
 
 class User(EventLoop):
 
-    class TOPIC(object):
-        PUBLISH = "pubUser"
-        SUBSCRIBE = "subUser"
-
-    class STATE(object):
-        LOG_IN = "login"
-        LOG_OUT = "logout"
-
-    class ACTION(object):
-        REQUEST = "request"
+    CONST = USER
 
     def __init__(self, name, dt=1.0):
         super().__init__()
 
         self.topicStatus = Topic()
         self.topicStatus.set_id(self.event_loop_id)
-        self.topicStatus.set_root(User.TOPIC.PUBLISH)
+        self.topicStatus.set_root(USER.TOPIC.PUBLISH)
 
         self.topicSchedules = Topic()
         self.topicSchedules.set_id(self.event_loop_id)
-        self.topicSchedules.set_root(User.TOPIC.SUBSCRIBE)
+        self.topicSchedules.set_root(USER.TOPIC.SUBSCRIBE)
 
         self.name = name
-        self.state = User.STATE.LOG_IN
+        self.state = USER.STATE.LOG_IN
         self.trip_schedules = None
         self.schedules = None
         self.vehicle_id = None
@@ -48,7 +39,7 @@ class User(EventLoop):
         self.trip_schedules = trip_schedules
         self.schedules = [Schedule.new_schedule(
             targets=[Target.new_node_target(self)],
-            event=User.ACTION.REQUEST,
+            event=USER.ACTION.REQUEST,
             start_time=trip_schedules[0].period.start,
             end_time=trip_schedules[0].period.end
         )]
@@ -80,7 +71,7 @@ class User(EventLoop):
 
         self.publish_status()
 
-        while self.state != User.STATE.LOG_OUT:
+        while self.state != USER.STATE.LOG_OUT:
             sleep(self.dt)
             self.update_status()
             self.publish_status()

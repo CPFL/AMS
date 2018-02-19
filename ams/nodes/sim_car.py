@@ -1,28 +1,26 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from sys import float_info
 from time import time
 
 from ams import Topic, Schedule, Route
 from ams.nodes import Vehicle, TrafficSignal
 from ams.messages import TrafficSignalStatus, VehicleStatus
+from ams.structures import VEHICLE, SIM_CAR
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 
 class SimCar(Vehicle):
-    LOWER_INTER_VEHICLE_DISTANCE = 3.0
-    LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE = 1.0
-    FLOAT_MAX = float_info.max
-    ACCELERATION_MAX = 0.3  # [m/s^2]
+
+    CONST = SIM_CAR
 
     def __init__(self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt=1.0):
         super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt)
 
         self.topicTrafficSignalStatus = Topic()
-        self.topicTrafficSignalStatus.set_root(TrafficSignal.TOPIC.PUBLISH)
+        self.topicTrafficSignalStatus.set_root(TrafficSignal.CONST.TOPIC.PUBLISH)
 
         self.__prev_waypoint_id = waypoint_id
 
@@ -65,7 +63,7 @@ class SimCar(Vehicle):
 
     def __get_inter_vehicle_distance(self, monitored_route):
         monitored_waypoint_ids = self.route.get_waypoint_ids(monitored_route)
-        inter_vehicle_distance = SimCar.FLOAT_MAX
+        inter_vehicle_distance = SIM_CAR.FLOAT_MAX
         if self.arrow_code is not None and 0 < len(self.other_vehicles):
             other_vehicles_waypoint_ids = list(map(
                 lambda x: x.location.waypoint_id, self.other_vehicles.values()))
@@ -78,11 +76,11 @@ class SimCar(Vehicle):
 
     def __get_inter_traffic_signal_distance(self, monitored_route):
         monitored_arrow_codes = monitored_route.arrow_codes
-        inter_traffic_signal_distance = SimCar.FLOAT_MAX
+        inter_traffic_signal_distance = SIM_CAR.FLOAT_MAX
 
         not_green_traffic_signal_route_codes = list(map(
             lambda x: x["route_code"], filter(
-                lambda x: x["state"] in [TrafficSignal.STATE.YELLOW, TrafficSignal.STATE.RED],
+                lambda x: x["state"] in [TrafficSignal.CONST.STATE.YELLOW, TrafficSignal.CONST.STATE.RED],
                 self.traffic_signals.values())))
 
         new_monitored_route = None
@@ -107,15 +105,15 @@ class SimCar(Vehicle):
         return inter_traffic_signal_distance
 
     def __get_movable_distance(self):
-        movable_distance = SimCar.FLOAT_MAX
+        movable_distance = SIM_CAR.FLOAT_MAX
         if 0 < len(self.schedules):
-            if self.schedules[0].event == Vehicle.ACTION.MOVE:
+            if self.schedules[0].event == VEHICLE.ACTION.MOVE:
                 # check inter-vehicle distance
                 monitored_route = self.get_monitored_route()
                 if monitored_route is None:
                     return 0.0
                 inter_vehicle_distance = self.__get_inter_vehicle_distance(monitored_route)
-                movable_distance = inter_vehicle_distance - SimCar.LOWER_INTER_VEHICLE_DISTANCE
+                movable_distance = inter_vehicle_distance - SIM_CAR.LOWER_INTER_VEHICLE_DISTANCE
 
                 # check inter-trafficSignal distance
                 monitored_route = self.get_monitored_route(movable_distance)
@@ -123,7 +121,7 @@ class SimCar(Vehicle):
                     return 0.0
                 inter_traffic_signal_distance = self.__get_inter_traffic_signal_distance(monitored_route)
                 movable_distance = min(
-                    movable_distance, inter_traffic_signal_distance - SimCar.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
+                    movable_distance, inter_traffic_signal_distance - SIM_CAR.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
 
         return movable_distance
 
@@ -146,16 +144,16 @@ class SimCar(Vehicle):
     def update_velocity(self):
         speed_limit = self.waypoint.get_speed_limit(self.waypoint_id)
         if self.velocity < speed_limit:
-            self.velocity += min(SimCar.ACCELERATION_MAX * self.dt, speed_limit - self.velocity)
+            self.velocity += min(SIM_CAR.ACCELERATION_MAX * self.dt, speed_limit - self.velocity)
         elif speed_limit < self.velocity:
             self.velocity = speed_limit
         return
 
     def update_status(self):
         current_time = time()
-        if self.state == Vehicle.STATE.STOP:
-            if self.schedules[0].event == Vehicle.ACTION.MOVE:
-                self.state = Vehicle.STATE.MOVE
+        if self.state == VEHICLE.STATE.STOP:
+            if self.schedules[0].event == VEHICLE.ACTION.MOVE:
+                self.state = VEHICLE.STATE.MOVE
             else:
                 if self.schedules[0].period.end <= current_time:
                     if 1 < len(self.schedules):
@@ -165,9 +163,9 @@ class SimCar(Vehicle):
                         dif_time = current_time - self.schedules[0].period.start
                         self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                        self.state = Vehicle.STATE.MOVE
+                        self.state = VEHICLE.STATE.MOVE
 
-        elif self.state == Vehicle.STATE.MOVE:
+        elif self.state == VEHICLE.STATE.MOVE:
             self.update_pose()
             self.update_velocity()
             if self.is_achieved():
@@ -182,4 +180,4 @@ class SimCar(Vehicle):
                 dif_time = new_start_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = Vehicle.STATE.STOP
+                self.state = VEHICLE.STATE.STOP

@@ -2,6 +2,7 @@ from ams.nodes.event_loop import EventLoop
 
 from ams.nodes.user import User
 from ams.nodes.taxi_user import TaxiUser
+from ams.nodes.bus_user import BusUser
 
 from ams.nodes.traffic_signal import TrafficSignal
 

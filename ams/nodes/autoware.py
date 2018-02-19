@@ -1,32 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from sys import float_info
 from time import time
 from transforms3d.quaternions import axangle2quat
 
 from ams import Topic, Route, Schedule
 from ams.nodes import Vehicle, TrafficSignal
 from ams.messages import autoware_message, TrafficSignalStatus
+from ams.structures import AUTOWARE
 
 
 class Autoware(Vehicle):
 
-    FLOAT_MAX = float_info.max
-
-    class TRAFFIC_LIGHT(object):
-        RED = 0
-        GREEN = 1
-        UNKNOWN = 2
-
-    class ROSTOPIC(object):
-        WAYPOINTS = "/based/lane_waypoints_array"
-        TRAFFIC_LIGHT = "/light_color_managed"
-        CLOSEST_WAYPOINT = "/closest_waypoint"
-
-    class TOPIC(object):
-        PUBLISH = "pub_autoware"
-        SUBSCRIBE = "sub_autoware"
+    CONST = AUTOWARE
 
     def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt=1.0):
         super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt)
@@ -35,12 +21,12 @@ class Autoware(Vehicle):
 
         self.autowarePublishTopic = Topic()
         self.autowarePublishTopic.set_id(self.name)
-        self.autowarePublishTopic.set_root(Autoware.TOPIC.PUBLISH)
+        self.autowarePublishTopic.set_root(AUTOWARE.TOPIC.PUBLISH)
         self.autowarePublishTopic.set_message(autoware_message)
 
         self.autowareSubscribeTopic = Topic()
         self.autowareSubscribeTopic.set_id(self.name)
-        self.autowareSubscribeTopic.set_root(Autoware.TOPIC.SUBSCRIBE)
+        self.autowareSubscribeTopic.set_root(AUTOWARE.TOPIC.SUBSCRIBE)
         self.autowareSubscribeTopic.set_message(autoware_message)
 
         self.topicTrafficSignalStatus = Topic()
@@ -99,7 +85,7 @@ class Autoware(Vehicle):
 
     def __get_inter_traffic_signal_distance(self, monitored_route):
         monitored_arrow_codes = monitored_route["arrow_codes"]
-        inter_traffic_signal_distance = Autoware.FLOAT_MAX
+        inter_traffic_signal_distance = AUTOWARE.FLOAT_MAX
 
         not_green_traffic_signal_route_codes = list(map(
             lambda x: x["route_code"], filter(
@@ -146,17 +132,17 @@ class Autoware(Vehicle):
         return self.route.get_sliced_route(route, distance)
 
     def set_autoware_traffic_light(self):
-        if self.schedules[0]["event"] == Vehicle.ACTION.MOVE:
+        if self.schedules[0]["event"] == Vehicle.CONST.ACTION.MOVE:
             monitored_route = self.get_monitored_route()
             if monitored_route is None:
-                payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.RED})
+                payload = self.autowarePublishTopic.serialize({"traffic_light": AUTOWARE.TRAFFIC_LIGHT.RED})
             else:
                 inter_traffic_signal_distance = self.__get_inter_traffic_signal_distance(monitored_route)
                 print("inter_traffic_signal_distance", inter_traffic_signal_distance)
                 if inter_traffic_signal_distance <= 20.0:
-                    payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.RED})
+                    payload = self.autowarePublishTopic.serialize({"traffic_light": AUTOWARE.TRAFFIC_LIGHT.RED})
                 else:
-                    payload = self.autowarePublishTopic.serialize({"traffic_light": Autoware.TRAFFIC_LIGHT.GREEN})
+                    payload = self.autowarePublishTopic.serialize({"traffic_light": AUTOWARE.TRAFFIC_LIGHT.GREEN})
             print("set_autoware_traffic_light", payload)
             self.publish(self.autowarePublishTopic.private+"/traffic_light", payload)
 
@@ -166,7 +152,7 @@ class Autoware(Vehicle):
     def update_status(self):
         current_time = time()
         print("state", self.state)
-        if self.state == Vehicle.STATE.STOP:
+        if self.state == Vehicle.CONST.STATE.STOP:
             if self.schedules[0]["period"]["end"] < current_time:
                 self.schedules.pop(0)
 
@@ -176,4 +162,4 @@ class Autoware(Vehicle):
                 dif_time = current_time - self.schedules[0]["period"]["start"]
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = Vehicle.STATE.MOVE
+                self.state = Vehicle.CONST.STATE.MOVE

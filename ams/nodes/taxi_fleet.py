@@ -6,30 +6,29 @@ from time import time
 from ams import Topic, Route, Schedule
 from ams.nodes import FleetManager, User, TaxiUser, Vehicle, SimTaxi
 from ams.messages import UserStatus, VehicleStatus
-from ams.structures import Target
+from ams.structures import Target, TAXI_FLEET
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 
 class TaxiFleet(FleetManager):
 
-    DISPATCHABLE_GEOHASH_DIGIT = 6
-    TIMEOUT = 30.0
+    CONST = TAXI_FLEET
 
     def __init__(self, name, waypoint, arrow, route):
         super().__init__(name, waypoint, arrow, route)
 
         self.topicUserPublish = Topic()
-        self.topicUserPublish.set_root(User.TOPIC.PUBLISH)
+        self.topicUserPublish.set_root(User.CONST.TOPIC.PUBLISH)
 
         self.topicUserSubscribe = Topic()
-        self.topicUserSubscribe.set_root(User.TOPIC.SUBSCRIBE)
+        self.topicUserSubscribe.set_root(User.CONST.TOPIC.SUBSCRIBE)
 
         self.topicVehicleStatus = Topic()
-        self.topicVehicleStatus.set_root(Vehicle.TOPIC.PUBLISH)
+        self.topicVehicleStatus.set_root(Vehicle.CONST.TOPIC.PUBLISH)
 
         self.topicVehicleSchedules = Topic()
-        self.topicVehicleSchedules.set_root(Vehicle.TOPIC.SUBSCRIBE)
+        self.topicVehicleSchedules.set_root(Vehicle.CONST.TOPIC.SUBSCRIBE)
 
         self.waypoint = waypoint
         self.arrow = arrow
@@ -74,10 +73,10 @@ class TaxiFleet(FleetManager):
             lambda x:
                 self.waypoint.get_geohash(
                     self.vehicle_schedules[x][-1].route.goal_waypoint_id
-                )[:TaxiFleet.DISPATCHABLE_GEOHASH_DIGIT] ==
+                )[:TAXI_FLEET.DISPATCHABLE_GEOHASH_DIGIT] ==
                 self.waypoint.get_geohash(
                     self.user_statuses[user_id].trip_schedules[0].route.start_waypoint_id
-                )[:TaxiFleet.DISPATCHABLE_GEOHASH_DIGIT],
+                )[:TAXI_FLEET.DISPATCHABLE_GEOHASH_DIGIT],
             self.vehicle_schedules.keys()
         ))
         # pp(dispatchable_vehicle_ids)
@@ -132,7 +131,7 @@ class TaxiFleet(FleetManager):
         carry_route.pop("goal_id")
 
         current_time = time()
-        if self.vehicle_schedules[vehicle_id][-1].event == SimTaxi.STATE.STANDBY:
+        if self.vehicle_schedules[vehicle_id][-1].event == SimTaxi.CONST.STATE.STANDBY:
             current_time = self.vehicle_schedules[vehicle_id][-1].period.start
             # self.vehicle_schedules[vehicle_id].pop()
         pick_up_route = Route.new_route(
@@ -143,7 +142,7 @@ class TaxiFleet(FleetManager):
                 Target.new_data(id=vehicle_id, group="SimTaxi"),
                 Target.new_data(id=user_id, group="TaxiUser")
             ],
-            Vehicle.ACTION.MOVE, current_time, current_time+1000, pick_up_route)
+            Vehicle.CONST.ACTION.MOVE, current_time, current_time+1000, pick_up_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             self.vehicle_schedules[vehicle_id], [vehicle_schedule])
 
@@ -153,7 +152,7 @@ class TaxiFleet(FleetManager):
                 Target.new_data(id=vehicle_id, group="SimTaxi"),
                 Target.new_data(id=user_id, group="TaxiUser")
             ],
-            Vehicle.ACTION.STOP, current_time+1000, current_time+1010, take_on_route)
+            Vehicle.CONST.ACTION.STOP, current_time+1000, current_time+1010, take_on_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
@@ -162,7 +161,7 @@ class TaxiFleet(FleetManager):
                 Target.new_data(id=vehicle_id, group="SimTaxi"),
                 Target.new_data(id=user_id, group="TaxiUser")
             ],
-            Vehicle.ACTION.MOVE, current_time+1010, current_time+2010, carry_route)
+            Vehicle.CONST.ACTION.MOVE, current_time+1010, current_time+2010, carry_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
@@ -172,7 +171,7 @@ class TaxiFleet(FleetManager):
                 Target.new_data(id=vehicle_id, group="SimTaxi"),
                 Target.new_data(id=user_id, group="TaxiUser")
             ],
-            Vehicle.ACTION.STOP, current_time+2010, current_time+2020, discharge_route)
+            Vehicle.CONST.ACTION.STOP, current_time+2010, current_time+2020, discharge_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
@@ -181,7 +180,7 @@ class TaxiFleet(FleetManager):
             [
                 Target.new_data(id=vehicle_id, group="SimTaxi"),
             ],
-            SimTaxi.STATE.STANDBY, current_time+2020, current_time+86400, stand_by_route)
+            SimTaxi.CONST.STATE.STANDBY, current_time+2020, current_time+86400, stand_by_route)
         vehicle_schedules = Schedule.get_merged_schedules(
             vehicle_schedules, [vehicle_schedule])
 
@@ -191,7 +190,7 @@ class TaxiFleet(FleetManager):
         user_ids = []
         for user_id, user_status in self.user_statuses.items():
             # print(time() - user_status.time, user_status.state)
-            if TaxiFleet.TIMEOUT < time() - user_status.time:
+            if TAXI_FLEET.TIMEOUT < time() - user_status.time:
                 user_ids.append(user_id)
         for user_id in user_ids:
             if user_id in self.relations:
@@ -207,9 +206,9 @@ class TaxiFleet(FleetManager):
         self.cleanup_status()
 
         for user_id, user_status in self.user_statuses.items():
-            if user_status.state == User.STATE.LOG_IN:
+            if user_status.state == User.CONST.STATE.LOG_IN:
                 pass
-            elif user_status.state == TaxiUser.STATE.CALLING:
+            elif user_status.state == TaxiUser.CONST.STATE.CALLING:
                 if user_id not in self.relations:
                     vehicle_id, vehicle_schedules = self.get_taxi_schedules(user_id, user_status)
                     if vehicle_id is not None:
@@ -229,56 +228,56 @@ class TaxiFleet(FleetManager):
 
                 if user_id in self.relations:
                     for vehicle_id in self.relations[user_id]:
-                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.STATE.MOVE_TO_USER:
-                            self.user_schedules[user_id][0].event = TaxiUser.ACTION.WAIT
+                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.CONST.STATE.MOVE_TO_USER:
+                            self.user_schedules[user_id][0].event = TaxiUser.CONST.ACTION.WAIT
                             self.publish(
                                 self.topicUserSubscribe.root + "/" + user_id + "/schedules",
                                 self.topicUserSubscribe.serialize(self.user_schedules[user_id]))
 
-            elif user_status.state == TaxiUser.STATE.WAITING:
+            elif user_status.state == TaxiUser.CONST.STATE.WAITING:
                 for vehicle_id in self.relations[user_id]:
-                    if self.vehicle_statuses[vehicle_id].state == SimTaxi.STATE.STOP_FOR_PICKING_UP:
+                    if self.vehicle_statuses[vehicle_id].state == SimTaxi.CONST.STATE.STOP_FOR_PICKING_UP:
                         if user_id in map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets):
-                            self.user_schedules[user_id][0].event = TaxiUser.ACTION.GET_ON
+                            self.user_schedules[user_id][0].event = TaxiUser.CONST.ACTION.GET_ON
                             self.publish(
                                 self.topicUserSubscribe.root+"/"+user_id+"/schedules",
                                 self.topicUserSubscribe.serialize(self.user_schedules[user_id]))
 
-            elif user_status.state == TaxiUser.STATE.GETTING_ON:
+            elif user_status.state == TaxiUser.CONST.STATE.GETTING_ON:
                 pass
 
-            elif user_status.state == TaxiUser.STATE.GOT_ON:
+            elif user_status.state == TaxiUser.CONST.STATE.GOT_ON:
                 for vehicle_id in self.relations[user_id]:
                     if user_id in map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets):
-                        self.vehicle_schedules[vehicle_id][0].event = Vehicle.ACTION.MOVE
+                        self.vehicle_schedules[vehicle_id][0].event = Vehicle.CONST.ACTION.MOVE
                         payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
                         self.publish(self.topicVehicleSchedules.root + "/" + vehicle_id + "/schedules", payload)
 
-                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.STATE.MOVE_TO_USER_DESTINATION:
-                            self.user_schedules[user_id][0].event = TaxiUser.EVENT.MOVE_VEHICLE
+                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.CONST.STATE.MOVE_TO_USER_DESTINATION:
+                            self.user_schedules[user_id][0].event = TaxiUser.CONST.EVENT.MOVE_VEHICLE
                             self.publish(
                                 self.topicUserSubscribe.root+"/"+user_id+"/schedules",
                                 self.topicUserSubscribe.serialize(self.user_schedules[user_id]))
 
-                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.STATE.STOP_FOR_DISCHARGING:
-                            self.user_schedules[user_id][0].event = TaxiUser.ACTION.GET_OUT
+                        if self.vehicle_statuses[vehicle_id].state == SimTaxi.CONST.STATE.STOP_FOR_DISCHARGING:
+                            self.user_schedules[user_id][0].event = TaxiUser.CONST.ACTION.GET_OUT
                             self.publish(
                                 self.topicUserSubscribe.root+"/"+user_id+"/schedules",
                                 self.topicUserSubscribe.serialize(self.user_schedules[user_id]))
 
-            elif user_status.state == TaxiUser.STATE.MOVING:
+            elif user_status.state == TaxiUser.CONST.STATE.MOVING:
                 for vehicle_id in self.relations[user_id]:
-                    if self.vehicle_statuses[vehicle_id].state == SimTaxi.STATE.STOP_FOR_DISCHARGING:
+                    if self.vehicle_statuses[vehicle_id].state == SimTaxi.CONST.STATE.STOP_FOR_DISCHARGING:
                         if user_id in map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets):
-                            self.user_schedules[user_id][0].event = TaxiUser.ACTION.GET_OUT
+                            self.user_schedules[user_id][0].event = TaxiUser.CONST.ACTION.GET_OUT
                             self.publish(
                                 self.topicUserSubscribe.root+"/"+user_id+"/schedules",
                                 self.topicUserSubscribe.serialize(self.user_schedules[user_id]))
 
-            elif user_status.state == TaxiUser.STATE.GETTING_OUT:
+            elif user_status.state == TaxiUser.CONST.STATE.GETTING_OUT:
                 pass
 
-            elif user_status.state == TaxiUser.STATE.GOT_OUT:
+            elif user_status.state == TaxiUser.CONST.STATE.GOT_OUT:
                 if user_id in self.relations:
                     for vehicle_id in self.relations[user_id]:
                         self.relations[vehicle_id].remove(user_id)
@@ -286,7 +285,7 @@ class TaxiFleet(FleetManager):
                             self.relations.pop(vehicle_id)
                     self.relations.pop(user_id)
 
-            elif user_status.state == User.STATE.LOG_OUT:
+            elif user_status.state == User.CONST.STATE.LOG_OUT:
                 if user_id in self.relations:
                     for vehicle_id in self.relations[user_id]:
                         self.relations[vehicle_id].remove(user_id)

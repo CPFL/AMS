@@ -18,14 +18,14 @@ class Schedule(object):
         self.__route = route
 
     @staticmethod
-    def new_schedule(targets, event, start_time, end_time, route=None):
+    def new_schedule(targets, event, start_time=None, end_time=None, route=None):
         return Structure.new_data(
             targets=targets,
             event=event,
             period=Period.new_data(
                 start=start_time,
                 end=end_time
-            ),
+            ) if None not in [start_time, end_time] else None,
             route=route
         )
 

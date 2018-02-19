@@ -6,6 +6,7 @@ from sys import float_info
 import numpy as np
 
 from ams import Arrow
+from ams.structures import ROUTE
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -14,7 +15,8 @@ pp = PrettyPrinter(indent=2).pprint
 
 
 class Route(object):
-    DELIMITER = ":"
+
+    CONST = ROUTE
 
     def __init__(self):
         self.__getRouteCost = self.get_route_length
@@ -328,20 +330,20 @@ class Route(object):
 
     @staticmethod
     def encode_route(route):
-        joined_arrow_codes = Arrow.DELIMITER.join(list(map(
-            lambda x: x.split(Arrow.DELIMITER)[0],
-            route.arrow_codes)) + [route.arrow_codes[-1].split(Arrow.DELIMITER)[-1]])
-        route_code = Route.DELIMITER.join(map(
+        joined_arrow_codes = Arrow.CONST.DELIMITER.join(list(map(
+            lambda x: x.split(Arrow.CONST.DELIMITER)[0],
+            route.arrow_codes)) + [route.arrow_codes[-1].split(Arrow.CONST.DELIMITER)[-1]])
+        route_code = ROUTE.DELIMITER.join(map(
             str, [route.start_waypoint_id, joined_arrow_codes, route.goal_waypoint_id]))
         return route_code
 
     @staticmethod
     def decode_route_code(route_code):
-        start_waypoint_id, joined_arrow_codes, goal_waypoint_id = route_code.split(Route.DELIMITER)
-        waypoint_ids = joined_arrow_codes.split(Arrow.DELIMITER)
+        start_waypoint_id, joined_arrow_codes, goal_waypoint_id = route_code.split(ROUTE.DELIMITER)
+        waypoint_ids = joined_arrow_codes.split(Arrow.CONST.DELIMITER)
         arrow_codes = []
         for i in range(1, len(waypoint_ids)):
-            arrow_codes.append(Arrow.DELIMITER.join(waypoint_ids[i-1:i+1]))
+            arrow_codes.append(Arrow.CONST.DELIMITER.join(waypoint_ids[i-1:i+1]))
         return Route.new_route(start_waypoint_id, goal_waypoint_id, arrow_codes)
 
     def get_speed_limits(self, route):
@@ -353,8 +355,6 @@ class Route(object):
         arrow_code, waypoint_id, _, moved_distance = \
             self.__arrow.get_point_to_arrows(position, route.arrow_codes)
 
-        # print(waypoint_id)
-
         arrow_codes = route.arrow_codes[route.arrow_codes.index(arrow_code):]
         arrow_waypoint_array = self.get_arrow_waypoint_array(self.new_route(
             waypoint_id,
@@ -362,22 +362,10 @@ class Route(object):
             arrow_codes
         ))
 
-        # print(
-        #     waypoint_id,
-        #     route.goal_waypoint_id,
-        #     arrow_code,
-        #     arrow_waypoint_array[0],
-        #     arrow_waypoint_array[1],
-        #     len(arrow_waypoint_array),
-        #     len(arrow_codes),
-        #     len(route.arrow_codes)
-        # )
-
         for i in range(0, len(arrow_waypoint_array)-1):
             p1 = self.__waypoint.get_position(arrow_waypoint_array[i]["waypoint_id"])
             p2 = self.__waypoint.get_position(arrow_waypoint_array[i+1]["waypoint_id"])
             d = self.__arrow.get_distance(p1, p2)
-            # print(distance, moved_distance, d)
             if distance <= moved_distance + d:
                 vector_12 = np.subtract(p2, p1)
                 return np.add(p1, d * vector_12 / np.linalg.norm(vector_12)),\

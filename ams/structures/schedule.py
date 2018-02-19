@@ -4,14 +4,13 @@
 from ams.structures import get_base_class, Targets, Period, Route
 
 template = {
-    "targets": Targets.get_template(),
     "event": "default",
     "period": Period.get_template(),
     "route": Route.get_template(),
+    "targets": Targets.get_template(),
 }
 
 schema = {
-    "targets": Targets.get_schema(),
     "event": {
         "type": "string",
         "required": True,
@@ -20,14 +19,16 @@ schema = {
     "period": {
         "type": "dict",
         "schema": Period.get_schema(),
-        "required": True,
+        "required": False,
+        "nullable": True,
     },
     "route": {
         "type": "dict",
         "schema": Route.get_schema(),
         "required": False,
         "nullable": True,
-    }
+    },
+    "targets": Targets.get_schema(),
 }
 
 

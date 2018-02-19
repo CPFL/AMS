@@ -6,35 +6,27 @@ from time import time, sleep
 from ams import Topic
 from ams.nodes import EventLoop, TrafficSignal
 from ams.messages import TrafficSignalStatus, FleetStatus
+from ams.structures import FLEET_MANAGER
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 
 class FleetManager(EventLoop):
 
-    class ACTION(object):
-        PUBLISH_RELATIONS = "pub_relations"
-
-    class STATE(object):
-        STAND_BY = "standby"
-        RUNNING = "running"
-
-    class TOPIC(object):
-        PUBLISH = "pub_fleet_manager"
-        SUBSCRIBE = "sub_fleet_manager"
+    CONST = FLEET_MANAGER
 
     def __init__(self, name, waypoint, arrow, route, dt=3.0):
         super().__init__()
 
         self.topicTrafficSignalStatus = Topic()
-        self.topicTrafficSignalStatus.set_root(TrafficSignal.TOPIC.PUBLISH)
+        self.topicTrafficSignalStatus.set_root(TrafficSignal.CONST.TOPIC.PUBLISH)
 
         self.topicStatus = Topic()
         self.topicStatus.set_id(self.event_loop_id)
-        self.topicStatus.set_root(FleetManager.TOPIC.PUBLISH)
+        self.topicStatus.set_root(FLEET_MANAGER.TOPIC.PUBLISH)
 
         self.name = name
-        self.state = FleetManager.STATE.STAND_BY
+        self.state = FLEET_MANAGER.STATE.STAND_BY
         self.dt = dt
 
         self.waypoint = waypoint
@@ -75,8 +67,8 @@ class FleetManager(EventLoop):
 
         self.publish_status()
 
-        self.state = FleetManager.STATE.RUNNING
-        while self.state == FleetManager.STATE.RUNNING:
+        self.state = FLEET_MANAGER.STATE.RUNNING
+        while self.state == FLEET_MANAGER.STATE.RUNNING:
             sleep(self.dt)
             self.update_status()
             self.publish_status()
