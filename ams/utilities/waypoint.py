@@ -3,7 +3,7 @@
 
 import json
 import Geohash
-from numpy import array as np_array
+from ams import Position
 
 
 class Waypoint(object):
@@ -27,7 +27,7 @@ class Waypoint(object):
                 "waypoint_id": x[1]["waypointID"],
                 "geohash": Geohash.encode(
                     float(x[1]["lat"]), float(x[1]["lng"]), precision=Waypoint.GEOHASH_PRECISION),
-                "position": np_array([x[1]["x"], x[1]["y"], x[1]["z"]]),
+                "position": Position.new_np_position(x[1]["x"], x[1]["y"], x[1]["z"]),
                 "yaw": x[1]["yaw"],
                 "speed_limit": x[1]["speedLimit"]
             }),
@@ -42,7 +42,7 @@ class Waypoint(object):
     def get_geohash(self, waypoint_id):
         return self.__waypoints[waypoint_id]["geohash"]
 
-    def get_position(self, waypoint_id):
+    def get_np_position(self, waypoint_id):
         return self.__waypoints[waypoint_id]["position"]
 
     def get_xyz(self, waypoint_id):

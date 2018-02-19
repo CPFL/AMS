@@ -56,8 +56,8 @@ class Arrow(object):
         waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
         index = waypoint_ids.index(waypoint_id)
         sub_position = np.subtract(
-            self.waypoint.get_position(waypoint_ids[max([0, index - 1])]),
-            self.waypoint.get_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])]))
+            self.waypoint.get_np_position(waypoint_ids[max([0, index - 1])]),
+            self.waypoint.get_np_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])]))
         return np.pi+np.arctan2(sub_position[0], sub_position[1])
 
     def get_heading(self, arrow_code, waypoint_id):
@@ -86,7 +86,7 @@ class Arrow(object):
         matched_waypoints = {}
         prev_position = None
         for waypoint_id in waypoint_ids:
-            position = self.waypoint.get_position(waypoint_id)
+            position = self.waypoint.get_np_position(waypoint_id)
             if prev_position is not None:
                 position_on_edge, distance = self.get_point_to_edge(point_position, prev_position, position)
                 matched_waypoints[waypoint_id] = {

@@ -30,7 +30,6 @@ class Target(object):
 
     @staticmethod
     def is_same_id(target1, target2):
-        print("Target:", target1, target2)
         return None not in [target1, target2] and target1.id == target2.id
 
     @staticmethod

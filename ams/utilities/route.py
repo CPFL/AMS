@@ -149,8 +149,8 @@ class Route(object):
             else:
                 for j in range(js+1, je):
                     length += self.__arrow.get_distance(
-                        self.__waypoint.get_position(waypoint_ids[j - 1]),
-                        self.__waypoint.get_position(waypoint_ids[j]))
+                        self.__waypoint.get_np_position(waypoint_ids[j - 1]),
+                        self.__waypoint.get_np_position(waypoint_ids[j]))
         return length
 
     def __is_directly_reach(self, arrow_code, start_waypoint_id, goal_waypoint_id, reverse):
@@ -162,7 +162,7 @@ class Route(object):
         distance = 0.0
         for i in range(1, len(waypoint_ids)):
             distance += self.__arrow.get_distance(
-                self.__waypoint.get_position(waypoint_ids[i]), self.__waypoint.get_position(waypoint_ids[i - 1]))
+                self.__waypoint.get_np_position(waypoint_ids[i]), self.__waypoint.get_np_position(waypoint_ids[i - 1]))
         return distance
 
     def get_sliced_route(self, route, length):
@@ -183,7 +183,7 @@ class Route(object):
 
             for i in range(js+1, je):
                 total_length += self.__arrow.get_distance(
-                    self.__waypoint.get_position(waypoint_ids[i]), self.__waypoint.get_position(waypoint_ids[i-1]))
+                    self.__waypoint.get_np_position(waypoint_ids[i]), self.__waypoint.get_np_position(waypoint_ids[i-1]))
                 if length <= total_length:
                     return Route.new_route(start_waypoint_id, sliced_goal_waypoint_id, sliced_arrow_codes)
                 if len(sliced_arrow_codes) == 0 or sliced_arrow_codes[-1] != arrow_code:
@@ -363,8 +363,8 @@ class Route(object):
         ))
 
         for i in range(0, len(arrow_waypoint_array)-1):
-            p1 = self.__waypoint.get_position(arrow_waypoint_array[i]["waypoint_id"])
-            p2 = self.__waypoint.get_position(arrow_waypoint_array[i+1]["waypoint_id"])
+            p1 = self.__waypoint.get_np_position(arrow_waypoint_array[i]["waypoint_id"])
+            p2 = self.__waypoint.get_np_position(arrow_waypoint_array[i+1]["waypoint_id"])
             d = self.__arrow.get_distance(p1, p2)
             if distance <= moved_distance + d:
                 vector_12 = np.subtract(p2, p1)
@@ -373,6 +373,6 @@ class Route(object):
                     arrow_waypoint_array[i+1]["arrow_code"]
             moved_distance += d
 
-        return self.__waypoint.get_position(arrow_waypoint_array[-1]["waypoint_id"]), \
+        return self.__waypoint.get_np_position(arrow_waypoint_array[-1]["waypoint_id"]), \
             arrow_waypoint_array[-1]["waypoint_id"], \
             arrow_waypoint_array[-1]["arrow_code"]

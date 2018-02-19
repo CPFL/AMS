@@ -49,7 +49,7 @@ class Autoware(Vehicle):
                 print(self.current_poses[self.pose_index])
                 self.arrow_code = self.current_poses[self.pose_index]["arrow_code"]
                 self.waypoint_id = self.current_poses[self.pose_index]["waypoint_id"]
-                self.position = self.waypoint.get_position(self.waypoint_id)
+                self.np_position = self.waypoint.get_np_position(self.waypoint_id)
                 self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
                 self.set_autoware_traffic_light()
@@ -64,7 +64,7 @@ class Autoware(Vehicle):
         for arrowWaypoint in arrow_waypoint_array:
             waypoint_id = arrowWaypoint["waypoint_id"]
             waypoints.append({
-                "position": dict(zip(["x", "y", "z"], self.waypoint.get_position(waypoint_id))),
+                "position": dict(zip(["x", "y", "z"], self.waypoint.get_np_position(waypoint_id))),
                 "orientation": dict(zip(
                     ["w", "x", "y", "z"], axangle2quat([0, 0, 1], self.waypoint.get_yaw(waypoint_id)))),
                 "velocity": 2.0

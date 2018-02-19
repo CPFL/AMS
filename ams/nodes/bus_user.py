@@ -34,7 +34,7 @@ class BusUser(User):
             targets_bus_statuses = list(filter(
                 lambda x: Target.is_same_id(x, target_bus_stop),
                 self.bus_statuses[bus_id].schedule.targets))
-            print("BusUser:", targets_bus_statuses, self.bus_statuses[bus_id].schedule.event)
+            # print("BusUser:", targets_bus_statuses, self.bus_statuses[bus_id].schedule.event)
             if 0 < len(targets_bus_statuses):
                 if self.bus_statuses[bus_id].schedule.event in [
                         SIM_BUS.SCHEDULE.STOP_TO_TAKE_UP, SIM_BUS.SCHEDULE.STOP_TO_DISCHARGE_AND_TAKE_UP]:
@@ -59,7 +59,7 @@ class BusUser(User):
                     list(filter(
                         lambda x: x.group == BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, self.trip_schedules[0].targets))[0]
 
-        print(self.name, self.state, self.schedules[0].event)
+        # print(self.name, self.state, self.schedules[0].event)
         if self.state == USER.STATE.LOG_IN:
             self.state = BUS_USER.STATE.WAITING
             self.publish_status()

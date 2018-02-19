@@ -130,14 +130,14 @@ class SimCar(Vehicle):
         delta_distance = min(self.velocity * self.dt, movable_distance)
         if 0.0 < delta_distance:
             self.__prev_waypoint_id = self.waypoint_id
-            self.position, self.yaw, self.arrow_code, self.waypoint_id = self.get_next_pose(delta_distance)
+            self.np_position, self.yaw, self.arrow_code, self.waypoint_id = self.get_next_pose(delta_distance)
 
     def is_achieved(self):
         return self.waypoint_id == self.schedules[0].route.goal_waypoint_id
 
     def get_next_pose(self, delta_distance):
         position, waypoint_id, arrow_code = self.route.get_moved_position(
-            self.position, delta_distance, self.schedules[0].route)
+            self.np_position, delta_distance, self.schedules[0].route)
         yaw = self.arrow.get_yaw(arrow_code, waypoint_id)
         return position, yaw, arrow_code, waypoint_id
 
@@ -171,7 +171,7 @@ class SimCar(Vehicle):
             if self.is_achieved():
                 self.waypoint_id = self.schedules[0].route.goal_waypoint_id
                 self.arrow_code = self.schedules[0].route.arrow_codes[-1]
-                self.position = self.waypoint.get_position(self.waypoint_id)
+                self.np_position = self.waypoint.get_np_position(self.waypoint_id)
                 self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
                 self.schedules.pop(0)
 
