@@ -4,33 +4,26 @@
 from time import time
 from ams import Schedule
 from ams.nodes import SimCar, Vehicle
+from ams.structures import SIM_TAXI
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 
 class SimTaxi(SimCar):
-    class ACTION(object):
-        STANDBY = "standBy"
 
-    class STATE(object):
-        STANDBY = "standBy"
-        MOVE_TO_USER = "moveToUser"
-        STOP_FOR_PICKING_UP = "pickingUp"
-        MOVE_TO_USER_DESTINATION = "moveToUserDestination"
-        STOP_FOR_DISCHARGING = "discharging"
-        MOVE_TO_STANDBY = "moveToDeploy"
+    CONST = SIM_TAXI
 
     def __init__(
             self, name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt=1.0):
         super().__init__(name, waypoint, arrow, route, intersection, waypoint_id, arrow_code, velocity, dt)
-        self.state = SimTaxi.STATE.STANDBY
+        self.state = SIM_TAXI.STATE.STANDBY
 
     def update_status(self):
         current_time = time()
         # print("SimTaxi.update_status", self.state, self.schedules[0].event)
-        if self.state == SimTaxi.STATE.STANDBY:
-            # print(SimTaxi.STATE.STANDBY, len(self.schedules))
+        if self.state == SIM_TAXI.STATE.STANDBY:
+            # print(SIM_TAXI.STATE.STANDBY, len(self.schedules))
             if 1 < len(self.schedules):
                 self.schedules.pop(0)
 
@@ -39,10 +32,10 @@ class SimTaxi(SimCar):
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 # print(self.schedules[0])
-                self.state = SimTaxi.STATE.MOVE_TO_USER
+                self.state = SIM_TAXI.STATE.MOVE_TO_USER
                 self.publish_status()
 
-        elif self.state == SimTaxi.STATE.MOVE_TO_USER:
+        elif self.state == SIM_TAXI.STATE.MOVE_TO_USER:
             self.update_pose()
             self.update_velocity()
             if self.is_achieved():
@@ -57,14 +50,14 @@ class SimTaxi(SimCar):
                 dif_time = new_start_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = SimTaxi.STATE.STOP_FOR_PICKING_UP
+                self.state = SIM_TAXI.STATE.STOP_FOR_PICKING_UP
                 self.publish_status()
             else:
                 arrow_codes = self.schedules[0].route.arrow_codes
                 self.schedules[0].route.arrow_codes = arrow_codes[arrow_codes.index(self.arrow_code):]
 
-        elif self.state == SimTaxi.STATE.STOP_FOR_PICKING_UP:
-            if self.schedules[0].event == Vehicle.ACTION.MOVE or \
+        elif self.state == SIM_TAXI.STATE.STOP_FOR_PICKING_UP:
+            if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE or \
                     self.schedules[0].period.end < current_time:
                 self.schedules.pop(0)
 
@@ -72,9 +65,9 @@ class SimTaxi(SimCar):
                 dif_time = current_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = SimTaxi.STATE.MOVE_TO_USER_DESTINATION
+                self.state = SIM_TAXI.STATE.MOVE_TO_USER_DESTINATION
                 self.publish_status()
-        elif self.state == SimTaxi.STATE.MOVE_TO_USER_DESTINATION:
+        elif self.state == SIM_TAXI.STATE.MOVE_TO_USER_DESTINATION:
             self.update_pose()
             self.update_velocity()
             if self.is_achieved():
@@ -90,13 +83,13 @@ class SimTaxi(SimCar):
                 dif_time = new_start_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = SimTaxi.STATE.STOP_FOR_DISCHARGING
+                self.state = SIM_TAXI.STATE.STOP_FOR_DISCHARGING
                 self.publish_status()
             else:
                 arrow_codes = self.schedules[0].route.arrow_codes
                 self.schedules[0].route.arrow_codes = arrow_codes[arrow_codes.index(self.arrow_code):]
 
-        elif self.state == SimTaxi.STATE.STOP_FOR_DISCHARGING:
+        elif self.state == SIM_TAXI.STATE.STOP_FOR_DISCHARGING:
             if self.schedules[0].period.end < current_time:
                 self.schedules.pop(0)
 
@@ -104,8 +97,8 @@ class SimTaxi(SimCar):
                 dif_time = current_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
-                self.state = SimTaxi.STATE.STANDBY
+                self.state = SIM_TAXI.STATE.STANDBY
                 self.publish_status()
 
-        elif self.state == SimTaxi.STATE.MOVE_TO_STANDBY:
+        elif self.state == SIM_TAXI.STATE.MOVE_TO_STANDBY:
             pass

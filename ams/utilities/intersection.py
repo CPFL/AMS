@@ -28,6 +28,9 @@ class Intersection(object):
     def get_intersection_ids(self):
         return list(self.__intersections.keys())
 
+    def get_traffic_signals(self, intersection_id):
+        return self.__intersections[intersection_id]["trafficSignals"]
+
     def get_entry_exit_route_ids(self, intersection_id):
         return list(self.__intersections[intersection_id]["entryExitRoutes"].keys())
 

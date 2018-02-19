@@ -15,8 +15,6 @@ parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
 parser.add_argument("-A", "--path_arrow_json", type=str,
                     default="../../res/arrow.json", help="arrow.json path")
-parser.add_argument("-I", "--path_intersection_json", type=str,
-                    default="../../res/intersection.json", help="intersection.json path")
 parser.add_argument("-WID", "--start_waypoint_id", type=str,
                     default=None, help="start waypoint id")
 args = parser.parse_args()
@@ -62,10 +60,10 @@ if __name__ == '__main__':
         name=args.name,
         dt=3.0
     )
-    trip_schedule = Schedule.get_schedule(
-        [Target.get_target(taxi_user)],
-        User.ACTION.REQUEST, start_time, start_time+9999,
-        Route.get_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
+    trip_schedule = Schedule.new_schedule(
+        [Target.new_node_target(taxi_user)],
+        User.CONST.ACTION.REQUEST, start_time, start_time+9999,
+        Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )
     taxi_user.set_trip_schedules([trip_schedule])
     taxi_user.start(host=args.host, port=args.port)

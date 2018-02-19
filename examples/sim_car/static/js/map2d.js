@@ -142,11 +142,11 @@ function drawUsers() {
         const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
 
         if(waypoint === undefined) { continue; }
-        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut", "gotOut"].includes(users[key].state)) {
+        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut"].includes(users[key].state)) {
             latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
         }
 
-        if (users[key].state == "gotOut") {
+        if (["gotOut", "logout"].includes(users[key].state)) {
             if (key in userMarkers) {
                 userMarkers[key]["icon"].setMap(null);
                 userMarkers[key]["destination"].setMap(null);

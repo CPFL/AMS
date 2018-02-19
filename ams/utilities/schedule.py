@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from ams.structures import Schedule as Structure
-from ams.structures import Period
+from ams.structures import Period, Targets
 
 
 class Schedule(object):
@@ -18,18 +18,18 @@ class Schedule(object):
         self.__route = route
 
     @staticmethod
-    def get_schedule(targets, event, start_time, end_time, route=None):
-        return Structure.get_data(
+    def new_schedule(targets, event, start_time=None, end_time=None, route=None):
+        return Structure.new_data(
             targets=targets,
             event=event,
-            period=Period.get_data(
+            period=Period.new_data(
                 start=start_time,
                 end=end_time
-            ),
+            ) if None not in [start_time, end_time] else None,
             route=route
         )
 
-    check_schedule = Structure.check_data
+    validate_schedule = Structure.validate_data
     get_errors = Structure.get_errors
 
     @staticmethod
@@ -59,4 +59,4 @@ class Schedule(object):
             end_time = start_time + (elapse_time - phase_time)
             if phase_time < elapse_time:
                 break
-        return Schedule.get_schedule(targets, state, start_time, end_time)
+        return Schedule.new_schedule(targets, state, start_time, end_time)

@@ -5,16 +5,16 @@ from ams.structures import get_base_class
 
 template = {
     "id": "uuid",
-    "node": "EventLoop"
+    "group": "EventLoop"
 }
 
 schema = {
     "id": {
         "type": "string",
         "required": True,
-        "nullable": False,
+        "nullable": True,
     },
-    "node": {
+    "group": {
         "type": "string",
         "required": True,
         "nullable": False,
@@ -23,4 +23,23 @@ schema = {
 
 
 class Target(get_base_class(template, schema)):
+    pass
+
+
+targets = [Target.get_template()]
+
+targets_schema = {
+    "type": "list",
+    "valueschema": {
+        "schema": Target.get_schema(),
+        "required": True,
+        "nullable": False,
+    },
+    "required": False,
+    "nullable": True,
+    "minlength": 1
+}
+
+
+class Targets(get_base_class(targets, targets_schema)):
     pass

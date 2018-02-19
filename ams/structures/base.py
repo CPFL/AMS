@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 from ams import Validator, AttrDict
+from collections import namedtuple
 
 
 def get_base_class(template, schema):
@@ -31,7 +32,7 @@ def get_base_class(template, schema):
             return deepcopy(attr_template)
 
         @staticmethod
-        def get_data(*args, **kwargs):
+        def new_data(*args, **kwargs):
             if isinstance(template, list):
                 data = []
                 for _element in args[0]:
@@ -54,7 +55,7 @@ def get_base_class(template, schema):
             return deepcopy(schema)
 
         @staticmethod
-        def check_data(data):
+        def validate_data(data):
             _data = data
             if isinstance(template, list):
                 _data = {"list": data}
@@ -65,3 +66,13 @@ def get_base_class(template, schema):
             return validator.validate_errors()
 
     return Base
+
+
+def get_namedtuple_from_dict(typename, _dict):
+    values = []
+    for key, value in _dict.items():
+        if isinstance(value, dict):
+            values.append(get_namedtuple_from_dict(key, value))
+        else:
+            values.append(value)
+    return namedtuple(typename, list(_dict.keys()))(*values)

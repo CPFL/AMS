@@ -20,12 +20,12 @@ class Location(object):
         self.__locations = locations
 
     @staticmethod
-    def get_location(waypoint_id, arrow_code, geohash):
-        return Structure.get_data(
+    def new_location(waypoint_id, arrow_code, geohash):
+        return Structure.new_data(
             waypoint_id=waypoint_id,
             arrow_code=arrow_code,
             geohash=geohash
         )
 
-    check_route = Structure.check_data
+    validate_location = Structure.validate_data
     get_errors = Structure.get_errors

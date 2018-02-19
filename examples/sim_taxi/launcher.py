@@ -50,7 +50,8 @@ class TaxiSimulation(object):
             "python", "../node_launchers/traffic_signals.py",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
-            "--path_cycle_json", "../../res/cycle.json"
+            "--path_cycle_json", "../../res/cycle.json",
+            "--path_intersection_json", "../../res/intersection.json"
         ])
 
         self.taxi_user_popens = {}

@@ -3,10 +3,12 @@
 
 import json
 import numpy as np
+from ams.structures import ARROW
 
 
 class Arrow(object):
-    DELIMITER = "_"
+
+    CONST = ARROW
 
     def __init__(self, waypoint=None):
         self.waypoint = waypoint
@@ -155,4 +157,4 @@ class Arrow(object):
 
     @staticmethod
     def split_arrow_code(arrow_code):
-        return arrow_code.split(Arrow.DELIMITER)
+        return arrow_code.split(ARROW.DELIMITER)

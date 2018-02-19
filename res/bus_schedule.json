@@ -1,0 +1,121 @@
+{
+  "busSchedules": [
+    {
+      "ID": "0",
+      "scheduleBranches": [
+        {
+          "common": [
+            {
+              "targets": [
+                {
+                  "id": "0",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToSelectPoint",
+              "routeCode": "9335:9335_9354:9351"
+            },
+            {
+              "targets": [
+                {
+                  "id": "0",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToBranchPoint",
+              "routeCode": "9351:9335_9354:9354"
+            }
+          ],
+          "main": [
+            {
+              "event": "moveToJunction",
+              "routeCode": "9354:9354_9362_9377_9550:9550"
+            }
+          ],
+          "sub": [
+            {
+              "targets": [
+                {
+                  "id": "0",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToBusStop",
+              "routeCode": "9354:9354_9496_9536:9513"
+            },
+            {
+              "targets": [
+                {
+                  "id": "0",
+                  "group": "spot"
+                }
+              ],
+              "event": "stopToDischargeAndTakeUp",
+              "routeCode": "9513:9496_9536:9513"
+            },
+            {
+              "event": "moveToJunction",
+              "routeCode": "9513:9496_9536_9550:9550"
+            }
+          ]
+        },
+        {
+          "common": [
+            {
+              "targets": [
+                {
+                  "id": "1",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToSelectPoint",
+              "routeCode": "9550:9550_9553_9563_9568:9566"
+            },
+            {
+              "targets": [
+                {
+                  "id": "1",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToBranchPoint",
+              "routeCode": "9566:9563_9568:9568"
+            }
+          ],
+          "main": [
+            {
+              "event": "moveToJunction",
+              "routeCode": "9568:9568_10027_9335:9335"
+            }
+          ],
+          "sub": [
+            {
+              "targets": [
+                {
+                  "id": "1",
+                  "group": "spot"
+                }
+              ],
+              "event": "moveToBusStop",
+              "routeCode": "9568:9568_9572_9587_9591_9600_9276_9313:9294"
+            },
+            {
+              "targets": [
+                {
+                  "id": "1",
+                  "group": "spot"
+                }
+              ],
+              "event": "stopToDischargeAndTakeUp",
+              "routeCode": "9294:9276_9313:9294"
+            },
+            {
+              "event": "moveToJunction",
+              "routeCode": "9294:9276_9313_9315_9335:9335"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
