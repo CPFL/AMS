@@ -12,10 +12,8 @@ from ams.structures.arrow import ARROW, Arrow
 from ams.structures.target import Target, Targets
 from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes
-from ams.structures.action_plan import ActionPlan, ActionPlans
 from ams.structures.selective_route import SelectiveRoute, SelectiveRoutes
 from ams.structures.schedule import Schedule, Schedules
-from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
 from ams.structures.cycle import Cycle
 
 from ams.structures.spot import Spot
