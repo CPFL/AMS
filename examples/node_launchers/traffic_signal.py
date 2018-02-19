@@ -47,7 +47,7 @@ if __name__ == '__main__':
         # print("publish cycles")
         topicCycle = Topic()
         topicCycle.set_id(traffic_signal.event_loop_id)
-        topicCycle.set_root(TrafficSignal.TOPIC.SUBSCRIBE_CYCLE)
+        topicCycle.set_root(TrafficSignal.CONST.TOPIC.SUBSCRIBE_CYCLE)
         mqtt_client.publish(topicCycle.private, topicCycle.serialize(json.loads(args.cycle)))
 
     if args.schedules is not None:
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         # print("publish schedules")
         topicSchedules = Topic()
         topicSchedules.set_id(traffic_signal.event_loop_id)
-        topicSchedules.set_root(TrafficSignal.TOPIC.SUBSCRIBE_SCHEDULES)
+        topicSchedules.set_root(TrafficSignal.CONST.TOPIC.SUBSCRIBE_SCHEDULES)
         mqtt_client.publish(topicSchedules.private, topicSchedules.serialize(json.loads(args.schedules)))
 
     # print("wait join")

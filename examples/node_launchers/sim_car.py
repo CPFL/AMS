@@ -85,7 +85,7 @@ if __name__ == '__main__':
     next_start_waypoint_id = start_waypoint_id
     schedules = [Schedule.new_schedule(
         [Target.new_node_target(sim_car)],
-        Vehicle.ACTION.STOP, current_time, current_time+5,
+        Vehicle.CONST.ACTION.STOP, current_time, current_time+5,
         Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [start_arrow_code])
     )]
     current_time += 5
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     if args.route_code is not None:
         schedule = Schedule.new_schedule(
             [Target.new_node_target(sim_car)],
-            Vehicle.ACTION.MOVE, current_time, current_time + 100,
+            Vehicle.CONST.ACTION.MOVE, current_time, current_time + 100,
             Route.new_route(next_start_waypoint_id, goal_waypoint_id, arrow_codes)
         )
         schedules = Schedule.get_merged_schedules(schedules, [schedule])
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
             schedule = Schedule.new_schedule(
                 [Target.new_node_target(sim_car)],
-                Vehicle.ACTION.MOVE, current_time, current_time+100,
+                Vehicle.CONST.ACTION.MOVE, current_time, current_time+100,
                 Route.new_route(next_start_waypoint_id, goal_waypoint_id, shortest_route.arrow_codes)
             )
             schedules = Schedule.get_merged_schedules(schedules, [schedule])
@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     schedules = Schedule.get_merged_schedules(schedules, [Schedule.new_schedule(
         [Target.new_node_target(sim_car)],
-        Vehicle.ACTION.STOP, current_time, current_time+86400,
+        Vehicle.CONST.ACTION.STOP, current_time, current_time+86400,
         Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [start_arrow_code])
     )])
 

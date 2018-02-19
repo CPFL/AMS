@@ -47,10 +47,10 @@ def api_response(code=200, message=None):
 
 @app.route('/')
 def root():
-    mqtt.subscribe(User.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(Vehicle.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(TrafficSignal.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(FleetManager.TOPIC.PUBLISH+"/#")
+    mqtt.subscribe(User.CONST.TOPIC.PUBLISH+"/#")
+    mqtt.subscribe(Vehicle.CONST.TOPIC.PUBLISH+"/#")
+    mqtt.subscribe(TrafficSignal.CONST.TOPIC.PUBLISH+"/#")
+    mqtt.subscribe(FleetManager.CONST.TOPIC.PUBLISH+"/#")
     print("socketio", socketio)
     return render_template("index.html", title="ams", name="test_name")
 
@@ -79,10 +79,10 @@ def get_view_data():
         "waypoints": waypoints,
         "arrows": arrows,
         "topics": {
-            "user": User.TOPIC.PUBLISH,
-            "vehicle": Vehicle.TOPIC.PUBLISH,
-            "trafficSignal": TrafficSignal.TOPIC.PUBLISH,
-            "fleetManager": FleetManager.TOPIC.PUBLISH
+            "user": User.CONST.TOPIC.PUBLISH,
+            "vehicle": Vehicle.CONST.TOPIC.PUBLISH,
+            "trafficSignal": TrafficSignal.CONST.TOPIC.PUBLISH,
+            "fleetManager": FleetManager.CONST.TOPIC.PUBLISH
         }
     })
 
@@ -103,30 +103,30 @@ def handle_message(message):
     print("handle_message", message)
 
 
-@mqtt.on_topic(User.TOPIC.PUBLISH+"/#")
+@mqtt.on_topic(User.CONST.TOPIC.PUBLISH+"/#")
 def handle_mqtt_ontopic_user_status(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
-    socketio.emit(User.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+    socketio.emit(User.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
-@mqtt.on_topic(Vehicle.TOPIC.PUBLISH+"/#")
+@mqtt.on_topic(Vehicle.CONST.TOPIC.PUBLISH+"/#")
 def handle_mqtt_ontopic_vehicle_status(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
-    socketio.emit(Vehicle.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+    socketio.emit(Vehicle.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
-@mqtt.on_topic(TrafficSignal.TOPIC.PUBLISH+"/#")
+@mqtt.on_topic(TrafficSignal.CONST.TOPIC.PUBLISH+"/#")
 def handle_mqtt_ontopic_traffic_signal_status(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
     socketio.emit(
-        TrafficSignal.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+        TrafficSignal.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
-@mqtt.on_topic(FleetManager.TOPIC.PUBLISH+"/#")
+@mqtt.on_topic(FleetManager.CONST.TOPIC.PUBLISH+"/#")
 def handle_mqtt_ontopic_fleet_status(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
     socketio.emit(
-        FleetManager.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+        FleetManager.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
 if __name__ == '__main__':

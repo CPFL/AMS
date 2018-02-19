@@ -9,7 +9,7 @@ from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
 from config.env import env
-from ams import Waypoint, Arrow, Intersection
+from ams import Waypoint, Arrow, Intersection, Topic
 from ams.nodes import Vehicle, User, TrafficSignal, FleetManager
 # from ams.messages import FleetStatus
 

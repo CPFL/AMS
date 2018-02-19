@@ -62,7 +62,7 @@ if __name__ == '__main__':
     )
     trip_schedule = Schedule.new_schedule(
         [Target.new_node_target(taxi_user)],
-        User.ACTION.REQUEST, start_time, start_time+9999,
+        User.CONST.ACTION.REQUEST, start_time, start_time+9999,
         Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )
     taxi_user.set_trip_schedules([trip_schedule])

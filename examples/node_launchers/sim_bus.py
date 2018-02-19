@@ -5,7 +5,7 @@ from time import time
 import random
 from argparse import ArgumentParser
 from ams import Waypoint, Arrow, Route, Intersection, Schedule, Target
-from ams.nodes import SimTaxi
+from ams.nodes import SimBus
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -14,15 +14,19 @@ pp = PrettyPrinter(indent=2).pprint
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
-parser.add_argument("-N", "--name", type=str, default="sim_car 1", help="name")
+parser.add_argument("-N", "--name", type=str, default="sim_bus 1", help="name")
 parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
 parser.add_argument("-A", "--path_arrow_json", type=str,
                     default="../../res/arrow.json", help="arrow.json path")
 parser.add_argument("-I", "--path_intersection_json", type=str,
                     default="../../res/intersection.json", help="intersection.json path")
+parser.add_argument("-R", "--path_route_json", type=str,
+                    default="../../res/route.json", help="route.json path")
 parser.add_argument("-WID", "--start_waypoint_id", type=str,
                     default=None, help="start waypoint id")
+parser.add_argument("-RID", "--circular_route_id", type=str,
+                    default=None, help="circular route id")
 args = parser.parse_args()
 
 
@@ -37,6 +41,7 @@ if __name__ == '__main__':
     route = Route()
     route.set_waypoint(waypoint)
     route.set_arrow(arrow)
+    route.load(args.path_route_json)
 
     intersection = Intersection()
     intersection.load(args.path_intersection_json)
@@ -63,7 +68,7 @@ if __name__ == '__main__':
     start_arrow_code = arrow.get_arrow_codes_from_waypoint_id(start_waypoint_id)[0]
     current_time = time()
 
-    sim_taxi = SimTaxi(
+    sim_bus = SimBus(
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,
@@ -74,9 +79,10 @@ if __name__ == '__main__':
         velocity=3.0,
         dt=0.5
     )
-    sim_taxi.set_schedules([Schedule.new_schedule(
-        [Target.new_node_target(sim_taxi)],
-        SimTaxi.CONST.STATE.STANDBY, current_time, current_time+100,
-        Route.new_route(start_waypoint_id, start_waypoint_id, [start_arrow_code])
-    )])
-    sim_taxi.start(host=args.host, port=args.port)
+    schedules = [Schedule.new_schedule(
+        [Target.new_node_target(sim_bus)],
+        SimBus.CONST.SCHEDULE.STAND_BY, current_time, current_time + 86400,
+        Route.new_point_route(start_waypoint_id, start_arrow_code)
+    )]
+    sim_bus.set_schedules(schedules)
+    sim_bus.start(host=args.host, port=args.port)
