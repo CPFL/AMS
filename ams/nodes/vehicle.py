@@ -3,10 +3,10 @@
 
 from time import sleep
 
-from ams import Topic, Location
+from ams import Topic, Location, Position
 from ams.nodes import EventLoop
 from ams.messages import VehicleStatus
-from ams.structures import Pose, Position, Orientation, Rpy, Target, Schedules, VEHICLE
+from ams.structures import Pose, Orientation, Rpy, Target, Schedules, VEHICLE
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -41,7 +41,7 @@ class Vehicle(EventLoop):
         self.dt = dt
         self.waypoint_id = waypoint_id
         self.arrow_code = arrow_code
-        self.position = self.waypoint.get_position(self.waypoint_id)
+        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
         self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
         self.add_on_message_function(self.update_schedules)
@@ -56,11 +56,7 @@ class Vehicle(EventLoop):
 
     def get_pose(self):
         return Pose.new_data(
-            position=Position.new_data(
-                x=self.position.data[0],
-                y=self.position.data[1],
-                z=self.position.data[2],
-            ),
+            position=Position.new_position_from_np_position(self.np_position),
             orientation=Orientation.new_data(
                 rpy=Rpy.new_data(
                     yaw=self.yaw

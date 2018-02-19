@@ -227,7 +227,7 @@ class BusFleet(FleetManager):
                         "part_type": part_type,
                         "part_index": part_index
                     }
-                    pp(move_to_branch_point_schedules)
+                    # pp(move_to_branch_point_schedules)
                     self.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
                         [self.vehicle_schedules[vehicle_id][-1]], move_to_branch_point_schedules)
                     payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])

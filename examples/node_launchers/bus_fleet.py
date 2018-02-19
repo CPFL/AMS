@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import json
-from time import time
 from argparse import ArgumentParser
 from ams import Waypoint, Arrow, Route, Spot, Schedule, Target, ScheduleBranch
 from ams.nodes import BusFleet
@@ -82,7 +81,7 @@ if __name__ == '__main__':
 
     bus_schedules = load_bus_schedule_json(args.path_bus_schedule_json)
 
-    pp(bus_schedules)
+    # pp(bus_schedules)
 
     bus_fleet = BusFleet(
         name=args.name,
