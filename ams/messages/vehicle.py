@@ -8,8 +8,8 @@ status = {
     "time": 0.0,
     "state": "default",
     "schedule": Schedule.get_template(),
-    "location": Location().get_template(),
-    "pose": Pose().get_template()
+    "location": Location.get_template(),
+    "pose": Pose.get_template()
 }
 
 status_schema = {
