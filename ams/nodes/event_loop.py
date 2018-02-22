@@ -76,7 +76,16 @@ class EventLoop(object):
     def publish(self, topic, payload, qos=0, retain=False):
         # print("publish", topic, payload)
         self.__client.publish(topic, payload=payload, qos=qos, retain=retain)
-        self.__client.loop_start()
+
+    def subscribe(self):
+        for subscriber in self.__subscribers.values():
+            self.__client.subscribe(subscriber["topic"])
+
+    def __on_connect(self, client, _userdata, _flags, response_code):
+        if response_code == 0:
+            self.subscribe()
+        else:
+            print('connect status {0}'.format(response_code))
 
     def __on_message(self, client, userdata, message_data):
         payload = message_data.payload.decode("utf-8")
@@ -106,14 +115,12 @@ class EventLoop(object):
             will = {"topic": self.__topicPub.private, "payload": payload}
         self.__client.will_set(will["topic"], payload=will["payload"], qos=2, retain=False)
 
+        self.__client.on_connect = self.__on_connect
         self.__client.on_message = self.__on_message
         self.__client.connect(host=host, port=port, keepalive=EVENT_LOOP.KEEP_ALIVE)
 
     def start(self, host="localhost", port=1883):
         self.connect(host, port)
-
-        for subscriber in self.__subscribers.values():
-            self.__client.subscribe(subscriber["topic"])
 
         event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
         payload = self.__topicPub.serialize(event_loop_message)
