@@ -41,11 +41,10 @@ class EventLoop(object):
 
     def __del__(self):
         if self.__client is not None:
-            evennt_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
-            payload = self.__topicPub.serialize(evennt_loop_message)
+            event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
+            payload = self.__topicPub.serialize(event_loop_message)
             self.publish(self.__topicPub.private, payload)
-
-            self.__client.disconnect()
+            self.end()
 
     @staticmethod
     def get_message(event, pid):
@@ -81,7 +80,7 @@ class EventLoop(object):
         for subscriber in self.__subscribers.values():
             self.__client.subscribe(subscriber["topic"])
 
-    def __on_connect(self, client, _userdata, _flags, response_code):
+    def __on_connect(self, _client, _userdata, _flags, response_code):
         if response_code == 0:
             self.subscribe()
         else:
@@ -135,6 +134,7 @@ class EventLoop(object):
     def end(self):
         self.__client.loop_stop()
         self.__client.disconnect()
+        self.__client = None
         os.kill(self.__pid, SIGKILL)
 
     def __check(self):
