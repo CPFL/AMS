@@ -17,4 +17,3 @@ from ams.nodes.autoware_taxi import AutowareTaxi
 from ams.nodes.fleet_manager import FleetManager
 from ams.nodes.taxi_fleet import TaxiFleet
 from ams.nodes.bus_fleet import BusFleet
-

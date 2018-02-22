@@ -2,9 +2,11 @@
 # coding: utf-8
 
 from numpy import pi
-from ams.structures import get_base_class
+from ams.structures import get_base_class, get_namedtuple_from_dict
 
-pi2 = 2.0*pi
+RPY = get_namedtuple_from_dict("CONST", {
+    "PI2": 2.0*pi
+})
 
 template = {
     "roll": 0.0,
@@ -18,21 +20,21 @@ schema = {
         "required": True,
         "nullable": False,
         "min": 0.0,
-        "max": pi2
+        "max": RPY.PI2
     },
     "pitch": {
         "type": "number",
         "required": True,
         "nullable": False,
         "min": 0.0,
-        "max": pi2
+        "max": RPY.PI2
     },
     "yaw": {
         "type": "number",
         "required": True,
         "nullable": False,
         "min": 0.0,
-        "max": pi2
+        "max": RPY.PI2
     }
 }
 

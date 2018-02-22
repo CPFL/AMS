@@ -76,9 +76,6 @@ if __name__ == '__main__':
         arrow=arrow,
         route=route,
         intersection=intersection,
-        waypoint_id=start_waypoint_id,
-        arrow_code=start_arrow_code,
-        velocity=3.0,
         dt=0.5
     )
 
@@ -135,5 +132,7 @@ if __name__ == '__main__':
         Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [start_arrow_code])
     )])
 
+    sim_car.set_waypoint_id_and_arrow_code(start_waypoint_id, start_arrow_code)
+    sim_car.set_velocity(3.0)
     sim_car.set_schedules(schedules)
     sim_car.start(host=args.host, port=args.port)

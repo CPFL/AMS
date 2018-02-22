@@ -67,9 +67,6 @@ class User(EventLoop):
         return
 
     def __main_loop(self):
-        sleep(1)
-
-        self.publish_status()
 
         while self.state != USER.STATE.LOG_OUT:
             sleep(self.dt)

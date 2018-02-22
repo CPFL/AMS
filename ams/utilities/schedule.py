@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from ams.structures import Schedule as Structure
-from ams.structures import Period, Targets
+from ams.structures import Period
 
 
 class Schedule(object):

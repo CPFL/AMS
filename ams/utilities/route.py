@@ -5,7 +5,7 @@ import json
 from sys import float_info
 import numpy as np
 
-from ams import Arrow
+from ams import Arrow, Location
 from ams.structures import ROUTE
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
@@ -80,7 +80,28 @@ class Route(object):
         return self.new_route(
             arrow["waypointIDs"][0], arrow["waypointIDs"][-1], [arrow_code])
 
+    def get_locations(self, route):
+        arrow_codes = route.arrow_codes
+        start_waypoint_id = route.start_waypoint_id
+        goal_waypoint_id = route.goal_waypoint_id
+        locations = []
+        for i, arrow_code in enumerate(arrow_codes):
+            waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
+            js = 0
+            if i == 0 and start_waypoint_id in waypoint_ids:
+                js = waypoint_ids.index(start_waypoint_id)
+            je = len(waypoint_ids)
+            if i == len(arrow_codes)-1 and goal_waypoint_id in waypoint_ids:
+                je = waypoint_ids.index(goal_waypoint_id) + 1
+            for j in range(js+1, je):
+                locations.append({"waypoint_id": waypoint_ids[j - 1], "arrow_code": arrow_code})
+            if arrow_code == arrow_codes[-1]:
+                locations.append({"waypoint_id": waypoint_ids[je - 1], "arrow_code": arrow_code})
+
+        return Location.new_locations(locations)
+
     def get_arrow_waypoint_array(self, route):
+        # print("use get_locations()")
         arrow_codes = route.arrow_codes
         start_waypoint_id = route.start_waypoint_id
         goal_waypoint_id = route.goal_waypoint_id
@@ -183,7 +204,8 @@ class Route(object):
 
             for i in range(js+1, je):
                 total_length += self.__arrow.get_distance(
-                    self.__waypoint.get_np_position(waypoint_ids[i]), self.__waypoint.get_np_position(waypoint_ids[i-1]))
+                    self.__waypoint.get_np_position(
+                        waypoint_ids[i]), self.__waypoint.get_np_position(waypoint_ids[i-1]))
                 if length <= total_length:
                     return Route.new_route(start_waypoint_id, sliced_goal_waypoint_id, sliced_arrow_codes)
                 if len(sliced_arrow_codes) == 0 or sliced_arrow_codes[-1] != arrow_code:

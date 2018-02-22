@@ -38,13 +38,13 @@ status_schema = {
         "type": "dict",
         "schema": Location.get_schema(),
         "required": True,
-        "nullable": False,
+        "nullable": True,
     },
     "pose": {
         "type": "dict",
         "schema": Pose.get_schema(),
         "required": True,
-        "nullable": False,
+        "nullable": True,
     }
 }
 
