@@ -21,7 +21,7 @@ class LightColorManagedPublisher(EventLoop):
         self.set_subscriber(self.topicPubLightColor.private+Autoware.CONST.TOPIC.TRAFFIC_LIGHT)
 
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_TRAFFIC_LIGHT_PUBLISHER, anonymous=True)
-        self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.LIGHT_COLOR, TrafficLight)
+        self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.LIGHT_COLOR, TrafficLight, queue_size=1)
 
     def publish_to_ros(self, _client, _userdata, topic, payload):
         if topic == self.topicPubLightColor.private+Autoware.CONST.TOPIC.TRAFFIC_LIGHT:

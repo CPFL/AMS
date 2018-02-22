@@ -1,1 +1,0 @@
-../../../../ams/messages/traffic_signal.py

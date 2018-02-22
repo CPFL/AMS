@@ -16,7 +16,7 @@ pp = pprint.PrettyPrinter(indent=2)
 
 
 class ClosestWaypointSubscriber(EventLoop):
-    def __init__(self, name, host, port, period):
+    def __init__(self, name, period):
         super(ClosestWaypointSubscriber, self).__init__()
 
         self.topicSubClosestWaypoint = Topic()
@@ -27,9 +27,9 @@ class ClosestWaypointSubscriber(EventLoop):
         self.__previous_time = time()
         self.__period = period
 
-        self.connect(host, port)
-
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_CLOSEST_WAYPOINT_SUBSCRIBER, anonymous=True)
+
+        # self.connect(host, port)
 
         if self.__period < 0.1:
             self.__publish_mqtt = self.publish
@@ -54,6 +54,7 @@ class ClosestWaypointSubscriber(EventLoop):
             self.__publish_mqtt(self.topicSubClosestWaypoint.private+Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
 
     def __main_loop(self):
+        r = rospy.Rate(1.0/self.__period)
         while not rospy.is_shutdown():
             try:
                 message_data = rospy.wait_for_message(
@@ -67,9 +68,9 @@ class ClosestWaypointSubscriber(EventLoop):
                 payload = self.topicSubClosestWaypoint.serialize(closest_waypoint)
                 self.publish(self.topicSubClosestWaypoint.private+Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
             except rospy.ROSException as e:
-                print(e)
+                # print(e)
                 pass
             except rospy.ROSInterruptException:
                 break
 
-            rospy.Rate.sleep(self.__period)
+            r.sleep()

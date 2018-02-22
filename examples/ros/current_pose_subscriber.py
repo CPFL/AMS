@@ -3,7 +3,7 @@
 
 from argparse import ArgumentParser
 
-from ams.ros import ClosestWaypointSubscriber
+from ams.ros import CurrentPoseSubscriber
 
 
 parser = ArgumentParser()
@@ -16,10 +16,10 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 
-    closestWaypointSubscriber = ClosestWaypointSubscriber(
-        name=args.name, period=args.period)
+    currentPoseSubscriber = CurrentPoseSubscriber(
+        name=args.name, host=args.host, port=args.port, period=args.period)
 
-    print("closestWaypointSubscriber {} on {}".format(
-        closestWaypointSubscriber.event_loop_id, closestWaypointSubscriber.get_pid()))
+    print("currentPoseSubscriber {} on {}".format(
+        currentPoseSubscriber.event_loop_id, currentPoseSubscriber.get_pid()))
 
-    closestWaypointSubscriber.start(host=args.host, port=args.port)
+    currentPoseSubscriber.start(host=args.host, port=args.port)
