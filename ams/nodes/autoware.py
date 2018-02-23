@@ -116,7 +116,8 @@ class Autoware(Vehicle):
 
         not_green_traffic_signal_route_codes = list(map(
             lambda x: x.route_code, filter(
-                lambda x: x.state in [TrafficSignal.CONST.STATE.YELLOW, TrafficSignal.CONST.STATE.RED],
+                lambda x: x.state in [
+                    TrafficSignal.CONST.STATE.UNKNOWN, TrafficSignal.CONST.STATE.YELLOW, TrafficSignal.CONST.STATE.RED],
                 self.traffic_signals.values())))
 
         new_monitored_route = None

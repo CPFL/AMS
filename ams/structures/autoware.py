@@ -24,7 +24,7 @@ AUTOWARE = get_namedtuple_from_dict("CONST", {
     "ROSTOPIC": {
         "WAYPOINTS": "/based/lane_waypoints_array",
         "CLOSEST_WAYPOINT": "/closest_waypoint",
-        "LIGHT_COLOR": "/light_color_managed"
+        "LIGHT_COLOR": "/light_color"
     },
     "TOPIC": {
         "PUBLISH": "pub_autoware",
