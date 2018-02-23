@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from ams.structures import Schedule as Structure
+from ams.structures import Schedules as Structures
 from ams.structures import Period
 
 
@@ -28,6 +29,10 @@ class Schedule(object):
             ) if None not in [start_time, end_time] else None,
             route=route
         )
+
+    @staticmethod
+    def new_schedules(schedules):
+        return Structures.new_data(schedules)
 
     validate_schedule = Structure.validate_data
     get_errors = Structure.get_errors
