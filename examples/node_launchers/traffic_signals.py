@@ -29,14 +29,17 @@ if __name__ == '__main__':
     traffic_signals = {}
     for intersection_id in intersection.get_intersection_ids():
         for route_code, traffic_signal_configs in intersection.get_traffic_signals(intersection_id).items():
+            cycle_option = []
+            if traffic_signal_configs["cycleID"] is not None:
+                cycle_option = ["--cycle", json.dumps(cycles[traffic_signal_configs["cycleID"]])]
+
             traffic_signals[route_code] = Popen([
                 "python", "../node_launchers/traffic_signal.py",
                 "--host", args.host,
                 "--port", str(args.port),
                 "--route_code", route_code,
-                "--cycle", json.dumps(cycles[traffic_signal_configs["cycleID"]]),
                 # "--schedules", json.dumps(traffic_signal_configs["schedules"])
-            ])
+            ] + cycle_option)
 
     for traffic_signal in traffic_signals.values():
         traffic_signal.wait()
