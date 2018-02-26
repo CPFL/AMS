@@ -18,14 +18,14 @@ schema = {
     "roll": {
         "type": "number",
         "required": True,
-        "nullable": False,
+        "nullable": True,
         "min": 0.0,
         "max": RPY.PI2
     },
     "pitch": {
         "type": "number",
         "required": True,
-        "nullable": False,
+        "nullable": True,
         "min": 0.0,
         "max": RPY.PI2
     },

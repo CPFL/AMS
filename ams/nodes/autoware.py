@@ -97,10 +97,10 @@ class Autoware(Vehicle):
         arrow_waypoint_array = self.route.get_arrow_waypoint_array(schedule.route)
         lane_array = self.get_lane_array_from_arrow_waypoint_array(arrow_waypoint_array)
 
-        if 0 < len(lane_array.lanes.waypoints):
-            num = min(10, len(lane_array.lanes.waypoints))
+        if 0 < len(lane_array.lanes[0].waypoints):
+            num = min(10, len(lane_array.lanes[0].waypoints))
             for i in range(num-1, 0, -1):
-                lane_array.lanes.waypoints[-i].velocity = (i/num)*lane_array.lanes.waypoints[-i-1].velocity
+                lane_array.lanes[0].waypoints[-i].velocity = (i/num)*lane_array.lanes[0].waypoints[-i-1].velocity
             self.current_arrow_waypoint_array = arrow_waypoint_array
             payload = self.topicAutowarePub.serialize(lane_array)
             self.publish(self.topicAutowarePub.private+AUTOWARE.TOPIC.WAYPOINTS, payload)
@@ -185,7 +185,7 @@ class Autoware(Vehicle):
     def update_status(self):
         if None not in [self.waypoint_id, self.arrow_code]:
             current_time = time()
-            if self.state == Vehicle.CONST.STATE.STOP:
+            if self.state == Vehicle.CONST.STATE.LOG_IN:
                 if self.schedules[0].period.end < current_time:
                     self.schedules.pop(0)
 
