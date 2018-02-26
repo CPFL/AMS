@@ -16,8 +16,7 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 
-    currentPoseSubscriber = CurrentPoseSubscriber(
-        name=args.name, host=args.host, port=args.port, period=args.period)
+    currentPoseSubscriber = CurrentPoseSubscriber(name=args.name, period=args.period)
 
     print("currentPoseSubscriber {} on {}".format(
         currentPoseSubscriber.event_loop_id, currentPoseSubscriber.get_pid()))

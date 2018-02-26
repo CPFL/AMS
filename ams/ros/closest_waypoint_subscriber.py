@@ -29,8 +29,6 @@ class ClosestWaypointSubscriber(EventLoop):
 
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_CLOSEST_WAYPOINT_SUBSCRIBER, anonymous=True)
 
-        # self.connect(host, port)
-
         if self.__period < 0.1:
             self.__publish_mqtt = self.publish
             self.set_main_loop(rospy.spin)
@@ -47,11 +45,11 @@ class ClosestWaypointSubscriber(EventLoop):
 
             closest_waypoint = ClosestWaypoint.new_data(
                 name=self.__name,
-                time=current_time,
+                time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
                 index=message_data.data
             )
             payload = self.topicSubClosestWaypoint.serialize(closest_waypoint)
-            self.__publish_mqtt(self.topicSubClosestWaypoint.private+Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
+            self.__publish_mqtt(self.topicSubClosestWaypoint.private + Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
 
     def __main_loop(self):
         r = rospy.Rate(1.0/self.__period)
@@ -62,11 +60,11 @@ class ClosestWaypointSubscriber(EventLoop):
 
                 closest_waypoint = ClosestWaypoint.new_data(
                     name=self.__name,
-                    time=time(),
+                    time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
                     index=message_data.data
                 )
                 payload = self.topicSubClosestWaypoint.serialize(closest_waypoint)
-                self.publish(self.topicSubClosestWaypoint.private+Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
+                self.publish(self.topicSubClosestWaypoint.private + Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, payload)
             except rospy.ROSException as e:
                 # print(e)
                 pass

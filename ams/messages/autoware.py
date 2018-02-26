@@ -63,6 +63,35 @@ class ClosestWaypoint(get_base_class(closest_waypoint, closest_waypoint_schema))
     pass
 
 
+state_overlay_text = {
+    "name": "a0",
+    "time": 0.0,
+    "state": "default"
+}
+
+state_overlay_text_schema = {
+    "name": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "time": {
+        "type": "number",
+        "required": True,
+        "nullable": False
+    },
+    "state": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class StateOverlayText(get_base_class(state_overlay_text, state_overlay_text_schema)):
+    pass
+
+
 lane_array = {
     "name": "a0",
     "time": 0.0,
@@ -120,6 +149,35 @@ lane_array_schema = {
 
 
 class LaneArray(get_base_class(lane_array, lane_array_schema)):
+    pass
+
+
+state_command = {
+    "name": "a0",
+    "time": 0.0,
+    "state": 13
+}
+
+state_command_schema = {
+    "name": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "time": {
+        "type": "number",
+        "required": True,
+        "nullable": False
+    },
+    "state": {
+        "type": "integer",
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class StateCommand(get_base_class(state_command, state_command_schema)):
     pass
 
 
