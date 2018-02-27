@@ -69,11 +69,10 @@ if __name__ == '__main__':
         arrow=arrow,
         route=route,
         intersection=intersection,
-        waypoint_id=start_waypoint_id,
-        arrow_code=start_arrow_code,
-        velocity=3.0,
         dt=0.5
     )
+    sim_taxi.set_waypoint_id_and_arrow_code(start_waypoint_id, start_arrow_code)
+    sim_taxi.set_velocity(3.0)
     sim_taxi.set_schedules([Schedule.new_schedule(
         [Target.new_node_target(sim_taxi)],
         SimTaxi.CONST.STATE.STANDBY, current_time, current_time+100,

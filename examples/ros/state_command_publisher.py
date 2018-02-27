@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from argparse import ArgumentParser
-from ams.ros import LightColorManagedPublisher
+from ams.ros import StateCommandPublisher
 
 
 parser = ArgumentParser()
@@ -13,9 +13,10 @@ args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    lightColorManagedPublisher = LightColorManagedPublisher(name=args.name)
 
-    print("lightColorManagedPublisher {} on {}".format(
-        lightColorManagedPublisher.event_loop_id, lightColorManagedPublisher.get_pid()))
+    stateCommandPublisher = StateCommandPublisher(name=args.name)
 
-    lightColorManagedPublisher.start(host=args.host, port=args.port)
+    print("stateCommandPublisher {} on {}".format(
+        stateCommandPublisher.event_loop_id, stateCommandPublisher.get_pid()))
+
+    stateCommandPublisher.start(host=args.host, port=args.port)

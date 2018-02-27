@@ -1,1 +1,0 @@
-../../../../ams/messages/autoware.py

@@ -4,6 +4,7 @@
 from uuid import uuid1 as uuid
 import paho.mqtt.client as mqtt
 import os
+from ssl import PROTOCOL_TLSv1_2
 from signal import SIGKILL
 from time import time
 
@@ -41,11 +42,10 @@ class EventLoop(object):
 
     def __del__(self):
         if self.__client is not None:
-            evennt_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
-            payload = self.__topicPub.serialize(evennt_loop_message)
+            event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
+            payload = self.__topicPub.serialize(event_loop_message)
             self.publish(self.__topicPub.private, payload)
-
-            self.__client.disconnect()
+            self.end()
 
     @staticmethod
     def get_message(event, pid):
@@ -76,7 +76,16 @@ class EventLoop(object):
     def publish(self, topic, payload, qos=0, retain=False):
         # print("publish", topic, payload)
         self.__client.publish(topic, payload=payload, qos=qos, retain=retain)
-        self.__client.loop_start()
+
+    def subscribe(self):
+        for subscriber in self.__subscribers.values():
+            self.__client.subscribe(subscriber["topic"])
+
+    def __on_connect(self, _client, _userdata, _flags, response_code):
+        if response_code == 0:
+            self.subscribe()
+        else:
+            print('connect status {0}'.format(response_code))
 
     def __on_message(self, client, userdata, message_data):
         payload = message_data.payload.decode("utf-8")
@@ -95,8 +104,18 @@ class EventLoop(object):
             onMessageFunction(client, userdata, message_data.topic, payload)
         return True
 
-    def connect(self, host, port):
+    def ssl_setting(self, ca_path, client_path, key_path):
+        self.__client.tls_set(ca_path,
+                              certfile=client_path,
+                              keyfile=key_path,
+                              tls_version=PROTOCOL_TLSv1_2)
+        self.__client.tls_insecure_set(True)
+
+    def connect(self, host, port, ca_path=None, client_path=None, key_path=None):
         self.__client = mqtt.Client(protocol=mqtt.MQTTv311, userdata=self.__user_data)
+
+        if ca_path is not None and client_path is not None and key_path is not None:
+            self.ssl_setting(ca_path, client_path, key_path)
 
         will = self.__user_will
         # print(will)
@@ -106,14 +125,13 @@ class EventLoop(object):
             will = {"topic": self.__topicPub.private, "payload": payload}
         self.__client.will_set(will["topic"], payload=will["payload"], qos=2, retain=False)
 
+        self.__client.on_connect = self.__on_connect
         self.__client.on_message = self.__on_message
         self.__client.connect(host=host, port=port, keepalive=EVENT_LOOP.KEEP_ALIVE)
 
-    def start(self, host="localhost", port=1883):
-        self.connect(host, port)
+    def start(self, host="localhost", port=1883, ca_path=None, client_path=None, key_path=None):
 
-        for subscriber in self.__subscribers.values():
-            self.__client.subscribe(subscriber["topic"])
+        self.connect(host, port, ca_path=ca_path, client_path=client_path, key_path=key_path)
 
         event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
         payload = self.__topicPub.serialize(event_loop_message)
@@ -128,6 +146,7 @@ class EventLoop(object):
     def end(self):
         self.__client.loop_stop()
         self.__client.disconnect()
+        self.__client = None
         os.kill(self.__pid, SIGKILL)
 
     def __check(self):

@@ -5,7 +5,7 @@ from ams.structures.quaternion import Quaternion
 from ams.structures.position import Position
 from ams.structures.orientation import Orientation
 from ams.structures.pose import Pose
-from ams.structures.location import Location
+from ams.structures.location import Location, Locations
 from ams.structures.polygon import Polygon
 from ams.structures.waypoint import Waypoint
 from ams.structures.arrow import ARROW, Arrow

@@ -16,7 +16,7 @@ class Vehicle(EventLoop):
 
     CONST = VEHICLE
 
-    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt=1.0):
+    def __init__(self, name, waypoint, arrow, route, dt=1.0):
         super().__init__()
 
         self.topicStatus = Topic()
@@ -29,32 +29,57 @@ class Vehicle(EventLoop):
 
         self.topicGeo = Topic()
         self.topicGeo.set_id(self.event_loop_id)
-        self.topicGeo.set_root(VEHICLE.TOPIC.GEO.PUBLISH)
+        self.topicGeo.set_root(VEHICLE.GEO.TOPIC.PUBLISH)
 
         self.name = name
-        self.state = VEHICLE.STATE.STOP
+        self.state = VEHICLE.STATE.LOG_IN
         self.waypoint = waypoint
         self.arrow = arrow
         self.route = route
-        self.velocity = velocity
         self.schedules = None
         self.dt = dt
-        self.waypoint_id = waypoint_id
-        self.arrow_code = arrow_code
-        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
-        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
+
+        self.waypoint_id = None
+        self.arrow_code = None
+        self.np_position = None
+        self.yaw = None
+        self.velocity = None
 
         self.add_on_message_function(self.update_schedules)
-        self.set_subscriber(self.topicSchedules.private+"/schedules")
+        self.set_subscriber(self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES)
         self.set_main_loop(self.__main_loop)
+
+    def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):
+        self.waypoint_id = waypoint_id
+        self.arrow_code = arrow_code
+        self.update_np_position()
+        self.update_yaw_from_map()
+
+    def set_velocity(self, velocity):
+        self.velocity = velocity
+
+    def update_np_position(self):
+        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
+
+    def update_yaw_from_map(self):
+        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
     def set_schedules(self, schedules):
         self.schedules = schedules
 
-    def new_location(self):
+    def get_schedule(self):
+        if self.schedules is None:
+            return None
+        return self.schedules[0]
+
+    def get_location(self):
+        if None in [self.waypoint_id, self.arrow_code]:
+            return None
         return Location.new_location(self.waypoint_id, self.arrow_code, self.waypoint.get_geohash(self.waypoint_id))
 
     def get_pose(self):
+        if self.np_position is None:
+            return None
         return Pose.new_data(
             position=Position.new_position_from_np_position(self.np_position),
             orientation=Orientation.new_data(
@@ -68,8 +93,8 @@ class Vehicle(EventLoop):
         return VehicleStatus.new_data(
             name=self.name,
             state=self.state,
-            schedule=self.schedules[0],
-            location=self.new_location(),
+            schedule=self.get_schedule(),
+            location=self.get_location(),
             pose=self.get_pose()
         )
 
@@ -78,14 +103,14 @@ class Vehicle(EventLoop):
         self.publish(self.topicStatus.private, payload)
 
     def publish_geo_topic(self):
-        self.publish(
-            self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-            self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, group="Vehicle"))
-        )
+        if self.waypoint_id is not None:
+            self.publish(
+                self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
+                self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, group=VEHICLE.GEO.GROUP))
+            )
 
     def update_schedules(self, _client, _userdata, topic, payload):
-        if topic == self.topicSchedules.private+"/schedules":
-            # print("update_schedules")
+        if topic == self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES:
             message = self.topicSchedules.unserialize(payload)
             self.schedules = Schedules.new_data(message)
 
@@ -93,15 +118,11 @@ class Vehicle(EventLoop):
         return
 
     def __main_loop(self):
-        sleep(1)
 
-        self.publish_status()
-        self.publish_geo_topic()
-
-        while self.schedules is not None:
-                sleep(self.dt)
-                self.update_status()
-                self.publish_status()
-                self.publish_geo_topic()
+        while self.state != VEHICLE.STATE.LOG_OUT:
+            sleep(self.dt)
+            self.update_status()
+            self.publish_status()
+            self.publish_geo_topic()
 
         return True

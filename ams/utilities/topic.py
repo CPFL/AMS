@@ -9,6 +9,7 @@ class Topic(object):
     def __init__(self):
         self.root = None
         self.id = None
+        self.sub_path = None
         self.template = {}
         self.all = None
         self.private = None
@@ -23,6 +24,13 @@ class Topic(object):
         self.id = str(_id)
         if self.root is not None:
             self.private = self.root+"/"+self.id
+
+    def set_sub_path(self, sub_path):
+        self.sub_path = sub_path
+        if self.root is not None:
+            self.all = "/".join([self.root, "+", self.sub_path])
+            if self.id is not None:
+                self.private = "/".join([self.root, self.id, self.sub_path])
 
     def set_message(self, message):
         self.template = message

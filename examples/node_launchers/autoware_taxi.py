@@ -1,56 +1,47 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
-from copy import deepcopy
 from time import time
-from ams import Waypoint, Arrow, Route, Topic
-from ams.nodes import Vehicle, AutowareTaxi
-from ams.messages import vehicle_message
+from argparse import ArgumentParser
+from ams import Waypoint, Arrow, Route, Schedule, Target
+from ams.nodes import AutowareTaxi
 
-WAYPOINT_FILE = "../../res/waypoint.json"
-ARROW_FILE = "../../res/arrow.json"
+
+parser = ArgumentParser()
+parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
+parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-N", "--name", type=str, default="sim_car 1", help="name")
+parser.add_argument("-W", "--path_waypoint_json", type=str,
+                    default="../../res/waypoint.json", help="waypoint.json path")
+parser.add_argument("-A", "--path_arrow_json", type=str,
+                    default="../../res/arrow.json", help="arrow.json path")
+args = parser.parse_args()
 
 
 if __name__ == "__main__":
-    start_waypoint_id = "9566"  # "8809"  # "9566"  # 9232
 
     waypoint = Waypoint()
-    waypoint.load(WAYPOINT_FILE)
+    waypoint.load(args.path_waypoint_json)
+
     arrow = Arrow(waypoint)
-    arrow.load(ARROW_FILE)
+    arrow.load(args.path_arrow_json)
+
     route = Route()
     route.set_waypoint(waypoint)
     route.set_arrow(arrow)
 
     current_time = time()
 
-    topic = Topic()
-    topic.set_message(vehicle_message)
-    schedules = deepcopy(topic.get_template()["schedules"])
-    schedules[0]["start_time"] = current_time-5
-    schedules[0]["duration"] = 10
-    schedules[0]["action"] = Vehicle.ACTION.STOP
-
-    schedules = [
-        {
-            "scheduleID": "start",
-            "startTime": current_time - 5,
-            "endTime": current_time + 5,
-            "content": {
-                "type": "standBy",
-            }
-        },
-    ]
-
     autoware_taxi = AutowareTaxi(
-        name=sys.argv[1],
+        name=args.name,
         waypoint=waypoint,
         arrow=arrow,
         route=route,
-        waypoint_id=start_waypoint_id,
-        velocity=0.00001,
-        schedules=schedules,
         dt=0.5
     )
-    autoware_taxi.start(host="localhost", port=1883)
+    autoware_taxi.set_schedules([Schedule.new_schedule(
+        [Target.new_node_target(autoware_taxi)],
+        AutowareTaxi.CONST.STATE.STANDBY, current_time, current_time+100,
+        None
+    )])
+    autoware_taxi.start(host=args.host, port=args.port)

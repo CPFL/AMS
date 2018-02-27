@@ -30,6 +30,9 @@ class Arrow(object):
         self.__to_arrows = to_arrows
         self.__from_arrows = from_arrows
 
+    def get_arrow_codes(self):
+        return list(self.__arrows.keys())
+
     def get_arrow(self, arrow_code):
         return self.__arrows[arrow_code]
 

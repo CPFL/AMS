@@ -2,20 +2,58 @@
 # coding: utf-8
 
 from subprocess import Popen
-import sys
+
+from config.env import env
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        print("input autoware_taxi name.")
+
+    popen_current_pose_subscriber = Popen([
+        "python", "current_pose_subscriber.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+        "--period", "1.0"
+    ])
+    popen_closest_waypoint_subscriber = Popen([
+        "python", "closest_waypoint_subscriber.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+        "--period", "1.0"
+    ])
+    popen_decision_maker_states_subscriber = Popen([
+        "python", "decision_maker_states_subscriber.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+    ])
+    popen_lane_array_publisher = Popen([
+        "python", "lane_array_publisher.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+    ])
+    popen_state_command_publisher = Popen([
+        "python", "state_command_publisher.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+    ])
+    popen_light_color_managed_publisher = Popen([
+        "python", "light_color_managed_publisher.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+    ])
+
     try:
-        popen_lane_array_publisher = Popen(["python", "lane_array_publisher.py", sys.argv[1]])
-        popen_closest_waypoint_subscriber = Popen(["python", "closest_waypoint_subscriber.py", sys.argv[1]])
-        popen_light_color_managed_publisher = Popen(["python", "light_color_managed_publisher.py", sys.argv[1]])
+        popen_current_pose_subscriber.wait()
 
-        popen_lane_array_publisher.wait()
     except KeyboardInterrupt:
-        popen_lane_array_publisher.terminate()
+        popen_current_pose_subscriber.terminate()
         popen_closest_waypoint_subscriber.terminate()
+        popen_decision_maker_states_subscriber.terminate()
+        popen_lane_array_publisher.terminate()
+        popen_state_command_publisher.terminate()
         popen_light_color_managed_publisher.terminate()
-

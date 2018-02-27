@@ -8,7 +8,7 @@ import random
 from config.env import env
 
 
-class TaxiSimulation(object):
+class AutowareTaxiSimulation(object):
     def __init__(self):
         print("launch router")
         self.popen_router = Popen(["python", "router.py"])
@@ -69,7 +69,7 @@ class TaxiSimulation(object):
 
 
 if __name__ == '__main__':
-    taxiSimulation = TaxiSimulation()
+    taxiSimulation = AutowareTaxiSimulation()
     try:
         taxiSimulation.start()
     except KeyboardInterrupt:

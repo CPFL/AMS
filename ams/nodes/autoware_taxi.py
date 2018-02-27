@@ -13,12 +13,12 @@ class AutowareTaxi(Autoware):
 
     CONST = AUTOWARE_TAXI
 
-    def __init__(self, name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, waypoint_id, arrow_code, velocity, dt)
+    def __init__(self, name, waypoint, arrow, route, dt=1.0):
+        super().__init__(name, waypoint, arrow, route, dt)
         self.state = AUTOWARE_TAXI.STATE.STANDBY
 
     def is_achieved(self):
-        if len(self.current_poses) - self.pose_index <= 3:
+        if len(self.current_arrow_waypoint_array) - self.closest_waypoint.index <= 3:
             return True
         else:
             return False
@@ -29,7 +29,7 @@ class AutowareTaxi(Autoware):
             if 1 < len(self.schedules):
                 self.schedules.pop(0)
 
-                self.on_start_moving()
+                self.update_autoware_waypoints()
 
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["route"]["start"]["time"]
@@ -55,11 +55,11 @@ class AutowareTaxi(Autoware):
                 self.schedules[0]["route"]["arrow_codes"] = arrow_codes[i_s:]
 
         elif self.state == AUTOWARE_TAXI.STATE.STOP_FOR_PICKING_UP:
-            if self.schedules[0]["event"] == Vehicle.ACTION.MOVE or \
+            if self.schedules[0]["event"] == Vehicle.CONST.ACTION.MOVE or \
                     self.schedules[0]["route"]["goal"]["time"] < current_time:
                 self.schedules.pop(0)
 
-                self.on_start_moving()
+                self.update_autoware_waypoints()
 
                 # update next schedule
                 dif_time = current_time - self.schedules[0]["route"]["start"]["time"]
