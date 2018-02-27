@@ -4,6 +4,8 @@
 from uuid import uuid1 as uuid
 import paho.mqtt.client as mqtt
 import os
+import sys, traceback
+import ssl
 from signal import SIGKILL
 from time import time
 
@@ -103,8 +105,23 @@ class EventLoop(object):
             onMessageFunction(client, userdata, message_data.topic, payload)
         return True
 
-    def connect(self, host, port):
+    def ssl_setting(self, ca_path, client_path, key_path):
+        try:
+            self.__client.tls_set(ca_path,
+                                  certfile=client_path,
+                                  keyfile=key_path,
+                                  tls_version=ssl.PROTOCOL_TLSv1_2)
+
+            self.__client.tls_insecure_set(True)
+        except:
+            traceback.print_exc()
+            sys.stderr.write("Error:ssl setting.\n")
+
+    def connect(self, host, port, ca_path=None , client_path=None, key_path=None):
         self.__client = mqtt.Client(protocol=mqtt.MQTTv311, userdata=self.__user_data)
+
+        if ca_path is not None and client_path is not None and key_path is not None:
+            self.ssl_setting(ca_path, client_path, key_path)
 
         will = self.__user_will
         # print(will)
@@ -118,8 +135,9 @@ class EventLoop(object):
         self.__client.on_message = self.__on_message
         self.__client.connect(host=host, port=port, keepalive=EVENT_LOOP.KEEP_ALIVE)
 
-    def start(self, host="localhost", port=1883):
-        self.connect(host, port)
+    def start(self, host="localhost", port=1883, ca_path=None, client_path=None, key_path=None):
+
+        self.connect(host, port, ca_path=ca_path, client_path=client_path, key_path=key_path)
 
         event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
         payload = self.__topicPub.serialize(event_loop_message)
