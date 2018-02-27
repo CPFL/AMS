@@ -8,6 +8,13 @@ from config.env import env
 
 if __name__ == '__main__':
 
+    popen_current_pose_subscriber = Popen([
+        "python", "current_pose_subscriber.py",
+        "--name", "a1",
+        "--host", env["MQTT_BROKER_HOST"],
+        "--port", env["MQTT_BROKER_PORT"],
+        "--period", "1.0"
+    ])
     popen_closest_waypoint_subscriber = Popen([
         "python", "closest_waypoint_subscriber.py",
         "--name", "a1",
@@ -15,12 +22,11 @@ if __name__ == '__main__':
         "--port", env["MQTT_BROKER_PORT"],
         "--period", "1.0"
     ])
-    popen_current_pose_subscriber = Popen([
-        "python", "current_pose_subscriber.py",
+    popen_decision_maker_states_publisher = Popen([
+        "python", "decision_maker_states_publisher.py",
         "--name", "a1",
         "--host", env["MQTT_BROKER_HOST"],
         "--port", env["MQTT_BROKER_PORT"],
-        "--period", "1.0"
     ])
     popen_lane_array_publisher = Popen([
         "python", "lane_array_publisher.py",
@@ -42,11 +48,12 @@ if __name__ == '__main__':
     ])
 
     try:
-        popen_closest_waypoint_subscriber.wait()
+        popen_current_pose_subscriber.wait()
 
     except KeyboardInterrupt:
-        popen_closest_waypoint_subscriber.terminate()
         popen_current_pose_subscriber.terminate()
+        popen_closest_waypoint_subscriber.terminate()
+        popen_decision_maker_states_publisher.terminate()
         popen_lane_array_publisher.terminate()
         popen_state_command_publisher.terminate()
         popen_light_color_managed_publisher.terminate()

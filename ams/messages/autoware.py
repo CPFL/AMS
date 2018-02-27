@@ -63,13 +63,16 @@ class ClosestWaypoint(get_base_class(closest_waypoint, closest_waypoint_schema))
     pass
 
 
-state_overlay_text = {
+dicision_maker_states = {
     "name": "a0",
     "time": 0.0,
-    "state": "default"
+    "main": "default",
+    "accel": "default",
+    "steer": "default",
+    "behavior": "default"
 }
 
-state_overlay_text_schema = {
+dicision_maker_states_schema = {
     "name": {
         "type": "string",
         "required": True,
@@ -80,7 +83,22 @@ state_overlay_text_schema = {
         "required": True,
         "nullable": False
     },
-    "state": {
+    "main": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    },
+    "accel": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    },
+    "steer": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    },
+    "behavior": {
         "type": "string",
         "required": True,
         "nullable": False
@@ -88,7 +106,7 @@ state_overlay_text_schema = {
 }
 
 
-class StateOverlayText(get_base_class(state_overlay_text, state_overlay_text_schema)):
+class DecisionMakerStates(get_base_class(dicision_maker_states, dicision_maker_states_schema)):
     pass
 
 
