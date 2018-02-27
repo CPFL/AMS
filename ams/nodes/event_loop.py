@@ -4,8 +4,7 @@
 from uuid import uuid1 as uuid
 import paho.mqtt.client as mqtt
 import os
-import sys, traceback
-import ssl
+from ssl import PROTOCOL_TLSv1_2
 from signal import SIGKILL
 from time import time
 
@@ -106,18 +105,13 @@ class EventLoop(object):
         return True
 
     def ssl_setting(self, ca_path, client_path, key_path):
-        try:
-            self.__client.tls_set(ca_path,
-                                  certfile=client_path,
-                                  keyfile=key_path,
-                                  tls_version=ssl.PROTOCOL_TLSv1_2)
+        self.__client.tls_set(ca_path,
+                              certfile=client_path,
+                              keyfile=key_path,
+                              tls_version=PROTOCOL_TLSv1_2)
+        self.__client.tls_insecure_set(True)
 
-            self.__client.tls_insecure_set(True)
-        except:
-            traceback.print_exc()
-            sys.stderr.write("Error:ssl setting.\n")
-
-    def connect(self, host, port, ca_path=None , client_path=None, key_path=None):
+    def connect(self, host, port, ca_path=None, client_path=None, key_path=None):
         self.__client = mqtt.Client(protocol=mqtt.MQTTv311, userdata=self.__user_data)
 
         if ca_path is not None and client_path is not None and key_path is not None:
