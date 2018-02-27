@@ -45,7 +45,7 @@ class ClosestWaypointSubscriber(EventLoop):
 
             closest_waypoint = ClosestWaypoint.new_data(
                 name=self.__name,
-                time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
+                time=time(),
                 index=message_data.data
             )
             payload = self.topicSubClosestWaypoint.serialize(closest_waypoint)
@@ -60,7 +60,7 @@ class ClosestWaypointSubscriber(EventLoop):
 
                 closest_waypoint = ClosestWaypoint.new_data(
                     name=self.__name,
-                    time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
+                    time=time(),
                     index=message_data.data
                 )
                 payload = self.topicSubClosestWaypoint.serialize(closest_waypoint)
