@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from argparse import ArgumentParser
-from ams.ros import ClosestWaypointSubscriber
+from ams.ros import DecisionMakerStatesSubscriber
 
 
 parser = ArgumentParser()
@@ -15,10 +15,9 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 
-    closestWaypointSubscriber = ClosestWaypointSubscriber(
-        name=args.name, period=args.period)
+    decisionMakerStatesPublisher = DecisionMakerStatesSubscriber(name=args.name, period=args.period)
 
-    print("closestWaypointSubscriber {} on {}".format(
-        closestWaypointSubscriber.event_loop_id, closestWaypointSubscriber.get_pid()))
+    print("decisionMakerStatesPublisher {} on {}".format(
+        decisionMakerStatesPublisher.event_loop_id, decisionMakerStatesPublisher.get_pid()))
 
-    closestWaypointSubscriber.start(host=args.host, port=args.port)
+    decisionMakerStatesPublisher.start(host=args.host, port=args.port)

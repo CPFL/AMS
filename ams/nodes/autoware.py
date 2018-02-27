@@ -5,7 +5,8 @@ from time import time
 
 from ams import Topic, Route, Schedule, MapMatch
 from ams.nodes import Vehicle, TrafficSignal
-from ams.messages import CurrentPose, ClosestWaypoint, LaneArray, LightColor, TrafficSignalStatus
+from ams.messages import CurrentPose, ClosestWaypoint, DecisionMakerStates,\
+    LaneArray, StateCommand, LightColor, TrafficSignalStatus
 from ams.structures import AUTOWARE
 
 from pprint import PrettyPrinter
@@ -34,48 +35,47 @@ class Autoware(Vehicle):
 
         self.__map_match = MapMatch()
         self.__map_match.set_waypoint(self.waypoint)
+        self.__map_match.set_arrow(self.arrow)
 
         self.current_pose = None
         self.closest_waypoint = None
+        self.decision_maker_states = None
         self.current_arrow_waypoint_array = []
         self.traffic_signals = {}
 
         self.add_on_message_function(self.update_current_pose)
         self.add_on_message_function(self.update_closest_waypoint)
+        self.add_on_message_function(self.update_decision_maker_states)
         self.add_on_message_function(self.update_traffic_signals)
-        self.set_subscriber(self.topicAutowareSub.private+AUTOWARE.TOPIC.CURRENT_POSE)
-        self.set_subscriber(self.topicAutowareSub.private+AUTOWARE.TOPIC.CLOSEST_WAYPOINT)
+        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE)
+        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT)
+        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES)
         self.set_subscriber(self.topicTrafficSignalStatus.all)
+
+    def update_current_pose(self, _client, _userdata, topic, payload):
+        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE:
+            self.current_pose = CurrentPose.new_data(**self.topicAutowareSub.unserialize(payload))
+
+    def update_closest_waypoint(self, _client, _userdata, topic, payload):
+        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT:
+            self.closest_waypoint = ClosestWaypoint.new_data(**self.topicAutowareSub.unserialize(payload))
+
+    def update_decision_maker_states(self, _client, _userdata, topic, payload):
+        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES:
+            self.decision_maker_states = DecisionMakerStates.new_data(**self.topicAutowareSub.unserialize(payload))
+
+    def update_pose_from_current_pose(self):
+        location = self.__map_match.get_matched_location_on_arrows(self.current_pose.pose, self.arrow.get_arrow_codes())
+        self.arrow_code = location.arrow_code
+        self.waypoint_id = location.waypoint_id
+        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
+        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
     def update_pose_from_closest_arrow_waypoint(self, closest_arrow_waypoint):
         self.arrow_code = closest_arrow_waypoint["arrow_code"]
         self.waypoint_id = closest_arrow_waypoint["waypoint_id"]
         self.np_position = self.waypoint.get_np_position(self.waypoint_id)
         self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
-
-    def update_pose_from_current_pose(self):
-        location = self.__map_match.get_matched_location_on_arrows(self.current_pose, self.arrow.get_arrow_codes)
-        self.arrow_code = location.arrow_code
-        self.waypoint_id = location.waypoint_id
-        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
-        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
-
-    def update_current_pose(self, _client, _userdata, topic, payload):
-        if topic == self.topicAutowareSub.private+AUTOWARE.TOPIC.CURRENT_POSE:
-            self.current_pose = CurrentPose.new_data(**self.topicAutowareSub.unserialize(payload))
-
-    def update_closest_waypoint(self, _client, _userdata, topic, payload):
-        if topic == self.topicAutowareSub.private+AUTOWARE.TOPIC.CLOSEST_WAYPOINT:
-            self.closest_waypoint = ClosestWaypoint.new_data(**self.topicAutowareSub.unserialize(payload))
-            if 0 <= self.closest_waypoint.index < len(self.current_arrow_waypoint_array):
-                self.update_pose_from_closest_arrow_waypoint(
-                    self.current_arrow_waypoint_array[self.closest_waypoint.index])
-                self.set_autoware_traffic_light()
-            else:
-                if self.current_pose is not None:
-                    self.update_pose_from_current_pose()
-                else:
-                    print("Lost Autoware.")
 
     def get_lane_array_from_arrow_waypoint_array(self, arrow_waypoint_array):
         waypoints = []
@@ -180,11 +180,40 @@ class Autoware(Vehicle):
                 traffic_light=traffic_light
             ))
             # print("set_autoware_traffic_light", payload)
-            self.publish(self.topicAutowarePub.private+AUTOWARE.TOPIC.TRAFFIC_LIGHT, payload)
+            self.publish(self.topicAutowarePub.private + AUTOWARE.TOPIC.TRAFFIC_LIGHT, payload)
+
+    def update_pose(self):
+        if self.closest_waypoint is None or self.closest_waypoint.index == -1:
+            if self.current_pose is not None:
+                self.update_pose_from_current_pose()
+            else:
+                print("Lost Autoware.")
+        else:
+            if 0 < len(self.current_arrow_waypoint_array):
+                self.update_pose_from_closest_arrow_waypoint(
+                    self.current_arrow_waypoint_array[self.closest_waypoint.index])
+            else:
+                print("Lost Autoware.")
+
+    def is_arriving_soon(self):
+        return False
+
+    def set_state_command(self, state):
+        payload = self.topicAutowarePub.serialize(StateCommand.new_data(
+            name=self.name,
+            time=time(),
+            state=state
+        ))
+        self.publish(self.topicAutowarePub.private + AUTOWARE.TOPIC.STATE_COMMAND, payload)
 
     def update_status(self):
+
+        self.update_pose()
+        self.set_autoware_traffic_light()
+
         if None not in [self.waypoint_id, self.arrow_code]:
             current_time = time()
+
             if self.state == Vehicle.CONST.STATE.LOG_IN:
                 if self.schedules[0].period.end < current_time:
                     self.schedules.pop(0)
@@ -196,3 +225,9 @@ class Autoware(Vehicle):
                     self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                     self.state = Vehicle.CONST.STATE.MOVE
+                    self.set_state_command(AUTOWARE.STATE_CMD.MAIN.INIT)
+                    self.set_state_command(AUTOWARE.STATE_CMD.SUB.KEEP)
+
+            elif self.state == Vehicle.CONST.STATE.MOVE:
+                if self.is_arriving_soon():
+                    self.set_state_command(AUTOWARE.STATE_CMD.SUB.STOP)

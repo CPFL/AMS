@@ -32,7 +32,7 @@ schema = {
     "yaw": {
         "type": "number",
         "required": True,
-        "nullable": False,
+        "nullable": True,
         "min": 0.0,
         "max": RPY.PI2
     }

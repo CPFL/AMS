@@ -13,7 +13,7 @@ schema = {
         "type": "dict",
         "schema": Rpy.get_schema(),
         "required": True,
-        "nullable": False,
+        "nullable": True,
     },
     "quaternion": {
         "type": "dict",

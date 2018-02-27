@@ -21,7 +21,7 @@ class MapMatch(object):
     @staticmethod
     def get_similarity_between_poses(pose1, pose2):
         similarity = 1.0
-        print(pose1, pose2)
+        # print("get_similarity_between_poses", pose1, pose2)
         return similarity
 
     def get_matched_location_on_route(self, pose, route):
