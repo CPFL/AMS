@@ -19,8 +19,7 @@ class LaneArrayPublisher(EventLoop):
         self.topicPubLaneArray.set_id(name)
         self.topicPubLaneArray.set_root(Autoware.CONST.TOPIC.PUBLISH)
 
-        self.add_on_message_function(self.publish_to_ros)
-        self.set_subscriber(self.topicPubLaneArray.private+Autoware.CONST.TOPIC.WAYPOINTS)
+        self.set_subscriber(self.topicPubLaneArray.private+Autoware.CONST.TOPIC.WAYPOINTS, self.publish_to_ros)
 
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_LANE_ARRAY_PUBLISHER, anonymous=True)
         self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.WAYPOINTS, LaneArray, queue_size=1)

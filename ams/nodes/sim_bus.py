@@ -23,8 +23,7 @@ class SimBus(SimCar):
 
         self.topicUserPublish = Topic()
         self.topicUserPublish.set_root(USER.TOPIC.PUBLISH)
-        self.add_on_message_function(self.update_user_status)
-        self.set_subscriber(self.topicUserPublish.all)
+        self.set_subscriber(self.topicUserPublish.all, self.update_user_status)
 
     def update_user_status(self, _client, _userdata, topic, payload):
         if self.topicUserPublish.root in topic:

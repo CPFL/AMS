@@ -18,8 +18,7 @@ class StateCommandPublisher(EventLoop):
         self.topicPubStateCommand.set_id(name)
         self.topicPubStateCommand.set_root(Autoware.CONST.TOPIC.PUBLISH)
 
-        self.add_on_message_function(self.publish_to_ros)
-        self.set_subscriber(self.topicPubStateCommand.private + Autoware.CONST.TOPIC.STATE_COMMAND)
+        self.set_subscriber(self.topicPubStateCommand.private + Autoware.CONST.TOPIC.STATE_COMMAND, self.publish_to_ros)
 
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_STATE_COMMAND_PUBLISHER, anonymous=True)
         # self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.STATE_COMMAND, StateCommand, queue_size=1)

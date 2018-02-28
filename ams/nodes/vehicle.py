@@ -45,8 +45,7 @@ class Vehicle(EventLoop):
         self.yaw = None
         self.velocity = None
 
-        self.add_on_message_function(self.update_schedules)
-        self.set_subscriber(self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES)
+        self.set_subscriber(self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES, self.update_schedules)
         self.set_main_loop(self.__main_loop)
 
     def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):

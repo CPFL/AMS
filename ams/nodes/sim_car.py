@@ -27,11 +27,8 @@ class SimCar(Vehicle):
 
         self.intersection = intersection
 
-        self.add_on_message_function(self.update_other_vehicles)
-        self.add_on_message_function(self.update_traffic_signals)
-
-        self.set_subscriber(self.topicStatus.all)
-        self.set_subscriber(self.topicTrafficSignalStatus.all)
+        self.set_subscriber(self.topicStatus.all, self.update_other_vehicles)
+        self.set_subscriber(self.topicTrafficSignalStatus.all, self.update_traffic_signals)
 
     def update_traffic_signals(self, _client, _user_data, topic, payload):
         if self.topicTrafficSignalStatus.root in topic:

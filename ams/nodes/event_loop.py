@@ -35,8 +35,7 @@ class EventLoop(object):
         self.__client = None
         self.__main_loop = None
         self.__pid = os.getpid()
-        self.set_subscriber(self.__topicSub.private)
-        self.__on_message_functions = []
+        self.set_subscriber(self.__topicSub.private, self.on_event_loop_message)
         self.__user_data = None
         self.__user_will = None
 
@@ -55,14 +54,11 @@ class EventLoop(object):
             pid=pid
         )
 
-    def set_subscriber(self, topic):
-        self.__subscribers[str(uuid())] = {"topic": topic}
+    def set_subscriber(self, topic, callback):
+        self.__subscribers[topic] = callback
 
     def set_user_data(self, user_data):
         self.__user_data = user_data
-
-    def add_on_message_function(self, on_message_function):
-        self.__on_message_functions.append(on_message_function)
 
     def set_main_loop(self, main_loop):
         self.__main_loop = main_loop
@@ -78,8 +74,8 @@ class EventLoop(object):
         self.__client.publish(topic, payload=payload, qos=qos, retain=retain)
 
     def subscribe(self):
-        for subscriber in self.__subscribers.values():
-            self.__client.subscribe(subscriber["topic"])
+        for topic in self.__subscribers.keys():
+            self.__client.subscribe(topic)
 
     def __on_connect(self, _client, _userdata, _flags, response_code):
         if response_code == 0:
@@ -87,10 +83,9 @@ class EventLoop(object):
         else:
             print('connect status {0}'.format(response_code))
 
-    def __on_message(self, client, userdata, message_data):
-        payload = message_data.payload.decode("utf-8")
-        if self.__topicSub.root in message_data.topic and \
-                self.__topicSub.get_id(message_data.topic) == self.event_loop_id:
+    def on_event_loop_message(self, _client, _userdata, topic, payload):
+        if self.__topicSub.root in topic and \
+                self.__topicSub.get_id(topic) == self.event_loop_id:
             event_loop_message = EventLoopMessage.new_data(**self.__topicSub.unserialize(payload))
             if event_loop_message.event == EVENT_LOOP.STATE.START:
                 print(self.__topicSub.root, event_loop_message)
@@ -100,8 +95,11 @@ class EventLoop(object):
             if event_loop_message.event == EVENT_LOOP.ACTION.CHECK:
                 print(self.__topicSub.root, event_loop_message)
                 self.__check()
-        for onMessageFunction in self.__on_message_functions:
-            onMessageFunction(client, userdata, message_data.topic, payload)
+
+    def __on_message(self, client, userdata, message_data):
+        payload = message_data.payload.decode("utf-8")
+        for onMessageFunction in self.__subscribers.values():
+                onMessageFunction(client, userdata, message_data.topic, payload)
         return True
 
     def ssl_setting(self, ca_path, client_path, key_path):

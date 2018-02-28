@@ -36,9 +36,7 @@ class FleetManager(EventLoop):
         self.traffic_signals = {}
         self.relations = {}  # user_id <-> vehicle_id, route_id <-> vehicle_id
 
-        self.add_on_message_function(self.update_traffic_signal_status)
-
-        self.set_subscriber(self.topicTrafficSignalStatus.all)
+        self.set_subscriber(self.topicTrafficSignalStatus.all, self.update_traffic_signal_status)
         self.set_main_loop(self.__main_loop)
 
     def get_status(self):

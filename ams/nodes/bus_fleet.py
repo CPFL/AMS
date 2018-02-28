@@ -40,9 +40,7 @@ class BusFleet(FleetManager):
         self.bus_schedules = {}
         self.bus_stop_spots = {}
 
-        self.add_on_message_function(self.update_vehicle_status)
-
-        self.set_subscriber(self.topicVehicleStatus.all)
+        self.set_subscriber(self.topicVehicleStatus.all, self.update_vehicle_status)
 
     def set_bus_schedules(self, bus_schedules):
         self.__bus_schedules = bus_schedules

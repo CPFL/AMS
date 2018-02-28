@@ -37,10 +37,8 @@ class TrafficSignal(EventLoop):
         self.__check_time = time()
         self.__publish_flag = False
 
-        self.add_on_message_function(self.update_schedules)
-        self.add_on_message_function(self.update_cycle)
-        self.set_subscriber(self.topicSchedules.private)
-        self.set_subscriber(self.topicCycle.private)
+        self.set_subscriber(self.topicSchedules.private, self.update_schedules)
+        self.set_subscriber(self.topicCycle.private, self.update_cycle)
         self.set_main_loop(self.__main_loop)
 
     @staticmethod

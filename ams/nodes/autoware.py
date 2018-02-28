@@ -43,14 +43,14 @@ class Autoware(Vehicle):
         self.current_arrow_waypoint_array = []
         self.traffic_signals = {}
 
-        self.add_on_message_function(self.update_current_pose)
-        self.add_on_message_function(self.update_closest_waypoint)
-        self.add_on_message_function(self.update_decision_maker_states)
-        self.add_on_message_function(self.update_traffic_signals)
-        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE)
-        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT)
-        self.set_subscriber(self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES)
-        self.set_subscriber(self.topicTrafficSignalStatus.all)
+        self.set_subscriber(
+            self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE, self.update_current_pose)
+        self.set_subscriber(
+            self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT, self.update_closest_waypoint)
+        self.set_subscriber(
+            self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES, self.update_decision_maker_states)
+        self.set_subscriber(
+            self.topicTrafficSignalStatus.all, self.update_traffic_signals)
 
     def update_current_pose(self, _client, _userdata, topic, payload):
         if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE:

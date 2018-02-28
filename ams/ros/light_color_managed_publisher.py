@@ -17,8 +17,7 @@ class LightColorManagedPublisher(EventLoop):
         self.topicPubLightColor.set_id(name)
         self.topicPubLightColor.set_root(Autoware.CONST.TOPIC.PUBLISH)
 
-        self.add_on_message_function(self.publish_to_ros)
-        self.set_subscriber(self.topicPubLightColor.private+Autoware.CONST.TOPIC.TRAFFIC_LIGHT)
+        self.set_subscriber(self.topicPubLightColor.private+Autoware.CONST.TOPIC.TRAFFIC_LIGHT, self.publish_to_ros)
 
         rospy.init_node(Autoware.CONST.ROSNODE.AMS_TRAFFIC_LIGHT_PUBLISHER, anonymous=True)
         self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.LIGHT_COLOR, TrafficLight, queue_size=1)

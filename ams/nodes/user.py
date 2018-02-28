@@ -31,8 +31,7 @@ class User(EventLoop):
         self.vehicle_id = None
         self.dt = dt
 
-        self.add_on_message_function(self.update_schedules)
-        self.set_subscriber(self.topicSchedules.private+"/schedules")
+        self.set_subscriber(self.topicSchedules.private+"/schedules", self.update_schedules)
         self.set_main_loop(self.__main_loop)
 
     def set_trip_schedules(self, trip_schedules):

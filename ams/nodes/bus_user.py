@@ -21,8 +21,7 @@ class BusUser(User):
         self.topicBusState = Topic()
         self.topicBusState.set_root(VEHICLE.TOPIC.PUBLISH)
 
-        self.add_on_message_function(self.update_bus_status)
-        self.set_subscriber(self.topicBusState.root+"/#")
+        self.set_subscriber(self.topicBusState.root+"/#", self.update_bus_status)
 
     def update_bus_status(self, _client, _userdata, topic, payload):
         if self.topicBusState.root in topic and "/schedules" not in topic:
