@@ -192,8 +192,8 @@ class Route(object):
         goal_waypoint_id = route.goal_waypoint_id
         total_length = 0.0
         sliced_goal_waypoint_id = start_waypoint_id
-        sliced_arrow_codes = []
-        for arrow_code in arrow_codes:
+        sliced_arrow_codes = [arrow_codes[0]]
+        for arrow_code in arrow_codes[1:]:
             waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
             js = 0
             if start_waypoint_id in waypoint_ids:
