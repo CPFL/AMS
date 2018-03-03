@@ -3,10 +3,10 @@
 
 from time import time, sleep
 
-from ams import Topic
-from ams.nodes import EventLoop, TrafficSignal
+from ams import Topic, Target
+from ams.nodes import EventLoop
 from ams.messages import TrafficSignalStatus, FleetStatus
-from ams.structures import FLEET_MANAGER
+from ams.structures import FLEET_MANAGER, TRAFFIC_SIGNAL
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
@@ -17,13 +17,6 @@ class FleetManager(EventLoop):
 
     def __init__(self, name, waypoint, arrow, route, dt=3.0):
         super().__init__()
-
-        self.topicTrafficSignalStatus = Topic()
-        self.topicTrafficSignalStatus.set_root(TrafficSignal.CONST.TOPIC.PUBLISH)
-
-        self.topicStatus = Topic()
-        self.topicStatus.set_id(self.event_loop_id)
-        self.topicStatus.set_root(FLEET_MANAGER.TOPIC.PUBLISH)
 
         self.name = name
         self.state = FLEET_MANAGER.STATE.STAND_BY
@@ -36,7 +29,16 @@ class FleetManager(EventLoop):
         self.traffic_signals = {}
         self.relations = {}  # user_id <-> vehicle_id, route_id <-> vehicle_id
 
-        self.set_subscriber(self.topicTrafficSignalStatus.all, self.update_traffic_signal_status)
+        self.__pubTopicStatus = Topic()
+        self.__pubTopicStatus.set_targets(self.target)
+        self.__pubTopicStatus.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.STATUS)
+
+        self.__topicSubTrafficSignalStatus = Topic()
+        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
+        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
+        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signal_status)
+
         self.set_main_loop(self.__main_loop)
 
     def get_status(self):
@@ -49,13 +51,12 @@ class FleetManager(EventLoop):
 
     def publish_status(self):
         message = self.get_status()
-        payload = self.topicStatus.serialize(message)
-        self.publish(self.topicStatus.private, payload)
+        payload = self.__pubTopicStatus.serialize(message)
+        self.publish(self.__pubTopicStatus, payload)
 
-    def update_traffic_signal_status(self, _client, _userdata, topic, payload):
-        if self.topicTrafficSignalStatus.root in topic:
-            traffic_signal = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
-            self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
+    def update_traffic_signal_status(self, _client, _userdata, _topic, payload):
+        traffic_signal = self.__topicSubTrafficSignalStatus.unserialize(payload)
+        self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
 
     def update_status(self):
         return

@@ -7,8 +7,10 @@ from ams.structures import get_namedtuple_from_dict
 EVENT_LOOP = get_namedtuple_from_dict("CONST", {
     "KEEP_ALIVE": 60,
     "TOPIC": {
-        "PUBLISH": "pub_event_loop",
-        "SUBSCRIBE": "sub_event_loop"
+        "CATEGORIES": {
+            "REQUEST": ["request"],
+            "RESPONSE": ["response"]
+        }
     },
     "ACTION": {
         "CHECK": "check",
@@ -23,4 +25,3 @@ EVENT_LOOP = get_namedtuple_from_dict("CONST", {
         "OK": "ok"
     }
 })
-

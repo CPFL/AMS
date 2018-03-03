@@ -3,11 +3,14 @@
 
 from time import time
 
-from ams import Topic, Route, Schedule, MapMatch
-from ams.nodes import Vehicle, TrafficSignal
+from ams import Topic, Route, Schedule, MapMatch, Target
+from ams.nodes import Vehicle
 from ams.messages import CurrentPose, ClosestWaypoint, DecisionMakerStates,\
     LaneArray, StateCommand, LightColor, TrafficSignalStatus
-from ams.structures import AUTOWARE
+from ams.structures import AUTOWARE, TRAFFIC_SIGNAL,\
+    LANE_ARRAY_PUBLISHER, STATE_COMMAND_PUBLISHER, LIGHT_COLOR_PUBLISHER,\
+    CURRENT_POSE_SUBSCRIBER, CLOSEST_WAYPOINT_SUBSCRIBER, DECISION_MAKER_STATES_SUBSCRIBER
+
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -21,18 +24,6 @@ class Autoware(Vehicle):
         super().__init__(name, waypoint, arrow, route, dt=dt)
 
         self.name = name
-
-        self.topicAutowarePub = Topic()
-        self.topicAutowarePub.set_id(self.name)
-        self.topicAutowarePub.set_root(AUTOWARE.TOPIC.PUBLISH)
-
-        self.topicAutowareSub = Topic()
-        self.topicAutowareSub.set_id(self.name)
-        self.topicAutowareSub.set_root(AUTOWARE.TOPIC.SUBSCRIBE)
-
-        self.topicTrafficSignalStatus = Topic()
-        self.topicTrafficSignalStatus.set_root(TrafficSignal.CONST.TOPIC.PUBLISH)
-
         self.__map_match = MapMatch()
         self.__map_match.set_waypoint(self.waypoint)
         self.__map_match.set_arrow(self.arrow)
@@ -43,29 +34,106 @@ class Autoware(Vehicle):
         self.current_arrow_waypoint_array = []
         self.traffic_signals = {}
 
-        self.set_subscriber(
-            self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE, self.update_current_pose)
-        self.set_subscriber(
-            self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT, self.update_closest_waypoint)
-        self.set_subscriber(
-            self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES, self.update_decision_maker_states)
-        self.set_subscriber(
-            self.topicTrafficSignalStatus.all, self.update_traffic_signals)
+        self.__topicPubLaneArray = Topic()
+        self.__topicPubLaneArray.set_targets(
+            self.target, Target.new_target(self.target.id, LANE_ARRAY_PUBLISHER.NODE_NAME))
+        self.__topicPubLaneArray.set_categories(AUTOWARE.TOPIC.CATEGORIES.LANE_ARRAY)
 
-    def update_current_pose(self, _client, _userdata, topic, payload):
-        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.CURRENT_POSE:
-            self.current_pose = CurrentPose.new_data(**self.topicAutowareSub.unserialize(payload))
+        self.__topicPubStateCommand = Topic()
+        self.__topicPubStateCommand.set_targets(
+            self.target, Target.new_target(self.target.id, STATE_COMMAND_PUBLISHER.NODE_NAME))
+        self.__topicPubStateCommand.set_categories(AUTOWARE.TOPIC.CATEGORIES.STATE_COMMAND)
 
-    def update_closest_waypoint(self, _client, _userdata, topic, payload):
-        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.CLOSEST_WAYPOINT:
-            self.closest_waypoint = ClosestWaypoint.new_data(**self.topicAutowareSub.unserialize(payload))
+        self.__topicPubLightColor = Topic()
+        self.__topicPubLightColor.set_targets(
+            self.target, Target.new_target(self.target.id, LIGHT_COLOR_PUBLISHER.NODE_NAME))
+        self.__topicPubLightColor.set_categories(AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
 
-    def update_decision_maker_states(self, _client, _userdata, topic, payload):
-        if topic == self.topicAutowareSub.private + AUTOWARE.TOPIC.DECISION_MAKER_STATES:
-            self.decision_maker_states = DecisionMakerStates.new_data(**self.topicAutowareSub.unserialize(payload))
+        self.__topicSubCurrentPose = Topic()
+        self.__topicSubCurrentPose.set_targets(
+            Target.new_target(self.target.id, CURRENT_POSE_SUBSCRIBER.NODE_NAME), self.target)
+        self.__topicSubCurrentPose.set_categories(CURRENT_POSE_SUBSCRIBER.TOPIC_CATEGORIES)
+        self.__topicSubCurrentPose.set_message(CurrentPose)
+        self.set_subscriber(self.__topicSubCurrentPose, self.update_current_pose)
+
+        self.__topicSubClosestWaypoint = Topic()
+        self.__topicSubClosestWaypoint.set_targets(
+            Target.new_target(self.target.id, CLOSEST_WAYPOINT_SUBSCRIBER.NODE_NAME), self.target)
+        self.__topicSubClosestWaypoint.set_categories(CLOSEST_WAYPOINT_SUBSCRIBER.TOPIC_CATEGORIES)
+        self.__topicSubClosestWaypoint.set_message(ClosestWaypoint)
+        self.set_subscriber(self.__topicSubClosestWaypoint, self.update_closest_waypoint)
+
+        self.__topicSubDecisionMakerStates = Topic()
+        self.__topicSubDecisionMakerStates.set_targets(
+            Target.new_target(self.target.id, DECISION_MAKER_STATES_SUBSCRIBER.NODE_NAME), self.target)
+        self.__topicSubDecisionMakerStates.set_categories(
+            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC.CATEGORIES.DECISION_MAKER_STATES)
+        self.__topicSubDecisionMakerStates.set_message(DecisionMakerStates)
+        self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decision_maker_states)
+
+        self.__topicSubTrafficSignal = Topic()
+        self.__topicSubTrafficSignal.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), self.target)
+        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC_CATEGORIES)
+        self.__topicSubTrafficSignal.set_message(TrafficSignalStatus)
+        self.set_subscriber(self.__topicSubTrafficSignal, self.update_traffic_signals)
+
+    def publish_lane_array(self):
+        schedule = self.schedules[0]
+
+        arrow_waypoint_array = self.route.get_arrow_waypoint_array(schedule.route)
+        lane_array = self.get_lane_array_from_arrow_waypoint_array(arrow_waypoint_array)
+
+        if 0 < len(lane_array.lanes[0].waypoints):
+            num = min(10, len(lane_array.lanes[0].waypoints))
+            for i in range(num-1, 0, -1):
+                lane_array.lanes[0].waypoints[-i].velocity = (i/num)*lane_array.lanes[0].waypoints[-i-1].velocity
+            self.current_arrow_waypoint_array = arrow_waypoint_array
+            payload = self.__topicPubLaneArray.serialize(lane_array)
+            self.publish(self.__topicPubLaneArray, payload)
+
+    def publish_state_command(self, state):
+        payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
+            name=self.name,
+            time=time(),
+            state=state
+        ))
+        self.publish(self.__topicPubStateCommand, payload)
+
+    def publish_light_color(self):
+        if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE:
+            monitored_route = self.get_monitored_route()
+            if monitored_route is None:
+                traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.RED
+            else:
+                inter_traffic_signal_distance = self.get_inter_traffic_signal_distance(monitored_route)
+                # print("inter_traffic_signal_distance", inter_traffic_signal_distance)
+                if inter_traffic_signal_distance <= 20.0:
+                    traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.RED
+                else:
+                    traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.GREEN
+            payload = self.__topicPubLightColor.serialize(LightColor.new_data(
+                name=self.name,
+                time=time(),
+                traffic_light=traffic_light
+            ))
+            self.publish(self.__topicPubLightColor, payload)
+
+    def update_current_pose(self, _client, _userdata, _topic, payload):
+        self.current_pose = self.__topicSubCurrentPose.unserialize(payload)
+
+    def update_closest_waypoint(self, _client, _userdata, _topic, payload):
+        self.closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
+
+    def update_decision_maker_states(self, _client, _userdata, _topic, payload):
+        self.decision_maker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
+
+    def update_traffic_signals(self, _client, _user_data, _topic, payload):
+        traffic_signal_status = self.__topicSubTrafficSignal.unserialize(payload)
+        self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
 
     def update_pose_from_current_pose(self):
-        location = self.__map_match.get_matched_location_on_arrows(self.current_pose.pose, self.arrow.get_arrow_codes())
+        location = self.__map_match.get_matched_location_on_arrows(
+            self.current_pose.pose, self.arrow.get_arrow_codes())
         self.arrow_code = location.arrow_code
         self.waypoint_id = location.waypoint_id
         self.np_position = self.waypoint.get_np_position(self.waypoint_id)
@@ -91,33 +159,14 @@ class Autoware(Vehicle):
             lanes=lanes
         )
 
-    def update_autoware_waypoints(self):
-        schedule = self.schedules[0]
-
-        arrow_waypoint_array = self.route.get_arrow_waypoint_array(schedule.route)
-        lane_array = self.get_lane_array_from_arrow_waypoint_array(arrow_waypoint_array)
-
-        if 0 < len(lane_array.lanes[0].waypoints):
-            num = min(10, len(lane_array.lanes[0].waypoints))
-            for i in range(num-1, 0, -1):
-                lane_array.lanes[0].waypoints[-i].velocity = (i/num)*lane_array.lanes[0].waypoints[-i-1].velocity
-            self.current_arrow_waypoint_array = arrow_waypoint_array
-            payload = self.topicAutowarePub.serialize(lane_array)
-            self.publish(self.topicAutowarePub.private+AUTOWARE.TOPIC.WAYPOINTS, payload)
-
-    def update_traffic_signals(self, _client, _user_data, topic, payload):
-        if self.topicTrafficSignalStatus.root in topic:
-            traffic_signal_status = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
-            self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
-
-    def __get_inter_traffic_signal_distance(self, monitored_route):
+    def get_inter_traffic_signal_distance(self, monitored_route):
         monitored_arrow_codes = monitored_route.arrow_codes
         inter_traffic_signal_distance = AUTOWARE.FLOAT_MAX
 
         not_green_traffic_signal_route_codes = list(map(
             lambda x: x.route_code, filter(
                 lambda x: x.state in [
-                    TrafficSignal.CONST.STATE.UNKNOWN, TrafficSignal.CONST.STATE.YELLOW, TrafficSignal.CONST.STATE.RED],
+                    TRAFFIC_SIGNAL.STATE.UNKNOWN, TRAFFIC_SIGNAL.STATE.YELLOW, TRAFFIC_SIGNAL.STATE.RED],
                 self.traffic_signals.values())))
 
         new_monitored_route = None
@@ -141,7 +190,6 @@ class Autoware(Vehicle):
         if new_monitored_route is not None:
             inter_traffic_signal_distance = self.route.get_route_length(new_monitored_route)
 
-        # print("inter_traffic_signal_distance {}[m]".format(inter_traffic_signal_distance))
         return inter_traffic_signal_distance
 
     def get_monitored_route(self, distance=100.0):
@@ -162,26 +210,6 @@ class Autoware(Vehicle):
             arrow_codes)
         return self.route.get_sliced_route(route, distance)
 
-    def set_autoware_traffic_light(self):
-        if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE:
-            monitored_route = self.get_monitored_route()
-            if monitored_route is None:
-                traffic_light = AUTOWARE.TRAFFIC_LIGHT.RED
-            else:
-                inter_traffic_signal_distance = self.__get_inter_traffic_signal_distance(monitored_route)
-                # print("inter_traffic_signal_distance", inter_traffic_signal_distance)
-                if inter_traffic_signal_distance <= 20.0:
-                    traffic_light = AUTOWARE.TRAFFIC_LIGHT.RED
-                else:
-                    traffic_light = AUTOWARE.TRAFFIC_LIGHT.GREEN
-            payload = self.topicAutowarePub.serialize(LightColor.new_data(
-                name=self.name,
-                time=time(),
-                traffic_light=traffic_light
-            ))
-            # print("set_autoware_traffic_light", payload)
-            self.publish(self.topicAutowarePub.private + AUTOWARE.TOPIC.TRAFFIC_LIGHT, payload)
-
     def update_pose(self):
         if self.closest_waypoint is None or self.closest_waypoint.index == -1:
             if self.current_pose is not None:
@@ -198,18 +226,10 @@ class Autoware(Vehicle):
     def is_arriving_soon(self):
         return False
 
-    def set_state_command(self, state):
-        payload = self.topicAutowarePub.serialize(StateCommand.new_data(
-            name=self.name,
-            time=time(),
-            state=state
-        ))
-        self.publish(self.topicAutowarePub.private + AUTOWARE.TOPIC.STATE_COMMAND, payload)
-
     def update_status(self):
 
         self.update_pose()
-        self.set_autoware_traffic_light()
+        self.publish_light_color()
 
         if None not in [self.waypoint_id, self.arrow_code]:
             current_time = time()
@@ -218,16 +238,16 @@ class Autoware(Vehicle):
                 if self.schedules[0].period.end < current_time:
                     self.schedules.pop(0)
 
-                    self.update_autoware_waypoints()
+                    self.publish_lane_array()
 
                     # update next schedule
                     dif_time = current_time - self.schedules[0].period.start
                     self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                     self.state = Vehicle.CONST.STATE.MOVE
-                    self.set_state_command(AUTOWARE.STATE_CMD.MAIN.INIT)
-                    self.set_state_command(AUTOWARE.STATE_CMD.SUB.KEEP)
+                    self.publish_state_command(AUTOWARE.STATE_CMD.MAIN.INIT)
+                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.KEEP)
 
             elif self.state == Vehicle.CONST.STATE.MOVE:
                 if self.is_arriving_soon():
-                    self.set_state_command(AUTOWARE.STATE_CMD.SUB.STOP)
+                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.STOP)

@@ -5,6 +5,7 @@ from ams.structures import get_namedtuple_from_dict
 
 
 SIM_BUS = get_namedtuple_from_dict("CONST", {
+    "NODE_NAME": "SimBus",
     "STATE": {
         "MOVE": "move",
         "STOP": "stop",

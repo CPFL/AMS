@@ -2,34 +2,37 @@
 # coding: utf-8
 
 import rospy
-from autoware_msgs.msg import state_cmd as StateCommand
+from autoware_msgs.msg import state_cmd as AWStateCommand
 from std_msgs.msg import Int32
 
-from ams import Topic
-from ams.nodes import EventLoop, Autoware
-from ams.messages import StateCommand as AMSStateCommand
+from ams import Topic, Target
+from ams.nodes import EventLoop
+from ams.messages import StateCommand
+from ams.structures import STATE_COMMAND_PUBLISHER, AUTOWARE
 
 
 class StateCommandPublisher(EventLoop):
-    def __init__(self, name):
-        super(StateCommandPublisher, self).__init__()
+    
+    CONST = STATE_COMMAND_PUBLISHER
 
-        self.topicPubStateCommand = Topic()
-        self.topicPubStateCommand.set_id(name)
-        self.topicPubStateCommand.set_root(Autoware.CONST.TOPIC.PUBLISH)
+    def __init__(self, _id):
+        super(StateCommandPublisher, self).__init__(_id)
 
-        self.set_subscriber(self.topicPubStateCommand.private + Autoware.CONST.TOPIC.STATE_COMMAND, self.publish_to_ros)
+        self.__topicSubStateCommand = Topic()
+        self.__topicSubStateCommand.set_targets(
+            Target.new_target(self.target.id, AUTOWARE.NODE_NAME), self.target
+        )
+        self.__topicSubStateCommand.set_categories(AUTOWARE.TOPIC.CATEGORIES.STATE_COMMAND)
+        self.__topicSubStateCommand.set_message(StateCommand)
+        self.set_subscriber(self.__topicSubStateCommand, self.publish_to_ros)
 
-        rospy.init_node(Autoware.CONST.ROSNODE.AMS_STATE_COMMAND_PUBLISHER, anonymous=True)
-        # self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.STATE_COMMAND, StateCommand, queue_size=1)
-        self.__ROSPublisher = rospy.Publisher(Autoware.CONST.ROSTOPIC.STATE_COMMAND, Int32, queue_size=1)
+        rospy.init_node(AUTOWARE.ROSNODE.AMS_STATE_COMMAND_PUBLISHER, anonymous=True)
+        # self.__ROSPublisher = rospy.Publisher(STATE_COMMAND_PUBLISHER.ROSTOPIC, AWStateCommand, queue_size=1)
+        self.__ROSPublisher = rospy.Publisher(STATE_COMMAND_PUBLISHER.ROSTOPIC, Int32, queue_size=1)
 
-    def publish_to_ros(self, _client, _userdata, topic, payload):
-        if topic == self.topicPubStateCommand.private + Autoware.CONST.TOPIC.STATE_COMMAND:
-            ams_state_command = AMSStateCommand.new_data(**self.topicPubStateCommand.unserialize(payload))
-            state_command = StateCommand()
-            state_command.cmd = ams_state_command.state
-
-            # self.__ROSPublisher.publish(state_command)
-            self.__ROSPublisher.publish(ams_state_command.state)
-
+    def publish_to_ros(self, _client, _userdata, _topic, payload):
+        state_command = self.__topicSubStateCommand.unserialize(payload)
+        # aw_state_command = AWStateCommand()
+        # aw_state_command.cmd = state_command.state
+        # self.__ROSPublisher.publish(aw_state_command)
+        self.__ROSPublisher.publish(state_command.state)

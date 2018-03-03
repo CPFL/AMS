@@ -6,7 +6,7 @@ from time import time, sleep
 from ams import Topic, Schedule
 from ams.nodes import EventLoop
 from ams.messages import TrafficSignalStatus as Status
-from ams.structures import Cycle, Target, Schedules, TRAFFIC_SIGNAL
+from ams.structures import Cycle, Schedules, TRAFFIC_SIGNAL
 
 
 class TrafficSignal(EventLoop):
@@ -15,18 +15,6 @@ class TrafficSignal(EventLoop):
 
     def __init__(self, route_code, state=TRAFFIC_SIGNAL.STATE.UNKNOWN, processing_cycle=1.0):
         super().__init__()
-
-        self.topicStatus = Topic()
-        self.topicStatus.set_id(self.event_loop_id)
-        self.topicStatus.set_root(TRAFFIC_SIGNAL.TOPIC.PUBLISH)
-
-        self.topicSchedules = Topic()
-        self.topicSchedules.set_id(self.event_loop_id)
-        self.topicSchedules.set_root(TRAFFIC_SIGNAL.TOPIC.SUBSCRIBE_SCHEDULES)
-
-        self.topicCycle = Topic()
-        self.topicCycle.set_id(self.event_loop_id)
-        self.topicCycle.set_root(TRAFFIC_SIGNAL.TOPIC.SUBSCRIBE_CYCLE)
 
         self.route_code = route_code
         self.state = state
@@ -37,8 +25,22 @@ class TrafficSignal(EventLoop):
         self.__check_time = time()
         self.__publish_flag = False
 
-        self.set_subscriber(self.topicSchedules.private, self.update_schedules)
-        self.set_subscriber(self.topicCycle.private, self.update_cycle)
+        self.__topicPubStatus = Topic()
+        self.__topicPubStatus.set_targets(self.target)
+        self.__topicPubStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
+
+        self.__topicSubSchedules = Topic()
+        self.__topicSubSchedules.set_targets(None, self.target)
+        self.__topicSubSchedules.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.SCHEDULES)
+        self.__topicSubSchedules.set_message(Schedules)
+        self.set_subscriber(self.__topicSubSchedules, self.update_schedules)
+
+        self.__topicSubCycle = Topic()
+        self.__topicSubCycle.set_targets(None, self.target)
+        self.__topicSubCycle.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.CYCLE)
+        self.__topicSubCycle.set_message(Cycle)
+        self.set_subscriber(self.__topicSubCycle, self.update_cycle)
+
         self.set_main_loop(self.__main_loop)
 
     @staticmethod
@@ -51,18 +53,16 @@ class TrafficSignal(EventLoop):
 
     def publish_status(self):
         status = TrafficSignal.get_status(self.route_code, self.state)
-        payload = self.topicStatus.serialize(status)
-        self.publish(self.topicStatus.private, payload)
+        payload = self.__topicPubStatus.serialize(status)
+        self.publish(self.__topicPubStatus, payload)
 
-    def update_schedules(self, _client, _userdata, topic, payload):
-        if topic == self.topicSchedules.private:
-            self.schedules = Schedules.new_data(self.topicSchedules.unserialize(payload))
-            self.__publish_flag = True
+    def update_schedules(self, _client, _userdata, _topic, payload):
+        self.schedules = self.__topicSubSchedules.unserialize(payload)
+        self.__publish_flag = True
 
-    def update_cycle(self, _client, _userdata, topic, payload):
-        if topic == self.topicCycle.private:
-            self.cycle = Cycle.new_data(**self.topicCycle.unserialize(payload))
-            self.__publish_flag = True
+    def update_cycle(self, _client, _userdata, _topic, payload):
+        self.cycle = self.__topicSubCycle.unserialize(payload)
+        self.__publish_flag = True
 
     def __update_schedules(self):
         current_time = time()
@@ -76,8 +76,7 @@ class TrafficSignal(EventLoop):
                     start_time = current_time
                 else:
                     start_time = schedules[-1].period.end
-                schedules.append(Schedule.get_schedule_from_cycle(
-                    [Target.new_data(id=self.event_loop_id, group="TrafficSignal")], self.cycle, start_time))
+                schedules.append(Schedule.get_schedule_from_cycle([self.target], self.cycle, start_time))
         self.schedules = schedules
 
     def update_status(self):

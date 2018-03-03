@@ -66,9 +66,9 @@ class Arrow(object):
     def get_heading(self, arrow_code, waypoint_id):
         return np.degrees(self.get_yaw(arrow_code, waypoint_id))
 
-    def get_point_to_edge(self, point_position, edge_position1, edge_position2):
+    def get_point_to_edge(self, np_position, edge_position1, edge_position2):
         vector_12 = np.subtract(edge_position2, edge_position1)
-        vector_1p = np.subtract(point_position, edge_position1)
+        vector_1p = np.subtract(np_position, edge_position1)
 
         # get unit vector
         len_12 = np.linalg.norm(vector_12)
@@ -77,21 +77,21 @@ class Arrow(object):
         # dot product
         distance1x = np.dot(unit_vector_12, vector_1p)
         if len_12 < distance1x:
-            return edge_position2, self.get_distance(point_position, edge_position2)
+            return edge_position2, self.get_distance(np_position, edge_position2)
         elif distance1x < 0.0:
-            return edge_position1, self.get_distance(point_position, edge_position1)
+            return edge_position1, self.get_distance(np_position, edge_position1)
         else:
             distance1x_vector_12 = unit_vector_12 * distance1x
             position = np.add(edge_position1, distance1x_vector_12)
-            return position, self.get_distance(point_position, position)
+            return position, self.get_distance(np_position, position)
 
-    def get_point_to_waypoints(self, point_position, waypoint_ids):
+    def get_point_to_waypoints(self, np_position, waypoint_ids):
         matched_waypoints = {}
         prev_position = None
         for waypoint_id in waypoint_ids:
             position = self.waypoint.get_np_position(waypoint_id)
             if prev_position is not None:
-                position_on_edge, distance = self.get_point_to_edge(point_position, prev_position, position)
+                position_on_edge, distance = self.get_point_to_edge(np_position, prev_position, position)
                 matched_waypoints[waypoint_id] = {
                     "waypoint_id": waypoint_id,
                     "position": position_on_edge,
@@ -107,15 +107,15 @@ class Arrow(object):
             most_matched_waypoint["position"], \
             most_matched_waypoint["distance"]
 
-    def get_point_to_arrow(self, point_position, arrow_code):
-        return self.get_point_to_waypoints(point_position, self.get_waypoint_ids(arrow_code))
+    def get_point_to_arrow(self, np_position, arrow_code):
+        return self.get_point_to_waypoints(np_position, self.get_waypoint_ids(arrow_code))
 
-    def get_point_to_arrows(self, point_position, arrow_codes=None):
+    def get_point_to_arrows(self, np_position, arrow_codes=None):
         matched_waypoints = {}
         if arrow_codes is None:
             arrow_codes = self.__arrows.keys()
         for arrow_code in arrow_codes:
-            waypoint_id, position, distance = self.get_point_to_arrow(point_position, arrow_code)
+            waypoint_id, position, distance = self.get_point_to_arrow(np_position, arrow_code)
             matched_waypoints[waypoint_id] = {
                 "arrow_code": arrow_code,
                 "waypoint_id": waypoint_id,

@@ -8,7 +8,7 @@ from ssl import PROTOCOL_TLSv1_2
 from signal import SIGKILL
 from time import time
 
-from ams import Topic
+from ams import Topic, Target
 from ams.messages import EventLoopMessage
 from ams.structures import EVENT_LOOP
 
@@ -22,20 +22,23 @@ class EventLoop(object):
         if _id is None:
             self.event_loop_id = str(uuid())
 
-        self.__topicSub = Topic()
-        self.__topicSub.set_id(self.event_loop_id)
-        self.__topicSub.set_root(EVENT_LOOP.TOPIC.SUBSCRIBE)
-
-        self.__topicPub = Topic()
-        self.__topicPub.set_id(self.event_loop_id)
-        self.__topicPub.set_root(EVENT_LOOP.TOPIC.PUBLISH)
-
+        self.target = Target.new_target(self.event_loop_id, self.__class__.__name__)
         self.__subscribers = {}
         self.__publishers = {}
         self.__client = None
         self.__main_loop = None
         self.__pid = os.getpid()
-        self.set_subscriber(self.__topicSub.private, self.on_event_loop_message)
+
+        self.__topicPub = Topic()
+        self.__topicPub.set_targets(Target.new_target(self.event_loop_id, EventLoop.__name__))
+        self.__topicPub.set_categories(EVENT_LOOP.TOPIC.CATEGORIES.RESPONSE)
+
+        self.__topicSub = Topic()
+        self.__topicSub.set_targets(None, Target.new_target(self.event_loop_id, EventLoop.__name__))
+        self.__topicSub.set_categories(EVENT_LOOP.TOPIC.CATEGORIES.REQUEST)
+        self.__topicSub.set_message(EventLoopMessage)
+        self.set_subscriber(self.__topicSub, self.on_event_loop_message)
+
         self.__user_data = None
         self.__user_will = None
 
@@ -43,7 +46,7 @@ class EventLoop(object):
         if self.__client is not None:
             event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
             payload = self.__topicPub.serialize(event_loop_message)
-            self.publish(self.__topicPub.private, payload)
+            self.publish(self.__topicPub, payload)
             self.end()
 
     @staticmethod
@@ -55,7 +58,7 @@ class EventLoop(object):
         )
 
     def set_subscriber(self, topic, callback):
-        self.__subscribers[topic] = callback
+        self.__subscribers[topic.get_path(use_wild_card=True)] = callback
 
     def set_user_data(self, user_data):
         self.__user_data = user_data
@@ -70,12 +73,18 @@ class EventLoop(object):
         }
 
     def publish(self, topic, payload, qos=0, retain=False):
-        # print("publish", topic, payload)
-        self.__client.publish(topic, payload=payload, qos=qos, retain=retain)
+        self.__client.publish(
+            topic.get_path(),
+            payload=payload, qos=qos, retain=retain)
 
     def subscribe(self):
         for topic in self.__subscribers.keys():
             self.__client.subscribe(topic)
+
+    def response(self, request_path, payload, qos=0, retain=False):
+        response_topic = Topic()
+        response_topic.set_fix_path(self.__topicPub.get_response_path(request_path))
+        self.publish(response_topic, payload, qos, retain)
 
     def __on_connect(self, _client, _userdata, _flags, response_code):
         if response_code == 0:
@@ -84,21 +93,17 @@ class EventLoop(object):
             print('connect status {0}'.format(response_code))
 
     def on_event_loop_message(self, _client, _userdata, topic, payload):
-        if self.__topicSub.root in topic and \
-                self.__topicSub.get_id(topic) == self.event_loop_id:
-            event_loop_message = EventLoopMessage.new_data(**self.__topicSub.unserialize(payload))
-            if event_loop_message.event == EVENT_LOOP.STATE.START:
-                print(self.__topicSub.root, event_loop_message)
-            if event_loop_message.event == EVENT_LOOP.ACTION.KILL:
-                print(self.__topicSub.root, event_loop_message)
-                self.end()
-            if event_loop_message.event == EVENT_LOOP.ACTION.CHECK:
-                print(self.__topicSub.root, event_loop_message)
-                self.__check()
+        event_loop_message = self.__topicSub.unserialize(payload)
+        if event_loop_message.event == EVENT_LOOP.STATE.START:
+        if event_loop_message.event == EVENT_LOOP.ACTION.KILL:
+            self.end()
+        if event_loop_message.event == EVENT_LOOP.ACTION.CHECK:
+            self.__check(topic)
 
     def __on_message(self, client, userdata, message_data):
         payload = message_data.payload.decode("utf-8")
-        for onMessageFunction in self.__subscribers.values():
+        for subscriber_path, onMessageFunction in self.__subscribers.items():
+            if Topic.is_path_matched(subscriber_path, message_data.topic):
                 onMessageFunction(client, userdata, message_data.topic, payload)
         return True
 
@@ -116,11 +121,10 @@ class EventLoop(object):
             self.ssl_setting(ca_path, client_path, key_path)
 
         will = self.__user_will
-        # print(will)
         if will is None:
             event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.WILL, self.__pid)
             payload = self.__topicPub.serialize(event_loop_message)
-            will = {"topic": self.__topicPub.private, "payload": payload}
+            will = {"topic": self.__topicPub.get_path(), "payload": payload}
         self.__client.will_set(will["topic"], payload=will["payload"], qos=2, retain=False)
 
         self.__client.on_connect = self.__on_connect
@@ -133,7 +137,7 @@ class EventLoop(object):
 
         event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
         payload = self.__topicPub.serialize(event_loop_message)
-        self.publish(self.__topicPub.private, payload)
+        self.publish(self.__topicPub, payload)
 
         if self.__main_loop is None:
             self.__client.loop_forever()
@@ -147,11 +151,11 @@ class EventLoop(object):
         self.__client = None
         os.kill(self.__pid, SIGKILL)
 
-    def __check(self):
+    def __check(self, request_path):
         # todo: main_loop zombie
         event_loop_message = EventLoop.get_message(EVENT_LOOP.RESPONSE.OK, self.__pid)
         payload = self.__topicPub.serialize(event_loop_message)
-        self.publish(self.__topicPub.private, payload)
+        self.response(request_path, payload)
 
     def get_pid(self):
         return self.__pid

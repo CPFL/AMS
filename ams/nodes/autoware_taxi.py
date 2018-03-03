@@ -29,10 +29,10 @@ class AutowareTaxi(Autoware):
             if 1 < len(self.schedules):
                 self.schedules.pop(0)
 
-                self.update_autoware_waypoints()
+                self.publish_lane_array()
 
                 # update next schedule
-                dif_time = current_time - self.schedules[0]["route"]["start"]["time"]
+                dif_time = current_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 self.state = AUTOWARE_TAXI.STATE.MOVE_TO_USER
@@ -43,26 +43,26 @@ class AutowareTaxi(Autoware):
 
                 # update next schedule
                 new_start_time = time()
-                dif_time = new_start_time - self.schedules[0]["route"]["start"]["time"]
+                dif_time = new_start_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 self.state = AUTOWARE_TAXI.STATE.STOP_FOR_PICKING_UP
             else:
-                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                arrow_codes = self.schedules[0].route.arrow_codes
                 i_s = 0
                 if self.arrow_code in arrow_codes:
                     i_s = arrow_codes.index(self.arrow_code)
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[i_s:]
+                self.schedules[0].route.arrow_codes = arrow_codes[i_s:]
 
         elif self.state == AUTOWARE_TAXI.STATE.STOP_FOR_PICKING_UP:
-            if self.schedules[0]["event"] == Vehicle.CONST.ACTION.MOVE or \
-                    self.schedules[0]["route"]["goal"]["time"] < current_time:
+            if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE or \
+                    self.schedules[0].period.end < current_time:
                 self.schedules.pop(0)
 
-                self.update_autoware_waypoints()
+                self.publish_lane_array()
 
                 # update next schedule
-                dif_time = current_time - self.schedules[0]["route"]["start"]["time"]
+                dif_time = current_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 self.state = AUTOWARE_TAXI.STATE.MOVE_TO_USER_DESTINATION
@@ -72,23 +72,23 @@ class AutowareTaxi(Autoware):
 
                 # update next schedule
                 new_start_time = time()
-                dif_time = new_start_time - self.schedules[0]["route"]["start"]["time"]
+                dif_time = new_start_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 self.state = AUTOWARE_TAXI.STATE.STOP_FOR_DISCHARGING
             else:
-                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
+                arrow_codes = self.schedules[0].route.arrow_codes
                 i_s = 0
                 if self.arrow_code in arrow_codes:
                     i_s = arrow_codes.index(self.arrow_code)
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[i_s:]
+                self.schedules[0].route.arrow_codes = arrow_codes[i_s:]
 
         elif self.state == AUTOWARE_TAXI.STATE.STOP_FOR_DISCHARGING:
-            if self.schedules[0]["route"]["goal"]["time"] < current_time:
+            if self.schedules[0].period.end < current_time:
                 self.schedules.pop(0)
 
                 # update next schedule
-                dif_time = current_time - self.schedules[0]["route"]["start"]["time"]
+                dif_time = current_time - self.schedules[0].period.start
                 self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                 self.state = AUTOWARE_TAXI.STATE.STANDBY

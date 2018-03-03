@@ -4,12 +4,12 @@
 from ams import Topic, Target
 from ams.nodes import User
 from ams.messages import VehicleStatus
-from ams.structures import SIM_BUS, VEHICLE, BUS_USER, USER
+from ams.structures import SIM_BUS, VEHICLE, SIM_BUS_USER, USER
 
 
-class BusUser(User):
+class SimBusUser(User):
 
-    CONST = BUS_USER
+    CONST = SIM_BUS_USER
 
     def __init__(self, name, dt=1.0):
         super().__init__(name, dt)
@@ -18,15 +18,15 @@ class BusUser(User):
         self.bus_id = None
         self.bus_statuses = {}
 
-        self.topicBusState = Topic()
-        self.topicBusState.set_root(VEHICLE.TOPIC.PUBLISH)
-
-        self.set_subscriber(self.topicBusState.root+"/#", self.update_bus_status)
+        self.__topicSubVehicleStatus = Topic()
+        self.__topicSubVehicleStatus.set_targets(Target.new_target(None, SIM_BUS.NODE_NAME), None)
+        self.__topicSubVehicleStatus.set_categories(VEHICLE.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubVehicleStatus.set_message(VehicleStatus)
+        self.set_subscriber(self.__topicSubVehicleStatus, self.update_bus_status)
 
     def update_bus_status(self, _client, _userdata, topic, payload):
-        if self.topicBusState.root in topic and "/schedules" not in topic:
-            bus_id = self.topicBusState.get_id(topic)
-            self.bus_statuses[bus_id] = VehicleStatus.new_data(**self.topicBusState.unserialize(payload))
+        bus_id = self.__topicSubVehicleStatus.get_from_id(topic)
+        self.bus_statuses[bus_id] = self.__topicSubVehicleStatus.unserialize(payload)
 
     def is_bus_arrived(self, target_bus_stop):
         for bus_id in self.bus_statuses:
@@ -53,46 +53,48 @@ class BusUser(User):
             if self.trip_schedules is not None:
                 self.target_start_bus_stop = \
                     list(filter(
-                        lambda x: x.group == BUS_USER.TARGET_GROUP.START_BUS_STOP, self.trip_schedules[0].targets))[0]
+                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.START_BUS_STOP, self.trip_schedules[0].targets)
+                    )[0]
                 self.target_goal_bus_stop = \
                     list(filter(
-                        lambda x: x.group == BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, self.trip_schedules[0].targets))[0]
+                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, self.trip_schedules[0].targets)
+                    )[0]
 
         # print(self.name, self.state, self.schedules[0].event)
         if self.state == USER.STATE.LOG_IN:
-            self.state = BUS_USER.STATE.WAITING
+            self.state = SIM_BUS_USER.STATE.WAITING
             self.publish_status()
-        elif self.state == BUS_USER.STATE.ARRIVED_AT_BUS_STOP:
-            self.state = BUS_USER.STATE.WAITING
+        elif self.state == SIM_BUS_USER.STATE.ARRIVED_AT_BUS_STOP:
+            self.state = SIM_BUS_USER.STATE.WAITING
             self.schedules[0].event = None
             self.publish_status()
-        elif self.state == BUS_USER.STATE.WAITING:
+        elif self.state == SIM_BUS_USER.STATE.WAITING:
             if self.is_bus_arrived(self.target_start_bus_stop):
-                self.state = BUS_USER.STATE.GETTING_ON
+                self.state = SIM_BUS_USER.STATE.GETTING_ON
                 self.schedules[0].event = None
                 self.publish_status()
-        elif self.state == BUS_USER.STATE.GETTING_ON:
-            self.state = BUS_USER.STATE.GOT_ON
-            self.schedules[0].targets.append(Target.new_target(self.bus_id, "SimBus"))
+        elif self.state == SIM_BUS_USER.STATE.GETTING_ON:
+            self.state = SIM_BUS_USER.STATE.GOT_ON
+            self.schedules[0].targets.append(Target.new_target(self.bus_id, SIM_BUS.NODE_NAME))
             self.publish_status()
-        elif self.state == BUS_USER.STATE.GOT_ON:
-            self.state = BUS_USER.STATE.MOVING
-            self.schedules[0].targets.append(Target.new_target(self.bus_id, "SimBus"))
+        elif self.state == SIM_BUS_USER.STATE.GOT_ON:
+            self.state = SIM_BUS_USER.STATE.MOVING
+            self.schedules[0].targets.append(Target.new_target(self.bus_id, SIM_BUS.NODE_NAME))
             self.publish_status()
-        elif self.state == BUS_USER.STATE.MOVING:
-            self.schedules[0].targets.append(Target.new_target(self.bus_id, "SimBus"))
+        elif self.state == SIM_BUS_USER.STATE.MOVING:
+            self.schedules[0].targets.append(Target.new_target(self.bus_id, SIM_BUS.NODE_NAME))
             if self.is_bus_approached_target_bus_stop(self.target_goal_bus_stop):
-                self.state = BUS_USER.STATE.READY_TO_GET_OUT
-                self.schedules[0].event = BUS_USER.ACTION.REQUEST_STOP
+                self.state = SIM_BUS_USER.STATE.READY_TO_GET_OUT
+                self.schedules[0].event = SIM_BUS_USER.ACTION.REQUEST_STOP
                 self.publish_status()
-        elif self.state == BUS_USER.STATE.READY_TO_GET_OUT:
-            self.schedules[0].targets.append(Target.new_target(self.bus_id, "SimBus"))
+        elif self.state == SIM_BUS_USER.STATE.READY_TO_GET_OUT:
+            self.schedules[0].targets.append(Target.new_target(self.bus_id, SIM_BUS.NODE_NAME))
             if self.is_bus_arrived(self.target_goal_bus_stop):
-                self.state = BUS_USER.STATE.GETTING_OUT
+                self.state = SIM_BUS_USER.STATE.GETTING_OUT
                 self.publish_status()
-        elif self.state == BUS_USER.STATE.GETTING_OUT:
-            self.state = BUS_USER.STATE.GOT_OUT
+        elif self.state == SIM_BUS_USER.STATE.GETTING_OUT:
+            self.state = SIM_BUS_USER.STATE.GOT_OUT
             self.publish_status()
-        elif self.state == BUS_USER.STATE.GOT_OUT:
+        elif self.state == SIM_BUS_USER.STATE.GOT_OUT:
             self.state = USER.STATE.LOG_OUT
             self.publish_status()

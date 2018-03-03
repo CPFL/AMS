@@ -4,25 +4,19 @@
 from time import time
 
 from ams import Topic, Route, Schedule, Target, Relation
-from ams.nodes import FleetManager, SimBus
+from ams.nodes import FleetManager, SimBus, Vehicle
 from ams.messages import VehicleStatus
-from ams.structures import BUS_FLEET, SIM_BUS, VEHICLE
+from ams.structures import SIM_BUS_FLEET, SIM_BUS
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 
-class BusFleet(FleetManager):
+class SimBusFleet(FleetManager):
 
-    CONST = BUS_FLEET
+    CONST = SIM_BUS_FLEET
 
     def __init__(self, name, waypoint, arrow, route, spot):
         super().__init__(name, waypoint, arrow, route)
-
-        self.topicVehicleStatus = Topic()
-        self.topicVehicleStatus.set_root(VEHICLE.TOPIC.PUBLISH)
-
-        self.topicVehicleSchedules = Topic()
-        self.topicVehicleSchedules.set_root(VEHICLE.TOPIC.SUBSCRIBE)
 
         self.waypoint = waypoint
         self.arrow = arrow
@@ -40,36 +34,46 @@ class BusFleet(FleetManager):
         self.bus_schedules = {}
         self.bus_stop_spots = {}
 
-        self.set_subscriber(self.topicVehicleStatus.all, self.update_vehicle_status)
+        self.__topicPubVehicleSchedules = Topic()
+        self.__topicPubVehicleSchedules.set_categories(FleetManager.CONST.TOPIC.CATEGORIES.SCHEDULES)
+
+        self.__topicSubVehicleStatus = Topic()
+        self.__topicSubVehicleStatus.set_targets(Target.new_target(None, SimBus.__name__), None)
+        self.__topicSubVehicleStatus.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubVehicleStatus.set_message(VehicleStatus)
+        self.set_subscriber(self.__topicSubVehicleStatus, self.update_vehicle_status)
+
+    def __publish_vehicle_schedules(self, vehicle_id, payload):
+        self.__topicPubVehicleSchedules.set_targets(self.target, Target.new_target(vehicle_id, SimBus.__name__))
+        self.publish(self.__topicPubVehicleSchedules, payload)
 
     def set_bus_schedules(self, bus_schedules):
         self.__bus_schedules = bus_schedules
         for bus_schedules_id in self.__bus_schedules:
             self.relation.add_relation(
-                Target.new_target(bus_schedules_id, "bus_schedules"),
+                Target.new_target(bus_schedules_id, SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES),
                 {
-                    BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_KEY: BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_VALUE
+                    SIM_BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_KEY: SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES
                 }
             )
 
     def update_vehicle_status(self, _client, _userdata, topic, payload):
-        if self.topicVehicleStatus.root in topic:
-            vehicle_id = self.topicVehicleStatus.get_id(topic)
-            vehicle_status = VehicleStatus.new_data(**self.topicVehicleStatus.unserialize(payload))
-            if vehicle_id not in self.vehicle_schedules:
-                self.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
-            else:
-                if self.vehicle_statuses[vehicle_id].state != vehicle_status.state:
-                    self.update_vehicle_schedules(vehicle_id, vehicle_status)
-            self.vehicle_statuses[vehicle_id] = vehicle_status
+        vehicle_id = self.__topicSubVehicleStatus.get_from_id(topic)
+        vehicle_status = self.__topicSubVehicleStatus.unserialize(payload)
+        if vehicle_id not in self.vehicle_schedules:
+            self.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
+        else:
+            if self.vehicle_statuses[vehicle_id].state != vehicle_status.state:
+                self.update_current_vehicle_schedule(vehicle_id, vehicle_status)
+        self.vehicle_statuses[vehicle_id] = vehicle_status
 
-    def update_vehicle_schedules(self, vehicle_id, vehicle_status):
+    def update_current_vehicle_schedule(self, vehicle_id, vehicle_status):
         self.vehicle_schedules[vehicle_id].pop(0)
         self.vehicle_schedules[vehicle_id][0] = vehicle_status.schedule
 
     def get_unassigned_bus_schedule_target(self):
         targets = Target.new_targets(self.relation.get_related({
-            BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_KEY: BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_VALUE}))
+            SIM_BUS_FLEET.UNASSIGNED_BUS_SCHEDULES_KEY: SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES}))
         if len(targets) == 0:
             return None
         return targets[0]
@@ -179,7 +183,7 @@ class BusFleet(FleetManager):
             if vehicle_status.schedule.event == SIM_BUS.SCHEDULE.STAND_BY:
                 if self.vehicle_schedules[vehicle_id][0].event != SIM_BUS.SCHEDULE.MOVE_TO_CIRCULAR_ROUTE:
                     start_time = time()
-                    target_vehicle = Target.new_target(vehicle_id, "SimBus")
+                    target_vehicle = Target.new_target(vehicle_id, SimBus.__name__)
                     target_bus_schedule = self.get_unassigned_bus_schedule_target()
 
                     target_vehicle_schedules = [Schedule.new_schedule(
@@ -207,13 +211,13 @@ class BusFleet(FleetManager):
                         "part_index": part_index
                     }
                     self.vehicle_schedules[vehicle_id] = target_vehicle_schedules
-                    payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
-                    self.publish(self.topicVehicleSchedules.root + "/" + vehicle_id + "/schedules", payload)
+                    payload = self.__topicPubVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
+                    self.__publish_vehicle_schedules(vehicle_id, payload)
 
             elif vehicle_status.schedule.event == SIM_BUS.SCHEDULE.MOVE_TO_CIRCULAR_ROUTE:
                 pass
             elif vehicle_status.schedule.event == SIM_BUS.SCHEDULE.MOVE_TO_BRANCH_POINT:
-                target_vehicle = Target.new_target(vehicle_id, "SimBus")
+                target_vehicle = Target.new_target(vehicle_id, SimBus.__name__)
                 target_bus_schedule = self.get_unassigned_bus_schedule_target()
                 if vehicle_status.state == SIM_BUS.STATE.THROUGH:
                     move_to_branch_point_schedules, branch_index, part_type, part_index = \
@@ -228,8 +232,8 @@ class BusFleet(FleetManager):
                     # pp(move_to_branch_point_schedules)
                     self.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
                         [self.vehicle_schedules[vehicle_id][-1]], move_to_branch_point_schedules)
-                    payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
-                    self.publish(self.topicVehicleSchedules.root + "/" + vehicle_id + "/schedules", payload)
+                    payload = self.__topicPubVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
+                    self.__publish_vehicle_schedules(vehicle_id, payload)
                 elif vehicle_status.state == SIM_BUS.STATE.VIA:
                     move_to_branch_point_via_bus_stop_schedules, branch_index, part_type, part_index = \
                         self.get_move_to_branch_point_via_bus_stop_schedules(
@@ -243,8 +247,8 @@ class BusFleet(FleetManager):
                     # pp(move_to_branch_point_via_bus_stop_schedules)
                     self.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
                         [self.vehicle_schedules[vehicle_id][-1]], move_to_branch_point_via_bus_stop_schedules)
-                    payload = self.topicVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
-                    self.publish(self.topicVehicleSchedules.root + "/" + vehicle_id + "/schedules", payload)
+                    payload = self.__topicPubVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id])
+                    self.__publish_vehicle_schedules(vehicle_id, payload)
                     pass
                 # print("BusFleet:", vehicle_status.state, vehicle_status.schedule.event)
         return
