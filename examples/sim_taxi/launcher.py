@@ -26,6 +26,7 @@ class TaxiSimulation(object):
         print("launch taxi fleet")
         self.popen_sim_taxi_fleet = Popen([
             "python", "../node_launchers/sim_taxi_fleet.py",
+            "--id", "sim_taxi_fleet_001",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
         ])
@@ -35,6 +36,7 @@ class TaxiSimulation(object):
         print("launch sim taxi 1")
         self.popen_sim_taxi_1 = Popen([
             "python", "../node_launchers/sim_taxi.py",
+            "--id", "sim_taxi_001",
             "--name", "taxi_1",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
@@ -43,6 +45,7 @@ class TaxiSimulation(object):
         print("launch sim taxi 2")
         self.popen_sim_taxi_2 = Popen([
             "python", "../node_launchers/sim_taxi.py",
+            "--id", "sim_taxi_002",
             "--name", "taxi_2",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
@@ -90,7 +93,8 @@ class TaxiSimulation(object):
                 if 0.0 < random.random():
                     self.sim_taxi_user_popens[sim_taxi_user_popen_id] = Popen([
                         "python", "../node_launchers/sim_taxi_user.py",
-                        "--name", "user_"+str(sim_taxi_user_popen_id),
+                        "--id", "sim_taxi_user_" + str(sim_taxi_user_popen_id),
+                        "--name", "user_" + str(sim_taxi_user_popen_id),
                         "--host", env["MQTT_BROKER_HOST"],
                         "--port", env["MQTT_BROKER_PORT"],
                     ])

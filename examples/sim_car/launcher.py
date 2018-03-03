@@ -24,6 +24,7 @@ class TaxiSimulation(object):
         print("launch sim car 1")
         self.popen_sim_car_1 = Popen([
             "python", "../node_launchers/sim_car.py",
+            "--id", "sim_car_001",
             "--name", "car_1",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
@@ -32,6 +33,7 @@ class TaxiSimulation(object):
         print("launch sim car 2")
         self.popen_sim_car_2 = Popen([
             "python", "../node_launchers/sim_car.py",
+            "--id", "sim_car_002",
             "--name", "car_2",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],

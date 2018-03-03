@@ -3,7 +3,7 @@
 
 from argparse import ArgumentParser
 
-from ams.ros import LaneArrayPublisher
+from ams.ros import LightColorPublisher
 
 
 parser = ArgumentParser()
@@ -14,10 +14,9 @@ args = parser.parse_args()
 
 
 if __name__ == '__main__':
+    lightColorPublisher = LightColorPublisher(_id=args.id)
 
-    laneArrayPublisher = LaneArrayPublisher(_id=args.id)
+    print("lightColorPublisher {} on {}".format(
+        lightColorPublisher.event_loop_id, lightColorPublisher.get_pid()))
 
-    print("laneArrayPublisher {} on {}".format(
-        laneArrayPublisher.event_loop_id, laneArrayPublisher.get_pid()))
-
-    laneArrayPublisher.start(host=args.host, port=args.port)
+    lightColorPublisher.start(host=args.host, port=args.port)

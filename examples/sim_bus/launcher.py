@@ -28,6 +28,7 @@ class BusServiceLauncher(object):
             "python", "../node_launchers/sim_bus_fleet.py",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
+            "--id", "sim_bus_fleet_001",
             "--name", "sim_bus_fleet",
             "--path_waypoint_json", "../../res/waypoint.json",
             "--path_arrow_json", "../../res/arrow.json",
@@ -40,9 +41,10 @@ class BusServiceLauncher(object):
         print("launch sim bus 1")
         self.popen_sim_bus_1 = Popen([
             "python", "../node_launchers/sim_bus.py",
-            "--name", "bus_1",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
+            "--id", "sim_bus_001",
+            "--name", "bus_1",
             "--path_waypoint_json", "../../res/waypoint.json",
             "--path_arrow_json", "../../res/arrow.json",
             "--path_intersection_json", "./res/intersection.json",
@@ -104,7 +106,8 @@ class BusServiceLauncher(object):
                 if 0.8 < random.random():
                     self.bus_user_popens[bus_user_popen_id] = Popen([
                         "python", "../node_launchers/sim_bus_user.py",
-                        "--name", "user_"+str(bus_user_popen_id),
+                        "--id", "sim_bus_user_" + str(bus_user_popen_id),
+                        "--name", "user_" + str(bus_user_popen_id),
                         "--host", env["MQTT_BROKER_HOST"],
                         "--port", env["MQTT_BROKER_PORT"],
                         "--path_spot_json", "../../res/spot.json",

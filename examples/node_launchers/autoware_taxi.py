@@ -3,6 +3,7 @@
 
 from time import time
 from argparse import ArgumentParser
+
 from ams import Waypoint, Arrow, Route, Schedule, Target
 from ams.nodes import AutowareTaxi
 
@@ -10,6 +11,7 @@ from ams.nodes import AutowareTaxi
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, required=True, help="node id")
 parser.add_argument("-N", "--name", type=str, default="sim_car 1", help="name")
 parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
@@ -33,6 +35,7 @@ if __name__ == "__main__":
     current_time = time()
 
     autoware_taxi = AutowareTaxi(
+        _id=args.id,
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,

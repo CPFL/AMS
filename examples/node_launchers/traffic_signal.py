@@ -4,8 +4,10 @@
 import json
 from time import sleep
 from argparse import ArgumentParser
-import paho.mqtt.client as mqtt
 from multiprocessing import Process
+from uuid import uuid1 as uuid
+
+import paho.mqtt.client as mqtt
 
 from ams import Topic
 from ams.nodes import TrafficSignal
@@ -26,6 +28,7 @@ class MQTTClient(object):
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, default=None, help="node id")
 parser.add_argument("-RC", "--route_code", type=str, required=True, help="route_code")
 parser.add_argument("-C", "--cycle", type=str,
                     default=None, help="cycle (json string)")
@@ -38,7 +41,10 @@ if __name__ == '__main__':
 
     mqtt_client = MQTTClient(args.host, args.port)
 
-    traffic_signal = TrafficSignal(route_code=args.route_code)
+    traffic_signal = TrafficSignal(
+        _id=args.id if args.id is not None else str(uuid()),
+        route_code=args.route_code
+    )
     process = Process(target=traffic_signal.start, args=[args.host, args.port])
     process.start()
 
