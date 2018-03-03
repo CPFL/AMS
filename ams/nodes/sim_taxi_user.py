@@ -9,8 +9,8 @@ class SimTaxiUser(User):
 
     CONST = SIM_TAXI_USER
 
-    def __init__(self, name, dt=1.0):
-        super().__init__(name, dt)
+    def __init__(self, _id, name, dt=1.0):
+        super().__init__(_id, name, dt)
 
     def update_status(self):
         # print(self.name, self.state, self.schedules[0].event)

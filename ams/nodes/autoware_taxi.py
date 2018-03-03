@@ -13,8 +13,8 @@ class AutowareTaxi(Autoware):
 
     CONST = AUTOWARE_TAXI
 
-    def __init__(self, name, waypoint, arrow, route, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, dt)
+    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, dt)
         self.state = AUTOWARE_TAXI.STATE.STANDBY
 
     def is_achieved(self):

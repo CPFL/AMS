@@ -20,8 +20,8 @@ class Autoware(Vehicle):
 
     CONST = AUTOWARE
 
-    def __init__(self, name, waypoint, arrow, route, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, dt=dt)
+    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.name = name
         self.__map_match = MapMatch()

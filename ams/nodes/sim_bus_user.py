@@ -11,8 +11,8 @@ class SimBusUser(User):
 
     CONST = SIM_BUS_USER
 
-    def __init__(self, name, dt=1.0):
-        super().__init__(name, dt)
+    def __init__(self, _id, name, dt=1.0):
+        super().__init__(_id, name, dt)
         self.target_start_bus_stop = None
         self.target_goal_bus_stop = None
         self.bus_id = None

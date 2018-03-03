@@ -13,8 +13,8 @@ class User(EventLoop):
 
     CONST = USER
 
-    def __init__(self, name, dt=1.0):
-        super().__init__()
+    def __init__(self, _id, name, dt=1.0):
+        super().__init__(_id)
 
         self.name = name
         self.state = USER.STATE.LOG_IN

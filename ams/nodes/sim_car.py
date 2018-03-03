@@ -16,8 +16,8 @@ class SimCar(Vehicle):
 
     CONST = SIM_CAR
 
-    def __init__(self, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, dt=dt)
+    def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.traffic_signals = {}
         self.other_vehicles = {}

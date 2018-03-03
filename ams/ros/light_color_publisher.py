@@ -23,7 +23,7 @@ class LightColorPublisher(EventLoop):
         )
         self.__topicSubLightColor.set_categories(AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
         self.__topicSubLightColor.set_message(LightColor)
-        self.set_subscriber(self.__topicSubLightColor., self.publish_to_ros)
+        self.set_subscriber(self.__topicSubLightColor, self.publish_to_ros)
 
         rospy.init_node(LIGHT_COLOR_PUBLISHER.ROSNODE, anonymous=True)
         self.__ROSPublisher = rospy.Publisher(LIGHT_COLOR_PUBLISHER.ROSTOPIC, AWTrafficLight, queue_size=1)

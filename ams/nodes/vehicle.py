@@ -16,8 +16,8 @@ class Vehicle(EventLoop):
 
     CONST = VEHICLE
 
-    def __init__(self, name, waypoint, arrow, route, dt=1.0):
-        super().__init__()
+    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+        super().__init__(_id)
 
         self.name = name
         self.state = VEHICLE.STATE.LOG_IN

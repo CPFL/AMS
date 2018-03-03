@@ -13,8 +13,8 @@ class TrafficSignal(EventLoop):
 
     CONST = TRAFFIC_SIGNAL
 
-    def __init__(self, route_code, state=TRAFFIC_SIGNAL.STATE.UNKNOWN, processing_cycle=1.0):
-        super().__init__()
+    def __init__(self, _id, route_code, state=TRAFFIC_SIGNAL.STATE.UNKNOWN, processing_cycle=1.0):
+        super().__init__(_id)
 
         self.route_code = route_code
         self.state = state

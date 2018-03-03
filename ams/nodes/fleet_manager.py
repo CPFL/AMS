@@ -15,8 +15,8 @@ class FleetManager(EventLoop):
 
     CONST = FLEET_MANAGER
 
-    def __init__(self, name, waypoint, arrow, route, dt=3.0):
-        super().__init__()
+    def __init__(self, _id, name, waypoint, arrow, route, dt=3.0):
+        super().__init__(_id)
 
         self.name = name
         self.state = FLEET_MANAGER.STATE.STAND_BY

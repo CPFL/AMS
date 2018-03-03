@@ -16,8 +16,8 @@ class SimBus(SimCar):
     CONST = SIM_BUS
 
     def __init__(
-            self, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, intersection, dt=dt)
+            self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, intersection, dt=dt)
         self.state = SIM_BUS.SCHEDULE.STAND_BY
         self.user_statuses = {}
 
