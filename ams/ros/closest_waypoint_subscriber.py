@@ -17,10 +17,9 @@ pp = pprint.PrettyPrinter(indent=2)
 
 
 class ClosestWaypointSubscriber(EventLoop):
-    def __init__(self, _id, name, period):
+    def __init__(self, _id, period):
         super(ClosestWaypointSubscriber, self).__init__(_id)
 
-        self.__name = name
         self.__previous_time = time()
         self.__period = period
 
@@ -48,7 +47,6 @@ class ClosestWaypointSubscriber(EventLoop):
             self.__previous_time += (1+int((current_time - self.__previous_time)/self.__period)) * self.__period
 
             closest_waypoint = ClosestWaypoint.new_data(
-                name=self.__name,
                 time=time(),
                 index=message_data.data
             )
@@ -63,7 +61,6 @@ class ClosestWaypointSubscriber(EventLoop):
                     CLOSEST_WAYPOINT_SUBSCRIBER.ROSTOPIC, Int32, timeout=self.__period)
 
                 closest_waypoint = ClosestWaypoint.new_data(
-                    name=self.__name,
                     time=time(),
                     index=message_data.data
                 )

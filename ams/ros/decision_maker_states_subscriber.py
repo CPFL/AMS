@@ -20,10 +20,9 @@ class DecisionMakerStatesSubscriber(EventLoop):
     
     CONST = DECISION_MAKER_STATES_SUBSCRIBER
 
-    def __init__(self, _id, name, period):
+    def __init__(self, _id, period):
         super(DecisionMakerStatesSubscriber, self).__init__(_id)
 
-        self.__name = name
         self.__previous_time = time()
         self.__period = period
 
@@ -46,7 +45,6 @@ class DecisionMakerStatesSubscriber(EventLoop):
 
     def get_data_from_message(self, message_data):
         return DecisionMakerStates.new_data(
-            name=self.__name,
             time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
             main=message_data.main_state,
             accel=message_data.acc_state,

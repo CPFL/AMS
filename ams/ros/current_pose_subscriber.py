@@ -20,10 +20,9 @@ class CurrentPoseSubscriber(EventLoop):
     
     CONST = CURRENT_POSE_SUBSCRIBER
 
-    def __init__(self, _id, name, period):
+    def __init__(self, _id, period):
         super(CurrentPoseSubscriber, self).__init__(_id)
 
-        self.__name = name
         self.__previous_time = time()
         self.__period = period
 
@@ -51,7 +50,6 @@ class CurrentPoseSubscriber(EventLoop):
             self.__previous_time += (1+int((current_time - self.__previous_time)/self.__period)) * self.__period
 
             current_pose = CurrentPose.new_data(
-                name=self.__name,
                 time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
                 pose={
                     "position": {
@@ -81,7 +79,6 @@ class CurrentPoseSubscriber(EventLoop):
                     AUTOWARE.ROSTOPIC.CURRENT_POSE, PoseStamped, timeout=self.__period)
 
                 current_pose = CurrentPose.new_data(
-                    name=self.__name,
                     time=message_data.header.stamp.secs + 0.000000001 * message_data.header.stamp.nsecs,
                     pose={
                         "position": {

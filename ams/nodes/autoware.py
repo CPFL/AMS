@@ -93,7 +93,6 @@ class Autoware(Vehicle):
 
     def publish_state_command(self, state):
         payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
-            name=self.name,
             time=time(),
             state=state
         ))
@@ -112,7 +111,6 @@ class Autoware(Vehicle):
                 else:
                     traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.GREEN
             payload = self.__topicPubLightColor.serialize(LightColor.new_data(
-                name=self.name,
                 time=time(),
                 traffic_light=traffic_light
             ))
@@ -154,7 +152,6 @@ class Autoware(Vehicle):
             })
         lanes = [{"waypoints": waypoints}]
         return LaneArray.new_data(
-            name=self.name,
             time=time(),
             lanes=lanes
         )
