@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from uuid import uuid1 as uuid
 import paho.mqtt.client as mqtt
 import os
 from ssl import PROTOCOL_TLSv1_2
@@ -17,11 +16,8 @@ class EventLoop(object):
 
     CONST = EVENT_LOOP
 
-    def __init__(self, _id=None):
+    def __init__(self, _id):
         self.event_loop_id = _id
-        if _id is None:
-            self.event_loop_id = str(uuid())
-
         self.target = Target.new_target(self.event_loop_id, self.__class__.__name__)
         self.__subscribers = {}
         self.__publishers = {}
@@ -95,6 +91,7 @@ class EventLoop(object):
     def on_event_loop_message(self, _client, _userdata, topic, payload):
         event_loop_message = self.__topicSub.unserialize(payload)
         if event_loop_message.event == EVENT_LOOP.STATE.START:
+            pass
         if event_loop_message.event == EVENT_LOOP.ACTION.KILL:
             self.end()
         if event_loop_message.event == EVENT_LOOP.ACTION.CHECK:
