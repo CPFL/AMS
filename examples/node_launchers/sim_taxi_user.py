@@ -5,7 +5,7 @@ import random
 from argparse import ArgumentParser
 from time import time
 from ams import Waypoint, Arrow, Route, Schedule, Target
-from ams.nodes import User, TaxiUser
+from ams.nodes import User, SimTaxiUser
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     goal_waypoint_id = random.choice(stop_waypoint_ids)
     goal_arrow_code = arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0]
 
-    taxi_user = TaxiUser(
+    taxi_user = SimTaxiUser(
         name=args.name,
         dt=3.0
     )

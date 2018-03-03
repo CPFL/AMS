@@ -24,44 +24,41 @@ function onLoad() {
         if (this.readyState == 4 && this.status == 200) {
             viewData = JSON.parse(this.responseText);
 
+          socket.addEventListener(viewData.topics.user, function (mqtt_message) {
+                setUser(mqtt_message.topic.split("/")[3], mqtt_message.message);
+                if(map!=null) {
+                    drawTrafficSignals();
+                    drawUsers();
+                    drawVehicles();
+                }
+            });
+
             socket.addEventListener(viewData.topics.vehicle, function (mqtt_message) {
-                setVehicle(mqtt_message.topic.split("/")[1], mqtt_message.message);
+                setVehicle(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
-                    drawVehicles();
-                }
-            });
-
-            socket.addEventListener(viewData.topics.user, function (mqtt_message) {
-                setUser(mqtt_message.topic.split("/")[1], mqtt_message.message);
-                if(map!=null) {
-                    drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
-                    drawVehicles();
-                }
-            });
-
-            socket.addEventListener(viewData.topics.trafficSignal, function (mqtt_message) {
-                setTrafficSignals(mqtt_message.topic.split("/")[1], mqtt_message.message);
-                if(map!=null) {
-                    drawUsers();
                     drawTrafficSignals()
                     drawRoutes();
                     drawAutowareWaypoints();
+                    drawUsers();
                     drawVehicles();
                 }
             });
 
-            socket.addEventListener(viewData.topics.fleetManager, function (mqtt_message) {
-                setFleetStatus(mqtt_message.topic.split("/")[1], mqtt_message.message);
+            socket.addEventListener(viewData.topics.traffic_signal, function (mqtt_message) {
+                setTrafficSignals(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
-                    drawTrafficSignals()
+                    drawTrafficSignals();
                     drawRoutes();
                     drawAutowareWaypoints();
+                    drawUsers();
+                    drawVehicles();
+                }
+            });
+
+            socket.addEventListener(viewData.topics.fleet_manager, function (mqtt_message) {
+                setFleetStatus(mqtt_message.topic.split("/")[3], mqtt_message.message);
+                if(map!=null) {
+                    drawUsers();
                     drawVehicles();
                 }
             });

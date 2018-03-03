@@ -3,7 +3,7 @@
 
 from argparse import ArgumentParser
 from ams import Waypoint, Arrow, Route
-from ams.nodes import TaxiFleet
+from ams.nodes import SimTaxiFleet
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     route.set_waypoint(waypoint)
     route.set_arrow(arrow)
 
-    taxi_fleet = TaxiFleet(
+    taxi_fleet = SimTaxiFleet(
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,

@@ -46,17 +46,17 @@ if __name__ == '__main__':
         sleep(5)
         # print("publish cycles")
         topicCycle = Topic()
-        topicCycle.set_id(traffic_signal.event_loop_id)
-        topicCycle.set_root(TrafficSignal.CONST.TOPIC.SUBSCRIBE_CYCLE)
-        mqtt_client.publish(topicCycle.private, topicCycle.serialize(json.loads(args.cycle)))
+        topicCycle.set_targets(None, traffic_signal.target)
+        topicCycle.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.CYCLE)
+        mqtt_client.publish(topicCycle.get_path(), topicCycle.serialize(json.loads(args.cycle)))
 
     if args.schedules is not None:
         sleep(5)
         # print("publish schedules")
         topicSchedules = Topic()
-        topicSchedules.set_id(traffic_signal.event_loop_id)
-        topicSchedules.set_root(TrafficSignal.CONST.TOPIC.SUBSCRIBE_SCHEDULES)
-        mqtt_client.publish(topicSchedules.private, topicSchedules.serialize(json.loads(args.schedules)))
+        topicSchedules.set_targets(None, traffic_signal.target)
+        topicSchedules.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.SCHEDULES)
+        mqtt_client.publish(topicSchedules.get_path(), topicSchedules.serialize(json.loads(args.schedules)))
 
     # print("wait join")
     process.join()

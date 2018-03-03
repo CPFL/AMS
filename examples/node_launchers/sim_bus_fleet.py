@@ -4,7 +4,7 @@
 import json
 from argparse import ArgumentParser
 from ams import Waypoint, Arrow, Route, Spot, Schedule, Target, ScheduleBranch
-from ams.nodes import BusFleet
+from ams.nodes import SimBusFleet
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     # pp(bus_schedules)
 
-    bus_fleet = BusFleet(
+    bus_fleet = SimBusFleet(
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,

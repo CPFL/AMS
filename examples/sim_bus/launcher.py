@@ -14,15 +14,18 @@ class BusServiceLauncher(object):
 
     def __init__(self):
         print("launch router")
-        self.popen_router = Popen(
-            ["python", "router.py"]
-        )
+        self.popen_router = Popen([
+            "python", "router.py",
+            "--path_waypoint_json", "../../res/waypoint.json",
+            "--path_arrow_json", "../../res/arrow.json",
+            "--path_intersection_json", "./res/intersection.json"
+        ])
 
         sleep(1)
 
         print("launch bus fleet")
         self.popen_bus_fleet = Popen([
-            "python", "../node_launchers/bus_fleet.py",
+            "python", "../node_launchers/sim_bus_fleet.py",
             "--host", env["MQTT_BROKER_HOST"],
             "--port", env["MQTT_BROKER_PORT"],
             "--name", "sim_bus_fleet",
@@ -42,7 +45,7 @@ class BusServiceLauncher(object):
             "--port", env["MQTT_BROKER_PORT"],
             "--path_waypoint_json", "../../res/waypoint.json",
             "--path_arrow_json", "../../res/arrow.json",
-            "--path_intersection_json", "../../res/intersection.json",
+            "--path_intersection_json", "./res/intersection.json",
         ])
 
         # print("launch sim bus 2")
@@ -56,14 +59,14 @@ class BusServiceLauncher(object):
         #     "--path_intersection_json", "../../res/intersection.json",
         # ])
 
-        print("launch traffic signals")
-        self.popen_traffic_siglnals_launcher = Popen([
-            "python", "../node_launchers/traffic_signals.py",
-            "--host", env["MQTT_BROKER_HOST"],
-            "--port", env["MQTT_BROKER_PORT"],
-            "--path_cycle_json", "../../res/cycle.json",
-            "--path_intersection_json", "../../res/intersection.json"
-        ])
+        # print("launch traffic signals")
+        # self.popen_traffic_siglnals_launcher = Popen([
+        #     "python", "../node_launchers/traffic_signals.py",
+        #     "--host", env["MQTT_BROKER_HOST"],
+        #     "--port", env["MQTT_BROKER_PORT"],
+        #     "--path_cycle_json", "../../res/cycle.json",
+        #     "--path_intersection_json", "../../res/intersection.json"
+        # ])
 
         self.bus_user_popens = {}
 
@@ -77,8 +80,8 @@ class BusServiceLauncher(object):
         # print("terminate sim bus 2")
         # self.popen_sim_bus_2.terminate()
 
-        print("terminate traffic siglnals launcher")
-        self.popen_traffic_siglnals_launcher.terminate()
+        # print("terminate traffic siglnals launcher")
+        # self.popen_traffic_siglnals_launcher.terminate()
 
         for bus_user_popen_id, bus_user_popen in self.bus_user_popens.items():
             print("terminate bus user "+str(bus_user_popen_id))
@@ -98,9 +101,9 @@ class BusServiceLauncher(object):
 
             bus_user_popen_id = random.randint(0, BusServiceLauncher.MAX_NUM_OF_USERS-1)
             if bus_user_popen_id not in self.bus_user_popens:
-                if 0.0 < random.random():
+                if 0.8 < random.random():
                     self.bus_user_popens[bus_user_popen_id] = Popen([
-                        "python", "../node_launchers/bus_user.py",
+                        "python", "../node_launchers/sim_bus_user.py",
                         "--name", "user_"+str(bus_user_popen_id),
                         "--host", env["MQTT_BROKER_HOST"],
                         "--port", env["MQTT_BROKER_PORT"],
