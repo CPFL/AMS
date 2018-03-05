@@ -15,8 +15,8 @@ class SimTaxi(SimCar):
     CONST = SIM_TAXI
 
     def __init__(
-            self, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, intersection, dt)
+            self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, intersection, dt)
         self.state = SIM_TAXI.STATE.STANDBY
 
     def update_status(self):

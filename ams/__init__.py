@@ -1,5 +1,6 @@
 from ams.utilities.attrdict import AttrDict
 from ams.utilities.validator import Validator
+from ams.utilities.converter import Converter
 from ams.utilities.relation import Relation
 
 from ams.utilities.position import Position

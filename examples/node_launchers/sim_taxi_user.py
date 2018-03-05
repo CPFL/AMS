@@ -4,12 +4,15 @@
 import random
 from argparse import ArgumentParser
 from time import time
+from uuid import uuid1 as uuid
+
 from ams import Waypoint, Arrow, Route, Schedule, Target
-from ams.nodes import User, TaxiUser
+from ams.nodes import User, SimTaxiUser
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, default=None, help="node id")
 parser.add_argument("-N", "--name", type=str, default="tu1", help="name")
 parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
@@ -56,7 +59,8 @@ if __name__ == '__main__':
     goal_waypoint_id = random.choice(stop_waypoint_ids)
     goal_arrow_code = arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0]
 
-    taxi_user = TaxiUser(
+    taxi_user = SimTaxiUser(
+        _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
         dt=3.0
     )

@@ -15,7 +15,7 @@ with open(path.join(here, '../../LICENSE'), encoding='utf-8') as f:
 
 setup(
     name='ams',
-    version='0.1',
+    version='0.2',
     description='Autoware Management System',
     long_description=long_description,
     url='https://github.com/CPFL/Autoware-Management-System',

@@ -3,14 +3,17 @@
 
 import json
 from argparse import ArgumentParser
+from uuid import uuid1 as uuid
+
 from ams import Waypoint, Arrow, Route, Spot, Schedule, Target, ScheduleBranch
-from ams.nodes import BusFleet
+from ams.nodes import SimBusFleet
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, default=None, help="node id")
 parser.add_argument("-N", "--name", type=str, default="tf1", help="name")
 parser.add_argument("-PW", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
@@ -83,7 +86,8 @@ if __name__ == '__main__':
 
     # pp(bus_schedules)
 
-    bus_fleet = BusFleet(
+    bus_fleet = SimBusFleet(
+        _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,

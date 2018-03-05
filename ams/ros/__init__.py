@@ -3,5 +3,4 @@ from ams.ros.closest_waypoint_subscriber import ClosestWaypointSubscriber
 from ams.ros.decision_maker_states_subscriber import DecisionMakerStatesSubscriber
 from ams.ros.lane_array_publisher import LaneArrayPublisher
 from ams.ros.state_command_publisher import StateCommandPublisher
-from ams.ros.light_color_managed_publisher import LightColorManagedPublisher
-
+from ams.ros.light_color_publisher import LightColorPublisher

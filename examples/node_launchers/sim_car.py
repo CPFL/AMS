@@ -4,6 +4,7 @@
 import random
 from time import time
 from argparse import ArgumentParser
+from uuid import uuid1 as uuid
 
 from ams import Waypoint, Arrow, Intersection, Route, Schedule, Target
 from ams.nodes import Vehicle, SimCar
@@ -15,6 +16,7 @@ pp = PrettyPrinter(indent=2).pprint
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, default=None, help="node id")
 parser.add_argument("-N", "--name", type=str, default="sim_car 1", help="name")
 parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
@@ -71,6 +73,7 @@ if __name__ == '__main__':
     current_time = time()
 
     sim_car = SimCar(
+        _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
         waypoint=waypoint,
         arrow=arrow,

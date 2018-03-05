@@ -6,7 +6,7 @@ from time import sleep
 from ams import Topic, Location, Position
 from ams.nodes import EventLoop
 from ams.messages import VehicleStatus
-from ams.structures import Pose, Orientation, Rpy, Target, Schedules, VEHICLE
+from ams.structures import Pose, Orientation, Rpy, Schedules, VEHICLE, FLEET_MANAGER
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -16,20 +16,8 @@ class Vehicle(EventLoop):
 
     CONST = VEHICLE
 
-    def __init__(self, name, waypoint, arrow, route, dt=1.0):
-        super().__init__()
-
-        self.topicStatus = Topic()
-        self.topicStatus.set_id(self.event_loop_id)
-        self.topicStatus.set_root(VEHICLE.TOPIC.PUBLISH)
-
-        self.topicSchedules = Topic()
-        self.topicSchedules.set_id(self.event_loop_id)
-        self.topicSchedules.set_root(VEHICLE.TOPIC.SUBSCRIBE)
-
-        self.topicGeo = Topic()
-        self.topicGeo.set_id(self.event_loop_id)
-        self.topicGeo.set_root(VEHICLE.GEO.TOPIC.PUBLISH)
+    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+        super().__init__(_id)
 
         self.name = name
         self.state = VEHICLE.STATE.LOG_IN
@@ -45,8 +33,19 @@ class Vehicle(EventLoop):
         self.yaw = None
         self.velocity = None
 
-        self.add_on_message_function(self.update_schedules)
-        self.set_subscriber(self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES)
+        self.__topicPubStatus = Topic()
+        self.__topicPubStatus.set_targets(self.target)
+        self.__topicPubStatus.set_categories(VEHICLE.TOPIC.CATEGORIES.STATUS)
+
+        self.__topicSubSchedules = Topic()
+        self.__topicSubSchedules.set_targets(None, self.target)
+        self.__topicSubSchedules.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES)
+        self.__topicSubSchedules.set_message(Schedules)
+        self.set_subscriber(self.__topicSubSchedules, self.update_schedules)
+
+        self.__topicPubGeotopic = Topic()
+        self.__topicPubGeotopic.set_targets(self.target, None)
+
         self.set_main_loop(self.__main_loop)
 
     def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):
@@ -99,20 +98,18 @@ class Vehicle(EventLoop):
         )
 
     def publish_status(self):
-        payload = self.topicStatus.serialize(self.get_status())
-        self.publish(self.topicStatus.private, payload)
+        payload = self.__topicPubStatus.serialize(self.get_status())
+        self.publish(self.__topicPubStatus, payload)
 
-    def publish_geo_topic(self):
+    def publish_geotopic(self):
         if self.waypoint_id is not None:
-            self.publish(
-                self.topicGeo.root+"/"+"/".join(self.waypoint.get_geohash(self.waypoint_id)),
-                self.topicGeo.serialize(Target.new_data(id=self.event_loop_id, group=VEHICLE.GEO.GROUP))
+            self.__topicPubGeotopic.set_categories(
+                VEHICLE.TOPIC.CATEGORIES.GEOTOPIC + list(self.waypoint.get_geohash(self.waypoint_id))
             )
+            self.publish(self.__topicPubGeotopic, self.__topicPubGeotopic.serialize(self.target))
 
-    def update_schedules(self, _client, _userdata, topic, payload):
-        if topic == self.topicSchedules.private+VEHICLE.TOPIC.SCHEDULES:
-            message = self.topicSchedules.unserialize(payload)
-            self.schedules = Schedules.new_data(message)
+    def update_schedules(self, _client, _userdata, _topic, payload):
+        self.schedules = self.__topicSubSchedules.unserialize(payload)
 
     def update_status(self):
         return
@@ -123,6 +120,6 @@ class Vehicle(EventLoop):
             sleep(self.dt)
             self.update_status()
             self.publish_status()
-            self.publish_geo_topic()
+            self.publish_geotopic()
 
         return True

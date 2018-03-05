@@ -4,12 +4,15 @@
 import random
 from argparse import ArgumentParser
 from time import time
+from uuid import uuid1 as uuid
+
 from ams import Waypoint, Arrow, Route, Schedule, Target, Spot
-from ams.nodes import BusUser, SimBus
+from ams.nodes import SimBusUser, SimBus
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
+parser.add_argument("-ID", "--id", type=str, default=None, help="node id")
 parser.add_argument("-N", "--name", type=str, default="bu1", help="name")
 parser.add_argument("-W", "--path_waypoint_json", type=str,
                     default="../../res/waypoint.json", help="waypoint.json path")
@@ -44,15 +47,16 @@ if __name__ == '__main__':
     goal_waypoint_id = bus_parkable_spots[goal_bus_stop_id].contact.waypoint_id
     goal_arrow_code = bus_parkable_spots[goal_bus_stop_id].contact.arrow_code
 
-    bus_user = BusUser(
+    bus_user = SimBusUser(
+        _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
         dt=3.0
     )
     trip_schedule = Schedule.new_schedule(
         [
             Target.new_node_target(bus_user),
-            Target.new_target(start_bus_stop_id, BusUser.CONST.TARGET_GROUP.START_BUS_STOP),
-            Target.new_target(goal_bus_stop_id, BusUser.CONST.TARGET_GROUP.GOAL_BUS_STOP)
+            Target.new_target(start_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.START_BUS_STOP),
+            Target.new_target(goal_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.GOAL_BUS_STOP)
         ],
         "trip_schedule", start_time, start_time+9999,
         Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])

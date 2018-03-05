@@ -5,43 +5,46 @@ from time import time
 
 import rospy
 import message_filters
-from autoware_msgs.msg import state as DecisionMakerStates
+from autoware_msgs.msg import state as AWDecisionMakerStates
 
-from ams import Topic
-from ams.nodes import EventLoop, Autoware
-from ams.messages import DecisionMakerStates as AMSDecisionMakerStates
+from ams import Topic, Target
+from ams.nodes import EventLoop
+from ams.messages import DecisionMakerStates
+from ams.structures import DECISION_MAKER_STATES_SUBSCRIBER, AUTOWARE
 
 import pprint
 pp = pprint.PrettyPrinter(indent=2)
 
 
 class DecisionMakerStatesSubscriber(EventLoop):
-    def __init__(self, name, period):
-        super(DecisionMakerStatesSubscriber, self).__init__()
+    
+    CONST = DECISION_MAKER_STATES_SUBSCRIBER
 
-        self.topicSubDecisionMakerStates = Topic()
-        self.topicSubDecisionMakerStates.set_id(name)
-        self.topicSubDecisionMakerStates.set_root(Autoware.CONST.TOPIC.SUBSCRIBE)
+    def __init__(self, _id, period):
+        super(DecisionMakerStatesSubscriber, self).__init__(_id)
 
-        self.__name = name
         self.__previous_time = time()
         self.__period = period
 
-        rospy.init_node(Autoware.CONST.ROSNODE.AMS_DECISION_MAKER_STATES_SUBSCRIBER, anonymous=True)
+        self.__topicPubDecisionMakerState = Topic()
+        self.__topicPubDecisionMakerState.set_targets(
+            self.target, Target.new_target(self.target.id, AUTOWARE.NODE_NAME))
+        self.__topicPubDecisionMakerState.set_categories(DECISION_MAKER_STATES_SUBSCRIBER.TOPIC_CATEGORIES)
+
+        rospy.init_node(DECISION_MAKER_STATES_SUBSCRIBER.ROSNODE, anonymous=True)
 
         if self.__period < 0.1:
             self.__publish_mqtt = self.publish
             self.set_main_loop(rospy.spin)
 
             self.__ROSSubscriber = message_filters.Subscriber(
-                Autoware.CONST.ROSTOPIC.DECISION_MAKER_STATES, DecisionMakerStates, queue_size=1)
+                AUTOWARE.ROSTOPIC.DECISION_MAKER_STATES, AWDecisionMakerStates, queue_size=1)
             self.__ROSSubscriber.registerCallback(self.on_message_from_ros)
         else:
             self.set_main_loop(self.__main_loop)
 
     def get_data_from_message(self, message_data):
-        return AMSDecisionMakerStates.new_data(
-            name=self.__name,
+        return DecisionMakerStates.new_data(
             time=message_data.header.stamp.secs + 0.000000001*message_data.header.stamp.nsecs,
             main=message_data.main_state,
             accel=message_data.acc_state,
@@ -55,21 +58,20 @@ class DecisionMakerStatesSubscriber(EventLoop):
             self.__previous_time += (1+int((current_time - self.__previous_time)/self.__period)) * self.__period
 
             decision_maker_states = self.get_data_from_message(message_data)
-            payload = self.topicSubDecisionMakerStates.serialize(decision_maker_states)
-            self.__publish_mqtt(
-                self.topicSubDecisionMakerStates.private + Autoware.CONST.TOPIC.DECISION_MAKER_STATES, payload)
+            payload = self.__topicPubDecisionMakerState.serialize(decision_maker_states)
+            self.__publish_mqtt(self.__topicPubDecisionMakerState, payload)
 
     def __main_loop(self):
         r = rospy.Rate(1.0/self.__period)
         while not rospy.is_shutdown():
             try:
                 message_data = rospy.wait_for_message(
-                    Autoware.CONST.ROSTOPIC.DECISION_MAKER_STATES, DecisionMakerStates, timeout=self.__period)
+                    AUTOWARE.ROSTOPIC.DECISION_MAKER_STATES, AWDecisionMakerStates, timeout=self.__period)
 
                 decision_maker_states = self.get_data_from_message(message_data)
-                payload = self.topicSubDecisionMakerStates.serialize(decision_maker_states)
+                payload = self.__topicPubDecisionMakerState.serialize(decision_maker_states)
                 self.publish(
-                    self.topicSubDecisionMakerStates.private + Autoware.CONST.TOPIC.DECISION_MAKER_STATES, payload)
+                    self.__topicPubDecisionMakerState, payload)
             except rospy.ROSException as e:
                 # print(e)
                 pass
