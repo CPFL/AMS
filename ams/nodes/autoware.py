@@ -67,13 +67,13 @@ class Autoware(Vehicle):
         self.__topicSubDecisionMakerStates.set_targets(
             Target.new_target(self.target.id, DECISION_MAKER_STATES_SUBSCRIBER.NODE_NAME), self.target)
         self.__topicSubDecisionMakerStates.set_categories(
-            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC.CATEGORIES.DECISION_MAKER_STATES)
+            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC_CATEGORIES)
         self.__topicSubDecisionMakerStates.set_message(DecisionMakerStates)
         self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decision_maker_states)
 
         self.__topicSubTrafficSignal = Topic()
         self.__topicSubTrafficSignal.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), self.target)
-        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC_CATEGORIES)
+        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
         self.__topicSubTrafficSignal.set_message(TrafficSignalStatus)
         self.set_subscriber(self.__topicSubTrafficSignal, self.update_traffic_signals)
 

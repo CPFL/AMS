@@ -25,5 +25,5 @@ DECISION_MAKER_STATES_SUBSCRIBER = get_namedtuple_from_dict("CONST", {
     },
     "ROSNODE": "ams_decision_maker_subscriber",
     "ROSTOPIC": "/decisionmaker/states",
-    "TOPIC_CATEGORIES": ["/decision_maker_states"],
+    "TOPIC_CATEGORIES": ["decision_maker_states"],
 })

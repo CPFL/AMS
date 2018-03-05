@@ -8,5 +8,5 @@ CLOSEST_WAYPOINT_SUBSCRIBER = get_namedtuple_from_dict("CONST", {
     "NODE_NAME": "ClosestWaypointSubscriber",
     "ROSNODE": "ams_closest_waypoint_subscriber",
     "ROSTOPIC": "/closest_waypoint",
-    "TOPIC_CATEGORIES": ["/closest_waypoint"],
+    "TOPIC_CATEGORIES": ["closest_waypoint"],
 })
