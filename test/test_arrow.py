@@ -3,9 +3,16 @@
 
 import unittest
 import json
+import sys
+from argparse import ArgumentParser
 from ams import Waypoint, Arrow
-from ams.structures import Arrow as Arrow_structure
-from numpy import allclose, ndarray, unicode
+from numpy import allclose, ndarray
+
+
+parser = ArgumentParser()
+parser.add_argument("-AP", "--arrow_path", type=str, default="./test/res/arrow.json", help="arrow_path")
+parser.add_argument("-WP", "--waypoint_path", type=str, default="./test/res/waypoint.json", help="waypoint_path")
+args = parser.parse_args()
 
 
 class TestUtilityArrow(unittest.TestCase):
@@ -35,16 +42,15 @@ class TestUtilityArrow(unittest.TestCase):
         def split_arrow_code(arrow_code):
     """
 
-    arrow_path = "./res/arrow.json"
-    waypoint = Waypoint()
-    waypoint.load("./res/waypoint.json")
-
-    def __init__(self, methodName='runTest'):
+    def __init__(self, methodName, arrow_path, waypoint_path):
         """Create an instance of the class that will use the named test
            method when executed. Raises a ValueError if the instance does
            not have a method with the specified name.
         """
-        super().__init__(methodName)
+
+        super(TestUtilityArrow, self).__init__(methodName)
+
+        """
         self._testMethodName = methodName
         self._resultForDoCleanups = None
         try:
@@ -69,11 +75,17 @@ class TestUtilityArrow(unittest.TestCase):
             # No unicode support in this build
             pass
 
+        """
+
         # override to add original equality function
-        self.addTypeEqualityFunc(type(Arrow_structure.get_template()), self.assert_arrow)
         self.addTypeEqualityFunc(ndarray, self.assert_np_array)
 
         # Set Common variable
+        self.arrow_path = arrow_path
+        self.waypoint_path = waypoint_path
+
+        self.waypoint = Waypoint()
+        self.waypoint.load(waypoint_path)
 
         self.arrow = Arrow(self.waypoint)
         self.arrow.load(self.arrow_path)
@@ -84,18 +96,6 @@ class TestUtilityArrow(unittest.TestCase):
     def assert_np_array(self, first, second, msg=None):
         if allclose(first, second) is False:
             standard_msg = "np array do not match. %s  :  %s" % (str(first), str(second))
-            self.fail(self._formatMessage(msg, standard_msg))
-
-    def assert_arrow(self, first, second, msg=None):
-        if Arrow_structure.validate_data(first) is False:
-            standard_msg = "fail to validate Arrow. %s" % (str(first))
-            self.fail(self._formatMessage(msg, standard_msg))
-        if Arrow_structure.validate_data(second) is False:
-            standard_msg = "fail to validate Arrow. %s" % (str(second))
-            self.fail(self._formatMessage(msg, standard_msg))
-
-        if first != second:
-            standard_msg = "Arrow data do not match. %s  :  %s" % (str(first), str(second))
             self.fail(self._formatMessage(msg, standard_msg))
 
 
@@ -203,9 +203,7 @@ class TestUtilityArrow(unittest.TestCase):
         """
 
         waypoint_id = "10033"
-
         expected_arrow = ["10027_9335"]
-
         actual_arrows = self.arrow.get_arrow_codes_from_waypoint_id(waypoint_id)
 
         self.assertEqual(expected_arrow, actual_arrows)
@@ -249,4 +247,13 @@ class TestUtilityArrow(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+
+    test_loader = unittest.TestLoader()
+    test_names = test_loader.getTestCaseNames(TestUtilityArrow)
+
+    suite = unittest.TestSuite()
+    for test_name in test_names:
+        suite.addTest(TestUtilityArrow(test_name, args.arrow_path, args.waypoint_path))
+
+    result = unittest.TextTestRunner().run(suite)
+    sys.exit(not result.wasSuccessful())
