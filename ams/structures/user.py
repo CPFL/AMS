@@ -11,6 +11,9 @@ USER = get_namedtuple_from_dict("CONST", {
         "GEO": {
             "PUBLISH": "pub_geo_vehicle",
             "SUBSCRIBE": "sub_geo_vehicle"
+        },
+        "CATEGORIES": {
+            "STATUS": ["status"],
         }
     },
     "STATE": {

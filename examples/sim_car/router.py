@@ -3,26 +3,53 @@
 
 import eventlet
 from sys import float_info
+from argparse import ArgumentParser
+
 from flask import Flask, jsonify, render_template
 from flask_cors import CORS
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
 from config.env import env
-from ams import Waypoint, Arrow, Intersection, Topic
-from ams.nodes import Vehicle, User, TrafficSignal, FleetManager
-# from ams.messages import FleetStatus
+from ams import Waypoint, Arrow, Intersection, Topic, Target
+from ams.nodes import SimCar, TrafficSignal
+
+from pprint import PrettyPrinter
+pp = PrettyPrinter(indent=2).pprint
+
+parser = ArgumentParser()
+parser.add_argument("-W", "--path_waypoint_json", type=str,
+                    default="../../res/waypoint.json", help="waypoint.json path")
+parser.add_argument("-A", "--path_arrow_json", type=str,
+                    default="../../res/arrow.json", help="arrow.json path")
+parser.add_argument("-I", "--path_intersection_json", type=str,
+                    default="../../res/intersection.json", help="intersection.json path")
+args = parser.parse_args()
 
 eventlet.monkey_patch()
 
 app = Flask(__name__)
 with app.app_context():
-    app.arrow = Arrow()
-    app.arrow.load("../../res/arrow.json")
     app.waypoint = Waypoint()
-    app.waypoint.load("../../res/waypoint.json")
+    app.waypoint.load(args.path_waypoint_json)
+    app.arrow = Arrow()
+    app.arrow.load(args.path_arrow_json)
     app.intersection = Intersection()
-    app.intersection.load("../../res/intersection.json")
+    app.intersection.load(args.path_intersection_json)
+
+    app.topics = {}
+
+    topic = Topic()
+    topic.set_targets(Target.new_target(None, SimCar.__name__), None)
+    topic.set_categories(SimCar.CONST.TOPIC.CATEGORIES.STATUS)
+    app.topics["vehicle"] = topic.get_path(use_wild_card=True)
+
+    topic = Topic()
+    topic.set_targets(Target.new_target(None, TrafficSignal.__name__), None)
+    topic.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS)
+    app.topics["traffic_signal"] = topic.get_path(use_wild_card=True)
+
+    pp(app.topics)
 
 CORS(app)
 
@@ -47,11 +74,8 @@ def api_response(code=200, message=None):
 
 @app.route('/')
 def root():
-    mqtt.subscribe(User.CONST.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(Vehicle.CONST.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(TrafficSignal.CONST.TOPIC.PUBLISH+"/#")
-    mqtt.subscribe(FleetManager.CONST.TOPIC.PUBLISH+"/#")
-    print("socketio", socketio)
+    for topic in app.topics.values():
+        mqtt.subscribe(topic)
     return render_template("index.html", title="ams", name="test_name")
 
 
@@ -78,12 +102,7 @@ def get_view_data():
             "lng": 0.5*(lng_max + lng_min)},
         "waypoints": waypoints,
         "arrows": arrows,
-        "topics": {
-            "user": User.CONST.TOPIC.PUBLISH,
-            "vehicle": Vehicle.CONST.TOPIC.PUBLISH,
-            "trafficSignal": TrafficSignal.CONST.TOPIC.PUBLISH,
-            "fleetManager": FleetManager.CONST.TOPIC.PUBLISH
-        }
+        "topics": app.topics
     })
 
 
@@ -103,30 +122,18 @@ def handle_message(message):
     print("handle_message", message)
 
 
-@mqtt.on_topic(User.CONST.TOPIC.PUBLISH+"/#")
-def handle_mqtt_ontopic_user_status(_client, _userdata, mqtt_message):
-    message = mqtt_message.payload.decode("utf-8")
-    socketio.emit(User.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
-
-
-@mqtt.on_topic(Vehicle.CONST.TOPIC.PUBLISH+"/#")
-def handle_mqtt_ontopic_vehicle_status(_client, _userdata, mqtt_message):
-    message = mqtt_message.payload.decode("utf-8")
-    socketio.emit(Vehicle.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
-
-
-@mqtt.on_topic(TrafficSignal.CONST.TOPIC.PUBLISH+"/#")
-def handle_mqtt_ontopic_traffic_signal_status(_client, _userdata, mqtt_message):
+@mqtt.on_topic(app.topics["vehicle"])
+def handle_mqtt_on_vehicle_status_message(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
     socketio.emit(
-        TrafficSignal.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+        app.topics["vehicle"], data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
-@mqtt.on_topic(FleetManager.CONST.TOPIC.PUBLISH+"/#")
-def handle_mqtt_ontopic_fleet_status(_client, _userdata, mqtt_message):
+@mqtt.on_topic(app.topics["traffic_signal"])
+def handle_mqtt_on_traffic_signal_status_message(_client, _userdata, mqtt_message):
     message = mqtt_message.payload.decode("utf-8")
     socketio.emit(
-        FleetManager.CONST.TOPIC.PUBLISH, data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
+        app.topics["traffic_signal"], data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
 
 
 if __name__ == '__main__':

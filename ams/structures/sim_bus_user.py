@@ -4,7 +4,8 @@
 from ams.structures import get_namedtuple_from_dict
 
 
-BUS_USER = get_namedtuple_from_dict("CONST", {
+SIM_BUS_USER = get_namedtuple_from_dict("CONST", {
+    "NODE_NAME": "SimBusUser",
     "TARGET_GROUP": {
         "START_BUS_STOP": "startBusStop",
         "GOAL_BUS_STOP": "goalBusStop"

@@ -3,10 +3,10 @@
 
 from time import time
 
-from ams import Topic, Schedule, Route
-from ams.nodes import Vehicle, TrafficSignal
+from ams import Topic, Schedule, Route, Target
+from ams.nodes import Vehicle
 from ams.messages import TrafficSignalStatus, VehicleStatus
-from ams.structures import SIM_CAR
+from ams.structures import SIM_CAR, TRAFFIC_SIGNAL
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -16,36 +16,35 @@ class SimCar(Vehicle):
 
     CONST = SIM_CAR
 
-    def __init__(self, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, dt=dt)
-
-        self.topicTrafficSignalStatus = Topic()
-        self.topicTrafficSignalStatus.set_root(TrafficSignal.CONST.TOPIC.PUBLISH)
+    def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.traffic_signals = {}
         self.other_vehicles = {}
-
         self.intersection = intersection
 
-        self.add_on_message_function(self.update_other_vehicles)
-        self.add_on_message_function(self.update_traffic_signals)
+        self.__topicSubStatus = Topic()
+        self.__topicSubStatus.set_targets(Target.new_target(None, SimCar.__name__), None)
+        self.__topicSubStatus.set_categories(SIM_CAR.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubStatus.set_message(VehicleStatus)
+        self.set_subscriber(self.__topicSubStatus, self.update_other_vehicles)
 
-        self.set_subscriber(self.topicStatus.all)
-        self.set_subscriber(self.topicTrafficSignalStatus.all)
+        self.__topicSubTrafficSignalStatus = Topic()
+        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
+        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
+        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signals)
 
-    def update_traffic_signals(self, _client, _user_data, topic, payload):
-        if self.topicTrafficSignalStatus.root in topic:
-            traffic_signal_status = TrafficSignalStatus.new_data(**self.topicTrafficSignalStatus.unserialize(payload))
-            self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
+    def update_traffic_signals(self, _client, _user_data, _topic, payload):
+        # todo: localize
+        traffic_signal_status = self.__topicSubTrafficSignalStatus.unserialize(payload)
+        self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
 
     def update_other_vehicles(self, _client, _user_data, topic, payload):
-        if self.topicStatus.private not in topic and \
-                self.topicStatus.root in topic:
-            vehicle_id = self.topicStatus.get_id(topic)
-            vehicle_status = VehicleStatus.new_data(**self.topicStatus.unserialize(payload))
-
-            # todo: localize
-            self.other_vehicles[vehicle_id] = vehicle_status
+        # todo: localize
+        from_id = Topic.get_from_id(topic)
+        if self.target.id != from_id:
+            self.other_vehicles[from_id] = self.__topicSubStatus.unserialize(payload)
 
     def get_monitored_route(self, distance=100.0):
         if distance <= 0:
@@ -78,7 +77,7 @@ class SimCar(Vehicle):
 
         not_green_traffic_signal_route_codes = list(map(
             lambda x: x.route_code, filter(
-                lambda x: x.state in [TrafficSignal.CONST.STATE.YELLOW, TrafficSignal.CONST.STATE.RED],
+                lambda x: x.state in [TRAFFIC_SIGNAL.STATE.YELLOW, TRAFFIC_SIGNAL.STATE.RED],
                 self.traffic_signals.values())))
 
         new_monitored_route = None

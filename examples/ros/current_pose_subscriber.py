@@ -9,14 +9,14 @@ from ams.ros import CurrentPoseSubscriber
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
 parser.add_argument("-P", "--port", type=int, default=1883, help="port")
-parser.add_argument("-N", "--name", type=str, default="sim_car 1", help="name")
+parser.add_argument("-ID", "--id", type=str, required=True, help="node id")
 parser.add_argument("-PS", "--period", type=float, default=1.0, help="period second")
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
 
-    currentPoseSubscriber = CurrentPoseSubscriber(name=args.name, period=args.period)
+    currentPoseSubscriber = CurrentPoseSubscriber(_id=args.id, period=args.period)
 
     print("currentPoseSubscriber {} on {}".format(
         currentPoseSubscriber.event_loop_id, currentPoseSubscriber.get_pid()))

@@ -5,17 +5,11 @@ from ams.structures import get_base_class, Pose
 
 
 current_pose = {
-    "name": "a0",
     "time": 0.0,
     "pose": Pose.get_template()
 }
 
 current_pose_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,
@@ -35,17 +29,11 @@ class CurrentPose(get_base_class(current_pose, current_pose_schema)):
 
 
 closest_waypoint = {
-    "name": "a0",
     "time": 0.0,
     "index": 0
 }
 
 closest_waypoint_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,
@@ -64,7 +52,6 @@ class ClosestWaypoint(get_base_class(closest_waypoint, closest_waypoint_schema))
 
 
 dicision_maker_states = {
-    "name": "a0",
     "time": 0.0,
     "main": "default",
     "accel": "default",
@@ -73,11 +60,6 @@ dicision_maker_states = {
 }
 
 dicision_maker_states_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,
@@ -111,7 +93,6 @@ class DecisionMakerStates(get_base_class(dicision_maker_states, dicision_maker_s
 
 
 lane_array = {
-    "name": "a0",
     "time": 0.0,
     "lanes": [{
         "waypoints": [{
@@ -122,11 +103,6 @@ lane_array = {
 }
 
 lane_array_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,
@@ -171,17 +147,11 @@ class LaneArray(get_base_class(lane_array, lane_array_schema)):
 
 
 state_command = {
-    "name": "a0",
     "time": 0.0,
     "state": 13
 }
 
 state_command_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,
@@ -200,17 +170,11 @@ class StateCommand(get_base_class(state_command, state_command_schema)):
 
 
 light_color = {
-    "name": "a0",
     "time": 0.0,
     "traffic_light": 0
 }
 
 light_color_schema = {
-    "name": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
     "time": {
         "type": "number",
         "required": True,

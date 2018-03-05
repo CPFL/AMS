@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 "python", "../node_launchers/traffic_signal.py",
                 "--host", args.host,
                 "--port", str(args.port),
+                "--id", route_code,
                 "--route_code", route_code,
                 # "--schedules", json.dumps(traffic_signal_configs["schedules"])
             ] + cycle_option)

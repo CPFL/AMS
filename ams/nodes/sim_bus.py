@@ -5,7 +5,7 @@ from time import time
 from ams import Schedule, Topic, Target
 from ams.nodes import SimCar
 from ams.messages import UserStatus
-from ams.structures import SIM_BUS, BUS_USER, USER
+from ams.structures import SIM_BUS, SIM_BUS_USER, USER
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -16,40 +16,40 @@ class SimBus(SimCar):
     CONST = SIM_BUS
 
     def __init__(
-            self, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, intersection, dt=dt)
+            self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, intersection, dt=dt)
         self.state = SIM_BUS.SCHEDULE.STAND_BY
         self.user_statuses = {}
 
-        self.topicUserPublish = Topic()
-        self.topicUserPublish.set_root(USER.TOPIC.PUBLISH)
-        self.add_on_message_function(self.update_user_status)
-        self.set_subscriber(self.topicUserPublish.all)
+        self.__topicSubUserStatus = Topic()
+        self.__topicSubUserStatus.set_targets(Target.new_target(None, SIM_BUS_USER.NODE_NAME), None)
+        self.__topicSubUserStatus.set_categories(USER.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubUserStatus.set_message(UserStatus)
+        self.set_subscriber(self.__topicSubUserStatus, self.update_user_status)
 
     def update_user_status(self, _client, _userdata, topic, payload):
-        if self.topicUserPublish.root in topic:
-            user_id = self.topicUserPublish.get_id(topic)
-            user_status = UserStatus.new_data(**self.topicUserPublish.unserialize(payload))
-            if user_status.state == USER.STATE.LOG_OUT:
-                self.user_statuses.pop(user_id)
-            else:
-                self.user_statuses[user_id] = user_status
+        user_id = self.__topicSubUserStatus.get_from_id(topic)
+        user_status = self.__topicSubUserStatus.unserialize(payload)
+        if user_id in self.user_statuses and user_status.state == USER.STATE.LOG_OUT:
+            self.user_statuses.pop(user_id)
+        else:
+            self.user_statuses[user_id] = user_status
 
     def is_needed_to_via(self):
         target_bus_stops = Target.get_same_group_targets_in_targets("spot", self.schedules[0].targets)
         for target_bus_stop in target_bus_stops:
             waiting_user_statuses = list(
-                filter(lambda x: x.state == BUS_USER.STATE.WAITING, self.user_statuses.values()))
+                filter(lambda x: x.state == SIM_BUS_USER.STATE.WAITING, self.user_statuses.values()))
             for user_status in waiting_user_statuses:
                 target_waiting_bus_stop = Target.get_same_group_targets_in_targets(
-                    BUS_USER.TARGET_GROUP.START_BUS_STOP, user_status.trip_schedules[0].targets)[0]
+                    SIM_BUS_USER.TARGET_GROUP.START_BUS_STOP, user_status.trip_schedules[0].targets)[0]
                 if target_bus_stop.id == target_waiting_bus_stop.id:
                     return True
             stop_requested_user_statuses = list(
-                filter(lambda x: x.schedule.event == BUS_USER.ACTION.REQUEST_STOP, self.user_statuses.values()))
+                filter(lambda x: x.schedule.event == SIM_BUS_USER.ACTION.REQUEST_STOP, self.user_statuses.values()))
             for user_status in stop_requested_user_statuses:
                 target_waiting_bus_stop = Target.get_same_group_targets_in_targets(
-                    BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, user_status.trip_schedules[0].targets)[0]
+                    SIM_BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, user_status.trip_schedules[0].targets)[0]
                 if target_bus_stop.id == target_waiting_bus_stop.id:
                     return True
         return False

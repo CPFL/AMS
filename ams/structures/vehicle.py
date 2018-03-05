@@ -8,7 +8,11 @@ VEHICLE = get_namedtuple_from_dict("CONST", {
     "TOPIC": {
         "PUBLISH": "pub_vehicle",
         "SUBSCRIBE": "sub_vehicle",
-        "SCHEDULES": "/schedules",
+        "SCHEDULES": "schedules",
+        "CATEGORIES": {
+            "STATUS": ["status"],
+            "GEOTOPIC": ["geotopic"]
+        }
     },
     "GEO": {
         "GROUP": "Vehicle",
