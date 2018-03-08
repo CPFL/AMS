@@ -38,7 +38,7 @@ class DecisionMakerStatesSubscriber(EventLoop):
             self.set_main_loop(rospy.spin)
 
             self.__ROSSubscriber = message_filters.Subscriber(
-                AUTOWARE.ROSTOPIC.DECISION_MAKER_STATES, AWDecisionMakerStates, queue_size=1)
+                DECISION_MAKER_STATES_SUBSCRIBER.ROSTOPIC, AWDecisionMakerStates, queue_size=1)
             self.__ROSSubscriber.registerCallback(self.on_message_from_ros)
         else:
             self.set_main_loop(self.__main_loop)
@@ -66,7 +66,7 @@ class DecisionMakerStatesSubscriber(EventLoop):
         while not rospy.is_shutdown():
             try:
                 message_data = rospy.wait_for_message(
-                    AUTOWARE.ROSTOPIC.DECISION_MAKER_STATES, AWDecisionMakerStates, timeout=self.__period)
+                    DECISION_MAKER_STATES_SUBSCRIBER.ROSTOPIC, AWDecisionMakerStates, timeout=self.__period)
 
                 decision_maker_states = self.get_data_from_message(message_data)
                 payload = self.__topicPubDecisionMakerState.serialize(decision_maker_states)

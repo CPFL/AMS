@@ -14,9 +14,10 @@ AUTOWARE = get_namedtuple_from_dict("CONST", {
     },
     "TOPIC": {
         "CATEGORIES": {
-            "LANE_ARRAY": ["/lane_array"],
-            "STATE_COMMAND": ["/state_command"],
-            "LIGHT_COLOR": ["/light_color"],
+            "STATUS": ["status"],
+            "LANE_ARRAY": ["lane_array"],
+            "STATE_COMMAND": ["state_command"],
+            "LIGHT_COLOR": ["light_color"],
         }
     },
 })

@@ -32,6 +32,7 @@ class Autoware(Vehicle):
         self.closest_waypoint = None
         self.decision_maker_states = None
         self.current_arrow_waypoint_array = []
+        self.__previous_state_command = None
         self.traffic_signals = {}
 
         self.__topicPubLaneArray = Topic()
@@ -67,13 +68,13 @@ class Autoware(Vehicle):
         self.__topicSubDecisionMakerStates.set_targets(
             Target.new_target(self.target.id, DECISION_MAKER_STATES_SUBSCRIBER.NODE_NAME), self.target)
         self.__topicSubDecisionMakerStates.set_categories(
-            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC.CATEGORIES.DECISION_MAKER_STATES)
+            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC_CATEGORIES)
         self.__topicSubDecisionMakerStates.set_message(DecisionMakerStates)
         self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decision_maker_states)
 
         self.__topicSubTrafficSignal = Topic()
         self.__topicSubTrafficSignal.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), self.target)
-        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC_CATEGORIES)
+        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
         self.__topicSubTrafficSignal.set_message(TrafficSignalStatus)
         self.set_subscriber(self.__topicSubTrafficSignal, self.update_traffic_signals)
 
@@ -92,11 +93,13 @@ class Autoware(Vehicle):
             self.publish(self.__topicPubLaneArray, payload)
 
     def publish_state_command(self, state):
-        payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
-            time=time(),
-            state=state
-        ))
-        self.publish(self.__topicPubStateCommand, payload)
+        if self.__previous_state_command != state:
+            payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
+                time=time(),
+                state=state
+            ))
+            self.__previous_state_command = state
+            self.publish(self.__topicPubStateCommand, payload)
 
     def publish_light_color(self):
         if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE:
@@ -132,12 +135,14 @@ class Autoware(Vehicle):
     def update_pose_from_current_pose(self):
         location = self.__map_match.get_matched_location_on_arrows(
             self.current_pose.pose, self.arrow.get_arrow_codes())
+        # print("update_pose_from_current_pose", location)
         self.arrow_code = location.arrow_code
         self.waypoint_id = location.waypoint_id
         self.np_position = self.waypoint.get_np_position(self.waypoint_id)
         self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
 
     def update_pose_from_closest_arrow_waypoint(self, closest_arrow_waypoint):
+        # print("update_pose_from_closest_arrow_waypoint", closest_arrow_waypoint)
         self.arrow_code = closest_arrow_waypoint["arrow_code"]
         self.waypoint_id = closest_arrow_waypoint["waypoint_id"]
         self.np_position = self.waypoint.get_np_position(self.waypoint_id)
@@ -148,7 +153,7 @@ class Autoware(Vehicle):
         for arrow_waypoint in arrow_waypoint_array:
             waypoints.append({
                 "pose": self.waypoint.get_pose(arrow_waypoint["waypoint_id"]),
-                "velocity": 2.0
+                "velocity": self.velocity
             })
         lanes = [{"waypoints": waypoints}]
         return LaneArray.new_data(
@@ -220,11 +225,18 @@ class Autoware(Vehicle):
             else:
                 print("Lost Autoware.")
 
+    def __is_arrived(self):
+        if self.decision_maker_states is not None:
+            if self.decision_maker_states.behavior == DECISION_MAKER_STATES_SUBSCRIBER.BEHAVIOR.WAIT_ORDERS:
+                return True
+        return False
+
     def is_arriving_soon(self):
         return False
 
     def update_status(self):
 
+        print(self.waypoint_id, self.arrow_code, self.state, self.schedules)
         self.update_pose()
         self.publish_light_color()
 
@@ -232,7 +244,11 @@ class Autoware(Vehicle):
             current_time = time()
 
             if self.state == Vehicle.CONST.STATE.LOG_IN:
-                if self.schedules[0].period.end < current_time:
+                print("publish_state_command_stop")
+                self.publish_state_command(STATE_COMMAND_PUBLISHER.STATE_CMD.SUB.STOP)
+                self.state = Vehicle.CONST.STATE.STOP
+            elif self.state == Vehicle.CONST.STATE.STOP:
+                if 1 < len(self.schedules) and self.schedules[0].period.end < current_time:
                     self.schedules.pop(0)
 
                     self.publish_lane_array()
@@ -242,9 +258,14 @@ class Autoware(Vehicle):
                     self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
 
                     self.state = Vehicle.CONST.STATE.MOVE
-                    self.publish_state_command(AUTOWARE.STATE_CMD.MAIN.INIT)
-                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.KEEP)
-
+                    self.publish_state_command(STATE_COMMAND_PUBLISHER.STATE_CMD.SUB.KEEP)
             elif self.state == Vehicle.CONST.STATE.MOVE:
-                if self.is_arriving_soon():
-                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.STOP)
+                if self.__is_arrived():
+                    pass
+                # if self.is_arriving_soon():
+                #     self.publish_state_command(STATE_COMMAND_PUBLISHER.STATE_CMD.SUB.STOP)
+        else:
+            if self.state == Vehicle.CONST.STATE.LOG_IN:
+                print("publish_state_command_stop")
+                self.publish_state_command(STATE_COMMAND_PUBLISHER.STATE_CMD.SUB.STOP)
+                self.state = Vehicle.CONST.STATE.STOP

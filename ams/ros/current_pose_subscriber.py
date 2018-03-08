@@ -76,7 +76,7 @@ class CurrentPoseSubscriber(EventLoop):
         while not rospy.is_shutdown():
             try:
                 message_data = rospy.wait_for_message(
-                    AUTOWARE.ROSTOPIC.CURRENT_POSE, PoseStamped, timeout=self.__period)
+                    CURRENT_POSE_SUBSCRIBER.ROSTOPIC, PoseStamped, timeout=self.__period)
 
                 current_pose = CurrentPose.new_data(
                     time=message_data.header.stamp.secs + 0.000000001 * message_data.header.stamp.nsecs,
