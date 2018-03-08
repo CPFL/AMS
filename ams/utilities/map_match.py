@@ -20,8 +20,20 @@ class MapMatch(object):
 
     @staticmethod
     def get_similarity_between_poses(pose1, pose2):
-        similarity = 1.0
-        # print("get_similarity_between_poses", pose1, pose2)
+        similarity = 0.0
+        similarity -= abs(pose1.position.x - pose2.position.x)
+        similarity -= abs(pose1.position.y - pose2.position.y)
+        similarity -= abs(pose1.position.z - pose2.position.z)
+        if None not in [pose1.orientation, pose2.orientation]:
+            if None not in [pose1.orientation.rpy, pose2.orientation.rpy]:
+                similarity -= abs(pose1.orientation.rpy.roll - pose2.orientation.rpy.roll)
+                similarity -= abs(pose1.orientation.rpy.pitch - pose2.orientation.rpy.pitch)
+                similarity -= abs(pose1.orientation.rpy.yaw - pose2.orientation.rpy.yaw)
+        if None not in [pose1.orientation.quaternion, pose2.orientation.quaternion]:
+            similarity -= abs(pose1.orientation.quaternion.w - pose2.orientation.quaternion.w)
+            similarity -= abs(pose1.orientation.quaternion.x - pose2.orientation.quaternion.x)
+            similarity -= abs(pose1.orientation.quaternion.y - pose2.orientation.quaternion.y)
+            similarity -= abs(pose1.orientation.quaternion.z - pose2.orientation.quaternion.z)
         return similarity
 
     def get_matched_location_on_route(self, pose, route):

@@ -47,4 +47,5 @@ if __name__ == "__main__":
         Autoware.CONST.STATE.STOP, current_time, current_time+100,
         None
     )])
+    autoware.set_velocity(3.0)
     autoware.start(host=args.host, port=args.port)
