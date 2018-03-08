@@ -26,7 +26,7 @@ class StateCommandPublisher(EventLoop):
         self.__topicSubStateCommand.set_message(StateCommand)
         self.set_subscriber(self.__topicSubStateCommand, self.publish_to_ros)
 
-        rospy.init_node(AUTOWARE.ROSNODE.AMS_STATE_COMMAND_PUBLISHER, anonymous=True)
+        rospy.init_node(STATE_COMMAND_PUBLISHER.ROSNODE, anonymous=True)
         # self.__ROSPublisher = rospy.Publisher(STATE_COMMAND_PUBLISHER.ROSTOPIC, AWStateCommand, queue_size=1)
         self.__ROSPublisher = rospy.Publisher(STATE_COMMAND_PUBLISHER.ROSTOPIC, Int32, queue_size=1)
 

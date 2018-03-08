@@ -19,7 +19,7 @@ class LightColorPublisher(EventLoop):
 
         self.__topicSubLightColor = Topic()
         self.__topicSubLightColor.set_targets(
-            Target.new_target(self.target.id, AUTOWARE.ROSNODE), self.target
+            Target.new_target(self.target.id, AUTOWARE.NODE_NAME), self.target
         )
         self.__topicSubLightColor.set_categories(AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
         self.__topicSubLightColor.set_message(LightColor)
