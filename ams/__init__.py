@@ -1,3 +1,4 @@
+from ams.utilities.logger import logger
 from ams.utilities.attrdict import AttrDict
 from ams.utilities.validator import Validator
 from ams.utilities.converter import Converter
