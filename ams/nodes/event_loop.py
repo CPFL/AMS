@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import paho.mqtt.client as mqtt
 import os
-from ssl import PROTOCOL_TLSv1_2
-from signal import SIGKILL
+import traceback
 from time import time
 
-from ams import Topic, Target
+from signal import SIGKILL
+import paho.mqtt.client as mqtt
+from ssl import PROTOCOL_TLSv1_2
+
+from ams import logger, Topic, Target
 from ams.messages import EventLoopMessage
 from ams.structures import EVENT_LOOP
 
@@ -98,11 +100,17 @@ class EventLoop(object):
             self.__check(topic)
 
     def __on_message(self, client, userdata, message_data):
-        payload = message_data.payload.decode("utf-8")
-        for subscriber_path, onMessageFunction in self.__subscribers.items():
-            if Topic.is_path_matched(subscriber_path, message_data.topic):
-                onMessageFunction(client, userdata, message_data.topic, payload)
-        return True
+        try:
+            payload = message_data.payload.decode("utf-8")
+            for subscriber_path, onMessageFunction in self.__subscribers.items():
+                if Topic.is_path_matched(subscriber_path, message_data.topic):
+                    onMessageFunction(client, userdata, message_data.topic, payload)
+        except KeyboardInterrupt:
+            pass
+        except:
+            logger.error(traceback.format_exc())
+        finally:
+            return True
 
     def ssl_setting(self, ca_path, client_path, key_path):
         self.__client.tls_set(ca_path,
@@ -129,18 +137,26 @@ class EventLoop(object):
         self.__client.connect(host=host, port=port, keepalive=EVENT_LOOP.KEEP_ALIVE)
 
     def start(self, host="localhost", port=1883, ca_path=None, client_path=None, key_path=None):
+        try:
+            self.connect(host, port, ca_path=ca_path, client_path=client_path, key_path=key_path)
 
-        self.connect(host, port, ca_path=ca_path, client_path=client_path, key_path=key_path)
+            event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
+            payload = self.__topicPub.serialize(event_loop_message)
+            self.publish(self.__topicPub, payload)
 
-        event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.START, self.__pid)
-        payload = self.__topicPub.serialize(event_loop_message)
-        self.publish(self.__topicPub, payload)
-
-        if self.__main_loop is None:
-            self.__client.loop_forever()
+            if self.__main_loop is None:
+                self.__client.loop_forever()
+            else:
+                self.__client.loop_start()
+                self.__main_loop()
+        except KeyboardInterrupt:
+            pass
+        except:
+            logger.error(traceback.format_exc())
         else:
-            self.__client.loop_start()
-            self.__main_loop()
+            pass
+        finally:
+            pass
 
     def end(self):
         self.__client.loop_stop()
