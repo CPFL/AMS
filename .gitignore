@@ -137,3 +137,8 @@ Temporary Items
 
 # JetBrains
 .idea
+
+
+# DOT
+*.dot
+
