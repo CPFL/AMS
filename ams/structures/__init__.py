@@ -5,6 +5,7 @@ from ams.structures.quaternion import Quaternion
 from ams.structures.position import Position
 from ams.structures.orientation import Orientation
 from ams.structures.pose import Pose
+
 from ams.structures.location import Location, Locations
 from ams.structures.polygon import Polygon
 from ams.structures.waypoint import Waypoint
@@ -25,6 +26,7 @@ from ams.structures.sim_bus_user import SIM_BUS_USER
 from ams.structures.vehicle import VEHICLE
 from ams.structures.autoware import AUTOWARE
 from ams.structures.autoware_taxi import AUTOWARE_TAXI
+from ams.structures.autoware_voice_recognition import AUTOWARE_VOICE_RECOGNITION
 from ams.structures.sim_car import SIM_CAR
 from ams.structures.sim_taxi import SIM_TAXI
 from ams.structures.sim_bus import SIM_BUS
@@ -39,3 +41,4 @@ from ams.structures.light_color_publisher import LIGHT_COLOR_PUBLISHER
 from ams.structures.current_pose_subscriber import CURRENT_POSE_SUBSCRIBER
 from ams.structures.closest_waypoint_subscriber import CLOSEST_WAYPOINT_SUBSCRIBER
 from ams.structures.decision_maker_states_subscriber import DECISION_MAKER_STATES_SUBSCRIBER
+

@@ -12,6 +12,7 @@ from ams.nodes.sim_taxi import SimTaxi
 from ams.nodes.sim_bus import SimBus
 
 from ams.nodes.autoware import Autoware
+from ams.nodes.autoware_voice_recognition import AutowareVoiceRecognition
 from ams.nodes.autoware_taxi import AutowareTaxi
 
 from ams.nodes.fleet_manager import FleetManager

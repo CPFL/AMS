@@ -5,8 +5,10 @@ from time import time
 
 from ams import Topic, Route, Schedule, MapMatch, Target
 from ams.nodes import Vehicle
-from ams.messages import CurrentPose, ClosestWaypoint, DecisionMakerStates,\
-    LaneArray, StateCommand, LightColor, TrafficSignalStatus
+from ams.messages import CurrentPoseRosMessageBasis, ClosestWaypoint, DecisionMakerStates, \
+    LaneArray, StateCommand, LightColor, TrafficSignalStatus, LaneArrayRosMessageBasis, \
+    LaneRosMessageBasis, WaypointRosMessageBasis, ClosestWaypointRosMessageBasis, DecisionMakerStatesRosMessageBasis, \
+    StateCommandRosMessageBasis, HeaderRosMessageBasis, LightColorRosMessageBasis, CurrentPose
 from ams.structures import AUTOWARE, TRAFFIC_SIGNAL,\
     LANE_ARRAY_PUBLISHER, STATE_COMMAND_PUBLISHER, LIGHT_COLOR_PUBLISHER,\
     CURRENT_POSE_SUBSCRIBER, CLOSEST_WAYPOINT_SUBSCRIBER, DECISION_MAKER_STATES_SUBSCRIBER
@@ -54,14 +56,14 @@ class Autoware(Vehicle):
         self.__topicSubCurrentPose.set_targets(
             Target.new_target(self.target.id, CURRENT_POSE_SUBSCRIBER.NODE_NAME), self.target)
         self.__topicSubCurrentPose.set_categories(CURRENT_POSE_SUBSCRIBER.TOPIC_CATEGORIES)
-        self.__topicSubCurrentPose.set_message(CurrentPose)
+        self.__topicSubCurrentPose.set_message(CurrentPoseRosMessageBasis)
         self.set_subscriber(self.__topicSubCurrentPose, self.update_current_pose)
 
         self.__topicSubClosestWaypoint = Topic()
         self.__topicSubClosestWaypoint.set_targets(
             Target.new_target(self.target.id, CLOSEST_WAYPOINT_SUBSCRIBER.NODE_NAME), self.target)
         self.__topicSubClosestWaypoint.set_categories(CLOSEST_WAYPOINT_SUBSCRIBER.TOPIC_CATEGORIES)
-        self.__topicSubClosestWaypoint.set_message(ClosestWaypoint)
+        self.__topicSubClosestWaypoint.set_message(ClosestWaypointRosMessageBasis)
         self.set_subscriber(self.__topicSubClosestWaypoint, self.update_closest_waypoint)
 
         self.__topicSubDecisionMakerStates = Topic()
@@ -69,7 +71,7 @@ class Autoware(Vehicle):
             Target.new_target(self.target.id, DECISION_MAKER_STATES_SUBSCRIBER.NODE_NAME), self.target)
         self.__topicSubDecisionMakerStates.set_categories(
             DECISION_MAKER_STATES_SUBSCRIBER.TOPIC_CATEGORIES)
-        self.__topicSubDecisionMakerStates.set_message(DecisionMakerStates)
+        self.__topicSubDecisionMakerStates.set_message(DecisionMakerStatesRosMessageBasis)
         self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decision_maker_states)
 
         self.__topicSubTrafficSignal = Topic()
@@ -88,16 +90,36 @@ class Autoware(Vehicle):
             num = min(10, len(lane_array.lanes[0].waypoints))
             for i in range(num-1, 0, -1):
                 lane_array.lanes[0].waypoints[-i].velocity = (i/num)*lane_array.lanes[0].waypoints[-i-1].velocity
+
+            aw_lane_array = LaneArrayRosMessageBasis.get_template()
+
+            for lane in lane_array.lanes:
+                aw_lane = LaneRosMessageBasis.get_template()
+                for waypoint in lane.waypoints:
+                    aw_waypoint = WaypointRosMessageBasis.get_template()
+                    aw_waypoint.pose.pose.position.x = waypoint.pose.position.x
+                    aw_waypoint.pose.pose.position.y = waypoint.pose.position.y
+                    aw_waypoint.pose.pose.position.z = waypoint.pose.position.z
+
+                    aw_waypoint.pose.pose.orientation.z = waypoint.pose.orientation.quaternion.z
+                    aw_waypoint.pose.pose.orientation.w = waypoint.pose.orientation.quaternion.w
+
+                    aw_waypoint.twist.twist.linear.x = waypoint.velocity
+                    aw_lane.waypoints.append(aw_waypoint)
+
+                aw_lane_array.lanes.append(aw_lane)
+
             self.current_arrow_waypoint_array = arrow_waypoint_array
-            payload = self.__topicPubLaneArray.serialize(lane_array)
+
+            payload = self.__topicPubLaneArray.serialize(aw_lane_array)
             self.publish(self.__topicPubLaneArray, payload)
 
     def publish_state_command(self, state):
         if self.__previous_state_command != state:
-            payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
-                time=time(),
-                state=state
-            ))
+            data = StateCommandRosMessageBasis.new_data(
+                data=state
+            )
+            payload = self.__topicPubStateCommand.serialize(data)
             self.__previous_state_command = state
             self.publish(self.__topicPubStateCommand, payload)
 
@@ -113,20 +135,46 @@ class Autoware(Vehicle):
                     traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.RED
                 else:
                     traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.GREEN
-            payload = self.__topicPubLightColor.serialize(LightColor.new_data(
-                time=time(),
+            header = HeaderRosMessageBasis.get_template()
+            header.stamp.secs = int(time())
+            header.stamp.nsecs = int((time() - int(time())) * 1000000000)
+
+            payload = self.__topicPubLightColor.serialize(LightColorRosMessageBasis.new_data(
+                header=header,
                 traffic_light=traffic_light
             ))
             self.publish(self.__topicPubLightColor, payload)
 
     def update_current_pose(self, _client, _userdata, _topic, payload):
-        self.current_pose = self.__topicSubCurrentPose.unserialize(payload)
+        current_pose = self.__topicSubCurrentPose.unserialize(payload)
+        pose_ams = Pose.new_data(
+            position=current_pose["pose"]["position"],
+            orientation={
+                "quaternion": current_pose["pose"]["orientation"],
+                "rpy": None
+            }
+        )
+        self.current_pose = CurrentPose.new_data(
+            time=current_pose["header"]["stamp"]["secs"] + 0.000000001 * current_pose["header"]["stamp"]["nsecs"],
+            pose=pose_ams
+        )
 
     def update_closest_waypoint(self, _client, _userdata, _topic, payload):
-        self.closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
+        closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
+        self.closest_waypoint = ClosestWaypoint.new_data(
+                    time=time(),
+                    index=closest_waypoint["data"]
+                )
 
     def update_decision_maker_states(self, _client, _userdata, _topic, payload):
-        self.decision_maker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
+        decision_maker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
+        return DecisionMakerStates.new_data(
+            time=decision_maker_states.header.stamp.secs + 0.000000001*decision_maker_states.header.stamp.nsecs,
+            main=decision_maker_states.main_state,
+            accel=decision_maker_states.acc_state,
+            steer=decision_maker_states.str_state,
+            behavior=decision_maker_states.behavior_state
+        )
 
     def update_traffic_signals(self, _client, _user_data, _topic, payload):
         traffic_signal_status = self.__topicSubTrafficSignal.unserialize(payload)
