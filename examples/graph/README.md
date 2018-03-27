@@ -1,7 +1,10 @@
+
+![image](http://drive.google.com/uc?export=view&id=1cN1-Ty0KP-wHmNT0YIsXschF21c6rCud)
+
 ## Installing
 
 ```
-$ pip install -r requirements.text
+$ pip install -r requirements.txt
 ```
 
 ## Running
