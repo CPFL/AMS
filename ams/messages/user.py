@@ -27,7 +27,9 @@ status_schema = {
         "valueschema": {
             "schema": Schedule.get_schema(),
             "minlength": 1
-        }
+        },
+        "required": True,
+        "nullable": True
     },
     "state": {
         "type": "string",
