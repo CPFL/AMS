@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from logging import config, getLogger
+from pprint import PrettyPrinter
 
 
 config.dictConfig({
@@ -55,3 +56,4 @@ config.dictConfig({
             "propagate": True}}})
 
 logger = getLogger("ams")
+logger.pp = PrettyPrinter(indent=2).pprint
