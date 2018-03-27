@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from ams.structures import TARGET
 from ams.structures import Target as Structure
 from ams.structures import Targets as Structures
 
 
 class Target(object):
+
+    CONST = TARGET
 
     @staticmethod
     def new_target(_id, group):
@@ -43,3 +46,10 @@ class Target(object):
     @staticmethod
     def get_same_group_targets_in_targets(group, targets):
         return list(filter(lambda x: x is not None and x.group == group, targets))
+
+    @staticmethod
+    def get_code(target):
+        return TARGET.DELIMITER.join([
+            target.group if target.group is not None else "",
+            target.id if target.id is not None else ""
+        ])
