@@ -69,7 +69,7 @@ function onLoad() {
 
     xMLHttpRequestViewData.open("GET", "http://" + window.location.hostname + ":" + window.location.port + "/getViewData", true);
     xMLHttpRequestViewData.send();
-};
+}
 
 function setFleetStatus(fleetManagerID, message){
     fleetStatus = JSON.parse(message);
@@ -80,9 +80,11 @@ function setUser(userID, message) {
     user.userID = userID;
     user.toID = null;
     if(Object.keys(fleetStatus).includes("relations")) {
-        if(Object.keys(fleetStatus.relations).includes(userID))
+        if(Object.keys(fleetStatus.relations).includes("SimTaxiUser/"+userID))
         {
-            user.toID = fleetStatus.relations[userID];
+            if(fleetStatus.relations["SimTaxiUser/"+userID].length==1){
+                user.toID = fleetStatus.relations["SimTaxiUser/"+userID][0].split("SimTaxi/")[1];
+            }
         }
         switch (user.state) {
             case "waiting":
@@ -91,11 +93,11 @@ function setUser(userID, message) {
             case "moving":
                 user.color = "#00a3e0";
                 break;
-            case "gettingOn":
-            case "gettingOut":
+            case "getting_on":
+            case "getting_out":
                 user.color = "#00FF00";
                 break;
-            case "login":
+            case "log_in":
             default:
                 user.color = "#000000";
                 break;
@@ -110,13 +112,13 @@ function setVehicle(vehicleID, message) {
     vehicle.vehicleID = vehicleID;
     switch (vehicle.state) {
         case "move":
-        case "moveToUser":
-        case "moveToUserDestination":
+        case "move_for_picking_up":
+        case "move_for_discharging":
             vehicle.color = "#00a3e0";
             break;
         case "stop":
-        case "pickingUp":
-        case "discharging":
+        case "stop_for_picking_up":
+        case "stop_for_discharging":
             vehicle.color = "#FF0000";
             break;
         case "moveToDeploy":
@@ -139,11 +141,11 @@ function drawUsers() {
         const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
 
         if(waypoint === undefined) { continue; }
-        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut"].includes(users[key].state)) {
+        if (users[key].toID != null && ["getting_on", "got_on", "moving", "getting_out"].includes(users[key].state)) {
             latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
         }
 
-        if (["gotOut", "logout"].includes(users[key].state)) {
+        if (["got_out", "log_out"].includes(users[key].state)) {
             if (key in userMarkers) {
                 userMarkers[key]["icon"].setMap(null);
                 userMarkers[key]["destination"].setMap(null);
@@ -294,7 +296,7 @@ function drawRoutes() {
         if (vehicleID in routeMarkers) {
             routeMarkers[vehicleID].setMap(null);
         }
-        if(["move", "moveToUser", "moveToUserDestination"].includes(vehicles[vehicleID].state)) {
+        if(["move", "move_for_picking_up", "move_for_discharging"].includes(vehicles[vehicleID].state)) {
             routeMarkers[vehicleID] = drawRoute(vehicles[vehicleID].schedule.route, strokeColor="#00FFFF", strokeWeight=4);
         }
     }

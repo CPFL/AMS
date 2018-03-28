@@ -7,7 +7,7 @@ from time import time
 from uuid import uuid1 as uuid
 
 from ams import Waypoint, Arrow, Route, Schedule, Target, Spot
-from ams.nodes import SimBusUser, SimBus
+from ams.nodes import User, SimBusUser, SimBus
 
 parser = ArgumentParser()
 parser.add_argument("-H", "--host", type=str, default="localhost", help="host")
@@ -52,9 +52,10 @@ if __name__ == '__main__':
         name=args.name,
         dt=3.0
     )
+    target_bus_user = Target.new_node_target(bus_user)
     trip_schedule = Schedule.new_schedule(
         [
-            Target.new_node_target(bus_user),
+            target_bus_user,
             Target.new_target(start_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.START_BUS_STOP),
             Target.new_target(goal_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.GOAL_BUS_STOP)
         ],
@@ -62,4 +63,60 @@ if __name__ == '__main__':
         Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])
     )
     bus_user.set_trip_schedules([trip_schedule])
+    bus_user.set_schedules(Schedule.new_schedules([
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=User.CONST.TRIGGER.LOG_IN,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.WAIT,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.GET_ON,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.GOT_ON,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.MOVE_VEHICLE,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.REQUEST_STOP,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.GET_OUT,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=SimBusUser.CONST.TRIGGER.GOT_OUT,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+        Schedule.new_schedule(
+            targets=[target_bus_user],
+            event=User.CONST.TRIGGER.LOG_OUT,
+            start_time=start_time,
+            end_time=start_time + 1
+        ),
+    ]))
     bus_user.start(host=args.host, port=args.port)

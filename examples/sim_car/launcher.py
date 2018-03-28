@@ -60,7 +60,6 @@ class TaxiSimulation(object):
 
     def start(self):
         self.popen_sim_car_1.wait()
-        self.popen_sim_car_2.wait()
 
 
 if __name__ == '__main__':
