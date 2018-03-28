@@ -11,7 +11,7 @@ from config.env import env
 class TransportationsLauncher(object):
 
     NUM_OF_TAXI = 2
-    NUM_OF_BUS = 0
+    NUM_OF_BUS = 1
     LAUNCH_TRAFFIC_SIGNALS = False
     MAX_NUM_OF_USERS = 3
 
