@@ -306,8 +306,11 @@ class Route(object):
                 break
             current_arrow_code = min(end_arrows_filtered.items(), key=lambda x: x[1]["cost"])[0]
 
-        # reverse arrow_codes
-        if not reverse:
+        if reverse:
+            for routeID in shortest_routes:
+                shortest_routes[routeID]["start_waypoint_id"] = shortest_routes[routeID]["goal_waypoint_id"]
+                shortest_routes[routeID]["goal_waypoint_id"] = start["waypoint_id"]
+        else:
             for routeID in shortest_routes:
                 shortest_routes[routeID]["arrow_codes"].reverse()
 

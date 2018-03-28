@@ -4,6 +4,7 @@
 import os
 import traceback
 from time import time
+from multiprocessing import Manager
 
 from signal import SIGKILL
 import paho.mqtt.client as mqtt
@@ -19,6 +20,8 @@ class EventLoop(object):
     CONST = EVENT_LOOP
 
     def __init__(self, _id):
+        self.manager = Manager()
+
         self.event_loop_id = _id
         self.target = Target.new_target(self.event_loop_id, self.__class__.__name__)
         self.__subscribers = {}
@@ -42,9 +45,6 @@ class EventLoop(object):
 
     def __del__(self):
         if self.__client is not None:
-            event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
-            payload = self.__topicPub.serialize(event_loop_message)
-            self.publish(self.__topicPub, payload)
             self.end()
 
     @staticmethod
@@ -88,7 +88,7 @@ class EventLoop(object):
         if response_code == 0:
             self.subscribe()
         else:
-            print('connect status {0}'.format(response_code))
+            logger.warning('connect status {0}'.format(response_code))
 
     def on_event_loop_message(self, _client, _userdata, topic, payload):
         event_loop_message = self.__topicSub.unserialize(payload)
@@ -156,10 +156,16 @@ class EventLoop(object):
         else:
             pass
         finally:
+            self.end()
             pass
 
     def end(self):
-        self.__client.loop_stop()
+        event_loop_message = EventLoop.get_message(EVENT_LOOP.STATE.DISCONNECT, self.__pid)
+        payload = self.__topicPub.serialize(event_loop_message)
+        self.publish(self.__topicPub, payload)
+
+        if self.__main_loop is not None:
+            self.__client.loop_stop()
         self.__client.disconnect()
         self.__client = None
         os.kill(self.__pid, SIGKILL)

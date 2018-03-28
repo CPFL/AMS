@@ -79,7 +79,7 @@ if __name__ == '__main__':
     sim_taxi.set_velocity(3.0)
     sim_taxi.set_schedules([Schedule.new_schedule(
         [Target.new_node_target(sim_taxi)],
-        SimTaxi.CONST.STATE.STANDBY, current_time, current_time+100,
+        SimTaxi.CONST.TRIGGER.STAND_BY, current_time, current_time+100,
         Route.new_route(start_waypoint_id, start_waypoint_id, [start_arrow_code])
     )])
     sim_taxi.start(host=args.host, port=args.port)

@@ -3,12 +3,10 @@
 
 from time import time, sleep
 
-from ams import Topic, Target
+from ams import Topic, Target, Relation
 from ams.nodes import EventLoop
 from ams.messages import TrafficSignalStatus, FleetStatus
 from ams.structures import FLEET_MANAGER, TRAFFIC_SIGNAL
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
 
 
 class FleetManager(EventLoop):
@@ -18,16 +16,20 @@ class FleetManager(EventLoop):
     def __init__(self, _id, name, waypoint, arrow, route, dt=3.0):
         super().__init__(_id)
 
-        self.name = name
-        self.state = FLEET_MANAGER.STATE.STAND_BY
-        self.dt = dt
+        self.status = FleetStatus.new_data(
+            name=name,
+            time=time(),
+            state=FLEET_MANAGER.STATE.LOG_IN,
+            relations={}
+        )
 
         self.waypoint = waypoint
         self.arrow = arrow
         self.route = route
-
-        self.traffic_signals = {}
-        self.relations = {}  # user_id <-> vehicle_id, route_id <-> vehicle_id
+        self.relation = Relation()
+        self.traffic_signals = self.manager.dict()
+        self.state_machine = None
+        self.dt = dt
 
         self.__pubTopicStatus = Topic()
         self.__pubTopicStatus.set_targets(self.target)
@@ -41,17 +43,12 @@ class FleetManager(EventLoop):
 
         self.set_main_loop(self.__main_loop)
 
-    def get_status(self):
-        return FleetStatus.new_data(
-            name=self.name,
-            time=time(),
-            state=self.state,
-            relations=self.relations
-        )
-
     def publish_status(self):
-        message = self.get_status()
-        payload = self.__pubTopicStatus.serialize(message)
+        self.status.relations = dict(map(
+            lambda key: (Target.get_code(key), list(map(Target.get_code, self.relation.get_related(key)))),
+            self.relation.get_keys()
+        ))
+        payload = self.__pubTopicStatus.serialize(self.status)
         self.publish(self.__pubTopicStatus, payload)
 
     def update_traffic_signal_status(self, _client, _userdata, _topic, payload):
@@ -62,12 +59,8 @@ class FleetManager(EventLoop):
         return
 
     def __main_loop(self):
-        sleep(1)
 
-        self.publish_status()
-
-        self.state = FLEET_MANAGER.STATE.RUNNING
-        while self.state == FLEET_MANAGER.STATE.RUNNING:
+        while self.status.state != FLEET_MANAGER.STATE.LOG_OUT:
             sleep(self.dt)
             self.update_status()
             self.publish_status()

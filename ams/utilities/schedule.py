@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from uuid import uuid1 as uuid
+
 from ams.structures import Schedule as Structure
 from ams.structures import Schedules as Structures
 from ams.structures import Period
@@ -21,6 +23,7 @@ class Schedule(object):
     @staticmethod
     def new_schedule(targets, event, start_time=None, end_time=None, route=None):
         return Structure.new_data(
+            id=str(uuid()),
             targets=targets,
             event=event,
             period=Period.new_data(

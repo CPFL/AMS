@@ -2,7 +2,8 @@
 # coding: utf-8
 
 from copy import deepcopy
-from ams import Validator, AttrDict
+from pprint import pformat
+from ams import Validator, AttrDict, logger
 from collections import namedtuple
 
 
@@ -39,14 +40,12 @@ def get_base_class(template, schema):
                     element = AttrDict.set_recursively(_element, deepcopy(attr_template.list[0]))
                     data.append(element)
                 if not validator.validate({"list": data}):
-                    print(validator.validate_errors())
-                    print(data)
+                    logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             else:
                 data = AttrDict.set_recursively(kwargs, deepcopy(attr_template))
                 if not validator.validate(data):
-                    print(validator.validate_errors())
-                    print(data)
+                    logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             return data
 
