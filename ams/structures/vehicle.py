@@ -6,30 +6,13 @@ from ams.structures import get_namedtuple_from_dict
 
 VEHICLE = get_namedtuple_from_dict("CONST", {
     "TOPIC": {
-        "PUBLISH": "pub_vehicle",
-        "SUBSCRIBE": "sub_vehicle",
-        "SCHEDULES": "schedules",
         "CATEGORIES": {
             "STATUS": ["status"],
             "GEOTOPIC": ["geotopic"]
         }
     },
-    "GEO": {
-        "GROUP": "Vehicle",
-        "TOPIC": {
-            "PUBLISH": "pub_geo_vehicle",
-            "SUBSCRIBE": "sub_geo_vehicle",
-        },
-    },
     "STATE": {
-        "LOG_IN": "logIn",
-        "MOVE": "move",
-        "STOP": "stop",
-        "LOG_OUT": "logOut",
-        "WILL": "will"
-    },
-    "ACTION": {
-        "MOVE": "move",
-        "STOP": "stop"
+        "LOG_IN": "log_in",
+        "LOG_OUT": "log_out"
     }
 })

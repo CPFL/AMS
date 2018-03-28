@@ -5,19 +5,19 @@ from ams.structures import get_namedtuple_from_dict
 
 
 FLEET_MANAGER = get_namedtuple_from_dict("CONST", {
+    "NODE_NAME": "FleetManager",
     "TOPIC": {
-        "PUBLISH": "pub_fleet_manager",
-        "SUBSCRIBE": "sub_fleet_manager",
         "CATEGORIES": {
             "STATUS": ["status"],
             "SCHEDULES": ["schedules"]
         }
     },
-    "ACTION": {
-        "PUBLISH_RELATIONS": "pub_relations"
+    "TRIGGER": {
+        "LOG_IN": "log_in",
+        "LOG_OUT": "log_out"
     },
     "STATE": {
-        "STAND_BY": "standby",
-        "RUNNING": "running"
+        "LOG_IN": "log_in",
+        "LOG_OUT": "log_out"
     }
 })

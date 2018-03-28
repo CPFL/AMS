@@ -88,7 +88,7 @@ class EventLoop(object):
         if response_code == 0:
             self.subscribe()
         else:
-            print('connect status {0}'.format(response_code))
+            logger.warning('connect status {0}'.format(response_code))
 
     def on_event_loop_message(self, _client, _userdata, topic, payload):
         event_loop_message = self.__topicSub.unserialize(payload)
