@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams.structures import get_base_class, get_namedtuple_from_dict
+
+TARGET = get_namedtuple_from_dict("CONST", {
+    "DELIMITER": "/"
+})
 
 template = {
     "id": "uuid",

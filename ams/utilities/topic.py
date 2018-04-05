@@ -84,8 +84,16 @@ class Topic(object):
             return self.message.new_data(json.loads(payload))
 
     @staticmethod
+    def get_from_node(path):
+        return path.split("/")[2]
+
+    @staticmethod
     def get_from_id(path):
         return path.split("/")[3]
+
+    @staticmethod
+    def get_from_target(path):
+        return Target.new_target(Topic.get_from_id(path), Topic.get_from_node(path))
 
     @staticmethod
     def is_path_matched(subscriber_path, incoming_path):

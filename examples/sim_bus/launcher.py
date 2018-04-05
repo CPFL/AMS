@@ -10,7 +10,7 @@ from config.env import env
 
 class BusServiceLauncher(object):
 
-    MAX_NUM_OF_USERS = 2
+    MAX_NUM_OF_USERS = 1
 
     def __init__(self):
         print("launch router")

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from ams import AttrDict
+
 
 class Relation(object):
 
@@ -8,7 +10,7 @@ class Relation(object):
         self.__relations = {}
 
     def get_keys(self):
-        return list(map(dict, self.__relations.keys()))
+        return list(map(AttrDict, self.__relations.keys()))
 
     def add_relation(self, dict1, dict2, directed=False):
         key1 = tuple(dict1.items())
@@ -38,15 +40,18 @@ class Relation(object):
 
         if not directed:
             self.remove_relation(dict2, dict1, True)
-        return
 
     def remove_relations(self, dict1, dicts, directed=False):
         for dict2 in dicts:
             self.remove_relation(dict1, dict2, directed)
 
+    def remove_relations_of(self, _dict):
+        related_dicts = self.get_related(_dict)
+        self.remove_relations(_dict, related_dicts)
+
     def get_related(self, dict1):
         key1 = tuple(dict1.items())
-        return list(map(dict, self.__relations[key1]))
+        return list(map(AttrDict, self.__relations[key1])) if key1 in self.__relations else []
 
     def is_related(self, dict1, dict2):
         key1 = tuple(dict1.items())

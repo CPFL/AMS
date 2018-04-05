@@ -13,7 +13,7 @@
                 }
               ],
               "event": "moveToSelectPoint",
-              "routeCode": "9335:9335_9354:9351"
+              "routeCode": "9335:9335_9354:9345"
             },
             {
               "targets": [
@@ -23,7 +23,7 @@
                 }
               ],
               "event": "moveToBranchPoint",
-              "routeCode": "9351:9335_9354:9354"
+              "routeCode": "9345:9335_9354:9354"
             }
           ],
           "main": [
@@ -69,7 +69,7 @@
                 }
               ],
               "event": "moveToSelectPoint",
-              "routeCode": "9550:9550_9553_9563_9568:9566"
+              "routeCode": "9550:9550_9553_9563:9563"
             },
             {
               "targets": [
@@ -79,7 +79,7 @@
                 }
               ],
               "event": "moveToBranchPoint",
-              "routeCode": "9566:9563_9568:9568"
+              "routeCode": "9563:9563_9568:9568"
             }
           ],
           "main": [

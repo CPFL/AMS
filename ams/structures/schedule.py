@@ -4,6 +4,7 @@
 from ams.structures import get_base_class, Targets, Period, Route
 
 template = {
+    "id": "uuid",
     "event": "default",
     "period": Period.get_template(),
     "route": Route.get_template(),
@@ -11,6 +12,11 @@ template = {
 }
 
 schema = {
+    "id": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
     "event": {
         "type": "string",
         "required": True,

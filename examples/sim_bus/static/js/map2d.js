@@ -101,6 +101,7 @@ function setUser(userID, message) {
                 break;
         }
     }
+    console.log(user);
     const targetSimBus = user.schedule.targets.find(function(element, index, array){
         if(element.group=="SimBus"){
             return true
@@ -119,22 +120,25 @@ function setVehicle(vehicleID, message) {
     vehicle.vehicleID = vehicleID;
     switch (vehicle.state) {
         case "move":
-        case "moveToCircularRoute":
-        case "moveToNextBusStop":
+        case "move_to_circular_route":
+        case "move_to_select_point":
+        case "move_to_bus_stop":
+        case "move_to_junction":
             vehicle.color = "#00a3e0";
             break;
-        case "requestViaSchedules":
-        case "requestThroughSchedules":
+        case "move_to_branch_point":
+        case "request_via_schedules":
+        case "request_through_schedules":
             vehicle.color = "#FF9900";
             break;
         case "stop":
-        case "stopToTakeUp":
-        case "stopToDischarge":
-        case "stopToDischargeAndTakeUp":
+        case "stop_for_taking_up":
+        case "stop_for_discharging":
+        case "stop_for_discharging_and_taking_up":
             vehicle.color = "#FF0000";
             break;
-        case "moveToParking":
-        case "stopToParking":
+        case "move_to_parking":
+        case "stop_to_parking":
         default:
             vehicle.color = "#000000";
             break;
@@ -154,11 +158,11 @@ function drawUsers() {
         const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
 
         if(waypoint === undefined) { continue; }
-        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "readyToGetOut", "gettingOut"].includes(users[key].state)) {
+        if (users[key].toID != null && ["getting_on", "got_on", "moving", "ready_to_get_out", "getting_out"].includes(users[key].state)) {
             latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
         }
 
-        if (["gotOut", "logout"].includes(users[key].state)) {
+        if (["got_out", "log_out"].includes(users[key].state)) {
             if (key in userMarkers) {
                 userMarkers[key]["icon"].setMap(null);
                 userMarkers[key]["destination"].setMap(null);
@@ -313,8 +317,14 @@ function drawRoutes() {
         if (vehicleID in routeMarkers) {
             routeMarkers[vehicleID].setMap(null);
         }
-        if(["move", "moveToCircularRoute", "moveToNextBusStop", "moveToParking"].includes(vehicles[vehicleID].state)) {
+        if(["move", "move_to_circular_route", "move_to_select_point", "move_to_junction"].includes(vehicles[vehicleID].state)) {
             routeMarkers[vehicleID] = drawRoute(vehicles[vehicleID].schedule.route, strokeColor="#00FFFF", strokeWeight=4);
+        }
+        if(["move_to_branch_point"].includes(vehicles[vehicleID].state)) {
+            routeMarkers[vehicleID] = drawRoute(vehicles[vehicleID].schedule.route, strokeColor="#FF9900", strokeWeight=4);
+        }
+        if(["move_to_bus_stop"].includes(vehicles[vehicleID].state)) {
+            routeMarkers[vehicleID] = drawRoute(vehicles[vehicleID].schedule.route, strokeColor="#FF0000", strokeWeight=4);
         }
     }
 }

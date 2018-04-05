@@ -81,7 +81,7 @@ if __name__ == '__main__':
     sim_bus.set_velocity(3.0)
     sim_bus.set_schedules([Schedule.new_schedule(
         [Target.new_node_target(sim_bus)],
-        SimBus.CONST.SCHEDULE.STAND_BY, current_time, current_time + 86400,
+        SimBus.CONST.TRIGGER.STAND_BY, current_time, current_time + 86400,
         Route.new_point_route(start_waypoint_id, start_arrow_code)
     )])
     sim_bus.start(host=args.host, port=args.port)

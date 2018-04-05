@@ -9,7 +9,7 @@ from ams.structures.location import Location, Locations
 from ams.structures.polygon import Polygon
 from ams.structures.waypoint import Waypoint
 from ams.structures.arrow import ARROW, Arrow
-from ams.structures.target import Target, Targets
+from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes
 from ams.structures.selective_route import SelectiveRoute, SelectiveRoutes
