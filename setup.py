@@ -36,6 +36,7 @@ setup(
         "Geohash==1.0",
         "eventlet==0.21.0",
         "Cerberus==1.1",
+        "transitions==0.6.4"
     ],
     test_suite="tests"
 )
