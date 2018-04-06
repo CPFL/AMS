@@ -2,7 +2,11 @@
 
 ## Assuming you already installed Autoware.
 
-1. Install ros-mqtt-bridge.
+1. Install [ros-mqtt-bridge](https://github.com/CPFL/ros_mqtt_bridge).
+
+```console
+$ pip install git+https://github.com/CPFL/ros_mqtt_bridge.git
+```
 
 2. Setting ip and port for mqtt broker.
 
