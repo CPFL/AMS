@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ])
     process_decision_maker_states_ros_to_mqtt = Process(target=launch_ros_to_mqtt_bridge, args=[
         "ros_to_ams_decision_maker_states",
-        "/decision_maker_states", ros_to_ams_base_topic + "/decision_maker_states",
+        "/decisionmaker/states", ros_to_ams_base_topic + "/decisionmaker/states",
         "autoware_msgs.msg", "msg.state"
     ])
     process_based_lane_waypoints_array_mqtt_to_ros = Process(target=launch_mqtt_to_ros_bridge, args=[
