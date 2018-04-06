@@ -1,6 +1,6 @@
 # How to connect Autoware(ROS) to AMS(MQTT)
 
-## Assuming you already installed Autoware.
+### Setting up in Autoware installed PC.
 
 1. Install [ros-mqtt-bridge](https://github.com/CPFL/ros_mqtt_bridge).
 
