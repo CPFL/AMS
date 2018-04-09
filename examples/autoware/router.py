@@ -12,7 +12,7 @@ from flask_socketio import SocketIO
 
 from config.env import env
 from ams import Waypoint, Arrow, Intersection, Topic, Target
-from ams.nodes import Autoware, TrafficSignal
+from ams.nodes import Vehicle, Autoware, TrafficSignal
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -41,7 +41,7 @@ with app.app_context():
 
     topic = Topic()
     topic.set_targets(Target.new_target(None, Autoware.__name__), None)
-    topic.set_categories(Autoware.CONST.TOPIC.CATEGORIES.STATUS)
+    topic.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
     app.topics["vehicle"] = topic.get_path(use_wild_card=True)
 
     topic = Topic()

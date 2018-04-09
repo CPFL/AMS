@@ -14,7 +14,7 @@ def get_base_class(template, schema):
         _template = {"list": template}
     attr_template = AttrDict()
     for key, value in _template.items():
-        attr_template[key] = value
+        setattr(attr_template, key, value)
 
     _schema = schema
     if isinstance(template, list):

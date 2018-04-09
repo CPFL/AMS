@@ -5,6 +5,7 @@ import os
 import traceback
 from time import time
 from multiprocessing import Manager
+from copy import deepcopy
 
 from signal import SIGKILL
 import paho.mqtt.client as mqtt
@@ -25,6 +26,7 @@ class EventLoop(object):
         self.event_loop_id = _id
         self.target = Target.new_target(self.event_loop_id, self.__class__.__name__)
         self.__subscribers = {}
+        self.__subscribers_lock = self.manager.Lock()
         self.__publishers = {}
         self.__client = None
         self.__main_loop = None
@@ -56,7 +58,15 @@ class EventLoop(object):
         )
 
     def set_subscriber(self, topic, callback):
+        self.__subscribers_lock.acquire()
         self.__subscribers[topic.get_path(use_wild_card=True)] = callback
+        self.__subscribers_lock.release()
+
+    def remove_subscriber(self, topic):
+        self.__subscribers_lock.acquire()
+        self.__subscribers.pop(topic.get_path(use_wild_card=True))
+        self.__subscribers_lock.release()
+        self.__client.unsubscribe(topic.get_path(use_wild_card=True))
 
     def set_user_data(self, user_data):
         self.__user_data = user_data
@@ -76,7 +86,11 @@ class EventLoop(object):
             payload=payload, qos=qos, retain=retain)
 
     def subscribe(self):
-        for topic in self.__subscribers.keys():
+        self.__subscribers_lock.acquire()
+        subscribe_keys = deepcopy(list(self.__subscribers.keys()))
+        self.__subscribers_lock.release()
+
+        for topic in subscribe_keys:
             self.__client.subscribe(topic)
 
     def response(self, request_path, payload, qos=0, retain=False):
@@ -102,9 +116,11 @@ class EventLoop(object):
     def __on_message(self, client, userdata, message_data):
         try:
             payload = message_data.payload.decode("utf-8")
+            self.__subscribers_lock.acquire()
             for subscriber_path, onMessageFunction in self.__subscribers.items():
                 if Topic.is_path_matched(subscriber_path, message_data.topic):
                     onMessageFunction(client, userdata, message_data.topic, payload)
+            self.__subscribers_lock.release()
         except KeyboardInterrupt:
             pass
         except:

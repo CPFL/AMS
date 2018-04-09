@@ -52,6 +52,10 @@ class Route(object):
         )
 
     @staticmethod
+    def new_point_route_from_location(location):
+        return Route.new_point_route(location.waypoint_id, location.arrow_code)
+
+    @staticmethod
     def new_routes(routes):
         return Structures.new_data(routes)
 

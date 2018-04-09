@@ -31,21 +31,21 @@ class AutowareSimulation(object):
 
         sleep(1)
 
-        # print("launch traffic signals")
-        # self.popen_traffic_signals = Popen([
-        #     "python", "../node_launchers/traffic_signals.py",
-        #     "--host", env["MQTT_BROKER_HOST"],
-        #     "--port", env["MQTT_BROKER_PORT"],
-        #     "--path_intersection_json", "./res/intersection.json"
-        # ])
+        print("launch traffic signals")
+        self.popen_traffic_signals = Popen([
+            "python", "../node_launchers/traffic_signals.py",
+            "--host", env["MQTT_BROKER_HOST"],
+            "--port", env["MQTT_BROKER_PORT"],
+            "--path_intersection_json", "./res/intersection.json"
+        ])
 
     def __del__(self):
         print("terminate router")
         self.popen_router.terminate()
         print("terminate autoware 1")
         self.popen_autoware_1.terminate()
-        # print("terminate TrafficSiglnals")
-        # self.popen_traffic_signals.terminate()
+        print("terminate TrafficSiglnals")
+        self.popen_traffic_signals.terminate()
 
     @staticmethod
     def start():

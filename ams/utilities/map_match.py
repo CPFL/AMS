@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams import Route, Location
+from ams import logger, Route, Location
 
 
 class MapMatch(object):
@@ -26,9 +26,12 @@ class MapMatch(object):
         similarity -= abs(pose1.position.z - pose2.position.z)
         if None not in [pose1.orientation, pose2.orientation]:
             if None not in [pose1.orientation.rpy, pose2.orientation.rpy]:
-                similarity -= abs(pose1.orientation.rpy.roll - pose2.orientation.rpy.roll)
-                similarity -= abs(pose1.orientation.rpy.pitch - pose2.orientation.rpy.pitch)
-                similarity -= abs(pose1.orientation.rpy.yaw - pose2.orientation.rpy.yaw)
+                if None not in [pose1.orientation.rpy.roll, pose2.orientation.rpy.roll]:
+                    similarity -= abs(pose1.orientation.rpy.roll - pose2.orientation.rpy.roll)
+                if None not in [pose1.orientation.rpy.pitch, pose2.orientation.rpy.pitch]:
+                    similarity -= abs(pose1.orientation.rpy.pitch - pose2.orientation.rpy.pitch)
+                if None not in [pose1.orientation.rpy.yaw, pose2.orientation.rpy.yaw]:
+                    similarity -= abs(pose1.orientation.rpy.yaw - pose2.orientation.rpy.yaw)
         if None not in [pose1.orientation.quaternion, pose2.orientation.quaternion]:
             similarity -= abs(pose1.orientation.quaternion.w - pose2.orientation.quaternion.w)
             similarity -= abs(pose1.orientation.quaternion.x - pose2.orientation.quaternion.x)

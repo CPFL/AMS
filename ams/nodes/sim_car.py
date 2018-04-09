@@ -79,27 +79,27 @@ class SimCar(Vehicle):
             arrow_codes)
         return self.route.get_sliced_route(route, distance)
 
-    def __get_inter_vehicle_distance(self, monitored_route):
+    def get_distance_from_preceding_vehicle(self, monitored_route):
         self.other_vehicle_locations_lock.acquire()
         other_vehicle_locations = deepcopy(self.other_vehicle_locations)
         self.other_vehicle_locations_lock.release()
 
         monitored_waypoint_ids = self.route.get_waypoint_ids(monitored_route)
-        inter_vehicle_distance = SIM_CAR.FLOAT_MAX
+        distance_from_preceding_vehicle = SIM_CAR.FLOAT_MAX
         if self.status.location.arrow_code is not None and 0 < len(other_vehicle_locations):
             other_vehicles_waypoint_ids = list(map(
                 lambda x: x.waypoint_id, other_vehicle_locations.values()))
             for i, monitored_waypoint_id in enumerate(monitored_waypoint_ids):
                 if monitored_waypoint_id in other_vehicles_waypoint_ids:
-                    inter_vehicle_distance = self.route.get_distance_of_waypoints(monitored_waypoint_ids[:i+1])
+                    distance_from_preceding_vehicle = self.route.get_distance_of_waypoints(monitored_waypoint_ids[:i+1])
                     break
-        if inter_vehicle_distance < SIM_CAR.FLOAT_MAX:
-            logger.info("inter_vehicle_distance {}[m]".format(inter_vehicle_distance))
-        return inter_vehicle_distance
+        if distance_from_preceding_vehicle < SIM_CAR.FLOAT_MAX:
+            logger.info("distance_from_preceding_vehicle {}[m]".format(distance_from_preceding_vehicle))
+        return distance_from_preceding_vehicle
 
-    def __get_inter_traffic_signal_distance(self, monitored_route):
+    def get_distance_from_stopline(self, monitored_route):
         monitored_arrow_codes = monitored_route.arrow_codes
-        inter_traffic_signal_distance = SIM_CAR.FLOAT_MAX
+        distance_from_stopline = SIM_CAR.FLOAT_MAX
 
         self.traffic_signals_lock.acquire()
         traffic_signals = deepcopy(self.traffic_signals)
@@ -129,26 +129,27 @@ class SimCar(Vehicle):
                 break
 
         if new_monitored_route is not None:
-            inter_traffic_signal_distance = self.route.get_route_length(new_monitored_route)
+            distance_from_stopline = self.route.get_route_length(new_monitored_route)
 
-        # logger.info("inter_traffic_signal_distance {}[m]".format(inter_traffic_signal_distance))
-        return inter_traffic_signal_distance
+        if distance_from_stopline < SIM_CAR.FLOAT_MAX:
+            logger.info("distance_from_stopline {}[m]".format(distance_from_stopline))
+        return distance_from_stopline
 
     def __get_movable_distance(self):
         # check inter-vehicle distance
         monitored_route = self.get_monitored_route()
         if monitored_route is None:
             return 0.0
-        inter_vehicle_distance = self.__get_inter_vehicle_distance(monitored_route)
-        movable_distance = inter_vehicle_distance - SIM_CAR.LOWER_INTER_VEHICLE_DISTANCE
+        distance_from_preceding_vehicle = self.get_distance_from_preceding_vehicle(monitored_route)
+        movable_distance = distance_from_preceding_vehicle - SIM_CAR.LOWER_INTER_VEHICLE_DISTANCE
 
         # check inter-trafficSignal distance
         monitored_route = self.get_monitored_route(movable_distance)
         if monitored_route is None:
             return 0.0
-        inter_traffic_signal_distance = self.__get_inter_traffic_signal_distance(monitored_route)
+        distance_from_stopline = self.get_distance_from_stopline(monitored_route)
         movable_distance = min(
-            movable_distance, inter_traffic_signal_distance - SIM_CAR.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
+            movable_distance, distance_from_stopline - SIM_CAR.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
 
         return movable_distance
 
