@@ -52,7 +52,10 @@ class Vehicle(EventLoop):
         self.set_main_loop(self.__main_loop)
 
     def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):
-        self.status.location = Location.new_location(waypoint_id, arrow_code, self.waypoint.get_geohash(waypoint_id))
+        self.set_location(Location.new_location(waypoint_id, arrow_code, self.waypoint.get_geohash(waypoint_id)))
+
+    def set_location(self, location):
+        self.status.location = location
         self.update_np_position()
         self.status.pose = Pose.new_data(
             position=Position.new_position_from_np_position(self.np_position),
@@ -73,8 +76,10 @@ class Vehicle(EventLoop):
     def publish_status(self):
         self.status.time = time()
         self.status.state = self.state_machine.state
-        self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
-        self.status.pose.position = Position.new_position_from_np_position(self.np_position)
+        if self.status.location is not None:
+            self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
+        if self.np_position is not None:
+            self.status.pose.position = Position.new_position_from_np_position(self.np_position)
         payload = self.__topicPubStatus.serialize(self.status)
         self.publish(self.__topicPubStatus, payload)
 

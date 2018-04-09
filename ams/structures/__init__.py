@@ -32,10 +32,3 @@ from ams.structures.traffic_signal import TRAFFIC_SIGNAL
 from ams.structures.fleet_manager import FLEET_MANAGER
 from ams.structures.sim_taxi_fleet import SIM_TAXI_FLEET
 from ams.structures.sim_bus_fleet import SIM_BUS_FLEET
-
-from ams.structures.lane_array_publisher import LANE_ARRAY_PUBLISHER
-from ams.structures.state_command_publisher import STATE_COMMAND_PUBLISHER
-from ams.structures.light_color_publisher import LIGHT_COLOR_PUBLISHER
-from ams.structures.current_pose_subscriber import CURRENT_POSE_SUBSCRIBER
-from ams.structures.closest_waypoint_subscriber import CLOSEST_WAYPOINT_SUBSCRIBER
-from ams.structures.decision_maker_states_subscriber import DECISION_MAKER_STATES_SUBSCRIBER
