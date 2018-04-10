@@ -40,12 +40,12 @@ with app.app_context():
     app.topics = {}
 
     topic = Topic()
-    topic.set_targets(Target.new_target(None, Autoware.__name__), None)
+    topic.set_targets(Target.new_target(None, Autoware.CONST.NODE_NAME), None)
     topic.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
     app.topics["vehicle"] = topic.get_path(use_wild_card=True)
 
     topic = Topic()
-    topic.set_targets(Target.new_target(None, TrafficSignal.__name__), None)
+    topic.set_targets(Target.new_target(None, TrafficSignal.CONST.NODE_NAME), None)
     topic.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS)
     app.topics["traffic_signal"] = topic.get_path(use_wild_card=True)
 

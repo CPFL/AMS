@@ -16,7 +16,7 @@ class Autoware(Vehicle):
 
     CONST = AUTOWARE
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+    def __init__(self, _id, name, waypoint, arrow, route, dt=0.5):
         super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.upper_distance_from_stopline = AUTOWARE.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
@@ -113,7 +113,7 @@ class Autoware(Vehicle):
         if any([
             all([
                 decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.MISSION_COMPLETE,
-                decisionmaker_states.behavior_state == AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS
+                AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS in decisionmaker_states.behavior_state
             ]),
             decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.INITIAL
         ]):
@@ -369,7 +369,7 @@ class Autoware(Vehicle):
         if decisionmaker_states is not None:
             if all([
                 decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.MISSION_COMPLETE,
-                decisionmaker_states.behavior_state == AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS
+                AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS in decisionmaker_states.behavior_state
             ]):
                 return True
         return False
@@ -444,6 +444,8 @@ class Autoware(Vehicle):
 
     def update_status(self):
         self.update_pose_from_closest_arrow_waypoint()
+        if self.status.location is not None and self.status.state == AUTOWARE.STATE.MOVE:
+            self.publish_light_color()
 
         schedules = self.get_schedules_and_lock()
 
