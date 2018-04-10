@@ -8,6 +8,7 @@ from ros_mqtt_bridge import MQTTToROS, ROSToMQTT
 from config.env import env
 
 parser = ArgumentParser()
+parser.add_argument("-NN", "--node_name", type=str, required=True, help="node name")
 parser.add_argument("-ID", "--id", type=str, required=True, help="node id")
 args = parser.parse_args()
 
@@ -34,8 +35,8 @@ def launch_mqtt_to_ros_bridge(node_name, from_topic, to_topic, message_module_na
 
 if __name__ == '__main__':
 
-    ros_to_ams_base_topic = "/ams/ros/" + args.id + "/autoware/" + args.id
-    ams_to_ros_base_topic = "/ams/autoware/" + args.id + "/ros/" + args.id
+    ros_to_ams_base_topic = "/ams/ros/" + args.id + "/" + args.node_name + "/" + args.id
+    ams_to_ros_base_topic = "/ams/" + args.node_name + "/" + args.id + "/ros/" + args.id
     process_current_pose_ros_to_mqtt = Process(target=launch_ros_to_mqtt_bridge, args=[
         "ros_to_ams_current_pose",
         "/current_pose", ros_to_ams_base_topic + "/current_pose",
