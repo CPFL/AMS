@@ -149,19 +149,17 @@ class Autoware(Vehicle):
 
     def update_current_pose(self, _client, _userdata, _topic, payload):
         self.ros_current_pose_lock.acquire()
-        self.ros_current_pose = ROSMessage.CurrentPose.new_data(**self.__topicSubCurrentPose.unserialize(payload))
+        self.ros_current_pose = self.__topicSubCurrentPose.unserialize(payload)
         self.ros_current_pose_lock.release()
 
     def update_closest_waypoint(self, _client, _userdata, _topic, payload):
         self.ros_closest_waypoint_lock.acquire()
-        self.ros_closest_waypoint = \
-            ROSMessage.ClosestWaypoint.new_data(**self.__topicSubClosestWaypoint.unserialize(payload))
+        self.ros_closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
         self.ros_closest_waypoint_lock.release()
 
     def update_decisionmaker_states(self, _client, _userdata, _topic, payload):
         self.ros_decisionmaker_states_lock.acquire()
-        self.ros_decisionmaker_states = \
-            ROSMessage.DecisionMakerStates.new_data(**self.__topicSubDecisionMakerStates.unserialize(payload))
+        self.ros_decisionmaker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
         self.ros_decisionmaker_states_lock.release()
 
     def update_traffic_signals(self, _client, _user_data, _topic, payload):
