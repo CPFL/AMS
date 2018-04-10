@@ -1,10 +1,7 @@
 let map=null;
-let users = {};
-const userMarkers = {};
 let vehicles = {};
 const vehicleMarkers = {};
 let trafficSignals = {};
-let fleetStatus = {};
 const trafficSignalPolylines = {};
 const routeMarkers = {};
 const waypointCircles = {};
@@ -16,7 +13,7 @@ const socket = io.connect("ws://" + window.location.hostname + ":" + window.loca
 const toDegree = 360/(2*Math.PI);
 Math.degree = Math.degree || function(rad){
     return rad * toDegree;
-}
+};
 
 function onLoad() {
     const xMLHttpRequestViewData = new XMLHttpRequest();
@@ -25,29 +22,8 @@ function onLoad() {
             viewData = JSON.parse(this.responseText);
 
             socket.addEventListener(viewData.topics.vehicle, function (mqtt_message) {
-                setVehicle(mqtt_message.topic.split("/")[1], mqtt_message.message);
+                setVehicle(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
-                    drawVehicles();
-                }
-            });
-
-            socket.addEventListener(viewData.topics.user, function (mqtt_message) {
-                setUser(mqtt_message.topic.split("/")[1], mqtt_message.message);
-                if(map!=null) {
-                    drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
-                    drawVehicles();
-                }
-            });
-
-            socket.addEventListener(viewData.topics.trafficSignal, function (mqtt_message) {
-                setTrafficSignals(mqtt_message.topic.split("/")[1], mqtt_message.message);
-                if(map!=null) {
-                    drawUsers();
                     drawTrafficSignals()
                     drawRoutes();
                     drawAutowareWaypoints();
@@ -55,11 +31,10 @@ function onLoad() {
                 }
             });
 
-            socket.addEventListener(viewData.topics.fleetManager, function (mqtt_message) {
-                setFleetStatus(mqtt_message.topic.split("/")[1], mqtt_message.message);
+            socket.addEventListener(viewData.topics.traffic_signal, function (mqtt_message) {
+                setTrafficSignals(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
-                    drawTrafficSignals()
+                    drawTrafficSignals();
                     drawRoutes();
                     drawAutowareWaypoints();
                     drawVehicles();
@@ -72,40 +47,6 @@ function onLoad() {
 
     xMLHttpRequestViewData.open("GET", "http://" + window.location.hostname + ":" + window.location.port + "/getViewData", true);
     xMLHttpRequestViewData.send();
-};
-
-function setFleetStatus(fleetManagerID, message){
-    fleetStatus = JSON.parse(message);
-}
-
-function setUser(userID, message) {
-    const user = JSON.parse(message);
-    user.userID = userID;
-    user.toID = null;
-    if(Object.keys(fleetStatus).includes("relations")) {
-        if(Object.keys(fleetStatus.relations).includes(userID))
-        {
-            user.toID = fleetStatus.relations[userID];
-        }
-        switch (user.state) {
-            case "waiting":
-                user.color = "#FF0000";
-                break;
-            case "moving":
-                user.color = "#00a3e0";
-                break;
-            case "gettingOn":
-            case "gettingOut":
-                user.color = "#00FF00";
-                break;
-            case "login":
-            default:
-                user.color = "#000000";
-                break;
-        }
-    }
-    console.log(user);
-    users[userID] = user;
 }
 
 function setVehicle(vehicleID, message) {
@@ -132,73 +73,6 @@ function setVehicle(vehicleID, message) {
 
 function setTrafficSignals(trafficSignalID, message) {
     trafficSignals[trafficSignalID] = JSON.parse(message);
-}
-
-function drawUsers() {
-    for(const key in users) {
-        const waypoint = viewData.waypoints[users[key].trip_schedules[0].route.start_waypoint_id];
-        let latLng = geohashToLatLng(waypoint.geohash);
-        const goalWaypoint = viewData.waypoints[users[key].trip_schedules[0].route.goal_waypoint_id];
-        const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
-
-        if(waypoint === undefined) { continue; }
-        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut"].includes(users[key].state)) {
-            latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
-        }
-
-        if (["gotOut", "logout"].includes(users[key].state)) {
-            if (key in userMarkers) {
-                userMarkers[key]["icon"].setMap(null);
-                userMarkers[key]["destination"].setMap(null);
-                delete userMarkers[key];
-            }
-            delete users[key];
-            continue;
-        }
-
-        if (key in userMarkers) {
-            userMarkers[key]["icon"].setPosition( latLng );
-            userMarkers[key]["icon"].setIcon({
-                url: "http://download.seaicons.com/icons/custom-icon-design/mono-business/24/user-icon.png",
-                size: new google.maps.Size(20, 32),
-                origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(0, 32)
-            });
-        }
-        else {
-            userMarkers[key] = {
-                "icon": new google.maps.Marker({
-                    label: users[key].name,
-                    position: latLng,
-                    map: map,
-                    draggable: false,
-                    icon: {
-                    url: "http://download.seaicons.com/icons/custom-icon-design/mono-business/24/user-icon.png",
-                    // This marker is 20 pixels wide by 32 pixels high.
-                    size: new google.maps.Size(20, 32),
-                    // The origin for this image is (0, 0).
-                    origin: new google.maps.Point(0, 0),
-                    // The anchor for this image is the base of the flagpole at (0, 32).
-                    anchor: new google.maps.Point(0, 32)
-                    }
-                }),
-                "destination": new google.maps.Polyline({
-                    path: [latLng, goalLatLng],
-                    icons: [{
-                        icon: {
-                            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                        },
-                        offset: '100%'
-                    }],
-                    //geodesic: true,
-                    strokeColor: '#000000',
-                    strokeOpacity: 0.5,
-                    strokeWeight: 4,
-                    map: map
-                })
-            };
-        }
-    }
 }
 
 function drawTrafficSignal(routeCode, color) {
@@ -385,27 +259,6 @@ function getRoutePaths(route) {
         }
     }
     return paths;
-}
-
-function drawArrow(arrowCode, strokeColor="#000000", strokeWidth=2, dLatLng=0) {
-    const splittedArrowID = arrowCode.split("_");
-
-    let paths = getArrowPaths(arrowCode)
-
-    return new google.maps.Polyline({
-        path: paths,
-        icons: [{
-            icon: {
-                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            },
-            offset: '100%'
-        }],
-        //geodesic: true,
-        strokeColor: strokeColor,
-        strokeOpacity: 0.3,
-        strokeWeight: strokeWidth,
-        map: map
-    });
 }
 
 function drawArrows() {
