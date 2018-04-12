@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import logger, Topic, Route, Schedule, MapMatch, Target
+from ams import Topic, Route, Schedule, MapMatch, Target, StateMachine
 from ams.nodes import Vehicle, SimCar
 from ams.messages import TrafficSignalStatus, ROSMessage
 from ams.structures import AUTOWARE, TRAFFIC_SIGNAL, Pose, Position, Orientation, Quaternion
@@ -20,7 +18,7 @@ class Autoware(Vehicle):
         super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.upper_distance_from_stopline = AUTOWARE.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
-        self.state_machine = self.get_state_machine(AUTOWARE.STATE.LAUNCHED)
+        self.state_machine = self.get_state_machine()
 
         self.__map_match = MapMatch()
         self.__map_match.set_waypoint(self.waypoint)
@@ -35,7 +33,7 @@ class Autoware(Vehicle):
         self.ros_decisionmaker_states = None
         self.ros_decisionmaker_states_lock = self.manager.Lock()
 
-        self.current_arrow_waypoint_array = []
+        self.current_locations = []
 
         self.traffic_signals = self.manager.dict()
         self.traffic_signals_lock = self.manager.Lock()
@@ -88,16 +86,15 @@ class Autoware(Vehicle):
         self.upper_distance_from_stopline = distance_from_stopline
 
     def publish_lane_array(self, route):
-        arrow_waypoint_array = self.route.get_arrow_waypoint_array(route)
-        ros_lane_array = self.get_ros_lane_array_from_arrow_waypoint_array(arrow_waypoint_array)
+        locations = self.route.get_locations(route)
+        ros_lane_array = self.get_ros_lane_array_from_locations(locations)
 
         if ros_lane_array is not None:
-            self.current_arrow_waypoint_array = arrow_waypoint_array
+            self.current_locations = locations
             payload = self.__topicPubBasedLaneWaypointsArray.serialize(ros_lane_array)
             self.publish(self.__topicPubBasedLaneWaypointsArray, payload)
 
     def publish_state_command(self, state_command):
-        # if self.__previous_state_command != state_command:
         if True:
             payload = self.__topicPubStateCmd.serialize(state_command)
             self.__previous_state_command = state_command
@@ -196,19 +193,19 @@ class Autoware(Vehicle):
         self.ros_closest_waypoint_lock.release()
 
         if ros_closest_waypoint is not None and \
-                0 <= ros_closest_waypoint.data < len(self.current_arrow_waypoint_array):
-            closest_arrow_waypoint = self.current_arrow_waypoint_array[ros_closest_waypoint.data]
+                0 <= ros_closest_waypoint.data < len(self.current_locations):
+            closest_location = self.current_locations[ros_closest_waypoint.data]
             self.set_waypoint_id_and_arrow_code(
-                closest_arrow_waypoint["waypoint_id"], closest_arrow_waypoint["arrow_code"])
+                closest_location.waypoint_id, closest_location.arrow_code)
 
-    def get_ros_lane_array_from_arrow_waypoint_array(self, arrow_waypoint_array):
-        if 0 == len(arrow_waypoint_array):
+    def get_ros_lane_array_from_locations(self, locations):
+        if 0 == len(locations):
             return None
 
         ros_lane_array = ROSMessage.LaneArray.new_data()
         ros_lane = ROSMessage.Lane.new_data()
-        for arrow_waypoint in arrow_waypoint_array:
-            pose = self.waypoint.get_pose(arrow_waypoint["waypoint_id"])
+        for location in locations:
+            pose = self.waypoint.get_pose(location.waypoint_id)
             ros_waypoint = ROSMessage.Waypoint.new_data()
             ros_waypoint.pose.pose.position.x = pose.position.x
             ros_waypoint.pose.pose.position.y = pose.position.y
@@ -217,7 +214,7 @@ class Autoware(Vehicle):
             ros_waypoint.pose.pose.orientation.z = pose.orientation.quaternion.z
             ros_waypoint.pose.pose.orientation.w = pose.orientation.quaternion.w
 
-            ros_waypoint.twist.twist.linear.x = 0.2*self.waypoint.get_speed_limit(arrow_waypoint["waypoint_id"])
+            ros_waypoint.twist.twist.linear.x = 0.2 * self.waypoint.get_speed_limit(location.waypoint_id)
             ros_lane.waypoints.append(ros_waypoint)
 
         ros_lane.header.stamp.secs = int(time()+1)
@@ -304,8 +301,8 @@ class Autoware(Vehicle):
             ]
         )
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=AUTOWARE.STATE.LAUNCHED):
+        machine = StateMachine(
             states=list(AUTOWARE.STATE),
             initial=initial_state,
         )
@@ -453,13 +450,6 @@ class Autoware(Vehicle):
 
         current_time = time()
         next_event = schedules[1].event
-
-        # logger.pp({
-        #     "state": self.state_machine.state,
-        #     "next_event": next_event,
-        #     "location": self.status.location,
-        #     "decisionmaker_states": decisionmaker_states,
-        #     "len(schedules)": len(schedules)})
 
         if next_event == AUTOWARE.TRIGGER.ACTIVATE:
             self.state_machine.activate(current_time, schedules)

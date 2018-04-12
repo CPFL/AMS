@@ -13,6 +13,7 @@ class Topic(object):
         self.to_target = None
         self.categories = []
         self.fix_path = None
+        self.message = None
 
     def set_fix_path(self, fix_path):
         self.fix_path = fix_path

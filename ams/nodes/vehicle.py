@@ -4,7 +4,7 @@
 from time import time, sleep
 from copy import deepcopy
 
-from ams import logger, Topic, Location, Position, Schedule
+from ams import Topic, Location, Position, Schedule
 from ams.nodes import EventLoop
 from ams.messages import VehicleStatus
 from ams.structures import Pose, Orientation, Rpy, Schedules, VEHICLE, FLEET_MANAGER

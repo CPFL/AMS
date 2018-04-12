@@ -3,7 +3,7 @@
 
 from ams.structures import get_base_class, Schedule
 
-status = {
+status_template = {
     "name": "u0",
     "time": 0.0,
     "trip_schedules": [Schedule.get_template()],
@@ -45,5 +45,5 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status, status_schema)):
+class Status(get_base_class(status_template, status_schema)):
     pass

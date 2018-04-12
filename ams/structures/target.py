@@ -7,12 +7,12 @@ TARGET = get_namedtuple_from_dict("CONST", {
     "DELIMITER": "/"
 })
 
-template = {
+target_template = {
     "id": "uuid",
     "group": "EventLoop"
 }
 
-schema = {
+target_schema = {
     "id": {
         "type": "string",
         "required": True,
@@ -26,11 +26,11 @@ schema = {
 }
 
 
-class Target(get_base_class(template, schema)):
+class Target(get_base_class(target_template, target_schema)):
     pass
 
 
-targets = [Target.get_template()]
+targets_template = [Target.get_template()]
 
 targets_schema = {
     "type": "list",
@@ -45,5 +45,5 @@ targets_schema = {
 }
 
 
-class Targets(get_base_class(targets, targets_schema)):
+class Targets(get_base_class(targets_template, targets_schema)):
     pass

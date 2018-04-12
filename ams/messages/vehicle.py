@@ -3,7 +3,7 @@
 
 from ams.structures import get_base_class, Pose, Location, Schedule
 
-status = {
+status_template = {
     "name": "v0",
     "time": 0.0,
     "state": "default",
@@ -49,5 +49,5 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status, status_schema)):
+class Status(get_base_class(status_template, status_schema)):
     pass

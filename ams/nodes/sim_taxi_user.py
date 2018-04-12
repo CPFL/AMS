@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from copy import deepcopy
 from time import time
 
-from transitions import Machine
-
-from ams import logger
+from ams import StateMachine
 from ams.nodes import User
 from ams.structures import USER, SIM_TAXI_USER
 
@@ -18,10 +15,10 @@ class SimTaxiUser(User):
     def __init__(self, _id, name, dt=1.0):
         super().__init__(_id, name, dt)
 
-        self.state_machine = self.get_state_machine(USER.STATE.LOG_IN)
+        self.state_machine = self.get_state_machine()
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=USER.STATE.LOG_IN):
+        machine = StateMachine(
             states=list(USER.STATE)+list(SIM_TAXI_USER.STATE),
             initial=initial_state,
         )
@@ -107,5 +104,3 @@ class SimTaxiUser(User):
                 pass
 
         self.set_schedules_and_unlock(schedules)
-
-        # logger.pp({self.target.id: self.state_machine.state})

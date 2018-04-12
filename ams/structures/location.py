@@ -3,13 +3,13 @@
 
 from ams.structures import get_base_class
 
-template = {
+location_template = {
     "geohash": "123456789012345",
     "waypoint_id": "0",
     "arrow_code": "0_1",
 }
 
-schema = {
+location_schema = {
     "geohash": {
         "type": "string",
         "required": False,
@@ -29,11 +29,11 @@ schema = {
 }
 
 
-class Location(get_base_class(template, schema)):
+class Location(get_base_class(location_template, location_schema)):
     pass
 
 
-locations = [Location.get_template()]
+locations_template = [Location.get_template()]
 
 locations_schema = {
     "type": "list",
@@ -47,5 +47,5 @@ locations_schema = {
 }
 
 
-class Locations(get_base_class(locations, locations_schema)):
+class Locations(get_base_class(locations_template, locations_schema)):
     pass

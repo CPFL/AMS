@@ -7,7 +7,7 @@ ROUTE = get_namedtuple_from_dict("CONST", {
     "DELIMITER": ":"
 })
 
-template = {
+route_template = {
     "start_waypoint_id": "0",
     "goal_waypoint_id": "1",
     "arrow_codes": ["0_1"]
@@ -20,7 +20,7 @@ routes = {
 }
 '''
 
-schema = {
+route_schema = {
     "start_waypoint_id": {
         "type": "string",
         "required": True,
@@ -43,11 +43,11 @@ schema = {
 }
 
 
-class Route(get_base_class(template, schema)):
+class Route(get_base_class(route_template, route_schema)):
     pass
 
 
-routes = [Route.get_template()]
+routes_template = [Route.get_template()]
 
 routes_schema = {
     "type": "list",
@@ -60,5 +60,5 @@ routes_schema = {
 }
 
 
-class Routes(get_base_class(routes, routes_schema)):
+class Routes(get_base_class(routes_template, routes_schema)):
     pass

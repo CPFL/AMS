@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Pose
+from ams.structures import get_base_class, get_namedtuple_from_dict, Pose
+
+WAYPOINT = get_namedtuple_from_dict("CONST", {
+    "GEOHASH_PRECISION": 15
+})
 
 template = {
     "geohash": "123456789012345",

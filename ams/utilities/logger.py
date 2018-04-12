@@ -14,46 +14,31 @@ config.dictConfig({
         },
     },
     "handlers": {
-        "ams_console": {
+        "console": {
             "class": "logging.StreamHandler",
             "level": "WARNING",
             "formatter": "simple",
-            "stream": "ext://sys.stdout"},
-        "ams_error_file": {
-            "class": "logging.FileHandler",
-            "level": "ERROR",
-            "formatter": "simple",
-            "filename": "./error.log",
-            "encoding": "utf8"},
-        "ams_warning_file": {
-            "class": "logging.FileHandler",
-            "level": "WARNING",
-            "formatter": "simple",
-            "filename": "./warning.log",
-            "encoding": "utf8"},
-        "ams_summary_file": {
+            "stream": "ext://sys.stdout"
+        },
+        "log_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "INFO",
             "formatter": "simple",
-            "filename": "./summary.log",
+            "filename": "./ams.log",
             "maxBytes": 10485760,
             "backupCount": 2,
-            "encoding": "utf8"},
-        "ams_http": {
-            "class": "logging.handlers.HTTPHandler",
-            "level": "WARNING",
-            "formatter": "simple",
-            "host": "localhost",
-            "url": "localhost",
-            "method": "post"}},
+            "encoding": "utf8"
+        },
+    },
     "root": {
-        "level": "DEBUG",
+        "level": "INFO",
     },
     "loggers": {
         "ams": {
-            "handlers": ["ams_console", "ams_warning_file", "ams_error_file", "ams_summary_file"],
+            "handlers": ["console", "log_file"],
             "qualname": "ams",
             "propagate": True}}})
 
 logger = getLogger("ams")
 logger.pp = PrettyPrinter(indent=2).pprint
+logger.deprecation_warning_message = lambda new, old: "Use {} instead of {}".format(new, old)

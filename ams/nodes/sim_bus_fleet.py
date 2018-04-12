@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import logger, Topic, Schedule, Target, Relation
+from ams import Topic, Schedule, Target, Relation, StateMachine
 from ams.nodes import FleetManager, SimBus, Vehicle
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS_FLEET, SIM_BUS
@@ -191,7 +189,8 @@ class SimBusFleet(FleetManager):
                 break
         return schedules, branch_index, "common", part_index
 
-    def get_event_renamed_schedules(self, schedules):
+    @staticmethod
+    def get_event_renamed_schedules(schedules):
         event_renamed_schedules = deepcopy(schedules)
         for i, schedule in enumerate(event_renamed_schedules):
             if schedule.event in [
@@ -215,8 +214,8 @@ class SimBusFleet(FleetManager):
                 event_renamed_schedules[i].event = SIM_BUS.TRIGGER.REQUEST_SCHEDULES
         return event_renamed_schedules
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY):
+        machine = StateMachine(
             states=list(SIM_BUS_FLEET.STATE),
             initial=initial_state,
         )
@@ -245,7 +244,8 @@ class SimBusFleet(FleetManager):
     def condition_schedules_length(self, vehicle_id, expected_length):
         return len(self.vehicle_schedules[vehicle_id]) == expected_length
 
-    def condition_vehicle_state(self, vehicle_status, expected_state):
+    @staticmethod
+    def condition_vehicle_state(vehicle_status, expected_state):
         return vehicle_status.state == expected_state
 
     def after_change_state_update_last_indices(self, vehicle_id, branch_index, part_type, part_index):
@@ -257,7 +257,6 @@ class SimBusFleet(FleetManager):
         return True
 
     def after_change_state_publish_schedules(self, vehicle_id):
-        # logger.pp(self.vehicle_schedules[vehicle_id])
         event_renamed_schedules = self.get_event_renamed_schedules(self.vehicle_schedules[vehicle_id])
         payload = self.__topicPubVehicleSchedules.serialize(event_renamed_schedules)
         self.__publish_vehicle_schedules(vehicle_id, payload)
@@ -302,7 +301,6 @@ class SimBusFleet(FleetManager):
                 self.vehicle_last_indices[vehicle_id]["branch_index"], "main", 0)
 
         self.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
-            # [self.vehicle_schedules[vehicle_id][-1]], move_to_branch_point_schedules)
             self.vehicle_schedules[vehicle_id], move_to_branch_point_schedules)
 
         self.after_change_state_update_last_indices(vehicle_id, branch_index, part_type, part_index)
@@ -318,7 +316,6 @@ class SimBusFleet(FleetManager):
                 self.vehicle_last_indices[vehicle_id]["branch_index"])
 
         self.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
-            # [self.vehicle_schedules[vehicle_id][-1]], move_to_branch_point_via_bus_stop_schedules)
             self.vehicle_schedules[vehicle_id], move_to_branch_point_via_bus_stop_schedules)
 
         self.after_change_state_update_last_indices(vehicle_id, branch_index, part_type, part_index)
@@ -368,7 +365,7 @@ class SimBusFleet(FleetManager):
 
         for vehicle_id, vehicle_status in vehicle_statuses.items():
             if vehicle_id not in self.state_machines:
-                self.state_machines[vehicle_id] = self.get_state_machine(SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY)
+                self.state_machines[vehicle_id] = self.get_state_machine()
 
             vehicle_state = self.state_machines[vehicle_id].state
 
@@ -379,8 +376,3 @@ class SimBusFleet(FleetManager):
                         vehicle_id, vehicle_status, SIM_BUS.STATE.REQUEST_THROUGH_SCHEDULES):
                     self.state_machines[vehicle_id].send_via_schedules(
                         vehicle_id, vehicle_status, SIM_BUS.STATE.REQUEST_VIA_SCHEDULES)
-
-        # logger.pp({"fleet": {
-        #     "fleet": dict(map(lambda x: (x[0], x[1].state), self.state_machines.items())),
-        #     "vehicle": dict(map(lambda x: (x[0], x[1].state), vehicle_statuses.items())),
-        # }})

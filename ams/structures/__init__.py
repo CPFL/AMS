@@ -7,12 +7,11 @@ from ams.structures.orientation import Orientation
 from ams.structures.pose import Pose
 from ams.structures.location import Location, Locations
 from ams.structures.polygon import Polygon
-from ams.structures.waypoint import Waypoint
+from ams.structures.waypoint import WAYPOINT, Waypoint
 from ams.structures.arrow import ARROW, Arrow
 from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes
-from ams.structures.selective_route import SelectiveRoute, SelectiveRoutes
 from ams.structures.schedule import Schedule, Schedules
 from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
 from ams.structures.cycle import Cycle
@@ -24,7 +23,6 @@ from ams.structures.sim_taxi_user import SIM_TAXI_USER
 from ams.structures.sim_bus_user import SIM_BUS_USER
 from ams.structures.vehicle import VEHICLE
 from ams.structures.autoware import AUTOWARE
-from ams.structures.autoware_taxi import AUTOWARE_TAXI
 from ams.structures.sim_car import SIM_CAR
 from ams.structures.sim_taxi import SIM_TAXI
 from ams.structures.sim_bus import SIM_BUS

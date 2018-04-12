@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import logger, Topic, Target
+from ams import Topic, Target, StateMachine
 from ams.nodes import SimCar
 from ams.messages import UserStatus
 from ams.structures import SIM_BUS, SIM_BUS_USER, USER
@@ -20,7 +18,7 @@ class SimBus(SimCar):
             self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
         super().__init__(_id, name, waypoint, arrow, route, intersection, dt=dt)
 
-        self.state_machine = self.get_state_machine(SIM_BUS.STATE.STAND_BY)
+        self.state_machine = self.get_state_machine()
 
         self.user_statuses = self.manager.dict()
         self.user_statuses_lock = self.manager.Lock()
@@ -36,7 +34,6 @@ class SimBus(SimCar):
         user_status = self.__topicSubUserStatus.unserialize(payload)
 
         self.user_statuses_lock.acquire()
-        # if user_id in self.user_statuses or user_status.state == USER.STATE.LOG_IN:
         if user_status.state in [USER.STATE.LOG_OUT]:
             if user_id in self.user_statuses:
                 self.user_statuses.pop(user_id)
@@ -44,8 +41,8 @@ class SimBus(SimCar):
             self.user_statuses[user_id] = user_status
         self.user_statuses_lock.release()
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_BUS.STATE.STAND_BY):
+        machine = StateMachine(
             states=list(SIM_BUS.STATE),
             initial=initial_state,
         )
@@ -112,8 +109,6 @@ class SimBus(SimCar):
 
     @staticmethod
     def condition_need_to_via(schedules, user_statuses):
-        logger.pp(user_statuses)
-
         target_bus_stops = Target.get_same_group_targets_in_targets("spot", schedules[0].targets)
         for target_bus_stop in target_bus_stops:
             waiting_user_statuses = list(
@@ -183,8 +178,6 @@ class SimBus(SimCar):
         schedules = self.get_schedules_and_lock()
         user_statuses = self.get_user_statuses_and_lock()
 
-        # logger.info(len(schedules), self.state_machine.state, self.status.location, self.status.schedule.route)
-
         if self.state_machine.state in [
             SIM_BUS.STATE.MOVE_TO_CIRCULAR_ROUTE,
             SIM_BUS.STATE.MOVE_TO_SELECT_POINT,
@@ -202,8 +195,6 @@ class SimBus(SimCar):
             current_time = time()
             next_event = schedules[1].event
 
-            # logger.pp((self.status.state, next_event, self.status.location))
-
             if next_event == SIM_BUS.TRIGGER.MOVE:
                 self.state_machine.move(current_time, schedules)
             elif next_event == SIM_BUS.TRIGGER.STOP:
@@ -215,8 +206,6 @@ class SimBus(SimCar):
 
         elif 1 == len(schedules):
             current_event = schedules[0].event
-
-            # logger.pp((self.status.state, current_event, self.status.location, user_statuses))
 
             if current_event == SIM_BUS.TRIGGER.REQUEST_SCHEDULES:
                 self.state_machine.request_schedules(schedules, user_statuses)

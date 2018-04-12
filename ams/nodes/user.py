@@ -4,7 +4,7 @@
 from time import time, sleep
 from copy import deepcopy
 
-from ams import logger, Topic, Schedule
+from ams import Topic, Schedule
 from ams.nodes import EventLoop
 from ams.messages import UserStatus
 from ams.structures import Schedules, USER, FLEET_MANAGER
@@ -69,7 +69,6 @@ class User(EventLoop):
 
     def update_schedules(self, _client, _userdata, _topic, payload):
         new_schedules = self.__topicSubSchedules.unserialize(payload)
-        # logger.pp(new_schedules)
 
         self.schedules_lock.acquire()
         index = list(map(lambda x: x.id, new_schedules)).index(self.schedules[0].id)

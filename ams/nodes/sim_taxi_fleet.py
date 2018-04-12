@@ -5,9 +5,7 @@ from time import time
 from copy import deepcopy
 from pprint import pformat
 
-from transitions import Machine
-
-from ams import logger, Topic, Route, Schedule, Target
+from ams import logger, Topic, Route, Schedule, Target, StateMachine
 from ams.nodes import FleetManager
 from ams.messages import UserStatus, VehicleStatus
 from ams.structures import FLEET_MANAGER, SIM_TAXI_FLEET, USER, SIM_TAXI_USER, VEHICLE, SIM_TAXI
@@ -150,9 +148,6 @@ class SimTaxiFleet(FleetManager):
         user_schedules = Schedule.get_merged_schedules(
             self.user_schedules[user_id], get_on_schedules + get_out_schedules
         )
-
-        # logger.pp(user_schedules)
-
         return vehicle_id, vehicle_schedules, user_schedules
 
     def get_pickup_route(self, user_status):
@@ -269,8 +264,8 @@ class SimTaxiFleet(FleetManager):
         )
         return [stand_by_schedules]
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN):
+        machine = StateMachine(
             states=list(SIM_TAXI_FLEET.STATE),
             initial=initial_state,
         )
@@ -393,7 +388,6 @@ class SimTaxiFleet(FleetManager):
     def cleanup_status(self, user_statuses):
         user_ids = []
         for user_id, user_status in user_statuses.items():
-            # print(time() - user_status.time, user_status.state)
             if SIM_TAXI_FLEET.TIMEOUT < time() - user_status.time:
                 user_ids.append(user_id)
         for user_id in user_ids:
@@ -420,14 +414,13 @@ class SimTaxiFleet(FleetManager):
         remove_user_ids = []
         for user_id in user_statuses:
             if user_id not in self.state_machines:
-                self.state_machines[user_id] = self.get_state_machine(SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN)
+                self.state_machines[user_id] = self.get_state_machine()
 
             user_status = user_statuses[user_id]
             target_vehicles = self.relation.get_related(Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
             state = self.state_machines[user_id].state
 
             if len(target_vehicles) == 0:
-                # print(user_id, user_status.state, state, len(target_vehicles))
 
                 if state == SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN:
                     self.state_machines[user_id].wait_user_request(
@@ -438,9 +431,6 @@ class SimTaxiFleet(FleetManager):
 
             elif len(target_vehicles) == 1:
                 vehicle_id = target_vehicles[0].id
-
-                # print(user_id, user_status.state, len(target_vehicles),
-                #       list(map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets)))
 
                 if user_id in map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets):
                     vehicle_status = vehicle_statuses[vehicle_id]
