@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import logger, Topic, Route, Target
+from ams import logger, Topic, Route, Target, StateMachine
 from ams.nodes import Vehicle
 from ams.messages import TrafficSignalStatus
 from ams.structures import SIM_CAR, TRAFFIC_SIGNAL, Location
@@ -19,7 +17,7 @@ class SimCar(Vehicle):
     def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
         super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
-        self.state_machine = self.get_state_machine(SIM_CAR.STATE.STOP)
+        self.state_machine = self.get_state_machine()
         self.velocity = None
 
         self.traffic_signals = self.manager.dict()
@@ -188,8 +186,8 @@ class SimCar(Vehicle):
             self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
         self.velocity = 0.0
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_CAR.STATE.STOP):
+        machine = StateMachine(
             states=list(SIM_CAR.STATE),
             initial=initial_state,
         )

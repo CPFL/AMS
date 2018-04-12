@@ -5,9 +5,7 @@ from time import time
 from copy import deepcopy
 from pprint import pformat
 
-from transitions import Machine
-
-from ams import logger, Topic, Route, Schedule, Target
+from ams import logger, Topic, Route, Schedule, Target, StateMachine
 from ams.nodes import FleetManager
 from ams.messages import UserStatus, VehicleStatus
 from ams.structures import FLEET_MANAGER, SIM_TAXI_FLEET, USER, SIM_TAXI_USER, VEHICLE, SIM_TAXI
@@ -266,8 +264,8 @@ class SimTaxiFleet(FleetManager):
         )
         return [stand_by_schedules]
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN):
+        machine = StateMachine(
             states=list(SIM_TAXI_FLEET.STATE),
             initial=initial_state,
         )
@@ -416,7 +414,7 @@ class SimTaxiFleet(FleetManager):
         remove_user_ids = []
         for user_id in user_statuses:
             if user_id not in self.state_machines:
-                self.state_machines[user_id] = self.get_state_machine(SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN)
+                self.state_machines[user_id] = self.get_state_machine()
 
             user_status = user_statuses[user_id]
             target_vehicles = self.relation.get_related(Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))

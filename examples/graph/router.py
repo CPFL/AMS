@@ -23,8 +23,6 @@ CORS(app)
 
 app.config['MQTT_BROKER_URL'] = env["MQTT_BROKER_HOST"]
 app.config['MQTT_BROKER_PORT'] = int(env["MQTT_BROKER_PORT"])
-# app.config['MQTT_KEEPALIVE'] = 5
-# app.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app)
 
 app.config['SECRET_KEY'] = 'secret!'
@@ -47,14 +45,13 @@ def root():
 
 @app.route("/getGraph")
 def get_node_graph():
-    print("get_graph")
     with open("./graph.dot", "r") as f:
         graph_dot = f.read()
     return api_response(200, {"dot": graph_dot})
 
+
 @app.route("/getClassGraph")
 def get_node_class_graph():
-    print("get_class_graph")
     with open("./class_graph.dot", "r") as f:
         graph_dot = f.read()
     return api_response(200, {"dot": graph_dot})

@@ -142,3 +142,5 @@ Temporary Items
 # DOT
 *.dot
 
+# Image
+*.png

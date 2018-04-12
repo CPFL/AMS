@@ -3,8 +3,7 @@
 
 from time import time
 
-from transitions import Machine
-
+from ams import StateMachine
 from ams.nodes import SimCar
 from ams.structures import SIM_TAXI
 
@@ -17,10 +16,10 @@ class SimTaxi(SimCar):
             self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
         super().__init__(_id, name, waypoint, arrow, route, intersection, dt)
 
-        self.state_machine = self.get_state_machine(SIM_TAXI.STATE.STAND_BY)
+        self.state_machine = self.get_state_machine()
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_TAXI.STATE.STAND_BY):
+        machine = StateMachine(
             states=list(SIM_TAXI.STATE),
             initial=initial_state,
         )

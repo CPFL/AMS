@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import Topic, Schedule, Target, Relation
+from ams import Topic, Schedule, Target, Relation, StateMachine
 from ams.nodes import FleetManager, SimBus, Vehicle
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS_FLEET, SIM_BUS
@@ -216,8 +214,8 @@ class SimBusFleet(FleetManager):
                 event_renamed_schedules[i].event = SIM_BUS.TRIGGER.REQUEST_SCHEDULES
         return event_renamed_schedules
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY):
+        machine = StateMachine(
             states=list(SIM_BUS_FLEET.STATE),
             initial=initial_state,
         )
@@ -367,7 +365,7 @@ class SimBusFleet(FleetManager):
 
         for vehicle_id, vehicle_status in vehicle_statuses.items():
             if vehicle_id not in self.state_machines:
-                self.state_machines[vehicle_id] = self.get_state_machine(SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY)
+                self.state_machines[vehicle_id] = self.get_state_machine()
 
             vehicle_state = self.state_machines[vehicle_id].state
 

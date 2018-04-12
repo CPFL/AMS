@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import Topic, Target
+from ams import Topic, Target, StateMachine
 from ams.nodes import User
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS, VEHICLE, SIM_BUS_USER, USER
@@ -19,7 +17,7 @@ class SimBusUser(User):
     def __init__(self, _id, name, dt=1.0):
         super().__init__(_id, name, dt)
 
-        self.state_machine = self.get_state_machine(USER.STATE.LOG_IN)
+        self.state_machine = self.get_state_machine()
 
         self.target_start_bus_stop = None
         self.target_goal_bus_stop = None
@@ -41,8 +39,8 @@ class SimBusUser(User):
         self.vehicle_statuses[vehicle_id] = self.__topicSubVehicleStatus.unserialize(payload)
         self.vehicle_statuses_lock.release()
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=USER.STATE.LOG_IN):
+        machine = StateMachine(
             states=list(USER.STATE)+list(SIM_BUS_USER.STATE),
             initial=initial_state,
         )

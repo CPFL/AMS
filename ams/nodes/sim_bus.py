@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import logger, Topic, Target
+from ams import Topic, Target, StateMachine
 from ams.nodes import SimCar
 from ams.messages import UserStatus
 from ams.structures import SIM_BUS, SIM_BUS_USER, USER
@@ -20,7 +18,7 @@ class SimBus(SimCar):
             self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
         super().__init__(_id, name, waypoint, arrow, route, intersection, dt=dt)
 
-        self.state_machine = self.get_state_machine(SIM_BUS.STATE.STAND_BY)
+        self.state_machine = self.get_state_machine()
 
         self.user_statuses = self.manager.dict()
         self.user_statuses_lock = self.manager.Lock()
@@ -36,7 +34,6 @@ class SimBus(SimCar):
         user_status = self.__topicSubUserStatus.unserialize(payload)
 
         self.user_statuses_lock.acquire()
-        # if user_id in self.user_statuses or user_status.state == USER.STATE.LOG_IN:
         if user_status.state in [USER.STATE.LOG_OUT]:
             if user_id in self.user_statuses:
                 self.user_statuses.pop(user_id)
@@ -44,8 +41,8 @@ class SimBus(SimCar):
             self.user_statuses[user_id] = user_status
         self.user_statuses_lock.release()
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=SIM_BUS.STATE.STAND_BY):
+        machine = StateMachine(
             states=list(SIM_BUS.STATE),
             initial=initial_state,
         )

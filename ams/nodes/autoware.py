@@ -4,9 +4,7 @@
 from time import time
 from copy import deepcopy
 
-from transitions import Machine
-
-from ams import Topic, Route, Schedule, MapMatch, Target
+from ams import Topic, Route, Schedule, MapMatch, Target, StateMachine
 from ams.nodes import Vehicle, SimCar
 from ams.messages import TrafficSignalStatus, ROSMessage
 from ams.structures import AUTOWARE, TRAFFIC_SIGNAL, Pose, Position, Orientation, Quaternion
@@ -20,7 +18,7 @@ class Autoware(Vehicle):
         super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
         self.upper_distance_from_stopline = AUTOWARE.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
-        self.state_machine = self.get_state_machine(AUTOWARE.STATE.LAUNCHED)
+        self.state_machine = self.get_state_machine()
 
         self.__map_match = MapMatch()
         self.__map_match.set_waypoint(self.waypoint)
@@ -303,8 +301,8 @@ class Autoware(Vehicle):
             ]
         )
 
-    def get_state_machine(self, initial_state):
-        machine = Machine(
+    def get_state_machine(self, initial_state=AUTOWARE.STATE.LAUNCHED):
+        machine = StateMachine(
             states=list(AUTOWARE.STATE),
             initial=initial_state,
         )
