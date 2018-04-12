@@ -2,105 +2,79 @@
 # coding: utf-8
 
 from time import time
-from ams.nodes import SimCar, Vehicle
 
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
+from ams import StateMachine
+from ams.nodes import SimCar
+from ams.structures import SIM_TAXI
 
 
 class SimTaxi(SimCar):
-    class ACTION(object):
-        STANDBY = "standBy"
 
-    class STATE(object):
-        STANDBY = "standBy"
-        MOVE_TO_USER = "moveToUser"
-        STOP_FOR_PICKING_UP = "pickingUp"
-        MOVE_TO_USER_DESTINATION = "moveToUserDestination"
-        STOP_FOR_DISCHARGING = "discharging"
-        MOVE_TO_STANDBY = "moveToDeploy"
+    CONST = SIM_TAXI
 
-    def __init__(self, name, waypoint, arrow, route, intersection, waypoint_id, velocity, schedules=None, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, intersection, waypoint_id, velocity, schedules, dt)
-        self.state = SimTaxi.STATE.STANDBY
+    def __init__(
+            self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, intersection, dt)
+
+        self.state_machine = self.get_state_machine()
+
+    def get_state_machine(self, initial_state=SIM_TAXI.STATE.STAND_BY):
+        machine = StateMachine(
+            states=list(SIM_TAXI.STATE),
+            initial=initial_state,
+        )
+        machine.add_transitions([
+            {
+                "trigger": SIM_TAXI.TRIGGER.MOVE,
+                "source": SIM_TAXI.STATE.STAND_BY, "dest": SIM_TAXI.STATE.MOVE_FOR_PICKING_UP,
+                "conditions": [self.after_state_change_update_schedules]
+            },
+            {
+                "trigger": SIM_TAXI.TRIGGER.STOP,
+                "source": SIM_TAXI.STATE.MOVE_FOR_PICKING_UP, "dest": SIM_TAXI.STATE.STOP_FOR_PICKING_UP,
+                "conditions": [self.condition_achieved_and_update_schedules]
+            },
+            {
+                "trigger": SIM_TAXI.TRIGGER.MOVE,
+                "source": SIM_TAXI.STATE.STOP_FOR_PICKING_UP, "dest": SIM_TAXI.STATE.MOVE_FOR_DISCHARGING,
+                "conditions": [self.condition_time_limit_and_update_schedules]
+            },
+            {
+                "trigger": SIM_TAXI.TRIGGER.STOP,
+                "source": SIM_TAXI.STATE.MOVE_FOR_DISCHARGING, "dest": SIM_TAXI.STATE.STOP_FOR_DISCHARGING,
+                "conditions": [self.condition_achieved_and_update_schedules]
+            },
+            {
+                "trigger": SIM_TAXI.TRIGGER.STAND_BY,
+                "source": SIM_TAXI.STATE.STOP_FOR_DISCHARGING, "dest": SIM_TAXI.STATE.STAND_BY,
+                "conditions": [self.condition_time_limit_and_update_schedules]
+            },
+        ])
+        return machine
+
+    def update_status_schedule(self):
+        if self.status.schedule.event == SIM_TAXI.TRIGGER.STOP:
+            self.status.schedule.period.end = self.schedules[0].period.end
 
     def update_status(self):
-        current_time = time()
-        # print("SimTaxi.update_status", self.state)
-        if self.state == SimTaxi.STATE.STANDBY:
-            # print(SimTaxi.STATE.STANDBY, len(self.schedules))
-            if 1 < len(self.schedules):
-                self.schedules.pop(0)
+        schedules = self.get_schedules_and_lock()
 
-                # update next schedule
-                dif_time = current_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
-
-                # print(self.schedules[0])
-                self.state = SimTaxi.STATE.MOVE_TO_USER
-
-        elif self.state == SimTaxi.STATE.MOVE_TO_USER:
+        if self.state_machine.state in [SIM_TAXI.STATE.MOVE_FOR_PICKING_UP, SIM_TAXI.STATE.MOVE_FOR_DISCHARGING]:
             self.update_pose()
-            if self.is_achieved():
-                # print("*** arrival ***")
-                self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
-                self.schedules.pop(0)
+            self.update_route()
+            self.update_velocity()
 
-                # update next schedule
-                new_start_time = time()
-                dif_time = new_start_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+        if 1 < len(schedules):
+            current_time = time()
+            next_event = schedules[1].event
 
-                self.state = SimTaxi.STATE.STOP_FOR_PICKING_UP
+            if next_event == SIM_TAXI.TRIGGER.MOVE:
+                self.state_machine.move(current_time, schedules)
+            elif next_event == SIM_TAXI.TRIGGER.STOP:
+                self.state_machine.stop(current_time, schedules)
+            elif next_event == SIM_TAXI.TRIGGER.STAND_BY:
+                self.state_machine.stand_by(current_time, schedules)
             else:
-                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
+                pass
 
-        elif self.state == SimTaxi.STATE.STOP_FOR_PICKING_UP:
-            if self.schedules[0]["action"] == Vehicle.ACTION.MOVE or \
-                    self.schedules[0]["start_time"] + self.schedules[0]["duration"] < current_time:
-                self.schedules.pop(0)
-
-                # update next schedule
-                dif_time = current_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
-
-                self.state = SimTaxi.STATE.MOVE_TO_USER_DESTINATION
-        elif self.state == SimTaxi.STATE.MOVE_TO_USER_DESTINATION:
-            self.update_pose()
-            if self.is_achieved():
-                # print("*** arrival ***")
-                self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
-                self.schedules.pop(0)
-
-                # update next schedule
-                new_start_time = time()
-                dif_time = new_start_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
-
-                self.state = SimTaxi.STATE.STOP_FOR_DISCHARGING
-            else:
-                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
-
-        elif self.state == SimTaxi.STATE.STOP_FOR_DISCHARGING:
-            if self.schedules[0]["start_time"] + self.schedules[0]["duration"] < current_time:
-                self.schedules.pop(0)
-
-                # update next schedule
-                dif_time = current_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
-
-                self.state = SimTaxi.STATE.STANDBY
-
-        elif self.state == SimTaxi.STATE.MOVE_TO_STANDBY:
-            pass
+        self.set_schedules_and_unlock(schedules)

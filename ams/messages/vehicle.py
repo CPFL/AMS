@@ -1,50 +1,53 @@
-message = {
-    "name": None,
-    "time": None,
-    "state": None,
-    "event": None,
-    "schedules": [{
-        "name": None,
-        "action": None,
-        "start_time": None,
-        "duration": None,
-        "route": {
-            "time": None,
-            "start": {
-                "time": None,
-                "waypoint_id": None
-            },
-            "goal": {
-                "time": None,
-                "waypoint_id": None
-            },
-            "arrow_codes": None
-        }
-    }],
+#!/usr/bin/env python
+# coding: utf-8
+
+from ams.structures import get_base_class, Pose, Location, Schedule
+
+status_template = {
+    "name": "v0",
+    "time": 0.0,
+    "state": "default",
+    "schedule": Schedule.get_template(),
+    "location": Location.get_template(),
+    "pose": Pose.get_template()
+}
+
+status_schema = {
+    "name": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "time": {
+        "type": "number",
+        "required": True,
+        "nullable": False
+    },
+    "state": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "schedule": {
+        "type": "dict",
+        "schema": Schedule.get_schema(),
+        "required": True,
+        "nullable": True,
+    },
     "location": {
-        "time": None,
-        "waypoint_id": None,
-        "arrow_code": None,
-        "geohash": None,
+        "type": "dict",
+        "schema": Location.get_schema(),
+        "required": True,
+        "nullable": True,
     },
     "pose": {
-        "time": None,
-        "position": {
-            "x": None,
-            "y": None,
-            "z": None,
-        },
-        "orientation": {
-            "time": None,
-            "roll": None,
-            "pitch": None,
-            "yaw": None,
-            "w": None,
-            "x": None,
-            "y": None,
-            "z": None
-        }
-    },
-    "can_info": {
+        "type": "dict",
+        "schema": Pose.get_schema(),
+        "required": True,
+        "nullable": True,
     }
 }
+
+
+class Status(get_base_class(status_template, status_schema)):
+    pass

@@ -1,133 +1,152 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from sys import float_info
 from time import time
+from copy import deepcopy
 
-from ams import Topic
-from ams.nodes import Vehicle, TrafficSignal
-from ams.messages import traffic_signal_message
-
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
+from ams import logger, Topic, Route, Target, StateMachine
+from ams.nodes import Vehicle
+from ams.messages import TrafficSignalStatus
+from ams.structures import SIM_CAR, TRAFFIC_SIGNAL, Location
 
 
 class SimCar(Vehicle):
-    LOWER_INTER_VEHICLE_DISTANCE = 10.0
-    LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE = 2.0
-    FLOAT_MAX = float_info.max
 
-    def __init__(self, name, waypoint, arrow, route, intersection, waypoint_id, velocity, schedules=None, dt=1.0):
-        super().__init__(name, waypoint, arrow, route, waypoint_id, velocity, schedules, dt)
+    CONST = SIM_CAR
 
-        self.topicTrafficSignalPublish = Topic()
-        self.topicTrafficSignalPublish.set_root(TrafficSignal.TOPIC.PUBLISH)
-        self.topicTrafficSignalPublish.set_message(traffic_signal_message)
+    def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
+        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
-        self.__prev_waypoint_id = waypoint_id
+        self.state_machine = self.get_state_machine()
+        self.velocity = None
 
-        self.traffic_signals = {}
-        self.other_vehicles = {}
-
+        self.traffic_signals = self.manager.dict()
+        self.traffic_signals_lock = self.manager.Lock()
+        self.other_vehicle_locations = self.manager.dict()
+        self.other_vehicle_locations_lock = self.manager.Lock()
         self.intersection = intersection
 
-        self.add_on_message_function(self.set_other_vehicle_poses)
-        self.add_on_message_function(self.set_traffic_signals)
+        self.__topicPubLocation = Topic()
+        self.__topicPubLocation.set_targets(Target.new_target(self.target.id, SIM_CAR.NODE_NAME))
+        self.__topicPubLocation.set_categories(SIM_CAR.TOPIC.CATEGORIES.LOCATION)
 
-        self.set_subscriber(self.topicVehiclePublish.all)
-        self.set_subscriber(self.topicTrafficSignalPublish.all)
+        self.__topicSubStatus = Topic()
+        self.__topicSubStatus.set_targets(Target.new_target(None, SIM_CAR.NODE_NAME), None)
+        self.__topicSubStatus.set_categories(SIM_CAR.TOPIC.CATEGORIES.LOCATION)
+        self.__topicSubStatus.set_message(Location)
+        self.set_subscriber(self.__topicSubStatus, self.update_other_vehicle_locations)
 
-    def set_traffic_signals(self, _client, _user_data, topic, payload):
-        if self.topicTrafficSignalPublish.root in topic:
-            message = self.topicTrafficSignalPublish.unserialize(payload)
-            self.traffic_signals.update(dict(map(lambda x: (x["route_code"], x), message["routes"])))
+        self.__topicSubTrafficSignalStatus = Topic()
+        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
+        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
+        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
+        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signals)
 
-    def set_other_vehicle_poses(self, _client, _user_data, topic, payload):
-        if self.topicVehiclePublish.private not in topic and \
-                self.topicVehiclePublish.root in topic:
-            vehicle_id = self.topicVehiclePublish.get_id(topic)
-            message = self.topicVehiclePublish.unserialize(payload)
+    def set_velocity(self, velocity):
+        self.velocity = velocity
 
-            # todo: localize
-            self.other_vehicles[vehicle_id] = message
+    def publish_location(self):
+        self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
+        payload = self.__topicPubLocation.serialize(self.status.location)
+        self.publish(self.__topicPubLocation, payload)
+
+    def update_traffic_signals(self, _client, _user_data, _topic, payload):
+        # todo: localize
+        traffic_signal_status = self.__topicSubTrafficSignalStatus.unserialize(payload)
+
+        self.traffic_signals_lock.acquire()
+        self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
+        self.traffic_signals_lock.release()
+
+    def update_other_vehicle_locations(self, _client, _user_data, topic, payload):
+        # todo: localize
+        from_id = Topic.get_from_id(topic)
+        if self.target.id != from_id:
+            self.other_vehicle_locations_lock.acquire()
+            self.other_vehicle_locations[from_id] = self.__topicSubStatus.unserialize(payload)
+            self.other_vehicle_locations_lock.release()
 
     def get_monitored_route(self, distance=100.0):
         if distance <= 0:
             return None
-        arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-        arrow_codes = arrow_codes[arrow_codes.index(self.arrow_code):]
-        route = {
-            "start_waypoint_id": self.waypoint_id,
-            "goal_waypoint_id": self.arrow.get_waypoint_ids(self.schedules[0]["route"]["arrow_codes"][-1])[-1],
-            "arrow_codes": arrow_codes
-        }
+        arrow_codes = self.status.schedule.route.arrow_codes
+        arrow_codes = arrow_codes[arrow_codes.index(self.status.location.arrow_code):]
+        route = Route.new_route(
+            self.status.location.waypoint_id,
+            self.arrow.get_waypoint_ids(self.status.schedule.route.arrow_codes[-1])[-1],
+            arrow_codes)
         return self.route.get_sliced_route(route, distance)
 
-    def __get_inter_vehicle_distance(self, monitored_route):
-        monitored_waypoint_ids = self.route.get_route_waypoint_ids(monitored_route)
-        inter_vehicle_distance = SimCar.FLOAT_MAX
-        if self.arrow_code is not None and 0 < len(self.other_vehicles):
+    def get_distance_from_preceding_vehicle(self, monitored_route):
+        self.other_vehicle_locations_lock.acquire()
+        other_vehicle_locations = deepcopy(self.other_vehicle_locations)
+        self.other_vehicle_locations_lock.release()
+
+        monitored_waypoint_ids = self.route.get_waypoint_ids(monitored_route)
+        distance_from_preceding_vehicle = SIM_CAR.FLOAT_MAX
+        if self.status.location.arrow_code is not None and 0 < len(other_vehicle_locations):
             other_vehicles_waypoint_ids = list(map(
-                lambda x: x["location"]["waypoint_id"], self.other_vehicles.values()))
+                lambda x: x.waypoint_id, other_vehicle_locations.values()))
             for i, monitored_waypoint_id in enumerate(monitored_waypoint_ids):
                 if monitored_waypoint_id in other_vehicles_waypoint_ids:
-                    inter_vehicle_distance = self.route.get_distance_of_waypoints(monitored_waypoint_ids[0:i + 1])
+                    distance_from_preceding_vehicle = \
+                        self.route.get_distance_of_waypoints(monitored_waypoint_ids[:i+1])
                     break
-        # print("inter_vehicle_distance {}[m]".format(inter_vehicle_distance))
-        return inter_vehicle_distance
+        if distance_from_preceding_vehicle < SIM_CAR.FLOAT_MAX:
+            logger.info("distance_from_preceding_vehicle {}[m]".format(distance_from_preceding_vehicle))
+        return distance_from_preceding_vehicle
 
-    def __get_inter_traffic_signal_distance(self, monitored_route):
-        monitored_arrow_codes = monitored_route["arrow_codes"]
-        inter_traffic_signal_distance = SimCar.FLOAT_MAX
+    def get_distance_from_stopline(self, monitored_route):
+        monitored_arrow_codes = monitored_route.arrow_codes
+        distance_from_stopline = SIM_CAR.FLOAT_MAX
+
+        self.traffic_signals_lock.acquire()
+        traffic_signals = deepcopy(self.traffic_signals)
+        self.traffic_signals_lock.release()
 
         not_green_traffic_signal_route_codes = list(map(
-            lambda x: x["route_code"], filter(
-                lambda x: x["state"] in [TrafficSignal.STATE.YELLOW, TrafficSignal.STATE.RED],
-                self.traffic_signals.values())))
+            lambda x: x.route_code, filter(
+                lambda x: x.state in [TRAFFIC_SIGNAL.STATE.YELLOW, TRAFFIC_SIGNAL.STATE.RED],
+                traffic_signals.values())))
 
-        new_monitored_route = {
-            "start_waypoint_id": monitored_route["start_waypoint_id"],
-            "arrow_codes": None,
-            "goal_waypoint_id": None
-        }
+        new_monitored_route = None
         for i, monitored_arrow_code in enumerate(monitored_arrow_codes):
             for not_green_traffic_signal_route_code in not_green_traffic_signal_route_codes:
                 if monitored_arrow_code in not_green_traffic_signal_route_code:
-                    start_waypoint_id, arrow_codes, _ = self.route.split_route_code(not_green_traffic_signal_route_code)
-                    if monitored_arrow_code == arrow_codes[0]:
+                    not_green_traffic_signal_route = Route.decode_route_code(not_green_traffic_signal_route_code)
+                    if monitored_arrow_code == not_green_traffic_signal_route.arrow_codes[0]:
                         waypoint_ids = self.arrow.get_waypoint_ids(monitored_arrow_code)
-                        if self.waypoint_id not in waypoint_ids or \
-                                waypoint_ids.index(self.waypoint_id) <= waypoint_ids.index(start_waypoint_id):
-                            new_monitored_route["goal_waypoint_id"] = start_waypoint_id
-                            new_monitored_route["arrow_codes"] = monitored_arrow_codes[:i]
+                        if self.status.location.waypoint_id not in waypoint_ids or \
+                                waypoint_ids.index(self.status.location.waypoint_id) <= waypoint_ids.index(
+                                    not_green_traffic_signal_route.start_waypoint_id):
+                            new_monitored_route = Route.new_route(
+                                monitored_route.start_waypoint_id,
+                                not_green_traffic_signal_route.start_waypoint_id,
+                                monitored_arrow_codes[:i+1])
                             break
-            if new_monitored_route["arrow_codes"] is not None:
+            if new_monitored_route is not None:
                 break
 
-        if new_monitored_route["arrow_codes"] is not None:
-            inter_traffic_signal_distance = self.route.get_route_length(new_monitored_route)
+        if new_monitored_route is not None:
+            distance_from_stopline = self.route.get_route_length(new_monitored_route)
 
-        # print("inter_traffic_signal_distance {}[m]".format(inter_traffic_signal_distance))
-        return inter_traffic_signal_distance
+        if distance_from_stopline < SIM_CAR.FLOAT_MAX:
+            logger.info("distance_from_stopline {}[m]".format(distance_from_stopline))
+        return distance_from_stopline
 
     def __get_movable_distance(self):
-        movable_distance = SimCar.FLOAT_MAX
-        if 0 < len(self.schedules):
-            if self.schedules[0]["action"] == Vehicle.ACTION.MOVE:
-                # check inter-vehicle distance
-                monitored_route = self.get_monitored_route()
-                if monitored_route is None:
-                    return 0.0
-                inter_vehicle_distance = self.__get_inter_vehicle_distance(monitored_route)
-                movable_distance = inter_vehicle_distance - SimCar.LOWER_INTER_VEHICLE_DISTANCE
+        monitored_route = self.get_monitored_route()
+        if monitored_route is None:
+            return 0.0
+        distance_from_preceding_vehicle = self.get_distance_from_preceding_vehicle(monitored_route)
+        movable_distance = distance_from_preceding_vehicle - SIM_CAR.LOWER_INTER_VEHICLE_DISTANCE
 
-                # check inter-trafficSignal distance
-                monitored_route = self.get_monitored_route(movable_distance)
-                if monitored_route is None:
-                    return 0.0
-                inter_traffic_signal_distance = self.__get_inter_traffic_signal_distance(monitored_route)
-                movable_distance = min(
-                    movable_distance, inter_traffic_signal_distance - SimCar.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
+        monitored_route = self.get_monitored_route(movable_distance)
+        if monitored_route is None:
+            return 0.0
+        distance_from_stopline = self.get_distance_from_stopline(monitored_route)
+        movable_distance = min(
+            movable_distance, distance_from_stopline - SIM_CAR.LOWER_INTER_TRAFFIC_SIGNAL_DISTANCE)
 
         return movable_distance
 
@@ -135,62 +154,99 @@ class SimCar(Vehicle):
         movable_distance = self.__get_movable_distance()
         delta_distance = min(self.velocity * self.dt, movable_distance)
         if 0.0 < delta_distance:
-            self.__prev_waypoint_id = self.waypoint_id
-            self.position, self.yaw, self.arrow_code, self.waypoint_id = self.get_next_pose(delta_distance)
+            self.np_position, self.status.pose.orientation.rpy.yaw,\
+                self.status.location.arrow_code, self.status.location.waypoint_id = \
+                self.get_next_pose(delta_distance, self.status.schedule.route)
+        self.publish_location()
 
-    def is_achieved(self):
-        goal_waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-        # get pass waypoint_ids
-        waypoint_ids = []
-        for arrow_code in self.schedules[0]["route"]["arrow_codes"][0:2]:
-            waypoint_ids.extend(self.arrow.get_waypoint_ids(arrow_code))
-        pass_waypoint_ids = \
-            waypoint_ids[waypoint_ids.index(self.__prev_waypoint_id):waypoint_ids.index(self.waypoint_id) + 1]
+    def update_route(self):
+        index = self.status.schedule.route.arrow_codes.index(self.status.location.arrow_code)
+        self.status.schedule.route.arrow_codes[:] = self.status.schedule.route.arrow_codes[index:]
+        self.status.schedule.route.start_waypoint_id = self.status.location.waypoint_id
 
-        return goal_waypoint_id in pass_waypoint_ids
+    def update_velocity(self):
+        speed_limit = self.waypoint.get_speed_limit(self.status.location.waypoint_id)
+        if self.velocity < speed_limit:
+            self.velocity += min(SIM_CAR.ACCELERATION_MAX * self.dt, speed_limit - self.velocity)
+        elif speed_limit < self.velocity:
+            self.velocity = speed_limit
+        return
 
-    def get_next_pose(self, delta_distance):
-        arrows, to_arrows, _ = self.arrow.get_arrow_codes_to_arrows(
-            self.schedules[0]["route"]["arrow_codes"][0:2])
-        position, arrow_code = self.arrow.get_advanced_position_in_arrows(
-            self.position, delta_distance, arrows=arrows, next_arrows=to_arrows)
-        waypoint_id, position, _ = self.arrow.get_point_to_arrow(position, arrow_code)
-        heading = self.arrow.get_heading(arrow_code, waypoint_id)
-        return position, heading, arrow_code, waypoint_id
+    def get_next_pose(self, delta_distance, route):
+        position, waypoint_id, arrow_code = self.route.get_moved_position(
+            self.np_position, delta_distance, route)
+        yaw = self.arrow.get_yaw(arrow_code, waypoint_id)
+        return position, yaw, arrow_code, waypoint_id
+
+    def update_pose_to_route_start(self):
+        self.status.location.waypoint_id = self.status.schedule.route.start_waypoint_id
+        self.status.location.arrow_code = self.status.schedule.route.arrow_codes[0]
+        self.np_position = self.waypoint.get_np_position(self.status.location.waypoint_id)
+        self.status.pose.orientation.rpy.yaw = \
+            self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
+        self.velocity = 0.0
+
+    def get_state_machine(self, initial_state=SIM_CAR.STATE.STOP):
+        machine = StateMachine(
+            states=list(SIM_CAR.STATE),
+            initial=initial_state,
+        )
+        machine.add_transitions([
+            {
+                "trigger": SIM_CAR.TRIGGER.MOVE, "source": SIM_CAR.STATE.STOP, "dest": SIM_CAR.STATE.MOVE,
+                "conditions": [self.after_state_change_update_schedules]
+            },
+            {
+                "trigger": SIM_CAR.TRIGGER.MOVE, "source": SIM_CAR.STATE.MOVE, "dest": SIM_CAR.STATE.MOVE,
+                "conditions": [self.condition_achieved_and_update_schedules]
+            },
+            {
+                "trigger": SIM_CAR.TRIGGER.STOP, "source": SIM_CAR.STATE.MOVE, "dest": SIM_CAR.STATE.STOP,
+                "conditions": [self.condition_achieved_and_update_schedules]
+            }
+        ])
+        return machine
+
+    def condition_achieved(self):
+        return self.status.location.waypoint_id == self.status.schedule.route.goal_waypoint_id
+
+    def condition_time_limit(self, current_time):
+        return self.status.schedule.period.end < current_time
+
+    def after_state_change_update_schedules(self, current_time, schedules):
+        schedules[:] = self.get_next_schedules(schedules, current_time)
+        self.update_pose_to_route_start()
+        return True
+
+    def condition_achieved_and_update_schedules(self, current_time, schedules):
+        if self.condition_achieved():
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        return False
+
+    def condition_time_limit_and_update_schedules(self, current_time, schedules):
+        if self.condition_time_limit(current_time):
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        return False
 
     def update_status(self):
-        current_time = time()
-        if self.state == Vehicle.STATE.STOP:
-            if self.schedules[0]["action"] == Vehicle.ACTION.MOVE:
-                self.state = Vehicle.STATE.MOVE
-            else:
-                if self.schedules[0]["start_time"]+self.schedules[0]["duration"] <= current_time:
-                    if 1 < len(self.schedules):
-                        self.schedules.pop(0)
+        schedules = self.get_schedules_and_lock()
 
-                        # update next schedule
-                        dif_time = current_time - self.schedules[0]["start_time"]
-                        self.schedules[0]["start_time"] += dif_time
-                        self.schedules[0]["duration_time"] = dif_time
-
-                        self.state = Vehicle.STATE.MOVE
-
-        elif self.state == Vehicle.STATE.MOVE:
+        if self.state_machine.state == SIM_CAR.STATE.MOVE:
             self.update_pose()
-            if self.is_achieved():
-                self.waypoint_id = self.schedules[0]["route"]["goal"]["waypoint_id"]
-                self.arrow_code = self.schedules[0]["route"]["goal"]["arrow_codes"][-1]
-                self.position = self.waypoint.get_position(self.waypoint_id)
-                self.yaw = self.arrow.get_heading(self.arrow_code, self.waypoint_id)
-                self.schedules.pop(0)
+            self.update_route()
+            self.update_velocity()
 
-                # update next schedule
-                new_start_time = time()
-                dif_time = new_start_time - self.schedules[0]["start_time"]
-                self.schedules[0]["start_time"] += dif_time
-                self.schedules[0]["duration_time"] = dif_time
+        if 1 < len(schedules):
+            current_time = time()
+            next_event = schedules[1].event
 
-                self.state = Vehicle.STATE.STOP
+            if next_event == SIM_CAR.TRIGGER.MOVE:
+                self.state_machine.move(current_time, schedules)
+            elif next_event == SIM_CAR.TRIGGER.STOP:
+                self.state_machine.stop(current_time, schedules)
             else:
-                arrow_codes = self.schedules[0]["route"]["arrow_codes"]
-                self.schedules[0]["route"]["arrow_codes"] = arrow_codes[arrow_codes.index(self.arrow_code):]
+                pass
+
+        self.set_schedules_and_unlock(schedules)

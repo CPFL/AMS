@@ -1,24 +1,32 @@
-message = {
-    "name": "signal name",
-    "time": "published unixtime",
-    "routes": [{
-        "route_code": "route_code",
-        "action": "next signal state from external: None, green, yellow or red",
-        "state": "current signal state: None, green, yellow or red"
-    }],
-    "schedules": [{
-        "route_code": "route_code",
-        "state": "next signal state: green, yellow or red",
-        "start_time": "start time of next signal state",
-        "duration": "duration of next signal state"
-    }],
-    "cycles":[{
-        "route_codes": [],
-        "base_time": None,
-        "period": None,
-        "phases": [{
-            "state": "signal state: green, yellow or red",
-            "duration": "duration of signal state"
-        }]
-    }]
+#!/usr/bin/env python
+# coding: utf-8
+
+from ams.structures import get_base_class
+
+status_template = {
+    "route_code": "0:0_1:1",
+    "time": 0.0,
+    "state": "default"
 }
+
+status_schema = {
+    "route_code": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    },
+    "time": {
+        "type": "number",
+        "required": True,
+        "nullable": False
+    },
+    "state": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    }
+}
+
+
+class Status(get_base_class(status_template, status_schema)):
+    pass

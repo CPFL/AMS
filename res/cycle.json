@@ -1,0 +1,68 @@
+{
+  "cycles": {
+    "A": {
+      "time": 418759200,
+      "period": 124.0,
+      "phases": [
+        {
+          "state": "green",
+          "duration": 70.0
+        },
+        {
+          "state": "yellow",
+          "duration": 5.0
+        },
+        {
+          "state": "red",
+          "duration": 49.0
+        }
+      ]
+    },
+    "B": {
+      "time": 418759200,
+      "period": 124.0,
+      "phases": [
+        {
+          "state": "green",
+          "duration": 80.0
+        },
+        {
+          "state": "yellow",
+          "duration": 5.0
+        },
+        {
+          "state": "red",
+          "duration": 39.0
+        }
+      ]
+    },
+    "C": {
+      "time": 418759287,
+      "period": 124.0,
+      "phases": [
+        {
+          "state": "green",
+          "duration": 30.0
+        },
+        {
+          "state": "yellow",
+          "duration": 5.0
+        },
+        {
+          "state": "red",
+          "duration": 89.0
+        }
+      ]
+    },
+    "D": {
+      "time": 418759200,
+      "period": 600.0,
+      "phases": [
+        {
+          "state": "green",
+          "duration": 600.0
+        }
+      ]
+    }
+  }
+}

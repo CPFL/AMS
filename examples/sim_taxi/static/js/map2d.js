@@ -13,50 +13,52 @@ const circles = {};
 const date = new Date() ;
 const socket = io.connect("ws://" + window.location.hostname + ":" + window.location.port + "/ams");
 
+const toDegree = 360/(2*Math.PI);
+Math.degree = Math.degree || function(rad){
+    return rad * toDegree;
+}
+
 function onLoad() {
     const xMLHttpRequestViewData = new XMLHttpRequest();
     xMLHttpRequestViewData.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             viewData = JSON.parse(this.responseText);
 
-            socket.addEventListener(viewData.topics.vehicle, function (mqtt_message) {
-                setVehicle(mqtt_message.topic.split("/")[1], mqtt_message.message);
-                if(map!=null) {
-                    drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
-                    drawVehicles();
-                }
-            });
-
             socket.addEventListener(viewData.topics.user, function (mqtt_message) {
-                setUser(mqtt_message.topic.split("/")[1], mqtt_message.message);
+                setUser(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
+                    drawTrafficSignals();
                     drawUsers();
-                    drawRoutes();
-                    drawAutowareWaypoints();
                     drawVehicles();
                 }
             });
 
-            socket.addEventListener(viewData.topics.trafficSignal, function (mqtt_message) {
-                setTrafficSignals(mqtt_message.topic.split("/")[1], mqtt_message.message);
+            socket.addEventListener(viewData.topics.vehicle, function (mqtt_message) {
+                setVehicle(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
                     drawTrafficSignals()
                     drawRoutes();
                     drawAutowareWaypoints();
+                    drawUsers();
                     drawVehicles();
                 }
             });
 
-            socket.addEventListener(viewData.topics.fleetManager, function (mqtt_message) {
-                setFleetStatus(mqtt_message.topic.split("/")[1], mqtt_message.message);
+            socket.addEventListener(viewData.topics.traffic_signal, function (mqtt_message) {
+                setTrafficSignals(mqtt_message.topic.split("/")[3], mqtt_message.message);
                 if(map!=null) {
-                    drawUsers();
-                    drawTrafficSignals()
+                    drawTrafficSignals();
                     drawRoutes();
                     drawAutowareWaypoints();
+                    drawUsers();
+                    drawVehicles();
+                }
+            });
+
+            socket.addEventListener(viewData.topics.fleet_manager, function (mqtt_message) {
+                setFleetStatus(mqtt_message.topic.split("/")[3], mqtt_message.message);
+                if(map!=null) {
+                    drawUsers();
                     drawVehicles();
                 }
             });
@@ -67,7 +69,7 @@ function onLoad() {
 
     xMLHttpRequestViewData.open("GET", "http://" + window.location.hostname + ":" + window.location.port + "/getViewData", true);
     xMLHttpRequestViewData.send();
-};
+}
 
 function setFleetStatus(fleetManagerID, message){
     fleetStatus = JSON.parse(message);
@@ -78,9 +80,11 @@ function setUser(userID, message) {
     user.userID = userID;
     user.toID = null;
     if(Object.keys(fleetStatus).includes("relations")) {
-        if(Object.keys(fleetStatus.relations).includes(userID))
+        if(Object.keys(fleetStatus.relations).includes("SimTaxiUser/"+userID))
         {
-            user.toID = fleetStatus.relations[userID];
+            if(fleetStatus.relations["SimTaxiUser/"+userID].length==1){
+                user.toID = fleetStatus.relations["SimTaxiUser/"+userID][0].split("SimTaxi/")[1];
+            }
         }
         switch (user.state) {
             case "waiting":
@@ -89,16 +93,17 @@ function setUser(userID, message) {
             case "moving":
                 user.color = "#00a3e0";
                 break;
-            case "gettingOn":
-            case "gettingOut":
+            case "getting_on":
+            case "getting_out":
                 user.color = "#00FF00";
                 break;
-            case "login":
+            case "log_in":
             default:
                 user.color = "#000000";
                 break;
         }
     }
+    console.log(user);
     users[userID] = user;
 }
 
@@ -107,13 +112,13 @@ function setVehicle(vehicleID, message) {
     vehicle.vehicleID = vehicleID;
     switch (vehicle.state) {
         case "move":
-        case "moveToUser":
-        case "moveToUserDestination":
+        case "move_for_picking_up":
+        case "move_for_discharging":
             vehicle.color = "#00a3e0";
             break;
         case "stop":
-        case "pickingUp":
-        case "discharging":
+        case "stop_for_picking_up":
+        case "stop_for_discharging":
             vehicle.color = "#FF0000";
             break;
         case "moveToDeploy":
@@ -130,17 +135,17 @@ function setTrafficSignals(trafficSignalID, message) {
 
 function drawUsers() {
     for(const key in users) {
-        const waypoint = viewData.waypoints[users[key].schedules[0].start.waypoint_id];
+        const waypoint = viewData.waypoints[users[key].trip_schedules[0].route.start_waypoint_id];
         let latLng = geohashToLatLng(waypoint.geohash);
-        const goalWaypoint = viewData.waypoints[users[key].schedules[0].goal.waypoint_id];
+        const goalWaypoint = viewData.waypoints[users[key].trip_schedules[0].route.goal_waypoint_id];
         const goalLatLng = geohashToLatLng(goalWaypoint.geohash);
 
         if(waypoint === undefined) { continue; }
-        if (users[key].toID != null && ["gettingOn", "gotOn", "moving", "gettingOut", "gotOut"].includes(users[key].state)) {
+        if (users[key].toID != null && ["getting_on", "got_on", "moving", "getting_out"].includes(users[key].state)) {
             latLng = geohashToLatLng(vehicles[users[key].toID].location.geohash);
         }
 
-        if (users[key].state == "gotOut") {
+        if (["got_out", "log_out"].includes(users[key].state)) {
             if (key in userMarkers) {
                 userMarkers[key]["icon"].setMap(null);
                 userMarkers[key]["destination"].setMap(null);
@@ -202,34 +207,26 @@ function drawTrafficSignal(routeCode, color) {
 
 function drawTrafficSignals() {
     for(const trafficSignalID in trafficSignals) {
-        for (const route of trafficSignals[trafficSignalID].routes) {
-            if (route.route_code in trafficSignalPolylines) {
-                trafficSignalPolylines[route.route_code].setMap(null);
-            }
+        if (trafficSignals[trafficSignalID].route_code in trafficSignalPolylines) {
+            trafficSignalPolylines[trafficSignals[trafficSignalID].route_code].setMap(null);
         }
     }
     for(const trafficSignalID in trafficSignals) {
-        for(const route of trafficSignals[trafficSignalID].routes) {
-            if(route.state=="red") {
-                drawTrafficSignal(route.route_code, "#FF0000");
-            }
-            else if(route.state==null) {
-                drawTrafficSignal(route.route_code, "#FF0000");
-            }
+        if(trafficSignals[trafficSignalID].state=="red") {
+            drawTrafficSignal(trafficSignals[trafficSignalID].route_code, "#FF0000");
+        }
+        else if(trafficSignals[trafficSignalID].state=="unknown") {
+            drawTrafficSignal(trafficSignals[trafficSignalID].route_code, "#FF0000");
         }
     }
     for(const trafficSignalID in trafficSignals) {
-        for(const route of trafficSignals[trafficSignalID].routes) {
-            if(route.state=="yellow") {
-                drawTrafficSignal(route.route_code, "#FFFF00");
-            }
+        if(trafficSignals[trafficSignalID].state=="yellow") {
+            drawTrafficSignal(trafficSignals[trafficSignalID].route_code, "#FFFF00");
         }
     }
     for(const trafficSignalID in trafficSignals) {
-        for(const route of trafficSignals[trafficSignalID].routes) {
-            if(route.state=="green") {
-                drawTrafficSignal(route.route_code, "#00FF00");
-            }
+        if(trafficSignals[trafficSignalID].state=="green") {
+            drawTrafficSignal(trafficSignals[trafficSignalID].route_code, "#00FF00");
         }
     }
 }
@@ -243,15 +240,15 @@ function drawVehicles() {
     for(const key in vehicles) {
         const latLng = new google.maps.LatLng( geohashToLatLng(vehicles[key].location.geohash) );
         if( key in vehicleMarkers ) {
-            vehicleMarkers[key].setPosition( latLng );
-            vehicleMarkers[key].setLabel(vehicles[key].name+"@"+vehicles[key].state);
+            vehicleMarkers[key].setPosition(latLng);
+            vehicleMarkers[key].setLabel(vehicles[key].name + "@" + vehicles[key].state);
             vehicleMarkers[key].setIcon({
                 path: "M29.395,0H17.636c-3.117,0-5.643,3.467-5.643,6.584v34.804c0,3.116,2.526,5.644,5.643,5.644h11.759 c3.116,0,5.644-2.527,5.644-5.644V6.584C35.037,3.467,32.511,0,29.395,0z M34.05,14.188v11.665l-2.729,0.351v-4.806L34.05,14.188z M32.618,10.773c-1.016,3.9-2.219,8.51-2.219,8.51H16.631l-2.222-8.51C14.41,10.773,23.293,7.755,32.618,10.773z M15.741,21.713 v4.492l-2.73-0.349V14.502L15.741,21.713z M13.011,37.938V27.579l2.73,0.343v8.196L13.011,37.938z M14.568,40.882l2.218-3.336 h13.771l2.219,3.336H14.568z M31.321,35.805v-7.872l2.729-0.355v10.048L31.321,35.805z",
                 fillColor: vehicles[key].color,
                 fillOpacity: .6,
-                anchor: new google.maps.Point(24,25),
+                anchor: new google.maps.Point(24, 25),
                 strokeWeight: 0,
-                rotation: vehicles[key].pose.orientation.yaw,
+                rotation: Math.degree(vehicles[key].pose.orientation.rpy.yaw),
                 scale: 1
             });
         }
@@ -267,7 +264,7 @@ function drawVehicles() {
                     fillOpacity: .6,
                     anchor: new google.maps.Point(24,25),
                     strokeWeight: 0,
-                    rotation: vehicles[key].pose.orientation.yaw,
+                    rotation: vehicles[key].pose.orientation.rpy.yaw,
                     scale: 1
                 }
             });
@@ -299,13 +296,8 @@ function drawRoutes() {
         if (vehicleID in routeMarkers) {
             routeMarkers[vehicleID].setMap(null);
         }
-        if(["move", "moveToUser", "moveToUserDestination"].includes(vehicles[vehicleID].state)) {
-            const route = {
-                "arrow_codes": vehicles[vehicleID].schedules[0].route.arrow_codes,
-                "start_waypoint_id": vehicles[vehicleID].waypoint_id,
-                "goal_waypoint_id": vehicles[vehicleID].schedules[0].route.goal.goal_waypoint_id
-            }
-            routeMarkers[vehicleID] = drawRoute(route, strokeColor="#00FFFF", strokeWeight=4);
+        if(["move", "move_for_picking_up", "move_for_discharging"].includes(vehicles[vehicleID].state)) {
+            routeMarkers[vehicleID] = drawRoute(vehicles[vehicleID].schedule.route, strokeColor="#00FFFF", strokeWeight=4);
         }
     }
 }
@@ -319,9 +311,9 @@ function drawAutowareWaypoints() {
         }
         waypointCircles[vehicleID] = {}
         if(["move", "moveToUser", "moveToUserDestination"].includes(vehicles[vehicleID].state)) {
-            const arrowCodes = vehicles[vehicleID].schedules[0]["route"]["arrow_codes"];
+            const arrowCodes = vehicles[vehicleID].schedule["route"]["arrow_codes"];
             const startWaypointID = vehicles[vehicleID].waypoint_id;
-            const goalWaypointID = vehicles[vehicleID].schedules[0]["route"].goal.waypoint_id;
+            const goalWaypointID = vehicles[vehicleID].schedule["route"].goal_waypoint_id;
 
             let centers = [];
             const ie = Math.min(2, arrowCodes.length);
@@ -365,16 +357,16 @@ function getRouteFromRouteCode(routeCode) {
     }
     route = {
         start_waypoint_id: splittedRouteCode[0],
+        goal_waypoint_id: splittedRouteCode[2],
         arrow_codes: arrowCodes,
-        goal_waypoint_id: splittedRouteCode[2]
     }
     return route
 }
 
 function getRoutePaths(route) {
-    const arrowCodes = route["arrow_codes"];
-    const startWaypointID = route["start_waypoint_id"];
-    const goalWaypointID = route["goal_waypoint_id"];
+    const arrowCodes = route.arrow_codes;
+    const startWaypointID = route.start_waypoint_id;
+    const goalWaypointID = route.goal_waypoint_id;
     let paths = [];
     for(const i in arrowCodes) {
         const arrowCode = arrowCodes[i];

@@ -15,7 +15,7 @@ with open(path.join(here, 'LICENSE'), encoding='utf-8') as f:
 
 setup(
     name='ams',
-    version='0.1',
+    version='0.2',
     description='Autoware Management System',
     long_description=long_description,
     url='https://github.com/CPFL/Autoware-Management-System',
@@ -33,7 +33,10 @@ setup(
         "Flask-SocketIO==2.9.2",
         "Flask-MQTT==0.0.8",
         "python-geohash==0.8.5",
+        "Geohash==1.0",
         "eventlet==0.21.0",
+        "Cerberus==1.1",
+        "transitions==0.6.4"
     ],
     test_suite="tests"
 )
