@@ -150,9 +150,6 @@ class SimTaxiFleet(FleetManager):
         user_schedules = Schedule.get_merged_schedules(
             self.user_schedules[user_id], get_on_schedules + get_out_schedules
         )
-
-        # logger.pp(user_schedules)
-
         return vehicle_id, vehicle_schedules, user_schedules
 
     def get_pickup_route(self, user_status):
@@ -393,7 +390,6 @@ class SimTaxiFleet(FleetManager):
     def cleanup_status(self, user_statuses):
         user_ids = []
         for user_id, user_status in user_statuses.items():
-            # print(time() - user_status.time, user_status.state)
             if SIM_TAXI_FLEET.TIMEOUT < time() - user_status.time:
                 user_ids.append(user_id)
         for user_id in user_ids:
@@ -427,7 +423,6 @@ class SimTaxiFleet(FleetManager):
             state = self.state_machines[user_id].state
 
             if len(target_vehicles) == 0:
-                # print(user_id, user_status.state, state, len(target_vehicles))
 
                 if state == SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN:
                     self.state_machines[user_id].wait_user_request(
@@ -438,9 +433,6 @@ class SimTaxiFleet(FleetManager):
 
             elif len(target_vehicles) == 1:
                 vehicle_id = target_vehicles[0].id
-
-                # print(user_id, user_status.state, len(target_vehicles),
-                #       list(map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets)))
 
                 if user_id in map(lambda x: x.id, self.vehicle_schedules[vehicle_id][0].targets):
                     vehicle_status = vehicle_statuses[vehicle_id]

@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from copy import deepcopy
 from time import time
 
 from transitions import Machine
 
-from ams import logger
 from ams.nodes import User
 from ams.structures import USER, SIM_TAXI_USER
 
@@ -107,5 +105,3 @@ class SimTaxiUser(User):
                 pass
 
         self.set_schedules_and_unlock(schedules)
-
-        # logger.pp({self.target.id: self.state_machine.state})

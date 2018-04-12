@@ -3,13 +3,12 @@
 
 from ams.structures import get_base_class
 
-
-template = {
+timestamp_template = {
     "secs": 0,
     "nsecs": 0
 }
 
-schema = {
+timestamp_schema = {
     "secs": {
         "type": "integer",
         "required": True,
@@ -23,17 +22,17 @@ schema = {
 }
 
 
-class Timestamp(get_base_class(template, schema)):
+class Timestamp(get_base_class(timestamp_template, timestamp_schema)):
     pass
 
 
-template = {
+header_template = {
     "seq": 0,
     "stamp": Timestamp.get_template(),
     "frame_id": ""
 }
 
-schema = {
+header_schema = {
     "seq": {
         "type": "integer",
         "required": True,
@@ -53,7 +52,7 @@ schema = {
 }
 
 
-class Header(get_base_class(template, schema)):
+class Header(get_base_class(header_template, header_schema)):
     pass
 
 
@@ -86,7 +85,7 @@ class Vector3(get_base_class(vector3_template, vector3_schema)):
     pass
 
 
-pose = {
+pose_template = {
     "position": Vector3.get_template(),
     "orientation": {
         "w": 0.0,
@@ -133,11 +132,11 @@ pose_schema = {
 }
 
 
-class Pose(get_base_class(pose, pose_schema)):
+class Pose(get_base_class(pose_template, pose_schema)):
     pass
 
 
-current_pose = {
+current_pose_template = {
     "header": Header.get_template(),
     "pose": Pose.get_template()
 }
@@ -158,16 +157,16 @@ current_pose_schema = {
 }
 
 
-class CurrentPose(get_base_class(current_pose, current_pose_schema)):
+class CurrentPose(get_base_class(current_pose_template, current_pose_schema)):
     pass
 
 
-template = {
+twist_template = {
     "linear": Vector3.get_template(),
     "angular": Vector3.get_template()
 }
 
-schema = {
+twist_schema = {
     "linear": {
         "type": "dict",
         "schema": Vector3.get_schema(),
@@ -183,16 +182,16 @@ schema = {
 }
 
 
-class Twist(get_base_class(template, schema)):
+class Twist(get_base_class(twist_template, twist_schema)):
     pass
 
 
-template = {
+twist_stamped_template = {
     "header": Header.get_template(),
     "twist": Twist.get_template()
 }
 
-schema = {
+twist_stamped_schema = {
     "header": {
         "type": "dict",
         "schema": Header.get_schema(),
@@ -208,11 +207,11 @@ schema = {
 }
 
 
-class TwistStamped(get_base_class(template, schema)):
+class TwistStamped(get_base_class(twist_stamped_template, twist_stamped_schema)):
     pass
 
 
-template = {
+dtlane_template = {
     "dist": 0.0,
     "dir": 0.0,
     "apara": 0.0,
@@ -223,7 +222,7 @@ template = {
     "rw": 0.0
 }
 
-schema = {
+dtlane_schema = {
     "dist": {
         "type": "number",
         "required": True,
@@ -267,11 +266,11 @@ schema = {
 }
 
 
-class Dtlane(get_base_class(template, schema)):
+class Dtlane(get_base_class(dtlane_template, dtlane_schema)):
     pass
 
 
-template = {
+waypoint_state_template = {
     "aid": 0,
     "lanechange_state": 0,
     "steering_state": 0,
@@ -280,7 +279,7 @@ template = {
     "event_state": 0
 }
 
-schema = {
+waypoint_state_schema = {
     "aid": {
         "type": "integer",
         "required": True,
@@ -315,11 +314,11 @@ schema = {
 }
 
 
-class WaypointState(get_base_class(template, schema)):
+class WaypointState(get_base_class(waypoint_state_template, waypoint_state_schema)):
     pass
 
 
-closest_waypoint = {
+closest_waypoint_template = {
     "data": 0
 }
 
@@ -332,11 +331,11 @@ closest_waypoint_schema = {
 }
 
 
-class ClosestWaypoint(get_base_class(closest_waypoint, closest_waypoint_schema)):
+class ClosestWaypoint(get_base_class(closest_waypoint_template, closest_waypoint_schema)):
     pass
 
 
-dicision_maker_states = {
+dicision_maker_states_template = {
     "header": Header.get_template(),
     "main_state": "default",
     "acc_state": "default",
@@ -374,11 +373,11 @@ dicision_maker_states_schema = {
 }
 
 
-class DecisionMakerStates(get_base_class(dicision_maker_states, dicision_maker_states_schema)):
+class DecisionMakerStates(get_base_class(dicision_maker_states_template, dicision_maker_states_schema)):
     pass
 
 
-status = {
+status_template = {
     "route_code": "0:0_1:1",
     "time": 0.0,
     "state": "default"
@@ -403,11 +402,11 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status, status_schema)):
+class Status(get_base_class(status_template, status_schema)):
     pass
 
 
-pose_stamped = {
+pose_stamped_template = {
     "header": Header.get_template(),
     "pose": Pose.get_template()
 }
@@ -428,11 +427,11 @@ pose_stamped_schema = {
 }
 
 
-class PoseStamped(get_base_class(pose_stamped, pose_stamped_schema)):
+class PoseStamped(get_base_class(pose_stamped_template, pose_stamped_schema)):
     pass
 
 
-template = {
+waypoint_template = {
     "gid": 0,
     "lid": 0,
     "pose": PoseStamped.get_template(),
@@ -443,7 +442,7 @@ template = {
 
 }
 
-schema = {
+waypoint_schema = {
     "gid": {
         "type": "integer",
         "required": True,
@@ -486,18 +485,18 @@ schema = {
 }
 
 
-class Waypoint(get_base_class(template, schema)):
+class Waypoint(get_base_class(waypoint_template, waypoint_schema)):
     pass
 
 
-template = {
+lane_template = {
     "header": Header.get_template(),
     "increment": 0,
     "lane_id": 0,
     "waypoints": [Waypoint.get_template()]
 }
 
-schema = {
+lane_schema = {
     "header": {
         "type": "dict",
         "schema": Header.get_schema(),
@@ -528,11 +527,11 @@ schema = {
 }
 
 
-class Lane(get_base_class(template, schema)):
+class Lane(get_base_class(lane_template, lane_schema)):
     pass
 
 
-lane_array = {
+lane_array_template = {
     "lanes": [Lane.get_template()]
 }
 
@@ -551,11 +550,11 @@ lane_array_schema = {
 }
 
 
-class LaneArray(get_base_class(lane_array, lane_array_schema)):
+class LaneArray(get_base_class(lane_array_template, lane_array_schema)):
     pass
 
 
-state_command = {
+state_command_template = {
     "data": 14
 }
 
@@ -568,11 +567,11 @@ state_command_schema = {
 }
 
 
-class StateCommand(get_base_class(state_command, state_command_schema)):
+class StateCommand(get_base_class(state_command_template, state_command_schema)):
     pass
 
 
-light_color = {
+light_color_template = {
     "header": Header.get_template(),
     "traffic_light": 0
 }
@@ -592,18 +591,18 @@ light_color_schema = {
 }
 
 
-class LightColor(get_base_class(light_color, light_color_schema)):
+class LightColor(get_base_class(light_color_template, light_color_schema)):
     pass
 
 
-template = {
+pose_with_covariance_template = {
     "pose": Pose.get_template(),
     "convariance": [
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 }
 
-schema = {
+pose_with_covariance_schema = {
     "position": {
         "type": "dict",
         "schema": Pose.get_schema(),
@@ -623,11 +622,11 @@ schema = {
 }
 
 
-class PoseWithCovariance(get_base_class(template, schema)):
+class PoseWithCovariance(get_base_class(pose_with_covariance_template, pose_with_covariance_schema)):
     pass
 
 
-initial_pose = {
+initial_pose_template = {
     "header": Header.get_template(),
     "pose": PoseWithCovariance.get_template()
 }
@@ -648,7 +647,7 @@ initial_pose_schema = {
 }
 
 
-class InitialPose(get_base_class(initial_pose, initial_pose_schema)):
+class InitialPose(get_base_class(initial_pose_template, initial_pose_schema)):
     pass
 
 

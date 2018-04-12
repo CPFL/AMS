@@ -4,7 +4,6 @@
 import json
 from ams import Location, Target
 from ams.structures import Spot as Structure
-from ams.structures import Polygon
 
 
 class Spot(object):
@@ -25,12 +24,7 @@ class Spot(object):
                 Location.new_location(
                     x["contact"]["waypointID"], x["contact"]["arrowCode"],  x["contact"]["geohash"]
                 ),
-                None,
-                # "polygon": Polygon.new_data(
-                #     positions=x["polygon"]["positions"],
-                #     locations=x["polygon"]["locations"]
-                # ),
-                None
+                None, None
             )),
             spots
         ))

@@ -91,7 +91,8 @@ class SimCar(Vehicle):
                 lambda x: x.waypoint_id, other_vehicle_locations.values()))
             for i, monitored_waypoint_id in enumerate(monitored_waypoint_ids):
                 if monitored_waypoint_id in other_vehicles_waypoint_ids:
-                    distance_from_preceding_vehicle = self.route.get_distance_of_waypoints(monitored_waypoint_ids[:i+1])
+                    distance_from_preceding_vehicle = \
+                        self.route.get_distance_of_waypoints(monitored_waypoint_ids[:i+1])
                     break
         if distance_from_preceding_vehicle < SIM_CAR.FLOAT_MAX:
             logger.info("distance_from_preceding_vehicle {}[m]".format(distance_from_preceding_vehicle))
@@ -136,14 +137,12 @@ class SimCar(Vehicle):
         return distance_from_stopline
 
     def __get_movable_distance(self):
-        # check inter-vehicle distance
         monitored_route = self.get_monitored_route()
         if monitored_route is None:
             return 0.0
         distance_from_preceding_vehicle = self.get_distance_from_preceding_vehicle(monitored_route)
         movable_distance = distance_from_preceding_vehicle - SIM_CAR.LOWER_INTER_VEHICLE_DISTANCE
 
-        # check inter-trafficSignal distance
         monitored_route = self.get_monitored_route(movable_distance)
         if monitored_route is None:
             return 0.0
@@ -231,7 +230,6 @@ class SimCar(Vehicle):
         if self.condition_time_limit(current_time):
             self.after_state_change_update_schedules(current_time, schedules)
             return True
-        # print(self.status.schedule.period.end - current_time, current_time, self.status.schedule.period.end)
         return False
 
     def update_status(self):

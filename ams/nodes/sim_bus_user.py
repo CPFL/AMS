@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from transitions import Machine
 
-from ams import logger, Topic, Target
+from ams import Topic, Target
 from ams.nodes import User
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS, VEHICLE, SIM_BUS_USER, USER
@@ -90,7 +90,8 @@ class SimBusUser(User):
         ])
         return machine
 
-    def condition_bus_arrived_at_target_bus_stop(self, target_bus_stop, vehicle_status):
+    @staticmethod
+    def condition_bus_arrived_at_target_bus_stop(target_bus_stop, vehicle_status):
         targets_vehicle_statuses = list(filter(
             lambda x: Target.is_same_id(x, target_bus_stop),
             vehicle_status.schedule.targets))
@@ -176,7 +177,8 @@ class SimBusUser(User):
         self.vehicle_statuses.update(vehicle_statuses)
         self.vehicle_statuses_lock.release()
 
-    def get_vehicle_id_in_schedule(self, schedule):
+    @staticmethod
+    def get_vehicle_id_in_schedule(schedule):
         vehicle_ids = list(map(lambda x: x.id, filter(lambda x: x.group == SIM_BUS.NODE_NAME, schedule.targets)))
         if 1 == len(vehicle_ids):
             return vehicle_ids[0]
@@ -188,17 +190,17 @@ class SimBusUser(User):
             if self.status.trip_schedules is not None:
                 self.target_start_bus_stop = \
                     list(filter(
-                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.START_BUS_STOP, self.status.trip_schedules[0].targets)
+                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.START_BUS_STOP,
+                        self.status.trip_schedules[0].targets)
                     )[0]
                 self.target_goal_bus_stop = \
                     list(filter(
-                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.GOAL_BUS_STOP, self.status.trip_schedules[0].targets)
+                        lambda x: x.group == SIM_BUS_USER.TARGET_GROUP.GOAL_BUS_STOP,
+                        self.status.trip_schedules[0].targets)
                     )[0]
 
         schedules = self.get_schedules_and_lock()
         vehicle_statuses = self.get_vehicle_statuses_and_lock()
-
-        # print(self.state_machine.state)
 
         current_time = time()
         if 1 < len(schedules):

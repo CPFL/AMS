@@ -3,9 +3,6 @@
 
 from ams.structures import ScheduleBranch as Structure
 
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
-
 
 class ScheduleBranch(object):
 

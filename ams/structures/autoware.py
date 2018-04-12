@@ -11,7 +11,6 @@ AUTOWARE = get_namedtuple_from_dict("CONST", {
     "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0,
     "ROS": {
         "DECISION_MAKER_STATES": {
-            "TOPIC": "/decisionmaker/states",
             "MAIN": {
                 "START": "Start",
                 "DRIVE": "Drive",

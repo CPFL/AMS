@@ -6,11 +6,12 @@ import Geohash
 from transforms3d.quaternions import axangle2quat
 
 from ams import Position
-from ams.structures import Pose, Rpy, Orientation
+from ams.structures import WAYPOINT, Pose, Rpy, Orientation
 
 
 class Waypoint(object):
-    GEOHASH_PRECISION = 15
+
+    CONST = WAYPOINT
 
     def __init__(self):
         self.__waypoints = {}
@@ -29,7 +30,7 @@ class Waypoint(object):
             lambda x: (x[0], {
                 "waypoint_id": x[1]["waypointID"],
                 "geohash": Geohash.encode(
-                    float(x[1]["lat"]), float(x[1]["lng"]), precision=Waypoint.GEOHASH_PRECISION),
+                    float(x[1]["lat"]), float(x[1]["lng"]), precision=WAYPOINT.GEOHASH_PRECISION),
                 "np_position": Position.new_np_position(x[1]["x"], x[1]["y"], x[1]["z"]),
                 "yaw": x[1]["yaw"],
                 "speed_limit": x[1]["speedLimit"]

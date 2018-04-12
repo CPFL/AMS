@@ -3,7 +3,7 @@
 
 from ams.structures import get_base_class, Targets, Period, Route
 
-template = {
+schedule_template = {
     "id": "uuid",
     "event": "default",
     "period": Period.get_template(),
@@ -11,7 +11,7 @@ template = {
     "targets": Targets.get_template(),
 }
 
-schema = {
+schedule_schema = {
     "id": {
         "type": "string",
         "required": True,
@@ -38,11 +38,11 @@ schema = {
 }
 
 
-class Schedule(get_base_class(template, schema)):
+class Schedule(get_base_class(schedule_template, schedule_schema)):
     pass
 
 
-schedules = [Schedule.get_template()]
+schedules_template = [Schedule.get_template()]
 
 schedules_schema = {
     "type": "list",
@@ -56,5 +56,5 @@ schedules_schema = {
 }
 
 
-class Schedules(get_base_class(schedules, schedules_schema)):
+class Schedules(get_base_class(schedules_template, schedules_schema)):
     pass

@@ -5,7 +5,6 @@ from time import time
 
 from transitions import Machine
 
-from ams import logger
 from ams.nodes import SimCar
 from ams.structures import SIM_TAXI
 
@@ -57,7 +56,6 @@ class SimTaxi(SimCar):
     def update_status_schedule(self):
         if self.status.schedule.event == SIM_TAXI.TRIGGER.STOP:
             self.status.schedule.period.end = self.schedules[0].period.end
-        logger.pp((self.status.schedule, list(self.schedules)))
 
     def update_status(self):
         schedules = self.get_schedules_and_lock()
@@ -79,7 +77,5 @@ class SimTaxi(SimCar):
                 self.state_machine.stand_by(current_time, schedules)
             else:
                 pass
-
-        # logger.pp({self.target.id: self.state_machine.state, "schedule_len": len(schedules)})
 
         self.set_schedules_and_unlock(schedules)

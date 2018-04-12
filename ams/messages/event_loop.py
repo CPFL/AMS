@@ -3,7 +3,7 @@
 
 from ams.structures import get_base_class
 
-message = {
+message_template = {
     "time": 0.0,
     "event": "default",  # start, check, kill, ok
     "pid": 0
@@ -29,5 +29,5 @@ message_schema = {
 }
 
 
-class Message(get_base_class(message, message_schema)):
+class Message(get_base_class(message_template, message_schema)):
     pass
