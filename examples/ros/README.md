@@ -5,7 +5,7 @@
 1. Install [ros-mqtt-bridge](https://github.com/CPFL/ros_mqtt_bridge).
 
 ```console
-$ pip install -e git+https://github.com/CPFL/ros_mqtt_bridge.git@v0.1#egg=ros_mqtt_bridge
+$ pip install -e git+https://github.com/CPFL/ros_mqtt_bridge.git@v0.2#egg=ros_mqtt_bridge
 ```
 
 2. Setting ip and port for mqtt broker.
