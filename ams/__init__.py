@@ -16,6 +16,7 @@ from ams.utilities.schedule_branch import ScheduleBranch
 from ams.utilities.spot import Spot
 from ams.utilities.map_match import MapMatch
 
+from ams.utilities.topic_helper import TopicHelper
 from ams.utilities.topic import Topic
 
 from transitions.extensions import GraphMachine as StateMachine

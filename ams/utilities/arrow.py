@@ -2,7 +2,9 @@
 # coding: utf-8
 
 import json
-import numpy as np
+import math
+
+from ams import Position
 from ams.structures import ARROW
 
 
@@ -52,52 +54,82 @@ class Arrow(object):
         return self.__arrows[arrow_code]["length"]
 
     @staticmethod
+    def get_norm(vector):
+        return math.sqrt(sum(map(lambda x: x**2, vector)))
+
+    @staticmethod
+    def get_add_vector(vector1, vector2):
+        print(vector1, type(vector1), vector2, type(vector2))
+        return list(map(lambda e: e[0]+e[1], zip(vector1, vector2)))
+
+    @staticmethod
+    def get_sub_vector(vector1, vector2):
+        return list(map(lambda e: e[0]-e[1], zip(vector1, vector2)))
+
+    @staticmethod
+    def get_mul_vector(vector1, vector2):
+        return list(map(lambda e: e[0]*e[1], zip(vector1, vector2)))
+
+    @staticmethod
+    def get_div_vector(vector1, vector2):
+        return list(map(lambda e: e[0]/e[1], zip(vector1, vector2)))
+
+    @staticmethod
+    def get_dot(vector1, vector2):
+        return sum(Arrow.get_mul_vector(vector1, vector2))
+
+    @staticmethod
     def get_distance(position1, position2):
-        return np.linalg.norm(np.subtract(position1, position2))
+        return Arrow.get_norm(Arrow.get_sub_vector(*map(Position.get_vector, (position1, position2))))
 
     def get_yaw(self, arrow_code, waypoint_id):
         waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
         index = waypoint_ids.index(waypoint_id)
-        sub_position = np.subtract(
-            self.waypoint.get_np_position(waypoint_ids[max([0, index - 1])]),
-            self.waypoint.get_np_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])]))
-        return np.pi+np.arctan2(sub_position[0], sub_position[1])
+        sub_vector = Arrow.get_sub_vector(*map(
+            Position.get_vector,
+            (
+                self.waypoint.get_position(waypoint_ids[max([0, index - 1])]),
+                self.waypoint.get_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])])
+            )
+        ))
+        return math.pi+math.atan2(sub_vector[0], sub_vector[1])
 
     def get_heading(self, arrow_code, waypoint_id):
-        return np.degrees(self.get_yaw(arrow_code, waypoint_id))
+        return math.degrees(self.get_yaw(arrow_code, waypoint_id))
 
-    def get_point_to_edge(self, np_position, edge_position1, edge_position2):
-        vector_12 = np.subtract(edge_position2, edge_position1)
-        vector_1p = np.subtract(np_position, edge_position1)
+    def get_point_to_edge(self, position, edge_position1, edge_position2):
+        vector_12 = Arrow.get_sub_vector(*map(Position.get_vector, (edge_position2, edge_position1)))
+        vector_1p = Arrow.get_sub_vector(*map(Position.get_vector, (position, edge_position1)))
 
         # get unit vector
-        len_12 = np.linalg.norm(vector_12)
-        unit_vector_12 = vector_12 / len_12
+        len_12 = Arrow.get_norm(vector_12)
+        unit_vector_12 = Arrow.get_div_vector(vector_12, [len_12]*len(vector_12))
 
         # dot product
-        distance1x = np.dot(unit_vector_12, vector_1p)
+        distance1x = Arrow.get_dot(unit_vector_12, vector_1p)
         if len_12 < distance1x:
-            return edge_position2, self.get_distance(np_position, edge_position2)
+            return edge_position2, self.get_distance(position, edge_position2)
         elif distance1x < 0.0:
-            return edge_position1, self.get_distance(np_position, edge_position1)
+            return edge_position1, self.get_distance(position, edge_position1)
         else:
-            distance1x_vector_12 = unit_vector_12 * distance1x
-            position = np.add(edge_position1, distance1x_vector_12)
-            return position, self.get_distance(np_position, position)
+            distance1x_vector_12 = Arrow.get_mul_vector(unit_vector_12, [distance1x]*len(unit_vector_12))
+            matched_position = Position.new_position(
+                *Arrow.get_add_vector(Position.get_vector(edge_position1), distance1x_vector_12))
+            return matched_position, self.get_distance(position, matched_position)
 
-    def get_point_to_waypoints(self, np_position, waypoint_ids):
+    def get_point_to_waypoints(self, position, waypoint_ids):
         matched_waypoints = {}
         prev_position = None
         for waypoint_id in waypoint_ids:
-            position = self.waypoint.get_np_position(waypoint_id)
+            next_position = self.waypoint.get_position(waypoint_id)
             if prev_position is not None:
-                position_on_edge, distance = self.get_point_to_edge(np_position, prev_position, position)
+                position_on_edge, distance = self.get_point_to_edge(position, prev_position, next_position)
                 matched_waypoints[waypoint_id] = {
                     "waypoint_id": waypoint_id,
                     "position": position_on_edge,
                     "distance": distance
                 }
-            prev_position = position
+            prev_position = next_position
 
         if len(matched_waypoints) == 0:
             raise Exception
@@ -107,15 +139,15 @@ class Arrow(object):
             most_matched_waypoint["position"], \
             most_matched_waypoint["distance"]
 
-    def get_point_to_arrow(self, np_position, arrow_code):
-        return self.get_point_to_waypoints(np_position, self.get_waypoint_ids(arrow_code))
+    def get_point_to_arrow(self, position, arrow_code):
+        return self.get_point_to_waypoints(position, self.get_waypoint_ids(arrow_code))
 
-    def get_point_to_arrows(self, np_position, arrow_codes=None):
+    def get_point_to_arrows(self, position, arrow_codes=None):
         matched_waypoints = {}
         if arrow_codes is None:
             arrow_codes = self.__arrows.keys()
         for arrow_code in arrow_codes:
-            waypoint_id, position, distance = self.get_point_to_arrow(np_position, arrow_code)
+            waypoint_id, position, distance = self.get_point_to_arrow(position, arrow_code)
             matched_waypoints[waypoint_id] = {
                 "arrow_code": arrow_code,
                 "waypoint_id": waypoint_id,
