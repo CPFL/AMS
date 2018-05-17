@@ -4,7 +4,7 @@
 from time import time, sleep
 from copy import deepcopy
 
-from ams import Topic, Location, Position, Schedule
+from ams import Topic, Location, Schedule
 from ams.nodes import EventLoop
 from ams.messages import VehicleStatus
 from ams.structures import Pose, Orientation, Rpy, Schedules, VEHICLE, FLEET_MANAGER
@@ -30,7 +30,6 @@ class Vehicle(EventLoop):
         self.arrow = arrow
         self.route = route
         self.state_machine = None
-        self.np_position = None
         self.dt = dt
 
         self.schedules = self.manager.list()
@@ -56,18 +55,14 @@ class Vehicle(EventLoop):
 
     def set_location(self, location):
         self.status.location = location
-        self.update_np_position()
         self.status.pose = Pose.new_data(
-            position=Position.new_position_from_np_position(self.np_position),
+            position=self.waypoint.get_position(self.status.location.waypoint_id),
             orientation=Orientation.new_data(
                 rpy=Rpy.new_data(
                     yaw=self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
                 )
             )
         )
-
-    def update_np_position(self):
-        self.np_position = self.waypoint.get_np_position(self.status.location.waypoint_id)
 
     def set_schedules(self, schedules):
         self.schedules[:] = schedules
@@ -78,8 +73,6 @@ class Vehicle(EventLoop):
         self.status.state = self.state_machine.state
         if self.status.location is not None:
             self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
-        if self.np_position is not None:
-            self.status.pose.position = Position.new_position_from_np_position(self.np_position)
         payload = self.__topicPubStatus.serialize(self.status)
         self.publish(self.__topicPubStatus, payload)
 

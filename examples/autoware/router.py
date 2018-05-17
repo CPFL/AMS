@@ -94,7 +94,7 @@ def get_view_data():
         lng_max = max(lng_max, lng)
         waypoints[waypoint_id] = {
             "geohash": app.waypoint.get_geohash(waypoint_id),
-            "position": dict(zip(["x", "y", "z"], app.waypoint.get_xyz(waypoint_id)))
+            "position": app.waypoint.get_position(waypoint_id)
         }
     return api_response(code=200, message={
         "viewPoint": {

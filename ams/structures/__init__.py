@@ -17,6 +17,8 @@ from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
 
+from ams.structures.topic_helper import TOPIC_HELPER
+
 from ams.structures.event_loop import EVENT_LOOP
 from ams.structures.user import USER
 from ams.structures.sim_taxi_user import SIM_TAXI_USER

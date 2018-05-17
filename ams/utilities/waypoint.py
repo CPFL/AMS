@@ -31,7 +31,7 @@ class Waypoint(object):
                 "waypoint_id": x[1]["waypointID"],
                 "geohash": Geohash.encode(
                     float(x[1]["lat"]), float(x[1]["lng"]), precision=WAYPOINT.GEOHASH_PRECISION),
-                "np_position": Position.new_np_position(x[1]["x"], x[1]["y"], x[1]["z"]),
+                "position": Position.new_position(*map(lambda key: x[1][key], ("x", "y", "z"))),
                 "yaw": x[1]["yaw"],
                 "speed_limit": x[1]["speedLimit"]
             }),
@@ -46,14 +46,8 @@ class Waypoint(object):
     def get_geohash(self, waypoint_id):
         return self.__waypoints[waypoint_id]["geohash"]
 
-    def get_np_position(self, waypoint_id):
-        return self.__waypoints[waypoint_id]["np_position"]
-
     def get_position(self, waypoint_id):
-        return Position.new_position_from_np_position(self.get_np_position(waypoint_id))
-
-    def get_xyz(self, waypoint_id):
-        return self.__waypoints[waypoint_id]["np_position"].data[:]
+        return self.__waypoints[waypoint_id]["position"]
 
     def get_yaw(self, waypoint_id):
         return self.__waypoints[waypoint_id]["yaw"]

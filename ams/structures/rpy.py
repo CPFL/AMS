@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from numpy import pi
+from math import pi
 from ams.structures import get_base_class, get_namedtuple_from_dict
 
 RPY = get_namedtuple_from_dict("CONST", {

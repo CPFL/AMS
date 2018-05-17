@@ -154,7 +154,7 @@ class SimCar(Vehicle):
         movable_distance = self.__get_movable_distance()
         delta_distance = min(self.velocity * self.dt, movable_distance)
         if 0.0 < delta_distance:
-            self.np_position, self.status.pose.orientation.rpy.yaw,\
+            self.status.pose.position, self.status.pose.orientation.rpy.yaw,\
                 self.status.location.arrow_code, self.status.location.waypoint_id = \
                 self.get_next_pose(delta_distance, self.status.schedule.route)
         self.publish_location()
@@ -174,14 +174,14 @@ class SimCar(Vehicle):
 
     def get_next_pose(self, delta_distance, route):
         position, waypoint_id, arrow_code = self.route.get_moved_position(
-            self.np_position, delta_distance, route)
+            self.status.pose.position, delta_distance, route)
         yaw = self.arrow.get_yaw(arrow_code, waypoint_id)
         return position, yaw, arrow_code, waypoint_id
 
     def update_pose_to_route_start(self):
         self.status.location.waypoint_id = self.status.schedule.route.start_waypoint_id
         self.status.location.arrow_code = self.status.schedule.route.arrow_codes[0]
-        self.np_position = self.waypoint.get_np_position(self.status.location.waypoint_id)
+        self.status.pose.position = self.waypoint.get_position(self.status.location.waypoint_id)
         self.status.pose.orientation.rpy.yaw = \
             self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
         self.velocity = 0.0
