@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 template = {
     "start": 0,
@@ -22,5 +23,5 @@ schema = {
 }
 
 
-class Period(get_base_class(template, schema)):
+class Period(get_structure_superclass(template, schema)):
     pass

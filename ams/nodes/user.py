@@ -4,7 +4,7 @@
 from time import time, sleep
 from copy import deepcopy
 
-from ams import Topic, Schedule
+from ams.helpers import Topic, Schedule
 from ams.nodes import EventLoop
 from ams.messages import UserStatus
 from ams.structures import Schedules, USER, FLEET_MANAGER
@@ -31,15 +31,21 @@ class User(EventLoop):
         self.schedules = self.manager.list()
         self.schedules_lock = self.manager.Lock()
 
-        self.__topicPubStatus = Topic()
-        self.__topicPubStatus.set_targets(self.target)
-        self.__topicPubStatus.set_categories(USER.TOPIC.CATEGORIES.STATUS)
+        self.__pub_status_topic = Topic.get_topic(
+            from_target=self.target,
+            categories=USER.TOPIC.CATEGORIES.STATUS
+        )
 
-        self.__topicSubSchedules = Topic()
-        self.__topicSubSchedules.set_targets(None, self.target)
-        self.__topicSubSchedules.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES)
-        self.__topicSubSchedules.set_message(Schedules)
-        self.set_subscriber(self.__topicSubSchedules, self.update_schedules)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=None,
+                to_target=self.target,
+                categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES,
+                use_wild_card=True
+            ),
+            callback=self.update_schedules,
+            structure=Schedules
+        )
 
         self.set_main_loop(self.__main_loop)
 
@@ -61,18 +67,16 @@ class User(EventLoop):
     def publish_status(self):
         self.status.time = time()
         self.status.state = self.state_machine.state
-        payload = self.__topicPubStatus.serialize(self.status)
-        self.publish(self.__topicPubStatus, payload)
+        payload = Topic.serialize(self.status)
+        self.publish(self.__pub_status_topic, payload)
 
     def update_status_schedule(self):
         pass
 
-    def update_schedules(self, _client, _userdata, _topic, payload):
-        new_schedules = self.__topicSubSchedules.unserialize(payload)
-
+    def update_schedules(self, _client, _userdata, _topic, schedules):
         self.schedules_lock.acquire()
-        index = list(map(lambda x: x.id, new_schedules)).index(self.schedules[0].id)
-        self.schedules[:] = new_schedules[index:]
+        index = list(map(lambda x: x.id, schedules)).index(self.schedules[0].id)
+        self.schedules[:] = schedules[index:]
         self.update_status_schedule()
         self.schedules_lock.release()
 

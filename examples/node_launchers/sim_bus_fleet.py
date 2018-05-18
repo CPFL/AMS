@@ -5,7 +5,8 @@ import json
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Route, Spot, Schedule, Target, ScheduleBranch
+from ams.maps import Waypoint, Arrow, Route, Spot
+from ams.helpers import Schedule, Target, ScheduleBranch
 from ams.nodes import SimBusFleet
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -83,8 +84,6 @@ if __name__ == '__main__':
     spot.load(args.path_spot_json)
 
     bus_schedules = load_bus_schedule_json(args.path_bus_schedule_json)
-
-    # pp(bus_schedules)
 
     bus_fleet = SimBusFleet(
         _id=args.id if args.id is not None else str(uuid()),

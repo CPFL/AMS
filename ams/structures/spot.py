@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Location, Polygon, Schedules, Targets
+from ams import get_structure_superclass
+from ams.structures import Location, Polygon, Schedules, Targets
+
 
 template = {
     "targets": Targets.get_template(),
@@ -26,5 +28,5 @@ schema = {
 }
 
 
-class Spot(get_base_class(template, schema)):
+class Spot(get_structure_superclass(template, schema)):
     pass

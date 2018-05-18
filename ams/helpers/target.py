@@ -11,18 +11,18 @@ class Target(object):
     CONST = TARGET
 
     @staticmethod
-    def new_target(_id, group):
+    def new_target(group, _id):
         return Structure.new_data(
+            group=group,
             id=_id,
-            group=group
         )
 
     @staticmethod
     def new_node_target(node):
         if isinstance(node, type):
-            return Target.new_target(None, node.__name__)
+            return Target.new_target(node.__name__, None)
         else:
-            return Target.new_target(node.event_loop_id, node.__class__.__name__)
+            return Target.new_target(node.__class__.__name__, node.event_loop_id)
 
     validate_target = Structure.validate_data
     get_errors = Structure.get_errors

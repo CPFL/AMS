@@ -4,7 +4,7 @@
 import json
 import math
 
-from ams import Position
+from ams.helpers import Position, Vector
 from ams.structures import ARROW
 
 
@@ -54,38 +54,13 @@ class Arrow(object):
         return self.__arrows[arrow_code]["length"]
 
     @staticmethod
-    def get_norm(vector):
-        return math.sqrt(sum(map(lambda x: x**2, vector)))
-
-    @staticmethod
-    def get_add_vector(vector1, vector2):
-        print(vector1, type(vector1), vector2, type(vector2))
-        return list(map(lambda e: e[0]+e[1], zip(vector1, vector2)))
-
-    @staticmethod
-    def get_sub_vector(vector1, vector2):
-        return list(map(lambda e: e[0]-e[1], zip(vector1, vector2)))
-
-    @staticmethod
-    def get_mul_vector(vector1, vector2):
-        return list(map(lambda e: e[0]*e[1], zip(vector1, vector2)))
-
-    @staticmethod
-    def get_div_vector(vector1, vector2):
-        return list(map(lambda e: e[0]/e[1], zip(vector1, vector2)))
-
-    @staticmethod
-    def get_dot(vector1, vector2):
-        return sum(Arrow.get_mul_vector(vector1, vector2))
-
-    @staticmethod
     def get_distance(position1, position2):
-        return Arrow.get_norm(Arrow.get_sub_vector(*map(Position.get_vector, (position1, position2))))
+        return Vector.get_norm(Vector.get_sub_vector(*map(Position.get_vector, (position1, position2))))
 
     def get_yaw(self, arrow_code, waypoint_id):
         waypoint_ids = self.__arrows[arrow_code]["waypointIDs"]
         index = waypoint_ids.index(waypoint_id)
-        sub_vector = Arrow.get_sub_vector(*map(
+        sub_vector = Vector.get_sub_vector(*map(
             Position.get_vector,
             (
                 self.waypoint.get_position(waypoint_ids[max([0, index - 1])]),
@@ -98,23 +73,23 @@ class Arrow(object):
         return math.degrees(self.get_yaw(arrow_code, waypoint_id))
 
     def get_point_to_edge(self, position, edge_position1, edge_position2):
-        vector_12 = Arrow.get_sub_vector(*map(Position.get_vector, (edge_position2, edge_position1)))
-        vector_1p = Arrow.get_sub_vector(*map(Position.get_vector, (position, edge_position1)))
+        vector_12 = Vector.get_sub_vector(*map(Position.get_vector, (edge_position2, edge_position1)))
+        vector_1p = Vector.get_sub_vector(*map(Position.get_vector, (position, edge_position1)))
 
         # get unit vector
-        len_12 = Arrow.get_norm(vector_12)
-        unit_vector_12 = Arrow.get_div_vector(vector_12, [len_12]*len(vector_12))
+        len_12 = Vector.get_norm(vector_12)
+        unit_vector_12 = Vector.get_div_vector(vector_12, [len_12]*len(vector_12))
 
         # dot product
-        distance1x = Arrow.get_dot(unit_vector_12, vector_1p)
+        distance1x = Vector.get_dot(unit_vector_12, vector_1p)
         if len_12 < distance1x:
             return edge_position2, self.get_distance(position, edge_position2)
         elif distance1x < 0.0:
             return edge_position1, self.get_distance(position, edge_position1)
         else:
-            distance1x_vector_12 = Arrow.get_mul_vector(unit_vector_12, [distance1x]*len(unit_vector_12))
+            distance1x_vector_12 = Vector.get_mul_vector(unit_vector_12, [distance1x]*len(unit_vector_12))
             matched_position = Position.new_position(
-                *Arrow.get_add_vector(Position.get_vector(edge_position1), distance1x_vector_12))
+                *Vector.get_add_vector(Position.get_vector(edge_position1), distance1x_vector_12))
             return matched_position, self.get_distance(position, matched_position)
 
     def get_point_to_waypoints(self, position, waypoint_ids):

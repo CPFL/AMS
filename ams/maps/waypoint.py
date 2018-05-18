@@ -5,8 +5,8 @@ import json
 import Geohash
 from transforms3d.quaternions import axangle2quat
 
-from ams import Position
-from ams.structures import WAYPOINT, Pose, Rpy, Orientation
+from ams.helpers import Position, Rpy
+from ams.structures import WAYPOINT, Pose, Orientation
 
 
 class Waypoint(object):
@@ -56,8 +56,8 @@ class Waypoint(object):
         return Orientation.new_data(
             quaternion=dict(zip(
                 ["w", "x", "y", "z"],
-                axangle2quat([0, 0, 1], self.get_yaw(waypoint_id)))),
-            rpy=Rpy.new_data(
+                Rpy.to_quaternion([0, 0, 1], self.get_yaw(waypoint_id)))),
+            rpy=Rpy.Structure.new_data(
                 roll=None,
                 pitch=None,
                 yaw=self.get_yaw(waypoint_id)

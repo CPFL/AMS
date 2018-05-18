@@ -4,7 +4,7 @@
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Route
+from ams.maps import Waypoint, Arrow, Route
 from ams.nodes import SimTaxiFleet
 
 parser = ArgumentParser()

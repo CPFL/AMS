@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, get_namedtuple_from_dict
+from ams import get_structure_superclass, get_namedtuple_from_dict
+
 
 ARROW = get_namedtuple_from_dict("CONST", {
     "DELIMITER": "_"
@@ -47,5 +48,5 @@ schema = {
 }
 
 
-class Arrow(get_base_class(template, schema)):
+class Arrow(get_structure_superclass(template, schema)):
     pass

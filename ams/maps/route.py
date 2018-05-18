@@ -4,7 +4,9 @@
 import json
 from sys import float_info
 
-from ams import logger, Arrow, Location, Position
+from ams import logger
+from ams.helpers import Location, Position, Vector
+from ams.maps import Arrow
 from ams.structures import ROUTE
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
@@ -373,11 +375,11 @@ class Route(object):
             d = self.__arrow.get_distance(p1, p2)
             if distance <= moved_distance + d:
                 v1, v2 = list(map(Position.get_vector, (p1, p2)))
-                v12 = Arrow.get_sub_vector(v2, v1)
-                return Position.new_position(*Arrow.get_add_vector(
-                    v1, Arrow.get_div_vector(
-                        Arrow.get_mul_vector([d]*len(v12), v12),
-                        [Arrow.get_norm(v12)]*len(v12)))), \
+                v12 = Vector.get_sub_vector(v2, v1)
+                return Position.new_position(*Vector.get_add_vector(
+                    v1, Vector.get_div_vector(
+                        Vector.get_mul_vector([d]*len(v12), v12),
+                        [Vector.get_norm(v12)]*len(v12)))), \
                     locations[i+1].waypoint_id, \
                     locations[i+1].arrow_code
             moved_distance += d

@@ -5,7 +5,9 @@ from time import time
 from copy import deepcopy
 from pprint import pformat
 
-from ams import logger, Topic, Route, Schedule, Target, StateMachine
+from ams import logger, StateMachine
+from ams.maps import Route
+from ams.helpers import Topic, Schedule, Target
 from ams.nodes import FleetManager
 from ams.messages import UserStatus, VehicleStatus
 from ams.structures import FLEET_MANAGER, SIM_TAXI_FLEET, USER, SIM_TAXI_USER, VEHICLE, SIM_TAXI
@@ -32,44 +34,54 @@ class SimTaxiFleet(FleetManager):
         self.vehicle_schedules = {}
         self.state_machines = {}
 
-        self.__topicPubUserSchedules = Topic()
-        self.__topicPubUserSchedules.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_TAXI_USER.NODE_NAME, None),
+                categories=USER.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_user_status,
+            structure=UserStatus
+        )
 
-        self.__topicPubVehicleSchedules = Topic()
-        self.__topicPubVehicleSchedules.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES)
-
-        self.__topicSubUserStatus = Topic()
-        self.__topicSubUserStatus.set_targets(Target.new_target(None, SIM_TAXI_USER.NODE_NAME), None)
-        self.__topicSubUserStatus.set_categories(USER.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubUserStatus.set_message(UserStatus)
-        self.set_subscriber(self.__topicSubUserStatus, self.update_user_status)
-
-        self.__topicSubVehicleStatus = Topic()
-        self.__topicSubVehicleStatus.set_targets(Target.new_target(None, SIM_TAXI.NODE_NAME), None)
-        self.__topicSubVehicleStatus.set_categories(VEHICLE.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubVehicleStatus.set_message(VehicleStatus)
-        self.set_subscriber(self.__topicSubVehicleStatus, self.update_vehicle_status)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_TAXI.NODE_NAME, None),
+                categories=VEHICLE.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_vehicle_status,
+            structure=VehicleStatus
+        )
 
     def __publish_user_schedules(self, user_id, payload):
-        self.__topicPubUserSchedules.set_targets(self.target, Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
-        self.publish(self.__topicPubUserSchedules, payload)
+        topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id),
+            categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES,
+        )
+        self.publish(topic, payload)
 
     def __publish_vehicle_schedules(self, vehicle_id, payload):
-        self.__topicPubVehicleSchedules.set_targets(self.target, Target.new_target(vehicle_id, SIM_TAXI.NODE_NAME))
-        self.publish(self.__topicPubVehicleSchedules, payload)
+        topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
+            categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES
+        )
+        self.publish(topic, payload)
 
-    def update_user_status(self, _client, _userdata, topic, payload):
-        user_id = self.__topicSubUserStatus.get_from_id(topic)
-        user_status = self.__topicSubUserStatus.unserialize(payload)
+    def update_user_status(self, _client, _userdata, topic, user_status):
+        user_id = Topic.get_from_id(topic)
+        logger.info({"user_id": user_id, "user_status": user_status})
 
         self.user_statuses_lock.acquire()
         if user_id in self.user_statuses or user_status.state == USER.STATE.LOG_IN:
             self.user_statuses[user_id] = user_status
         self.user_statuses_lock.release()
 
-    def update_vehicle_status(self, _client, _userdata, topic, payload):
-        vehicle_id = self.__topicSubVehicleStatus.get_from_id(topic)
-        vehicle_status = self.__topicSubVehicleStatus.unserialize(payload)
+    def update_vehicle_status(self, _client, _userdata, topic, vehicle_status):
+        vehicle_id = Topic.get_from_id(topic)
+        logger.info({"vehicle_id": vehicle_id, "vehicle_status": vehicle_status})
 
         self.vehicle_statuses_lock.acquire()
         self.vehicle_statuses[vehicle_id] = vehicle_status
@@ -113,7 +125,7 @@ class SimTaxiFleet(FleetManager):
     def get_user_request_schedules(self, user_id, current_time):
         user_request_schedule = Schedule.new_schedule(
             [
-                Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME)
+                Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id)
             ],
             SIM_TAXI_USER.TRIGGER.REQUEST, current_time, current_time + 1,
         )
@@ -206,8 +218,8 @@ class SimTaxiFleet(FleetManager):
     @staticmethod
     def get_pickup_schedules(vehicle_id, user_id, pickup_route, current_time):
         targets = [
-            Target.new_target(vehicle_id, SIM_TAXI.NODE_NAME),
-            Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME)]
+            Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
+            Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id)]
         move_for_picking_up_schedule = Schedule.new_schedule(
             targets, SIM_TAXI.TRIGGER.MOVE, current_time, current_time + 1000, pickup_route)
         stop_for_picking_up_schedule = Schedule.new_schedule(
@@ -229,8 +241,8 @@ class SimTaxiFleet(FleetManager):
     @staticmethod
     def get_carry_schedules(vehicle_id, user_id, carry_route, current_time):
         targets = [
-            Target.new_target(vehicle_id, SIM_TAXI.NODE_NAME),
-            Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME)]
+            Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
+            Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id)]
         move_for_discharging_schedules = Schedule.new_schedule(
             targets, SIM_TAXI.TRIGGER.MOVE, current_time, current_time+1010, carry_route)
         stop_for_discharging_schedules = Schedule.new_schedule(
@@ -243,11 +255,11 @@ class SimTaxiFleet(FleetManager):
             targets, SIM_TAXI_USER.TRIGGER.GET_OUT, current_time + 1010, current_time + 1020,
             Route.new_point_route(carry_route.goal_waypoint_id, carry_route.arrow_codes[-1]))
         got_out_schedule = Schedule.new_schedule(
-            [Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME)],
+            [Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id)],
             SIM_TAXI_USER.TRIGGER.GOT_OUT, current_time + 1020, current_time + 1021,
             Route.new_point_route(carry_route.goal_waypoint_id, carry_route.arrow_codes[-1]))
         log_out_schedule = Schedule.new_schedule(
-            [Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME)],
+            [Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id)],
             USER.TRIGGER.LOG_OUT, current_time + 1021, current_time + 1022,
             Route.new_point_route(carry_route.goal_waypoint_id, carry_route.arrow_codes[-1]))
         return [move_for_discharging_schedules, stop_for_discharging_schedules],\
@@ -257,7 +269,7 @@ class SimTaxiFleet(FleetManager):
     def get_deploy_schedules(vehicle_id, carry_route, current_time):
         stand_by_schedules = Schedule.new_schedule(
             [
-                Target.new_target(vehicle_id, SIM_TAXI.NODE_NAME),
+                Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
             ],
             SIM_TAXI.TRIGGER.STAND_BY, current_time, current_time+86400,
             Route.new_point_route(carry_route.goal_waypoint_id, carry_route.arrow_codes[-1])
@@ -306,18 +318,18 @@ class SimTaxiFleet(FleetManager):
 
     def after_state_change_publish_user_schedules(self, user_id):
         self.__publish_user_schedules(
-            user_id, self.__topicPubUserSchedules.serialize(self.user_schedules[user_id]))
+            user_id, Topic.serialize(self.user_schedules[user_id]))
         return True
 
     def after_state_change_publish_vehicle_schedules(self, vehicle_id):
         self.__publish_vehicle_schedules(
-            vehicle_id, self.__topicPubVehicleSchedules.serialize(self.vehicle_schedules[vehicle_id]))
+            vehicle_id, Topic.serialize(self.vehicle_schedules[vehicle_id]))
         return True
 
     def after_state_change_add_relation(self, user_id, vehicle_id):
         self.relation.add_relation(
-            Target.new_target(vehicle_id, SIM_TAXI.NODE_NAME),
-            Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
+            Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
+            Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
         return True
 
     @staticmethod
@@ -391,7 +403,7 @@ class SimTaxiFleet(FleetManager):
             if SIM_TAXI_FLEET.TIMEOUT < time() - user_status.time:
                 user_ids.append(user_id)
         for user_id in user_ids:
-            self.relation.remove_relations_of(Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
+            self.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
             user_statuses.pop(user_id)
             self.user_schedules.pop(user_id)
 
@@ -417,7 +429,7 @@ class SimTaxiFleet(FleetManager):
                 self.state_machines[user_id] = self.get_state_machine()
 
             user_status = user_statuses[user_id]
-            target_vehicles = self.relation.get_related(Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
+            target_vehicles = self.relation.get_related(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
             state = self.state_machines[user_id].state
 
             if len(target_vehicles) == 0:
@@ -456,7 +468,7 @@ class SimTaxiFleet(FleetManager):
                     remove_user_ids.append(user_id)
 
         for user_id in remove_user_ids:
-            self.relation.remove_relations_of(Target.new_target(user_id, SIM_TAXI_USER.NODE_NAME))
+            self.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
             self.state_machines.pop(user_id)
             user_statuses.pop(user_id)
             self.user_schedules.pop(user_id)

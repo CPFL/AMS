@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import traceback
+from ams import logger
+
 
 class AttrDict(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
         else:
-            raise AttributeError("No such attribute: " + name)
+            # logger.error("No such attribute: " + str(name))
+            raise AttributeError("No such attribute: " + str(name))
 
     def __setattr__(self, name, value):
         self[name] = AttrDict.set_recursively(value)
@@ -16,7 +20,8 @@ class AttrDict(dict):
         if name in self:
             del self[name]
         else:
-            raise AttributeError("No such attribute: " + name)
+            logger.warning("No such attribute: " + str(name))
+            raise AttributeError("No such attribute: " + str(name))
 
     @staticmethod
     def set_recursively(_obj, attr_dict=None):

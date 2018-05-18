@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import json
-from ams import Location, Target
+from ams.helpers import Location, Target
 from ams.structures import Spot as Structure
 
 

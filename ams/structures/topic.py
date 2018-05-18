@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_namedtuple_from_dict
+from ams import get_namedtuple_from_dict
 
-TOPIC_HELPER = get_namedtuple_from_dict("CONST", {
+
+TOPIC = get_namedtuple_from_dict("CONST", {
     "DOMAIN": "ams",
     "DELIMITER": "/",
     "ANY": "*",

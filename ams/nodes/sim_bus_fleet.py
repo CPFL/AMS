@@ -4,7 +4,8 @@
 from time import time
 from copy import deepcopy
 
-from ams import Topic, Schedule, Target, Relation, StateMachine
+from ams import StateMachine
+from ams.helpers import Topic, Schedule, Target, Relation
 from ams.nodes import FleetManager, SimBus, Vehicle
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS_FLEET, SIM_BUS
@@ -36,31 +37,35 @@ class SimBusFleet(FleetManager):
         self.bus_stop_spots = {}
         self.state_machines = {}
 
-        self.__topicPubVehicleSchedules = Topic()
-        self.__topicPubVehicleSchedules.set_categories(FleetManager.CONST.TOPIC.CATEGORIES.SCHEDULES)
-
-        self.__topicSubVehicleStatus = Topic()
-        self.__topicSubVehicleStatus.set_targets(Target.new_target(None, SIM_BUS.NODE_NAME), None)
-        self.__topicSubVehicleStatus.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubVehicleStatus.set_message(VehicleStatus)
-        self.set_subscriber(self.__topicSubVehicleStatus, self.update_vehicle_status)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_BUS.NODE_NAME, None),
+                categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_vehicle_status,
+            structure=VehicleStatus
+        )
 
     def __publish_vehicle_schedules(self, vehicle_id, payload):
-        self.__topicPubVehicleSchedules.set_targets(self.target, Target.new_target(vehicle_id, SIM_BUS.NODE_NAME))
-        self.publish(self.__topicPubVehicleSchedules, payload)
+        topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(SIM_BUS.NODE_NAME, vehicle_id),
+            categories=FleetManager.CONST.TOPIC.CATEGORIES.SCHEDULES
+        )
+        self.publish(topic, payload)
 
     def set_bus_schedules(self, bus_schedules):
         self.__bus_schedules = bus_schedules
         for bus_schedules_id in self.__bus_schedules:
             self.relation.add_relation(
-                Target.new_target(bus_schedules_id, SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES),
-                Target.new_target(None, SIM_BUS.NODE_NAME)
+                Target.new_target(SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES, bus_schedules_id),
+                Target.new_target(SIM_BUS.NODE_NAME, None)
             )
 
-    def update_vehicle_status(self, _client, _userdata, topic, payload):
+    def update_vehicle_status(self, _client, _userdata, topic, vehicle_status):
         self.vehicle_statuses_lock.acquire()
-        vehicle_id = self.__topicSubVehicleStatus.get_from_id(topic)
-        vehicle_status = self.__topicSubVehicleStatus.unserialize(payload)
+        vehicle_id = Topic.get_from_id(topic)
         self.vehicle_statuses[vehicle_id] = vehicle_status
         self.vehicle_statuses_lock.release()
 
@@ -73,12 +78,12 @@ class SimBusFleet(FleetManager):
                     self.vehicle_schedules[vehicle_id].pop(0)
 
     def update_relation(self, target_bus_schedule, vehicle_id):
-        self.relation.remove_relation(target_bus_schedule, Target.new_target(None, SIM_BUS.NODE_NAME))
-        self.relation.add_relation(target_bus_schedule, Target.new_target(vehicle_id, SIM_BUS.NODE_NAME))
+        self.relation.remove_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, None))
+        self.relation.add_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, vehicle_id))
 
     def get_unassigned_bus_schedule_target(self):
         targets = Target.new_targets(self.relation.get_related(
-            Target.new_target(None, SIM_BUS.NODE_NAME)
+            Target.new_target(SIM_BUS.NODE_NAME, None)
         ))
         if len(targets) == 0:
             return None
@@ -100,8 +105,6 @@ class SimBusFleet(FleetManager):
                         "goal_id": ",".join(map(str, [branch_index,  "common", part_index])),
                         "waypoint_id": schedule.route.start_waypoint_id,
                         "arrow_code": schedule.route.arrow_codes[0],
-                        # "waypoint_id": schedule.route.goal_waypoint_id,
-                        # "arrow_code": schedule.route.arrow_codes[-1],
                     }
                     if goal_point not in goal_points:
                         goal_points.append(goal_point)
@@ -258,12 +261,12 @@ class SimBusFleet(FleetManager):
 
     def after_change_state_publish_schedules(self, vehicle_id):
         event_renamed_schedules = self.get_event_renamed_schedules(self.vehicle_schedules[vehicle_id])
-        payload = self.__topicPubVehicleSchedules.serialize(event_renamed_schedules)
+        payload = Topic.serialize(event_renamed_schedules)
         self.__publish_vehicle_schedules(vehicle_id, payload)
         return True
 
     def after_change_state_publish_new_bus_schedules(self, current_time, vehicle_id):
-        target_vehicle = Target.new_target(vehicle_id, SIM_BUS.NODE_NAME)
+        target_vehicle = Target.new_target(SIM_BUS.NODE_NAME, vehicle_id)
         target_bus_schedule = self.get_unassigned_bus_schedule_target()
 
         vehicle_schedules = []
@@ -293,7 +296,7 @@ class SimBusFleet(FleetManager):
         return True
 
     def after_change_state_publish_through_schedules(self, vehicle_id):
-        target_vehicle = Target.new_target(vehicle_id, SIM_BUS.NODE_NAME)
+        target_vehicle = Target.new_target(SIM_BUS.NODE_NAME, vehicle_id)
         target_bus_schedule = self.get_assigned_bus_schedule_target(target_vehicle)
         move_to_branch_point_schedules, branch_index, part_type, part_index = \
             self.get_move_to_branch_point_schedules(
@@ -308,7 +311,7 @@ class SimBusFleet(FleetManager):
         return True
 
     def after_change_state_publish_via_schedules(self, vehicle_id):
-        target_vehicle = Target.new_target(vehicle_id, SIM_BUS.NODE_NAME)
+        target_vehicle = Target.new_target(SIM_BUS.NODE_NAME, vehicle_id)
         target_bus_schedule = self.get_assigned_bus_schedule_target(target_vehicle)
         move_to_branch_point_via_bus_stop_schedules, branch_index, part_type, part_index = \
             self.get_move_to_branch_point_via_bus_stop_schedules(

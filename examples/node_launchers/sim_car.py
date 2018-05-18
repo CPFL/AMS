@@ -6,7 +6,9 @@ from time import time
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import logger, Waypoint, Arrow, Intersection, Route, Schedule, Target
+from ams import logger
+from ams.maps import Waypoint, Arrow, Intersection, Route
+from ams.helpers import Schedule, Target
 from ams.nodes import SimCar
 
 

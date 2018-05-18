@@ -10,16 +10,6 @@ from ams.structures import Period
 
 class Schedule(object):
 
-    def __init__(self):
-        self.__waypoint = None
-        self.__route = None
-
-    def set_waypoint(self, waypoint):
-        self.__waypoint = waypoint
-
-    def set_route(self, route):
-        self.__route = route
-
     @staticmethod
     def new_schedule(targets, event, start_time=None, end_time=None, route=None):
         return Structure.new_data(

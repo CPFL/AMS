@@ -6,7 +6,8 @@ from argparse import ArgumentParser
 from time import time
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Route, Schedule, Target, Spot
+from ams.maps import Waypoint, Arrow, Route, Spot
+from ams.helpers import Schedule, Target
 from ams.nodes import User, SimBusUser, SimBus
 
 parser = ArgumentParser()
@@ -56,8 +57,8 @@ if __name__ == '__main__':
     trip_schedule = Schedule.new_schedule(
         [
             target_bus_user,
-            Target.new_target(start_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.START_BUS_STOP),
-            Target.new_target(goal_bus_stop_id, SimBusUser.CONST.TARGET_GROUP.GOAL_BUS_STOP)
+            Target.new_target(SimBusUser.CONST.TARGET_GROUP.START_BUS_STOP, start_bus_stop_id),
+            Target.new_target(SimBusUser.CONST.TARGET_GROUP.GOAL_BUS_STOP, goal_bus_stop_id)
         ],
         "trip_schedule", start_time, start_time+9999,
         Route.new_route(start_waypoint_id, goal_waypoint_id, [start_arrow_code, goal_arrow_code])

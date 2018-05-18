@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Schedules
+from ams import get_structure_superclass
+from ams.structures import Schedules
+
 
 schedule_branch_template = {
     "key": {
@@ -35,7 +37,7 @@ schedule_branch_schema = {
 }
 
 
-class ScheduleBranch(get_base_class(schedule_branch_template, schedule_branch_schema)):
+class ScheduleBranch(get_structure_superclass(schedule_branch_template, schedule_branch_schema)):
     pass
 
 
@@ -52,5 +54,5 @@ schedule_branches_schema = {
 }
 
 
-class ScheduleBranches(get_base_class(schedule_branches_template, schedule_branches_schema)):
+class ScheduleBranches(get_structure_superclass(schedule_branches_template, schedule_branches_schema)):
     pass

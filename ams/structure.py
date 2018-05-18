@@ -3,11 +3,11 @@
 
 from copy import deepcopy
 from pprint import pformat
-from ams import Validator, AttrDict, logger
+from ams import logger, AttrDict, Validator
 from collections import namedtuple
 
 
-def get_base_class(template, schema):
+def get_structure_superclass(template, schema):
 
     _template = template
     if isinstance(template, list):
@@ -21,7 +21,7 @@ def get_base_class(template, schema):
         _schema = {"list": schema}
     validator = Validator(_schema)
 
-    class Base(Validator):
+    class BaseStructure(Validator):
         def __init__(self):
             self.__template = attr_template
             super().__init__(_schema)
@@ -64,7 +64,7 @@ def get_base_class(template, schema):
         def get_errors():
             return validator.validate_errors()
 
-    return Base
+    return BaseStructure
 
 
 def get_namedtuple_from_dict(typename, _dict):

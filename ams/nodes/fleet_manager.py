@@ -3,7 +3,7 @@
 
 from time import time, sleep
 
-from ams import Topic, Target, Relation
+from ams.helpers import Topic, Target, Relation
 from ams.nodes import EventLoop
 from ams.messages import TrafficSignalStatus, FleetStatus
 from ams.structures import FLEET_MANAGER, TRAFFIC_SIGNAL
@@ -31,15 +31,20 @@ class FleetManager(EventLoop):
         self.state_machine = None
         self.dt = dt
 
-        self.__pubTopicStatus = Topic()
-        self.__pubTopicStatus.set_targets(self.target)
-        self.__pubTopicStatus.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.STATUS)
+        self.__pub_status_topic = Topic.get_topic(
+            from_target=self.target,
+            categories=FLEET_MANAGER.TOPIC.CATEGORIES.STATUS
+        )
 
-        self.__topicSubTrafficSignalStatus = Topic()
-        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
-        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signal_status)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(TRAFFIC_SIGNAL.NODE_NAME, None),
+                categories=TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_traffic_signal_status,
+            structure=TrafficSignalStatus
+        )
 
         self.set_main_loop(self.__main_loop)
 
@@ -48,11 +53,10 @@ class FleetManager(EventLoop):
             lambda key: (Target.get_code(key), list(map(Target.get_code, self.relation.get_related(key)))),
             self.relation.get_keys()
         ))
-        payload = self.__pubTopicStatus.serialize(self.status)
-        self.publish(self.__pubTopicStatus, payload)
+        payload = Topic.serialize(self.status)
+        self.publish(self.__pub_status_topic, payload)
 
-    def update_traffic_signal_status(self, _client, _userdata, _topic, payload):
-        traffic_signal = self.__topicSubTrafficSignalStatus.unserialize(payload)
+    def update_traffic_signal_status(self, _client, _userdata, _topic, traffic_signal):
         self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
 
     def update_status(self):

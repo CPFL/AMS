@@ -4,7 +4,8 @@
 from time import time
 from copy import deepcopy
 
-from ams import Topic, Target, StateMachine
+from ams import StateMachine
+from ams.helpers import Topic, Target
 from ams.nodes import SimCar
 from ams.messages import UserStatus
 from ams.structures import SIM_BUS, SIM_BUS_USER, USER
@@ -23,15 +24,18 @@ class SimBus(SimCar):
         self.user_statuses = self.manager.dict()
         self.user_statuses_lock = self.manager.Lock()
 
-        self.__topicSubUserStatus = Topic()
-        self.__topicSubUserStatus.set_targets(Target.new_target(None, SIM_BUS_USER.NODE_NAME), None)
-        self.__topicSubUserStatus.set_categories(USER.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubUserStatus.set_message(UserStatus)
-        self.set_subscriber(self.__topicSubUserStatus, self.update_user_status)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_BUS_USER.NODE_NAME, None),
+                categories=USER.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_user_status,
+            structure=UserStatus
+        )
 
-    def update_user_status(self, _client, _userdata, topic, payload):
-        user_id = self.__topicSubUserStatus.get_from_id(topic)
-        user_status = self.__topicSubUserStatus.unserialize(payload)
+    def update_user_status(self, _client, _userdata, topic, user_status):
+        user_id = Topic.get_from_id(topic)
 
         self.user_statuses_lock.acquire()
         if user_status.state in [USER.STATE.LOG_OUT]:

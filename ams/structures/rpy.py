@@ -2,7 +2,8 @@
 # coding: utf-8
 
 from math import pi
-from ams.structures import get_base_class, get_namedtuple_from_dict
+from ams import get_structure_superclass, get_namedtuple_from_dict
+
 
 RPY = get_namedtuple_from_dict("CONST", {
     "PI2": 2.0 * pi
@@ -39,5 +40,5 @@ schema = {
 }
 
 
-class Rpy(get_base_class(template, schema)):
+class Rpy(get_structure_superclass(template, schema)):
     pass

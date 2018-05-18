@@ -1,24 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import json
 from ams.structures import Location as Structure
 from ams.structures import Locations as Structures
 
 
 class Location(object):
-
-    def __init__(self):
-        self.__locations = {}
-
-    def load(self, path):
-        with open(path, "r") as f:
-            data = json.load(f)
-            self.set_locations(data["locations"])
-        return True
-
-    def set_locations(self, locations):
-        self.__locations = locations
 
     @staticmethod
     def new_location(waypoint_id, arrow_code, geohash=None):

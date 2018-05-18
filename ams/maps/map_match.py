@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams import Route, Location
+from ams.maps import Route
+from ams.helpers import Location
 
 
 class MapMatch(object):
