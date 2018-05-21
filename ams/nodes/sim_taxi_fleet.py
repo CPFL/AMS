@@ -23,15 +23,15 @@ class SimTaxiFleet(FleetManager):
         self.initialize_sim_taxi_fleet()
 
     def initialize_sim_taxi_fleet(self):
-        self.cache.user_statuses = self.manager.dict()
-        self.cache.user_statuses_lock = self.manager.Lock()
+        self.status.user_statuses = self.manager.dict()
+        self.status.user_statuses_lock = self.manager.Lock()
 
-        self.cache.vehicle_statuses = self.manager.dict()
-        self.cache.vehicle_statuses_lock = self.manager.Lock()
+        self.status.vehicle_statuses = self.manager.dict()
+        self.status.vehicle_statuses_lock = self.manager.Lock()
 
-        self.cache.user_schedules = {}
-        self.cache.vehicle_schedules = {}
-        self.cache.state_machines = {}
+        self.status.user_schedules = {}
+        self.status.vehicle_schedules = {}
+        self.status.state_machines = {}
 
         self.set_subscriber(
             topic=Topic.get_topic(
@@ -58,10 +58,10 @@ class SimTaxiFleet(FleetManager):
         user_id = Topic.get_from_id(topic)
         logger.info({"user_id": user_id, "user_status": user_status})
 
-        self.cache.user_statuses_lock.acquire()
-        if user_id in self.cache.user_statuses or user_status.state == USER.STATE.LOG_IN:
-            self.cache.user_statuses[user_id] = user_status
-        self.cache.user_statuses_lock.release()
+        self.status.user_statuses_lock.acquire()
+        if user_id in self.status.user_statuses or user_status.state == USER.STATE.LOG_IN:
+            self.status.user_statuses[user_id] = user_status
+        self.status.user_statuses_lock.release()
 
         self.update_status()
         self.publish_status()
@@ -70,9 +70,9 @@ class SimTaxiFleet(FleetManager):
         vehicle_id = Topic.get_from_id(topic)
         logger.info({"vehicle_id": vehicle_id, "vehicle_status": vehicle_status})
 
-        self.cache.vehicle_statuses_lock.acquire()
-        self.cache.vehicle_statuses[vehicle_id] = vehicle_status
-        self.cache.vehicle_statuses_lock.release()
+        self.status.vehicle_statuses_lock.acquire()
+        self.status.vehicle_statuses[vehicle_id] = vehicle_status
+        self.status.vehicle_statuses_lock.release()
 
         self.update_status()
         self.publish_status()
@@ -95,37 +95,37 @@ class SimTaxiFleet(FleetManager):
 
     def update_user_schedules(self, user_statuses):
         for user_id, user_status in user_statuses.items():
-            if user_id not in self.cache.user_schedules:
-                self.cache.user_schedules[user_id] = [user_status.schedule]
+            if user_id not in self.status.user_schedules:
+                self.status.user_schedules[user_id] = [user_status.schedule]
             else:
-                while self.cache.user_schedules[user_id][0].id != user_status.schedule.id:
-                    self.cache.user_schedules[user_id].pop(0)
-                dif_time = user_status.schedule.period.start - self.cache.user_schedules[user_id][0].period.start
-                self.cache.user_schedules[user_id] = \
-                    Schedule.get_shifted_schedules(self.cache.user_schedules[user_id], dif_time)
+                while self.status.user_schedules[user_id][0].id != user_status.schedule.id:
+                    self.status.user_schedules[user_id].pop(0)
+                dif_time = user_status.schedule.period.start - self.status.user_schedules[user_id][0].period.start
+                self.status.user_schedules[user_id] = \
+                    Schedule.get_shifted_schedules(self.status.user_schedules[user_id], dif_time)
 
     def update_vehicle_schedules(self, vehicle_statuses):
         for vehicle_id, vehicle_status in vehicle_statuses.items():
-            if vehicle_id not in self.cache.vehicle_schedules:
-                self.cache.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
+            if vehicle_id not in self.status.vehicle_schedules:
+                self.status.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
             else:
-                while self.cache.vehicle_schedules[vehicle_id][0].id != vehicle_status.schedule.id:
-                    self.cache.vehicle_schedules[vehicle_id].pop(0)
+                while self.status.vehicle_schedules[vehicle_id][0].id != vehicle_status.schedule.id:
+                    self.status.vehicle_schedules[vehicle_id].pop(0)
                 dif_time = \
-                    vehicle_status.schedule.period.start - self.cache.vehicle_schedules[vehicle_id][0].period.start
-                self.cache.vehicle_schedules[vehicle_id] = \
-                    Schedule.get_shifted_schedules(self.cache.vehicle_schedules[vehicle_id], dif_time)
+                    vehicle_status.schedule.period.start - self.status.vehicle_schedules[vehicle_id][0].period.start
+                self.status.vehicle_schedules[vehicle_id] = \
+                    Schedule.get_shifted_schedules(self.status.vehicle_schedules[vehicle_id], dif_time)
 
     def get_dispatchable_vehicle_ids(self, user_status):
         dispatchable_vehicle_ids = list(filter(
             lambda x:
                 self.maps.waypoint.get_geohash(
-                    self.cache.vehicle_schedules[x][-1].route.goal_waypoint_id
+                    self.status.vehicle_schedules[x][-1].route.goal_waypoint_id
                 )[:SIM_TAXI_FLEET.DISPATCHABLE_GEOHASH_DIGIT] ==
                 self.maps.waypoint.get_geohash(
                     user_status.trip_schedules[0].route.start_waypoint_id
                 )[:SIM_TAXI_FLEET.DISPATCHABLE_GEOHASH_DIGIT],
-            self.cache.vehicle_schedules.keys()
+            self.status.vehicle_schedules.keys()
         ))
         return dispatchable_vehicle_ids
 
@@ -137,7 +137,7 @@ class SimTaxiFleet(FleetManager):
             SIM_TAXI_USER.TRIGGER.REQUEST, current_time, current_time + 1,
         )
         user_schedules = Schedule.get_merged_schedules(
-            self.cache.user_schedules[user_id], [user_request_schedule]
+            self.status.user_schedules[user_id], [user_request_schedule]
         )
         return user_schedules
 
@@ -150,8 +150,8 @@ class SimTaxiFleet(FleetManager):
         if carry_route is None:
             return None, None
 
-        if self.cache.vehicle_schedules[vehicle_id][-1].event == SIM_TAXI.STATE.STAND_BY:
-            current_time = self.cache.vehicle_schedules[vehicle_id][-1].period.start
+        if self.status.vehicle_schedules[vehicle_id][-1].event == SIM_TAXI.STATE.STAND_BY:
+            current_time = self.status.vehicle_schedules[vehicle_id][-1].period.start
 
         pickup_schedules, get_on_schedules = self.get_pickup_schedules(vehicle_id, user_id, pickup_route, current_time)
 
@@ -161,11 +161,11 @@ class SimTaxiFleet(FleetManager):
         deploy_schedules = self.get_deploy_schedules(vehicle_id, carry_route, carry_schedules[-1].period.end)
 
         vehicle_schedules = Schedule.get_merged_schedules(
-            self.cache.vehicle_schedules[vehicle_id], pickup_schedules + carry_schedules + deploy_schedules
+            self.status.vehicle_schedules[vehicle_id], pickup_schedules + carry_schedules + deploy_schedules
         )
 
         user_schedules = Schedule.get_merged_schedules(
-            self.cache.user_schedules[user_id], get_on_schedules + get_out_schedules
+            self.status.user_schedules[user_id], get_on_schedules + get_out_schedules
         )
         return vehicle_id, vehicle_schedules, user_schedules
 
@@ -183,8 +183,8 @@ class SimTaxiFleet(FleetManager):
         for vehicle_id, goal_waypoint_id, goal_arrow_code in map(
                 lambda x: (
                         x,
-                        self.cache.vehicle_schedules[x][-1].route.goal_waypoint_id,
-                        self.cache.vehicle_schedules[x][-1].route.arrow_codes[-1]),
+                        self.status.vehicle_schedules[x][-1].route.goal_waypoint_id,
+                        self.status.vehicle_schedules[x][-1].route.arrow_codes[-1]),
                 vehicle_ids):
             goal_points.append({
                 "goal_id": vehicle_id,
@@ -196,7 +196,7 @@ class SimTaxiFleet(FleetManager):
             logger.warning("no pickup_route")
             return None, None
         pickup_route = \
-            min(routes.items(), key=lambda x: x[1]["cost"] + self.cache.vehicle_schedules[x[0]][-1].period.end)[1]
+            min(routes.items(), key=lambda x: x[1]["cost"] + self.status.vehicle_schedules[x[0]][-1].period.end)[1]
         vehicle_id = pickup_route.pop("goal_id")
         pickup_route.pop("cost")
         return pickup_route, vehicle_id
@@ -326,16 +326,16 @@ class SimTaxiFleet(FleetManager):
 
     def after_state_change_publish_user_schedules(self, user_id):
         self.__publish_user_schedules(
-            user_id, Topic.serialize(self.cache.user_schedules[user_id]))
+            user_id, Topic.serialize(self.status.user_schedules[user_id]))
         return True
 
     def after_state_change_publish_vehicle_schedules(self, vehicle_id):
         self.__publish_vehicle_schedules(
-            vehicle_id, Topic.serialize(self.cache.vehicle_schedules[vehicle_id]))
+            vehicle_id, Topic.serialize(self.status.vehicle_schedules[vehicle_id]))
         return True
 
     def after_state_change_add_relation(self, user_id, vehicle_id):
-        self.cache.relation.add_relation(
+        self.status.relation.add_relation(
             Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
             Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
         return True
@@ -347,7 +347,7 @@ class SimTaxiFleet(FleetManager):
     def condition_user_state_and_publish_user_request_schedules(
             self, user_id, user_status, excepted_state, current_time):
         if self.condition_user_state(user_status, excepted_state):
-            self.cache.user_schedules[user_id] = self.get_user_request_schedules(user_id, current_time)
+            self.status.user_schedules[user_id] = self.get_user_request_schedules(user_id, current_time)
             self.after_state_change_publish_user_schedules(user_id)
             return True
         return False
@@ -357,8 +357,8 @@ class SimTaxiFleet(FleetManager):
         if self.condition_user_state(user_status, excepted_state):
             vehicle_id, vehicle_schedules, user_schedules = self.get_taxi_schedules(user_id, user_status, current_time)
             if vehicle_id is not None:
-                self.cache.vehicle_schedules[vehicle_id] = vehicle_schedules
-                self.cache.user_schedules[user_id] = user_schedules
+                self.status.vehicle_schedules[vehicle_id] = vehicle_schedules
+                self.status.user_schedules[user_id] = user_schedules
                 self.after_state_change_publish_vehicle_schedules(vehicle_id)
                 self.after_state_change_publish_user_schedules(user_id)
                 self.after_state_change_add_relation(user_id, vehicle_id)
@@ -368,8 +368,8 @@ class SimTaxiFleet(FleetManager):
     def condition_user_state_and_publish_updated_taxi_schedules(
             self, user_id, user_status, excepted_state, vehicle_id, current_time):
         if self.condition_user_state(user_status, excepted_state):
-            self.cache.user_schedules[user_id][0].period.end = current_time
-            self.cache.vehicle_schedules[vehicle_id][0].period.end = current_time
+            self.status.user_schedules[user_id][0].period.end = current_time
+            self.status.vehicle_schedules[vehicle_id][0].period.end = current_time
             self.after_state_change_publish_vehicle_schedules(vehicle_id)
             self.after_state_change_publish_user_schedules(user_id)
             return True
@@ -382,28 +382,28 @@ class SimTaxiFleet(FleetManager):
     def condition_user_vehicle_state_and_publish_user_schedules(
             self, user_id, user_status, vehicle_status, expected_states, current_time):
         if self.condition_user_vehicle_state(user_status, vehicle_status, expected_states):
-            self.cache.user_schedules[user_id][0].period.end = current_time
+            self.status.user_schedules[user_id][0].period.end = current_time
             self.after_state_change_publish_user_schedules(user_id)
             return True
         return False
 
     def get_user_statuses_and_lock(self):
-        self.cache.user_statuses_lock.acquire()
-        return deepcopy(self.cache.user_statuses)
+        self.status.user_statuses_lock.acquire()
+        return deepcopy(self.status.user_statuses)
 
     def set_user_statuses_and_unlock(self, user_statuses):
-        self.cache.user_statuses.clear()
-        self.cache.user_statuses.update(user_statuses)
-        self.cache.user_statuses_lock.release()
+        self.status.user_statuses.clear()
+        self.status.user_statuses.update(user_statuses)
+        self.status.user_statuses_lock.release()
 
     def get_vehicle_statuses_and_lock(self):
-        self.cache.vehicle_statuses_lock.acquire()
-        return deepcopy(self.cache.vehicle_statuses)
+        self.status.vehicle_statuses_lock.acquire()
+        return deepcopy(self.status.vehicle_statuses)
 
     def set_vehicle_statuses_and_unlock(self, vehicle_statuses):
-        self.cache.vehicle_statuses.clear()
-        self.cache.vehicle_statuses.update(vehicle_statuses)
-        self.cache.vehicle_statuses_lock.release()
+        self.status.vehicle_statuses.clear()
+        self.status.vehicle_statuses.update(vehicle_statuses)
+        self.status.vehicle_statuses_lock.release()
 
     def cleanup_status(self, user_statuses):
         user_ids = []
@@ -411,9 +411,9 @@ class SimTaxiFleet(FleetManager):
             if SIM_TAXI_FLEET.TIMEOUT < time() - user_status.time:
                 user_ids.append(user_id)
         for user_id in user_ids:
-            self.cache.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
+            self.status.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
             user_statuses.pop(user_id)
-            self.cache.user_schedules.pop(user_id)
+            self.status.user_schedules.pop(user_id)
 
     def update_status(self):
         user_statuses = self.get_user_statuses_and_lock()
@@ -433,37 +433,37 @@ class SimTaxiFleet(FleetManager):
 
         remove_user_ids = []
         for user_id in user_statuses:
-            if user_id not in self.cache.state_machines:
-                self.cache.state_machines[user_id] = self.get_state_machine()
+            if user_id not in self.status.state_machines:
+                self.status.state_machines[user_id] = self.get_state_machine()
 
             user_status = user_statuses[user_id]
-            target_vehicles = self.cache.relation.get_related(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
-            state = self.cache.state_machines[user_id].state
+            target_vehicles = self.status.relation.get_related(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
+            state = self.status.state_machines[user_id].state
 
             if len(target_vehicles) == 0:
 
                 if state == SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_LOG_IN:
-                    self.cache.state_machines[user_id].wait_user_request(
+                    self.status.state_machines[user_id].wait_user_request(
                         user_id, user_status, USER.STATE.LOG_IN, current_time)
                 elif state == SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_REQUEST:
-                    self.cache.state_machines[user_id].dispatch(
+                    self.status.state_machines[user_id].dispatch(
                         user_id, user_status, SIM_TAXI_USER.STATE.CALLING, current_time)
 
             elif len(target_vehicles) == 1:
                 vehicle_id = target_vehicles[0].id
 
-                if user_id in map(lambda x: x.id, self.cache.vehicle_schedules[vehicle_id][0].targets):
+                if user_id in map(lambda x: x.id, self.status.vehicle_schedules[vehicle_id][0].targets):
                     vehicle_status = vehicle_statuses[vehicle_id]
 
                     if state == SIM_TAXI_FLEET.STATE.WAITING_FOR_TAXI_ARRIVE_AT_USER_LOCATION:
-                        self.cache.state_machines[user_id].notice(
+                        self.status.state_machines[user_id].notice(
                             user_id, user_status, vehicle_status,
                             [SIM_TAXI_USER.STATE.WAITING, SIM_TAXI.STATE.STOP_FOR_PICKING_UP], current_time)
                     elif state == SIM_TAXI_FLEET.STATE.WAITING_FOR_USER_GETTING_ON:
-                        self.cache.state_machines[user_id].wait_taxi_arrival(
+                        self.status.state_machines[user_id].wait_taxi_arrival(
                             user_id, user_status, SIM_TAXI_USER.STATE.GOT_ON, vehicle_id, current_time)
                     elif state == SIM_TAXI_FLEET.STATE.WAITING_FOR_TAXI_ARRIVE_AT_USER_DESTINATION:
-                        self.cache.state_machines[user_id].notice(
+                        self.status.state_machines[user_id].notice(
                             user_id, user_status, vehicle_status,
                             [SIM_TAXI_USER.STATE.MOVING, SIM_TAXI.STATE.STOP_FOR_DISCHARGING], current_time)
                     else:
@@ -476,13 +476,13 @@ class SimTaxiFleet(FleetManager):
                     remove_user_ids.append(user_id)
 
         for user_id in remove_user_ids:
-            self.cache.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
-            self.cache.state_machines.pop(user_id)
+            self.status.relation.remove_relations_of(Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id))
+            self.status.state_machines.pop(user_id)
             user_statuses.pop(user_id)
-            self.cache.user_schedules.pop(user_id)
+            self.status.user_schedules.pop(user_id)
 
         logger.info(pformat({
-            "fleet": dict(map(lambda x: (x[0], x[1].state), self.cache.state_machines.items())),
+            "fleet": dict(map(lambda x: (x[0], x[1].state), self.status.state_machines.items())),
             "user": dict(map(lambda x: (x[0], x[1].state), user_statuses.items())),
             "vehicle": dict(map(lambda x: (x[0], x[1].state), vehicle_statuses.items())),
         }))

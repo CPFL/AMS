@@ -21,18 +21,18 @@ class SimBusFleet(FleetManager):
         self.initialize_sim_bus_fleet()
 
     def initialize_sim_bus_fleet(self):
-        self.cache.bus_parkable_spots = None
+        self.status.bus_parkable_spots = None
 
-        self.cache.bus_routes = {}
-        self.cache.bus_schedules = {}
+        self.status.bus_routes = {}
+        self.status.bus_schedules = {}
 
-        self.cache.vehicle_statuses = self.manager.dict()
-        self.cache.vehicle_statuses_lock = self.manager.Lock()
+        self.status.vehicle_statuses = self.manager.dict()
+        self.status.vehicle_statuses_lock = self.manager.Lock()
 
-        self.cache.vehicle_schedules = {}
-        self.cache.vehicle_last_indices = {}
-        self.cache.bus_stop_spots = {}
-        self.cache.state_machines = {}
+        self.status.vehicle_schedules = {}
+        self.status.vehicle_last_indices = {}
+        self.status.bus_stop_spots = {}
+        self.status.state_machines = {}
 
         self.set_subscriber(
             topic=Topic.get_topic(
@@ -46,24 +46,25 @@ class SimBusFleet(FleetManager):
 
     def set_maps_spot(self, spot):
         self.maps.spot = spot
-        self.cache.bus_parkable_spots = self.maps.spot.get_spots_of_target_group(Target.new_node_target(SimBus))
+        self.status.bus_parkable_spots = self.maps.spot.get_spots_of_target_group(Target.new_node_target(SimBus))
 
     def set_bus_schedules(self, bus_schedules):
-        self.cache.bus_schedules = bus_schedules
-        for bus_schedules_id in self.cache.bus_schedules:
-            self.cache.relation.add_relation(
+        self.status.bus_schedules = bus_schedules
+        for bus_schedules_id in self.status.bus_schedules:
+            self.status.relation.add_relation(
                 Target.new_target(SIM_BUS_FLEET.TARGET_GROUP.BUS_SCHEDULES, bus_schedules_id),
                 Target.new_target(SIM_BUS.NODE_NAME, None)
             )
 
     # on message
     def update_vehicle_status(self, _client, _userdata, topic, vehicle_status):
-        self.cache.vehicle_statuses_lock.acquire()
+        self.status.vehicle_statuses_lock.acquire()
         vehicle_id = Topic.get_from_id(topic)
-        self.cache.vehicle_statuses[vehicle_id] = vehicle_status
-        self.cache.vehicle_statuses_lock.release()
+        self.status.vehicle_statuses[vehicle_id] = vehicle_status
+        self.status.vehicle_statuses_lock.release()
 
         self.update_status()
+
         self.publish_status()
 
     def __publish_vehicle_schedules(self, vehicle_id, payload):
@@ -76,18 +77,18 @@ class SimBusFleet(FleetManager):
 
     def update_vehicle_schedules(self, vehicle_statuses):
         for vehicle_id, vehicle_status in vehicle_statuses.items():
-            if vehicle_id not in self.cache.vehicle_schedules:
-                self.cache.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
+            if vehicle_id not in self.status.vehicle_schedules:
+                self.status.vehicle_schedules[vehicle_id] = [vehicle_status.schedule]
             else:
-                while self.cache.vehicle_schedules[vehicle_id][0].id != vehicle_status.schedule.id:
-                    self.cache.vehicle_schedules[vehicle_id].pop(0)
+                while self.status.vehicle_schedules[vehicle_id][0].id != vehicle_status.schedule.id:
+                    self.status.vehicle_schedules[vehicle_id].pop(0)
 
     def update_relation(self, target_bus_schedule, vehicle_id):
-        self.cache.relation.remove_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, None))
-        self.cache.relation.add_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, vehicle_id))
+        self.status.relation.remove_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, None))
+        self.status.relation.add_relation(target_bus_schedule, Target.new_target(SIM_BUS.NODE_NAME, vehicle_id))
 
     def get_unassigned_bus_schedule_target(self):
-        targets = Target.new_targets(self.cache.relation.get_related(
+        targets = Target.new_targets(self.status.relation.get_related(
             Target.new_target(SIM_BUS.NODE_NAME, None)
         ))
         if len(targets) == 0:
@@ -95,7 +96,7 @@ class SimBusFleet(FleetManager):
         return targets[0]
 
     def get_assigned_bus_schedule_target(self, target_vehicle):
-        return self.cache.relation.get_related(target_vehicle)[0]
+        return self.status.relation.get_related(target_vehicle)[0]
 
     def get_to_circular_route(self, start_waypoint_id, start_arrow_code, bus_schedules_id):
         start_point = {
@@ -103,7 +104,7 @@ class SimBusFleet(FleetManager):
             "waypoint_id": start_waypoint_id
         }
         goal_points = []
-        for branch_index, branch in enumerate(self.cache.bus_schedules[bus_schedules_id]):
+        for branch_index, branch in enumerate(self.status.bus_schedules[bus_schedules_id]):
             for part_index, schedule in enumerate(branch.common):
                 if schedule.event == SIM_BUS.EVENT.MOVE_TO_SELECT_POINT:
                     goal_point = {
@@ -120,7 +121,7 @@ class SimBusFleet(FleetManager):
         return to_circular_route, int(branch_index), part_type, int(part_index)
 
     def get_move_to_circular_route_schedule(self, target_vehicle, target_bus_schedule, start_time):
-        vehicle_status = self.cache.vehicle_statuses[target_vehicle.id]
+        vehicle_status = self.status.vehicle_statuses[target_vehicle.id]
         to_circular_route, branch_index, part_type, part_index = \
             self.get_to_circular_route(
                 vehicle_status.location.waypoint_id, vehicle_status.location.arrow_code, target_bus_schedule.id)
@@ -132,7 +133,7 @@ class SimBusFleet(FleetManager):
 
     def get_move_to_branch_point_schedules(
             self, target_vehicle, target_bus_schedule, start_time,  branch_index, part_type, part_index):
-        bus_schedule = self.cache.bus_schedules[target_bus_schedule.id]
+        bus_schedule = self.status.bus_schedules[target_bus_schedule.id]
         schedules = []
         if part_type in ["main", "sub"]:
             for i in range(part_index, len(bus_schedule[branch_index][part_type])):
@@ -167,7 +168,7 @@ class SimBusFleet(FleetManager):
 
     def get_move_to_branch_point_via_bus_stop_schedules(
             self, target_vehicle, target_bus_schedule, start_time,  branch_index):
-        bus_schedule = self.cache.bus_schedules[target_bus_schedule.id]
+        bus_schedule = self.status.bus_schedules[target_bus_schedule.id]
         schedules = []
         for i in range(0, len(bus_schedule[branch_index].sub)):
             targets = [target_vehicle]
@@ -250,14 +251,14 @@ class SimBusFleet(FleetManager):
         return machine
 
     def condition_schedules_length(self, vehicle_id, expected_length):
-        return len(self.cache.vehicle_schedules[vehicle_id]) == expected_length
+        return len(self.status.vehicle_schedules[vehicle_id]) == expected_length
 
     @staticmethod
     def condition_vehicle_state(vehicle_status, expected_state):
         return vehicle_status.state == expected_state
 
     def after_change_state_update_last_indices(self, vehicle_id, branch_index, part_type, part_index):
-        self.cache.vehicle_last_indices[vehicle_id] = {
+        self.status.vehicle_last_indices[vehicle_id] = {
             "branch_index": branch_index,
             "part_type": part_type,
             "part_index": part_index
@@ -265,7 +266,7 @@ class SimBusFleet(FleetManager):
         return True
 
     def after_change_state_publish_schedules(self, vehicle_id):
-        event_renamed_schedules = self.get_event_renamed_schedules(self.cache.vehicle_schedules[vehicle_id])
+        event_renamed_schedules = self.get_event_renamed_schedules(self.status.vehicle_schedules[vehicle_id])
         payload = Topic.serialize(event_renamed_schedules)
         self.__publish_vehicle_schedules(vehicle_id, payload)
         return True
@@ -290,9 +291,9 @@ class SimBusFleet(FleetManager):
         vehicle_schedules = \
             Schedule.get_merged_schedules(vehicle_schedules, move_to_branch_point_schedules)
 
-        self.cache.vehicle_schedules[vehicle_id][0].period.end = current_time
-        self.cache.vehicle_schedules[vehicle_id] = \
-            Schedule.get_merged_schedules(self.cache.vehicle_schedules[vehicle_id], vehicle_schedules)
+        self.status.vehicle_schedules[vehicle_id][0].period.end = current_time
+        self.status.vehicle_schedules[vehicle_id] = \
+            Schedule.get_merged_schedules(self.status.vehicle_schedules[vehicle_id], vehicle_schedules)
 
         self.update_relation(target_bus_schedule, vehicle_id)
 
@@ -305,11 +306,11 @@ class SimBusFleet(FleetManager):
         target_bus_schedule = self.get_assigned_bus_schedule_target(target_vehicle)
         move_to_branch_point_schedules, branch_index, part_type, part_index = \
             self.get_move_to_branch_point_schedules(
-                target_vehicle, target_bus_schedule, self.cache.vehicle_schedules[vehicle_id][-1].period.end,
-                self.cache.vehicle_last_indices[vehicle_id]["branch_index"], "main", 0)
+                target_vehicle, target_bus_schedule, self.status.vehicle_schedules[vehicle_id][-1].period.end,
+                self.status.vehicle_last_indices[vehicle_id]["branch_index"], "main", 0)
 
-        self.cache.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
-            self.cache.vehicle_schedules[vehicle_id], move_to_branch_point_schedules)
+        self.status.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
+            self.status.vehicle_schedules[vehicle_id], move_to_branch_point_schedules)
 
         self.after_change_state_update_last_indices(vehicle_id, branch_index, part_type, part_index)
         self.after_change_state_publish_schedules(vehicle_id)
@@ -320,11 +321,11 @@ class SimBusFleet(FleetManager):
         target_bus_schedule = self.get_assigned_bus_schedule_target(target_vehicle)
         move_to_branch_point_via_bus_stop_schedules, branch_index, part_type, part_index = \
             self.get_move_to_branch_point_via_bus_stop_schedules(
-                target_vehicle, target_bus_schedule, self.cache.vehicle_schedules[vehicle_id][-1].period.end,
-                self.cache.vehicle_last_indices[vehicle_id]["branch_index"])
+                target_vehicle, target_bus_schedule, self.status.vehicle_schedules[vehicle_id][-1].period.end,
+                self.status.vehicle_last_indices[vehicle_id]["branch_index"])
 
-        self.cache.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
-            self.cache.vehicle_schedules[vehicle_id], move_to_branch_point_via_bus_stop_schedules)
+        self.status.vehicle_schedules[vehicle_id] = Schedule.get_merged_schedules(
+            self.status.vehicle_schedules[vehicle_id], move_to_branch_point_via_bus_stop_schedules)
 
         self.after_change_state_update_last_indices(vehicle_id, branch_index, part_type, part_index)
         self.after_change_state_publish_schedules(vehicle_id)
@@ -351,13 +352,13 @@ class SimBusFleet(FleetManager):
         return False
 
     def get_vehicle_statuses_and_lock(self):
-        self.cache.vehicle_statuses_lock.acquire()
-        return deepcopy(self.cache.vehicle_statuses)
+        self.status.vehicle_statuses_lock.acquire()
+        return deepcopy(self.status.vehicle_statuses)
 
     def set_vehicle_statuses_and_unlock(self, vehicle_statuses):
-        self.cache.vehicle_statuses.clear()
-        self.cache.vehicle_statuses.update(vehicle_statuses)
-        self.cache.vehicle_statuses_lock.release()
+        self.status.vehicle_statuses.clear()
+        self.status.vehicle_statuses.update(vehicle_statuses)
+        self.status.vehicle_statuses_lock.release()
 
     def update_status(self):
         vehicle_statuses = self.get_vehicle_statuses_and_lock()
@@ -372,15 +373,15 @@ class SimBusFleet(FleetManager):
         current_time = time()
 
         for vehicle_id, vehicle_status in vehicle_statuses.items():
-            if vehicle_id not in self.cache.state_machines:
-                self.cache.state_machines[vehicle_id] = self.get_state_machine()
+            if vehicle_id not in self.status.state_machines:
+                self.status.state_machines[vehicle_id] = self.get_state_machine()
 
-            vehicle_state = self.cache.state_machines[vehicle_id].state
+            vehicle_state = self.status.state_machines[vehicle_id].state
 
             if vehicle_state == SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY:
-                self.cache.state_machines[vehicle_id].send_circular_route_schedules(current_time, vehicle_id)
+                self.status.state_machines[vehicle_id].send_circular_route_schedules(current_time, vehicle_id)
             elif vehicle_state == SIM_BUS_FLEET.STATE.WAITING_FOR_SCHEDULES_REQUEST:
-                if not self.cache.state_machines[vehicle_id].send_through_schedules(
+                if not self.status.state_machines[vehicle_id].send_through_schedules(
                         vehicle_id, vehicle_status, SIM_BUS.STATE.REQUEST_THROUGH_SCHEDULES):
-                    self.cache.state_machines[vehicle_id].send_via_schedules(
+                    self.status.state_machines[vehicle_id].send_via_schedules(
                         vehicle_id, vehicle_status, SIM_BUS.STATE.REQUEST_VIA_SCHEDULES)
