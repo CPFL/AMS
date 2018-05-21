@@ -11,7 +11,7 @@ SIM_BUS_FLEET = get_namedtuple_from_dict("CONST", {
         "BUS_SCHEDULES": "bus_schedules"
     },
     "TRIGGER": {
-        "ASSIGN_BUS_SCHEDULES": "send_circular_route_schedules",
+        "SEND_CIRCULAR_ROUTE_SCHEDULES": "send_circular_route_schedules",
         "SEND_THROUGH_SCHEDULES": "send_through_schedules",
         "SEND_VIA_SCHEDULES": "send_via_schedules"
     },

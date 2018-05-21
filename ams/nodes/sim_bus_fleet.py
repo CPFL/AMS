@@ -69,6 +69,9 @@ class SimBusFleet(FleetManager):
         self.vehicle_statuses[vehicle_id] = vehicle_status
         self.vehicle_statuses_lock.release()
 
+        self.update_status()
+        self.publish_status()
+
     def update_vehicle_schedules(self, vehicle_statuses):
         for vehicle_id, vehicle_status in vehicle_statuses.items():
             if vehicle_id not in self.vehicle_schedules:

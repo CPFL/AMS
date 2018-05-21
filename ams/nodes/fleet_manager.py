@@ -46,8 +46,6 @@ class FleetManager(EventLoop):
             structure=TrafficSignalStatus
         )
 
-        self.set_main_loop(self.__main_loop)
-
     def publish_status(self):
         self.status.relations = dict(map(
             lambda key: (Target.get_code(key), list(map(Target.get_code, self.relation.get_related(key)))),
@@ -57,16 +55,7 @@ class FleetManager(EventLoop):
         self.publish(self.__pub_status_topic, payload)
 
     def update_traffic_signal_status(self, _client, _userdata, _topic, traffic_signal):
-        self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
+        self.traffic_signals[traffic_signal.route_code] = traffic_signal
 
     def update_status(self):
         return
-
-    def __main_loop(self):
-
-        while self.status.state != FLEET_MANAGER.STATE.LOG_OUT:
-            sleep(self.dt)
-            self.update_status()
-            self.publish_status()
-
-        return True

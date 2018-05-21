@@ -79,6 +79,9 @@ class SimTaxiFleet(FleetManager):
             self.user_statuses[user_id] = user_status
         self.user_statuses_lock.release()
 
+        self.update_status()
+        self.publish_status()
+
     def update_vehicle_status(self, _client, _userdata, topic, vehicle_status):
         vehicle_id = Topic.get_from_id(topic)
         logger.info({"vehicle_id": vehicle_id, "vehicle_status": vehicle_status})
@@ -86,6 +89,9 @@ class SimTaxiFleet(FleetManager):
         self.vehicle_statuses_lock.acquire()
         self.vehicle_statuses[vehicle_id] = vehicle_status
         self.vehicle_statuses_lock.release()
+
+        self.update_status()
+        self.publish_status()
 
     def update_user_schedules(self, user_statuses):
         for user_id, user_status in user_statuses.items():

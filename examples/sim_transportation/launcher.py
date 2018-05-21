@@ -12,7 +12,7 @@ class TransportationsLauncher(object):
 
     NUM_OF_TAXI = 2
     NUM_OF_BUS = 1
-    LAUNCH_TRAFFIC_SIGNALS = False
+    LAUNCH_TRAFFIC_SIGNALS = True
     MAX_NUM_OF_USERS = 3
 
     def __init__(self):
@@ -84,7 +84,7 @@ class TransportationsLauncher(object):
                 "--host", env["MQTT_BROKER_HOST"],
                 "--port", env["MQTT_BROKER_PORT"],
                 "--path_cycle_json", "../../res/cycle.json",
-                "--path_intersection_json", "../../res/intersection.json"
+                "--path_intersection_json", "./res/intersection.json"
             ])
 
         self.sim_taxi_user_popens = {}
