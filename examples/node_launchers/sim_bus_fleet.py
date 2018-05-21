@@ -87,11 +87,9 @@ if __name__ == '__main__':
 
     bus_fleet = SimBusFleet(
         _id=args.id if args.id is not None else str(uuid()),
-        name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        spot=spot,
+        name=args.name
     )
+    bus_fleet.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    bus_fleet.set_maps_spot(spot=spot)
     bus_fleet.set_bus_schedules(bus_schedules)
     bus_fleet.start(host=args.host, port=args.port)

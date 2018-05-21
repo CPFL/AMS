@@ -16,8 +16,10 @@ class SimCar(Vehicle):
 
     CONST = SIM_CAR
 
-    def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
+    def __init__(self, _id, name, dt=1.0):
+        super().__init__(_id, name, dt=dt)
+
+        self.intersection = None
 
         self.state_machine = self.get_state_machine()
         self.velocity = None
@@ -26,7 +28,6 @@ class SimCar(Vehicle):
         self.traffic_signals_lock = self.manager.Lock()
         self.other_vehicle_locations = self.manager.dict()
         self.other_vehicle_locations_lock = self.manager.Lock()
-        self.intersection = intersection
 
         self.__pub_location_topic = Topic.get_topic(
             from_target=Target.new_target(SIM_CAR.NODE_NAME, self.target.id),
@@ -52,6 +53,9 @@ class SimCar(Vehicle):
             callback=self.update_traffic_signals,
             structure=TrafficSignalStatus
         )
+
+    def set_maps_intersection(self, intersection):
+        self.intersection = intersection
 
     def set_velocity(self, velocity):
         self.velocity = velocity

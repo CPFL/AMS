@@ -16,8 +16,8 @@ class SimBus(SimCar):
     CONST = SIM_BUS
 
     def __init__(
-            self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(_id, name, waypoint, arrow, route, intersection, dt=dt)
+            self, _id, name, dt=1.0):
+        super().__init__(_id, name, dt=dt)
 
         self.state_machine = self.get_state_machine()
 

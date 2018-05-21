@@ -70,12 +70,11 @@ if __name__ == '__main__':
     sim_taxi = SimTaxi(
         _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        intersection=intersection,
         dt=0.5
     )
+    sim_taxi.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    sim_taxi.set_maps_intersection(intersection=intersection)
+
     sim_taxi.set_waypoint_id_and_arrow_code(start_waypoint_id, start_arrow_code)
     sim_taxi.set_velocity(3.0)
     sim_taxi.set_schedules([Schedule.new_schedule(

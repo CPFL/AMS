@@ -13,8 +13,12 @@ class FleetManager(EventLoop):
 
     CONST = FLEET_MANAGER
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=3.0):
+    def __init__(self, _id, name, dt=3.0):
         super().__init__(_id)
+
+        self.waypoint = None
+        self.arrow = None
+        self.route = None
 
         self.status = FleetStatus.new_data(
             name=name,
@@ -23,9 +27,6 @@ class FleetManager(EventLoop):
             relations={}
         )
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
         self.relation = Relation()
         self.traffic_signals = self.manager.dict()
         self.state_machine = None
@@ -45,6 +46,11 @@ class FleetManager(EventLoop):
             callback=self.update_traffic_signal_status,
             structure=TrafficSignalStatus
         )
+
+    def set_maps(self, waypoint, arrow, route):
+        self.waypoint = waypoint
+        self.arrow = arrow
+        self.route = route
 
     def publish_status(self):
         self.status.relations = dict(map(

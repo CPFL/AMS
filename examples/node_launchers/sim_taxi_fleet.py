@@ -37,9 +37,7 @@ if __name__ == '__main__':
 
     taxi_fleet = SimTaxiFleet(
         _id=args.id if args.id is not None else str(uuid()),
-        name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route
+        name=args.name
     )
+    taxi_fleet.set_maps(waypoint=waypoint, arrow=arrow, route=route)
     taxi_fleet.start(host=args.host, port=args.port)

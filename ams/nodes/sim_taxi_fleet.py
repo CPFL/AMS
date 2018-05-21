@@ -17,12 +17,8 @@ class SimTaxiFleet(FleetManager):
 
     CONST = SIM_TAXI_FLEET
 
-    def __init__(self, _id, name, waypoint, arrow, route):
-        super().__init__(_id, name, waypoint, arrow, route)
-
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
+    def __init__(self, _id, name):
+        super().__init__(_id, name)
 
         self.user_statuses = self.manager.dict()
         self.user_statuses_lock = self.manager.Lock()

@@ -15,18 +15,16 @@ class SimBusFleet(FleetManager):
 
     CONST = SIM_BUS_FLEET
 
-    def __init__(self, _id, name, waypoint, arrow, route, spot):
-        super().__init__(_id, name, waypoint, arrow, route)
+    def __init__(self, _id, name):
+        super().__init__(_id, name)
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
-        self.spot = spot
+        self.spot = None
+        self.bus_parkable_spots = None
+
         self.relation = Relation()
         self.__bus_routes = {}
         self.__bus_schedules = {}
 
-        self.bus_parkable_spots = self.spot.get_spots_of_target_group(Target.new_node_target(SimBus))
 
         self.vehicle_statuses = self.manager.dict()
         self.vehicle_statuses_lock = self.manager.Lock()
@@ -46,6 +44,10 @@ class SimBusFleet(FleetManager):
             callback=self.update_vehicle_status,
             structure=VehicleStatus
         )
+
+    def set_maps_spot(self, spot):
+        self.spot = spot
+        self.bus_parkable_spots = self.spot.get_spots_of_target_group(Target.new_node_target(SimBus))
 
     def __publish_vehicle_schedules(self, vehicle_id, payload):
         topic = Topic.get_topic(
@@ -227,7 +229,7 @@ class SimBusFleet(FleetManager):
         )
         machine.add_transitions([
             {
-                "trigger": SIM_BUS_FLEET.TRIGGER.ASSIGN_BUS_SCHEDULES,
+                "trigger": SIM_BUS_FLEET.TRIGGER.SEND_CIRCULAR_ROUTE_SCHEDULES,
                 "source": SIM_BUS_FLEET.STATE.WAITING_FOR_BUS_STAND_BY,
                 "dest": SIM_BUS_FLEET.STATE.WAITING_FOR_SCHEDULES_REQUEST,
                 "conditions": [self.condition_schedules_length_and_publish_new_bus_schedules]

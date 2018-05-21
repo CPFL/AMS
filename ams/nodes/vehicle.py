@@ -14,7 +14,7 @@ class Vehicle(EventLoop):
 
     CONST = VEHICLE
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+    def __init__(self, _id, name, dt=1.0):
         super().__init__(_id)
 
         self.status = VehicleStatus.new_data(
@@ -26,9 +26,9 @@ class Vehicle(EventLoop):
             pose=None
         )
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
+        self.waypoint = None
+        self.arrow = None
+        self.route = None
         self.state_machine = None
         self.dt = dt
 
@@ -52,6 +52,11 @@ class Vehicle(EventLoop):
         )
 
         self.set_main_loop(self.__main_loop)
+
+    def set_maps(self, waypoint, arrow, route):
+        self.waypoint = waypoint
+        self.arrow = arrow
+        self.route = route
 
     def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):
         self.set_location(Location.new_location(waypoint_id, arrow_code, self.waypoint.get_geohash(waypoint_id)))

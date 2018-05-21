@@ -78,12 +78,10 @@ if __name__ == '__main__':
     sim_car = SimCar(
         _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        intersection=intersection,
         dt=0.5
     )
+    sim_car.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    sim_car.set_maps_intersection(intersection=intersection)
 
     next_start_waypoint_id = start_waypoint_id
     schedules = [Schedule.new_schedule(
