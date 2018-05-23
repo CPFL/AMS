@@ -135,7 +135,11 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
             def set_args_of_configureCredentials(self, CAFilePath, KeyPath="", CertificatePath=""):
                 self.args.configure_credentials = copy(locals())
                 self.args.configure_credentials.pop("self")
-    
+
+            def set_args_of_configureIAMCredentials(self, AWSAccessKeyID, AWSSecretAccessKey, AWSSessionToken=""):
+                self.args.configure_iam_credentials = copy(locals())
+                self.args.configure_iam_credentials.pop("self")
+
             def set_args_of_configureLastWill(self, topic, payload, QoS, retain=False):
                 self.args.configure_last_will = copy(locals())
                 self.args.configure_last_will.pop("self")
@@ -181,7 +185,10 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
             def connect(self):
                 self.__client = base_mqtt_client_module.AWSIoTMQTTClient(**self.args.client)
                 self.__client.configureEndpoint(**self.args.configure_endpoint)
-                self.__client.configureCredentials(**self.args.configure_credentials)
+                if "configure_credentials" in self.args.keys():
+                    self.__client.configureCredentials(**self.args.configure_credentials)
+                elif "configure_iam_credentials" in self.args.keys():
+                    self.__client.configureIAMCredentials(**self.args.configure_iam_credentials)
                 if "configure_last_will" in self.args.keys():
                     self.__client.configureLastWill(**self.args.configure_last_will)
                 self.__client.connect(**self.args.connect)
