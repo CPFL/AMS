@@ -110,12 +110,15 @@ class Topic(object):
         return json.dumps(message)
 
     @staticmethod
-    def unserialize(payload, structure):
+    def unserialize(payload, structure=None):
         json_message = json.loads(payload)
-        if isinstance(json_message, dict):
-            return structure.new_data(**json.loads(payload))
-        elif isinstance(json_message, list):
-            return structure.new_data(json.loads(payload))
+        if structure is None:
+            return json_message
         else:
-            logger.error("ValueError: " + str(json_message))
-            raise ValueError("ValueError: " + str(json_message))
+            if isinstance(json_message, dict):
+                return structure.new_data(**json.loads(payload))
+            elif isinstance(json_message, list):
+                return structure.new_data(json.loads(payload))
+            else:
+                logger.error("ValueError: " + str(json_message))
+                raise ValueError("ValueError: " + str(json_message))
