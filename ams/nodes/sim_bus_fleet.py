@@ -34,15 +34,15 @@ class SimBusFleet(FleetManager):
         self.status.bus_stop_spots = {}
         self.status.state_machines = {}
 
-        self.set_subscriber(
-            topic=Topic.get_topic(
+        self.subscribers.append({
+            "topic": Topic.get_topic(
                 from_target=Target.new_target(SIM_BUS.NODE_NAME, None),
                 categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
                 use_wild_card=True
             ),
-            callback=self.update_vehicle_status,
-            structure=VehicleStatus
-        )
+            "callback": self.update_vehicle_status,
+            "structure": VehicleStatus
+        })
 
     def set_maps_spot(self, spot):
         self.maps.spot = spot
@@ -67,13 +67,13 @@ class SimBusFleet(FleetManager):
 
         self.publish_status()
 
-    def __publish_vehicle_schedules(self, vehicle_id, payload):
+    def __publish_vehicle_schedules(self, vehicle_id, vehicle_schedules):
         topic = Topic.get_topic(
             from_target=self.target,
             to_target=Target.new_target(SIM_BUS.NODE_NAME, vehicle_id),
             categories=FleetManager.CONST.TOPIC.CATEGORIES.SCHEDULES
         )
-        self.publish(topic, payload)
+        self.mqtt_client.publish(topic, vehicle_schedules)
 
     def update_vehicle_schedules(self, vehicle_statuses):
         for vehicle_id, vehicle_status in vehicle_statuses.items():
@@ -267,8 +267,7 @@ class SimBusFleet(FleetManager):
 
     def after_change_state_publish_schedules(self, vehicle_id):
         event_renamed_schedules = self.get_event_renamed_schedules(self.status.vehicle_schedules[vehicle_id])
-        payload = Topic.serialize(event_renamed_schedules)
-        self.__publish_vehicle_schedules(vehicle_id, payload)
+        self.__publish_vehicle_schedules(vehicle_id, event_renamed_schedules)
         return True
 
     def after_change_state_publish_new_bus_schedules(self, current_time, vehicle_id):

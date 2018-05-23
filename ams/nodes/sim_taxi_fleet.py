@@ -33,25 +33,26 @@ class SimTaxiFleet(FleetManager):
         self.status.vehicle_schedules = {}
         self.status.state_machines = {}
 
-        self.set_subscriber(
-            topic=Topic.get_topic(
-                from_target=Target.new_target(SIM_TAXI_USER.NODE_NAME, None),
-                categories=USER.TOPIC.CATEGORIES.STATUS,
-                use_wild_card=True
-            ),
-            callback=self.update_user_status,
-            structure=UserStatus
-        )
-
-        self.set_subscriber(
-            topic=Topic.get_topic(
-                from_target=Target.new_target(SIM_TAXI.NODE_NAME, None),
-                categories=VEHICLE.TOPIC.CATEGORIES.STATUS,
-                use_wild_card=True
-            ),
-            callback=self.update_vehicle_status,
-            structure=VehicleStatus
-        )
+        self.subscribers.extend([
+            {
+                "topic": Topic.get_topic(
+                    from_target=Target.new_target(SIM_TAXI_USER.NODE_NAME, None),
+                    categories=USER.TOPIC.CATEGORIES.STATUS,
+                    use_wild_card=True
+                ),
+                "callback": self.update_user_status,
+                "structure": UserStatus
+            },
+            {
+                "topic": Topic.get_topic(
+                    from_target=Target.new_target(SIM_TAXI.NODE_NAME, None),
+                    categories=VEHICLE.TOPIC.CATEGORIES.STATUS,
+                    use_wild_card=True
+                ),
+                "callback": self.update_vehicle_status,
+                "structure": VehicleStatus
+            }
+        ])
 
     # on message
     def update_user_status(self, _client, _userdata, topic, user_status):
@@ -77,21 +78,21 @@ class SimTaxiFleet(FleetManager):
         self.update_status()
         self.publish_status()
 
-    def __publish_user_schedules(self, user_id, payload):
+    def __publish_user_schedules(self, user_id, user_schedules):
         topic = Topic.get_topic(
             from_target=self.target,
             to_target=Target.new_target(SIM_TAXI_USER.NODE_NAME, user_id),
             categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES,
         )
-        self.publish(topic, payload)
+        self.mqtt_client.publish(topic, user_schedules)
 
-    def __publish_vehicle_schedules(self, vehicle_id, payload):
+    def __publish_vehicle_schedules(self, vehicle_id, vehicle_schedules):
         topic = Topic.get_topic(
             from_target=self.target,
             to_target=Target.new_target(SIM_TAXI.NODE_NAME, vehicle_id),
             categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES
         )
-        self.publish(topic, payload)
+        self.mqtt_client.publish(topic, vehicle_schedules)
 
     def update_user_schedules(self, user_statuses):
         for user_id, user_status in user_statuses.items():
@@ -325,13 +326,11 @@ class SimTaxiFleet(FleetManager):
         return machine
 
     def after_state_change_publish_user_schedules(self, user_id):
-        self.__publish_user_schedules(
-            user_id, Topic.serialize(self.status.user_schedules[user_id]))
+        self.__publish_user_schedules(user_id, self.status.user_schedules[user_id])
         return True
 
     def after_state_change_publish_vehicle_schedules(self, vehicle_id):
-        self.__publish_vehicle_schedules(
-            vehicle_id, Topic.serialize(self.status.vehicle_schedules[vehicle_id]))
+        self.__publish_vehicle_schedules(vehicle_id, self.status.vehicle_schedules[vehicle_id])
         return True
 
     def after_state_change_add_relation(self, user_id, vehicle_id):

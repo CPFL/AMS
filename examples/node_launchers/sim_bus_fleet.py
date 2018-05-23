@@ -4,7 +4,11 @@
 import json
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
+from time import sleep
 
+import paho.mqtt.client
+
+from ams import get_ams_mqtt_client_class
 from ams.maps import Waypoint, Arrow, Route, Spot
 from ams.helpers import Schedule, Target, ScheduleBranch
 from ams.nodes import SimBusFleet
@@ -83,13 +87,23 @@ if __name__ == '__main__':
     spot = Spot()
     spot.load(args.path_spot_json)
 
+    bus_fleet_id = args.id if args.id is not None else str(uuid())
+
+    MQTTClient = get_ams_mqtt_client_class(paho.mqtt.client)
+    mqtt_client = MQTTClient()
+    mqtt_client.set_args_of_Client(client_id=bus_fleet_id)
+    mqtt_client.set_args_of_connect(host=args.host, port=args.port)
+
     bus_schedules = load_bus_schedule_json(args.path_bus_schedule_json)
 
     bus_fleet = SimBusFleet(
-        _id=args.id if args.id is not None else str(uuid()),
+        _id=bus_fleet_id,
         name=args.name
     )
+    bus_fleet.set_mqtt_client(mqtt_client)
     bus_fleet.set_maps(waypoint=waypoint, arrow=arrow, route=route)
     bus_fleet.set_maps_spot(spot=spot)
     bus_fleet.set_bus_schedules(bus_schedules)
-    bus_fleet.start(host=args.host, port=args.port)
+    bus_fleet.start()
+    while True:
+        sleep(60)
