@@ -125,8 +125,8 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
             def set_args_of_AWSIoTMQTTClient(
                     self, clientID, protocolType=CONST.DEFAULT_PROTOCOL,
                     useWebsocket=False, cleanSession=True):
-                self.args.client = copy(locals())
-                self.args.client.pop("self")
+                self.args.aws_iot_mqtt_client = copy(locals())
+                self.args.aws_iot_mqtt_client.pop("self")
     
             def set_args_of_configureEndpoint(self, hostName, portNumber):
                 self.args.configure_endpoint = copy(locals())
@@ -183,7 +183,7 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
                     set_on_message(self.__client, self.__subscribers[topic], self.__subscribers_lock)
 
             def connect(self):
-                self.__client = base_mqtt_client_module.AWSIoTMQTTClient(**self.args.client)
+                self.__client = base_mqtt_client_module.AWSIoTMQTTClient(**self.args.aws_iot_mqtt_client)
                 self.__client.configureEndpoint(**self.args.configure_endpoint)
                 if "configure_credentials" in self.args.keys():
                     self.__client.configureCredentials(**self.args.configure_credentials)
@@ -220,7 +220,7 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
                 logger.warning("Not support this method.")
 
             def connect(self):
-                self.__client = base_mqtt_client_module.client(CONST.CLIENT_TYPE)
+                self.__client = base_mqtt_client_module.client(MQTT_CLIENT.BASE_CLIENTS.AWS_IOT_BOTO3.CLIENT_TYPE)
 
             def publish(self, topic, message, qos=0, retain=False):
                 self.__client.publish(topic, qos=qos, payload=Topic.serialize(message))
