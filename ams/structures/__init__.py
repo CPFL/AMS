@@ -16,6 +16,7 @@ from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
 
 from ams.structures.topic import TOPIC
+from ams.structures.dict_client import DICT_CLIENT
 from ams.structures.mqtt_client import MQTT_CLIENT
 
 from ams.structures.event_loop import EVENT_LOOP
