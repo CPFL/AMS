@@ -51,7 +51,7 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
                 for topic, subscriber in subscribers.items():
                     if Topic.compare_topics(topic, message_data.topic):
                         subscriber["callback"](_client, subscriber["user_data"], message_data.topic, payload)
-                        subscribers_lock.release()
+                subscribers_lock.release()
 
             client.on_message = on_message
             client.connect(**args.connect)
