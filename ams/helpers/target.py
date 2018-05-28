@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+from ams.structures import TARGET
+from ams.structures import Target as Structure
+from ams.structures import Targets as Structures
+
+
+class Target(object):
+
+    CONST = TARGET
+
+    @staticmethod
+    def new_target(group, _id):
+        return Structure.new_data(
+            group=group,
+            id=_id,
+        )
+
+    @staticmethod
+    def new_node_target(node):
+        if isinstance(node, type):
+            return Target.new_target(node.__name__, None)
+        else:
+            return Target.new_target(node.__class__.__name__, node.event_loop_id)
+
+    validate_target = Structure.validate_data
+    get_errors = Structure.get_errors
+
+    @staticmethod
+    def new_targets(targets):
+        return Structures.new_data(targets)
+
+    @staticmethod
+    def is_same_id(target1, target2):
+        return None not in [target1, target2] and target1.id == target2.id
+
+    @staticmethod
+    def is_same_group(target1, target2):
+        return None not in [target1, target2] and target1.group == target2.group
+
+    @staticmethod
+    def is_same(target1, target2):
+        return Target.is_same_id(target1, target2) and Target.is_same_group(target1, target2)
+
+    @staticmethod
+    def get_same_group_targets_in_targets(group, targets):
+        return list(filter(lambda x: x is not None and x.group == group, targets))
+
+    @staticmethod
+    def get_code(target):
+        return TARGET.DELIMITER.join([
+            target.group if target.group is not None else "",
+            target.id if target.id is not None else ""
+        ])

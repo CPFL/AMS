@@ -3,8 +3,12 @@
 
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
+from time import sleep
 
-from ams import Waypoint, Arrow, Route
+import paho.mqtt.client
+
+from ams import get_ams_mqtt_client_class
+from ams.maps import Waypoint, Arrow, Route
 from ams.nodes import SimTaxiFleet
 
 parser = ArgumentParser()
@@ -35,11 +39,19 @@ if __name__ == '__main__':
     route.set_waypoint(waypoint)
     route.set_arrow(arrow)
 
+    taxi_fleet_id = str(uuid())
+
+    MQTTClient = get_ams_mqtt_client_class(paho.mqtt.client)
+    mqtt_client = MQTTClient()
+    mqtt_client.set_args_of_Client(client_id=taxi_fleet_id)
+    mqtt_client.set_args_of_connect(host=args.host, port=args.port)
+
     taxi_fleet = SimTaxiFleet(
-        _id=args.id if args.id is not None else str(uuid()),
-        name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route
+        _id=args.id if args.id is not None else taxi_fleet_id,
+        name=args.name
     )
-    taxi_fleet.start(host=args.host, port=args.port)
+    taxi_fleet.set_mqtt_client(mqtt_client)
+    taxi_fleet.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    taxi_fleet.start()
+    while True:
+        sleep(60)

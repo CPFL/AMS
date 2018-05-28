@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 timestamp_template = {
     "secs": 0,
@@ -22,7 +23,7 @@ timestamp_schema = {
 }
 
 
-class Timestamp(get_base_class(timestamp_template, timestamp_schema)):
+class Timestamp(get_structure_superclass(timestamp_template, timestamp_schema)):
     pass
 
 
@@ -52,7 +53,7 @@ header_schema = {
 }
 
 
-class Header(get_base_class(header_template, header_schema)):
+class Header(get_structure_superclass(header_template, header_schema)):
     pass
 
 
@@ -81,7 +82,7 @@ vector3_schema = {
 }
 
 
-class Vector3(get_base_class(vector3_template, vector3_schema)):
+class Vector3(get_structure_superclass(vector3_template, vector3_schema)):
     pass
 
 
@@ -132,7 +133,7 @@ pose_schema = {
 }
 
 
-class Pose(get_base_class(pose_template, pose_schema)):
+class Pose(get_structure_superclass(pose_template, pose_schema)):
     pass
 
 
@@ -157,7 +158,7 @@ current_pose_schema = {
 }
 
 
-class CurrentPose(get_base_class(current_pose_template, current_pose_schema)):
+class CurrentPose(get_structure_superclass(current_pose_template, current_pose_schema)):
     pass
 
 
@@ -182,7 +183,7 @@ twist_schema = {
 }
 
 
-class Twist(get_base_class(twist_template, twist_schema)):
+class Twist(get_structure_superclass(twist_template, twist_schema)):
     pass
 
 
@@ -207,7 +208,7 @@ twist_stamped_schema = {
 }
 
 
-class TwistStamped(get_base_class(twist_stamped_template, twist_stamped_schema)):
+class TwistStamped(get_structure_superclass(twist_stamped_template, twist_stamped_schema)):
     pass
 
 
@@ -266,7 +267,7 @@ dtlane_schema = {
 }
 
 
-class Dtlane(get_base_class(dtlane_template, dtlane_schema)):
+class Dtlane(get_structure_superclass(dtlane_template, dtlane_schema)):
     pass
 
 
@@ -314,7 +315,7 @@ waypoint_state_schema = {
 }
 
 
-class WaypointState(get_base_class(waypoint_state_template, waypoint_state_schema)):
+class WaypointState(get_structure_superclass(waypoint_state_template, waypoint_state_schema)):
     pass
 
 
@@ -331,7 +332,7 @@ closest_waypoint_schema = {
 }
 
 
-class ClosestWaypoint(get_base_class(closest_waypoint_template, closest_waypoint_schema)):
+class ClosestWaypoint(get_structure_superclass(closest_waypoint_template, closest_waypoint_schema)):
     pass
 
 
@@ -373,7 +374,7 @@ dicision_maker_states_schema = {
 }
 
 
-class DecisionMakerStates(get_base_class(dicision_maker_states_template, dicision_maker_states_schema)):
+class DecisionMakerStates(get_structure_superclass(dicision_maker_states_template, dicision_maker_states_schema)):
     pass
 
 
@@ -402,7 +403,7 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status_template, status_schema)):
+class Status(get_structure_superclass(status_template, status_schema)):
     pass
 
 
@@ -427,7 +428,7 @@ pose_stamped_schema = {
 }
 
 
-class PoseStamped(get_base_class(pose_stamped_template, pose_stamped_schema)):
+class PoseStamped(get_structure_superclass(pose_stamped_template, pose_stamped_schema)):
     pass
 
 
@@ -485,7 +486,7 @@ waypoint_schema = {
 }
 
 
-class Waypoint(get_base_class(waypoint_template, waypoint_schema)):
+class Waypoint(get_structure_superclass(waypoint_template, waypoint_schema)):
     pass
 
 
@@ -527,7 +528,7 @@ lane_schema = {
 }
 
 
-class Lane(get_base_class(lane_template, lane_schema)):
+class Lane(get_structure_superclass(lane_template, lane_schema)):
     pass
 
 
@@ -550,7 +551,7 @@ lane_array_schema = {
 }
 
 
-class LaneArray(get_base_class(lane_array_template, lane_array_schema)):
+class LaneArray(get_structure_superclass(lane_array_template, lane_array_schema)):
     pass
 
 
@@ -567,7 +568,7 @@ state_command_schema = {
 }
 
 
-class StateCommand(get_base_class(state_command_template, state_command_schema)):
+class StateCommand(get_structure_superclass(state_command_template, state_command_schema)):
     pass
 
 
@@ -591,7 +592,7 @@ light_color_schema = {
 }
 
 
-class LightColor(get_base_class(light_color_template, light_color_schema)):
+class LightColor(get_structure_superclass(light_color_template, light_color_schema)):
     pass
 
 
@@ -622,7 +623,7 @@ pose_with_covariance_schema = {
 }
 
 
-class PoseWithCovariance(get_base_class(pose_with_covariance_template, pose_with_covariance_schema)):
+class PoseWithCovariance(get_structure_superclass(pose_with_covariance_template, pose_with_covariance_schema)):
     pass
 
 
@@ -647,7 +648,7 @@ initial_pose_schema = {
 }
 
 
-class InitialPose(get_base_class(initial_pose_template, initial_pose_schema)):
+class InitialPose(get_structure_superclass(initial_pose_template, initial_pose_schema)):
     pass
 
 
@@ -656,7 +657,6 @@ class ROSMessage(object):
     CurrentPose = CurrentPose
     ClosestWaypoint = ClosestWaypoint
     DecisionMakerStates = DecisionMakerStates
-    LaneArray = LaneArray
     StateCommand = StateCommand
     LightColor = LightColor
     LaneArray = LaneArray

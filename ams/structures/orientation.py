@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Rpy, Quaternion
+from ams import get_structure_superclass
+from ams.structures import Rpy, Quaternion
+
 
 template = {
     "rpy": Rpy.get_template(),
@@ -24,5 +26,5 @@ schema = {
 }
 
 
-class Orientation(get_base_class(template, schema)):
+class Orientation(get_structure_superclass(template, schema)):
     pass

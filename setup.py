@@ -24,6 +24,7 @@ setup(
     license=license,
     packages=find_packages(exclude=["config", "res", 'tools', 'docs', 'tests', "examples"]),
     install_requires=[
+        "paho-mqtt==1.3.1",
         "transforms3d==0.3.1",
         "python-geohash==0.8.5",
         "Geohash==1.0",

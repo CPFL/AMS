@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from sys import float_info
-from ams.structures import get_namedtuple_from_dict
+from ams import get_namedtuple_from_dict
 
 
 AUTOWARE = get_namedtuple_from_dict("CONST", {

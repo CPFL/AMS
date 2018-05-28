@@ -11,9 +11,13 @@ from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
 from config.env import env
-from ams import Waypoint, Arrow, Intersection, Target, Topic
-from ams.nodes import SimTaxi, SimTaxiUser, SimTaxiFleet, SimBus, SimBusUser, SimBusFleet, TrafficSignal, User, Vehicle, FleetManager
-# from ams.messages import FleetStatus
+from ams.maps import Waypoint, Arrow, Intersection
+from ams.helpers import Target, Topic
+from ams.nodes import \
+    User, Vehicle, FleetManager, \
+    SimTaxi, SimTaxiUser, SimTaxiFleet, \
+    SimBus, SimBusUser, SimBusFleet, \
+    TrafficSignal
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -38,42 +42,43 @@ with app.app_context():
     app.intersection = Intersection()
     app.intersection.load(args.path_intersection_json)
 
-    app.topics = {}
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimTaxiUser.__name__), None)
-    topic.set_categories(User.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_taxi_user"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimTaxi.__name__), None)
-    topic.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_taxi"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimTaxiFleet.__name__), None)
-    topic.set_categories(FleetManager.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_taxi_fleet"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimBusUser.__name__), None)
-    topic.set_categories(User.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_bus_user"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimBus.__name__), None)
-    topic.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_bus"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimBusFleet.__name__), None)
-    topic.set_categories(FleetManager.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["sim_bus_fleet"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, TrafficSignal.__name__), None)
-    topic.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["traffic_signal"] = topic.get_path(use_wild_card=True)
+    app.topics = {
+        "sim_taxi_user": Topic.get_topic(
+            from_target=Target.new_target(SimTaxiUser.__name__, None),
+            categories=User.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "sim_taxi": Topic.get_topic(
+            from_target=Target.new_target(SimTaxi.__name__, None),
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "sim_taxi_fleet": Topic.get_topic(
+            from_target=Target.new_target(SimTaxiFleet.__name__, None),
+            categories=FleetManager.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "sim_bus_user": Topic.get_topic(
+            from_target=Target.new_target(SimBusUser.__name__, None),
+            categories=User.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "sim_bus": Topic.get_topic(
+            from_target=Target.new_target(SimBus.__name__, None),
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "sim_bus_fleet": Topic.get_topic(
+            from_target=Target.new_target(SimBusFleet.__name__, None),
+            categories=FleetManager.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "traffic_signal": Topic.get_topic(
+            from_target=Target.new_target(TrafficSignal.__name__, None),
+            categories=TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        )
+    }
 
     pp(app.topics)
 
@@ -81,8 +86,6 @@ CORS(app)
 
 app.config['MQTT_BROKER_URL'] = env["MQTT_BROKER_HOST"]
 app.config['MQTT_BROKER_PORT'] = int(env["MQTT_BROKER_PORT"])
-# app.config['MQTT_KEEPALIVE'] = 5
-# app.config['MQTT_TLS_ENABLED'] = False
 mqtt = Mqtt(app)
 
 app.config['SECRET_KEY'] = 'secret!'
@@ -134,12 +137,6 @@ def get_view_data():
 
 @app.route("/requestFleetRelations")
 def request_fleet_relations():
-    # topic = Topic()
-    # topic.set_root(FleetManager.TOPIC.SUBSCRIBE)
-    # topic.set_message(fleet_manager_message)
-    # message = topic.get_template()
-    # message["action"] = FleetManager.ACTION.PUBLISH_RELATIONS
-    # mqtt.publish(topic.root, topic.serialize(message))
     return api_response(code=200, message={"result": "requested"})
 
 
@@ -195,7 +192,6 @@ def handle_mqtt_on_traffic_signal_status_message(_client, _userdata, mqtt_messag
     message = mqtt_message.payload.decode("utf-8")
     socketio.emit(
         app.topics["traffic_signal"], data={"topic": mqtt_message.topic, "message": message}, namespace="/ams")
-
 
 
 if __name__ == '__main__':

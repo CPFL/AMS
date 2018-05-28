@@ -4,7 +4,9 @@
 from time import time
 from copy import deepcopy
 
-from ams import Topic, Route, Schedule, MapMatch, Target, StateMachine
+from ams import StateMachine
+from ams.maps import Route, MapMatch
+from ams.helpers import Topic, Schedule, Target
 from ams.nodes import Vehicle, SimCar
 from ams.messages import TrafficSignalStatus, ROSMessage
 from ams.structures import AUTOWARE, TRAFFIC_SIGNAL, Pose, Position, Orientation, Quaternion
@@ -40,47 +42,67 @@ class Autoware(Vehicle):
 
         self.__previous_state_command = None
 
-        self.__topicPubBasedLaneWaypointsArray = Topic()
-        self.__topicPubBasedLaneWaypointsArray.set_targets(
-            self.target, Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME))
-        self.__topicPubBasedLaneWaypointsArray.set_categories(AUTOWARE.TOPIC.CATEGORIES.BASED_LANE_WAYPOINTS_ARRAY)
+        self.__pub_based_lane_waypoints_array_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.BASED_LANE_WAYPOINTS_ARRAY
+        )
 
-        self.__topicPubStateCmd = Topic()
-        self.__topicPubStateCmd.set_targets(
-            self.target, Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME))
-        self.__topicPubStateCmd.set_categories(AUTOWARE.TOPIC.CATEGORIES.STATE_CMD)
+        self.__pub_state_cmd_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.STATE_CMD
+        )
 
-        self.__topicPubLightColor = Topic()
-        self.__topicPubLightColor.set_targets(
-            self.target, Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME))
-        self.__topicPubLightColor.set_categories(AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
+        self.__pub_light_color_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR
+        )
 
-        self.__topicSubCurrentPose = Topic()
-        self.__topicSubCurrentPose.set_targets(
-            Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME), self.target)
-        self.__topicSubCurrentPose.set_categories(AUTOWARE.TOPIC.CATEGORIES.CURRENT_POSE)
-        self.__topicSubCurrentPose.set_message(ROSMessage.CurrentPose)
-        self.set_subscriber(self.__topicSubCurrentPose, self.update_current_pose)
+        self.__sub_current_pose_topic = Topic.get_topic(
+            from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            to_target=self.target,
+            categories=AUTOWARE.TOPIC.CATEGORIES.CURRENT_POSE,
+            use_wild_card=True
+        )
+        self.set_subscriber(
+            topic=self.__sub_current_pose_topic,
+            callback=self.update_current_pose,
+            structure=ROSMessage.CurrentPose
+        )
 
-        self.__topicSubClosestWaypoint = Topic()
-        self.__topicSubClosestWaypoint.set_targets(
-            Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME), self.target)
-        self.__topicSubClosestWaypoint.set_categories(AUTOWARE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT)
-        self.__topicSubClosestWaypoint.set_message(ROSMessage.ClosestWaypoint)
-        self.set_subscriber(self.__topicSubClosestWaypoint, self.update_closest_waypoint)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+                to_target=self.target,
+                categories=AUTOWARE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT,
+                use_wild_card=True
+            ),
+            callback=self.update_closest_waypoint,
+            structure=ROSMessage.ClosestWaypoint
+        )
 
-        self.__topicSubDecisionMakerStates = Topic()
-        self.__topicSubDecisionMakerStates.set_targets(
-            Target.new_target(self.target.id, AUTOWARE.TOPIC.ROS_NODE_NAME), self.target)
-        self.__topicSubDecisionMakerStates.set_categories(AUTOWARE.TOPIC.CATEGORIES.DECISION_MAKER_STATES)
-        self.__topicSubDecisionMakerStates.set_message(ROSMessage.DecisionMakerStates)
-        self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decisionmaker_states)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+                to_target=self.target,
+                categories=AUTOWARE.TOPIC.CATEGORIES.DECISION_MAKER_STATES,
+                use_wild_card=True
+            ),
+            callback=self.update_decisionmaker_states,
+            structure=ROSMessage.DecisionMakerStates
+        )
 
-        self.__topicSubTrafficSignalStatus = Topic()
-        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME))
-        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signals)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(TRAFFIC_SIGNAL.NODE_NAME, None),
+                categories=TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_traffic_signals,
+            structure=TrafficSignalStatus
+        )
 
     def set_upper_distance_from_stopline(self, distance_from_stopline):
         self.upper_distance_from_stopline = distance_from_stopline
@@ -91,14 +113,14 @@ class Autoware(Vehicle):
 
         if ros_lane_array is not None:
             self.current_locations = locations
-            payload = self.__topicPubBasedLaneWaypointsArray.serialize(ros_lane_array)
-            self.publish(self.__topicPubBasedLaneWaypointsArray, payload)
+            payload = Topic.serialize(ros_lane_array)
+            self.publish(self.__pub_based_lane_waypoints_array_topic, payload)
 
     def publish_state_command(self, state_command):
         if True:
-            payload = self.__topicPubStateCmd.serialize(state_command)
+            payload = Topic.serialize(state_command)
             self.__previous_state_command = state_command
-            self.publish(self.__topicPubStateCmd, payload)
+            self.publish(self.__pub_state_cmd_topic, payload)
 
     def publish_init_state_command(self, decisionmaker_states):
         if decisionmaker_states.main_state != AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.INITIAL:
@@ -138,31 +160,28 @@ class Autoware(Vehicle):
         header.stamp.secs = int(time())
         header.stamp.nsecs = int((time() - int(time())) * 1000000000)
 
-        payload = self.__topicPubLightColor.serialize(ROSMessage.LightColor.new_data(
+        payload = Topic.serialize(ROSMessage.LightColor.new_data(
             header=header,
             traffic_light=traffic_light
         ))
-        self.publish(self.__topicPubLightColor, payload)
+        self.publish(self.__pub_light_color_topic, payload)
 
-    def update_current_pose(self, _client, _userdata, _topic, payload):
+    def update_current_pose(self, _client, _userdata, _topic, ros_current_pose):
         self.ros_current_pose_lock.acquire()
-        self.ros_current_pose = self.__topicSubCurrentPose.unserialize(payload)
+        self.ros_current_pose = ros_current_pose
         self.ros_current_pose_lock.release()
 
-    def update_closest_waypoint(self, _client, _userdata, _topic, payload):
+    def update_closest_waypoint(self, _client, _userdata, _topic, ros_closest_waypoint):
         self.ros_closest_waypoint_lock.acquire()
-        self.ros_closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
+        self.ros_closest_waypoint = ros_closest_waypoint
         self.ros_closest_waypoint_lock.release()
 
-    def update_decisionmaker_states(self, _client, _userdata, _topic, payload):
+    def update_decisionmaker_states(self, _client, _userdata, _topic, ros_decisionmaker_states):
         self.ros_decisionmaker_states_lock.acquire()
-        self.ros_decisionmaker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
+        self.ros_decisionmaker_states = ros_decisionmaker_states
         self.ros_decisionmaker_states_lock.release()
 
-    def update_traffic_signals(self, _client, _user_data, _topic, payload):
-        # todo: localize
-        traffic_signal_status = self.__topicSubTrafficSignalStatus.unserialize(payload)
-
+    def update_traffic_signals(self, _client, _user_data, _topic, traffic_signal_status):
         self.traffic_signals_lock.acquire()
         self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
         self.traffic_signals_lock.release()
@@ -185,7 +204,7 @@ class Autoware(Vehicle):
             current_pose = Autoware.get_current_pose_from_ros_current_pose(ros_current_pose)
             self.set_location(
                 self.__map_match.get_matched_location_on_arrows(current_pose, self.arrow.get_arrow_codes()))
-            self.remove_subscriber(self.__topicSubCurrentPose)
+            self.remove_subscriber(self.__sub_current_pose_topic)
 
     def update_pose_from_closest_arrow_waypoint(self):
         self.ros_closest_waypoint_lock.acquire()

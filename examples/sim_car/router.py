@@ -11,8 +11,9 @@ from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
 from config.env import env
-from ams import Waypoint, Arrow, Intersection, Topic, Target
-from ams.nodes import SimCar, TrafficSignal
+from ams.maps import Waypoint, Arrow, Intersection
+from ams.helpers import Topic, Target
+from ams.nodes import Vehicle, SimCar, TrafficSignal
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=2).pprint
@@ -37,17 +38,18 @@ with app.app_context():
     app.intersection = Intersection()
     app.intersection.load(args.path_intersection_json)
 
-    app.topics = {}
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, SimCar.__name__), None)
-    topic.set_categories(SimCar.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["vehicle"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, TrafficSignal.__name__), None)
-    topic.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["traffic_signal"] = topic.get_path(use_wild_card=True)
+    app.topics = {
+        "vehicle": Topic.get_topic(
+            from_target=Target.new_target(SimCar.__name__, None),
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "traffic_signal": Topic.get_topic(
+            from_target=Target.new_target(TrafficSignal.__name__, None),
+            categories=TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        )
+    }
 
     pp(app.topics)
 
