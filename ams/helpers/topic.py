@@ -94,7 +94,7 @@ class Topic(object):
             subscribe_topic_parts = subscribe_topic.split(TOPIC.DELIMITER)
             incoming_topic_parts = incoming_topic.split(TOPIC.DELIMITER)
             for i, subscribe_topic_part in enumerate(subscribe_topic_parts):
-                if subscribe_topic_parts == "#":
+                if subscribe_topic_part == "#":
                     return True
                 else:
                     if all([
