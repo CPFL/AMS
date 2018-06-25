@@ -11,9 +11,9 @@ from ams.structures import Period
 class Schedule(object):
 
     @staticmethod
-    def new_schedule(targets, event, start_time=None, end_time=None, route=None):
+    def new_schedule(targets, event, _id=None, start_time=None, end_time=None, route=None):
         return Structure.new_data(
-            id=str(uuid()),
+            id=_id if _id is not None else str(uuid()),
             targets=targets,
             event=event,
             period=Period.new_data(
@@ -58,3 +58,21 @@ class Schedule(object):
             if phase_time < elapse_time:
                 break
         return Schedule.new_schedule(targets, state, start_time, end_time)
+
+    @staticmethod
+    def get_schedule_by_id(schedules, schedule_id):
+        filtered_schedules = list(filter(lambda x: x.id == schedule_id, schedules))
+        if len(filtered_schedules) == 1:
+            return filtered_schedules[0]
+        return None
+
+    @staticmethod
+    def get_schedule_index_by_schedule_id(schedules, schedule_id):
+        return list(map(lambda x: x.id, schedules)).index(schedule_id)
+
+    @staticmethod
+    def get_next_schedule_by_current_schedule_id(schedules, current_schedule_id):
+        next_schedule_index = Schedule.get_schedule_index_by_schedule_id(schedules, current_schedule_id) + 1
+        if next_schedule_index < len(schedules):
+            return schedules[next_schedule_index]
+        return None
