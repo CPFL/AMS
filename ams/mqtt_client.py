@@ -148,14 +148,14 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
                 self.args.connect = copy(locals())
                 self.args.connect.pop("self")
 
-        def set_on_message(client, subscriber, subscribers_lock):
-            def on_message(_client, _userdata, message_data):
+        def set_on_message(_client, subscriber, subscribers_lock):
+            def on_message(client, _user_data, message_data):
                 payload = message_data.payload.decode("utf-8")
                 subscribers_lock.acquire()
-                subscriber["callback"](_client, _userdata, subscriber["topic"], payload)
+                subscriber["callback"](client, subscriber["user_data"], message_data.topic, payload)
                 subscribers_lock.release()
 
-            client.subscribe(subscriber["topic"], QoS=subscriber["qos"], callback=on_message)
+            _client.subscribe(subscriber["topic"], QoS=subscriber["qos"], callback=on_message)
 
         class WrapperMethods(ArgsSetters):
             def __init__(self):
@@ -223,13 +223,13 @@ def get_ams_mqtt_client_class(base_mqtt_client_module):
                 self.__client = base_mqtt_client_module.client(MQTT_CLIENT.BASE_CLIENTS.AWS_IOT_BOTO3.CLIENT_TYPE)
 
             def publish(self, topic, message, qos=0, retain=False):
-                self.__client.publish(topic, qos=qos, payload=Topic.serialize(message))
+                self.__client.publish(topic=topic, qos=qos, payload=Topic.serialize(message))
 
             def unsubscribe(self, topic):
                 logger.warning("Not support this method.")
 
             def disconnect(self):
-                self.__client.disconnect()
+                logger.warning("Not support this method.")
 
     else:
         raise AttributeError("Unknown module {}".format(base_mqtt_client_module.__name__))

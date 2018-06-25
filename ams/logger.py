@@ -4,13 +4,12 @@
 from logging import config, getLogger
 from pprint import PrettyPrinter
 
-
-config.dictConfig({
+default_config = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "simple": {
-            "format": "%(name)s %(asctime)s %(levelname)s pid %(process)d line %(lineno)d in %(funcName)s: %(message)s"
+            "format": "%(name)s %(asctime)s %(levelname)s pid %(process)d line %(lineno)d in %(module)s/%(funcName)s: %(message)s"
         },
     },
     "handlers": {
@@ -37,7 +36,12 @@ config.dictConfig({
         "ams": {
             "handlers": ["console", "log_file"],
             "qualname": "ams",
-            "propagate": True}}})
+            "propagate": True
+        }
+    }
+}
+
+config.dictConfig(default_config)
 
 logger = getLogger("ams")
 logger.pp = PrettyPrinter(indent=2).pprint

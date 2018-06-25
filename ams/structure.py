@@ -21,7 +21,7 @@ def get_structure_superclass(template, schema):
         _schema = {"list": schema}
     validator = Validator(_schema)
 
-    class BaseStructure(Validator):
+    class SuperClass(Validator):
         def __init__(self):
             self.__template = attr_template
             super().__init__(_schema)
@@ -64,7 +64,7 @@ def get_structure_superclass(template, schema):
         def get_errors():
             return validator.validate_errors()
 
-    return BaseStructure
+    return SuperClass
 
 
 def get_namedtuple_from_dict(typename, _dict):
