@@ -2,8 +2,7 @@
 # coding: utf-8
 
 import json
-import Geohash
-from transforms3d.quaternions import axangle2quat
+import geohash
 
 from ams.helpers import Position, Rpy
 from ams.structures import WAYPOINT, Pose, Orientation
@@ -29,7 +28,7 @@ class Waypoint(object):
         self.__waypoints = dict(map(
             lambda x: (x[0], {
                 "waypoint_id": x[1]["waypointID"],
-                "geohash": Geohash.encode(
+                "geohash": geohash.encode(
                     float(x[1]["lat"]), float(x[1]["lng"]), precision=WAYPOINT.GEOHASH_PRECISION),
                 "position": Position.new_position(*map(lambda key: x[1][key], ("x", "y", "z"))),
                 "yaw": x[1]["yaw"],
@@ -41,7 +40,7 @@ class Waypoint(object):
         return list(self.__waypoints.keys())
 
     def get_latlng(self, waypoint_id):
-        return Geohash.decode(self.__waypoints[waypoint_id]["geohash"])
+        return geohash.decode(self.__waypoints[waypoint_id]["geohash"])
 
     def get_geohash(self, waypoint_id):
         return self.__waypoints[waypoint_id]["geohash"]

@@ -4,8 +4,8 @@
 import json
 import math
 
-from ams.helpers import Position, Vector
-from ams.structures import ARROW
+from ams.helpers import Position, Vector, Rpy, Location
+from ams.structures import ARROW, Orientation
 
 
 class Arrow(object):
@@ -23,6 +23,9 @@ class Arrow(object):
             data = json.load(f)
             self.set_arrows(data["arrows"], data["toArrows"], data["fromArrows"])
         return True
+
+    def set_waypoint(self, waypoint):
+        self.waypoint = waypoint
 
     def connect_to_redis(self, _host, _port, _dbname):
         return self
@@ -68,6 +71,18 @@ class Arrow(object):
             )
         ))
         return math.pi+math.atan2(sub_vector[0], sub_vector[1])
+
+    def get_orientation(self, arrow_code, waypoint_id):
+        return Orientation.new_data(
+            quaternion=dict(zip(
+                ["w", "x", "y", "z"],
+                Rpy.to_quaternion([0, 0, 1], self.get_yaw(arrow_code, waypoint_id)))),
+            rpy=Rpy.Structure.new_data(
+                roll=None,
+                pitch=None,
+                yaw=self.get_yaw(arrow_code, waypoint_id)
+            )
+        )
 
     def get_heading(self, arrow_code, waypoint_id):
         return math.degrees(self.get_yaw(arrow_code, waypoint_id))
@@ -151,6 +166,10 @@ class Arrow(object):
             from_arrows[arrow_codes[i]] = [arrow_codes[i - 1]]
 
         return arrows, to_arrows, from_arrows
+
+    def get_locations_by_waypoint_id(self, waypoint_id):
+        arrow_codes = self.get_arrow_codes_from_waypoint_id(waypoint_id)
+        return list(map(lambda x: Location.new_location(waypoint_id, x), arrow_codes))
 
     def get_arrow_codes_from_waypoint_id(self, waypoint_id):
         return list(map(lambda x: x[0], filter(lambda x: waypoint_id in x[1]["waypointIDs"], self.__arrows.items())))

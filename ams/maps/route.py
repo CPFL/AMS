@@ -94,9 +94,17 @@ class Route(object):
             if i == len(arrow_codes)-1 and goal_waypoint_id in waypoint_ids:
                 je = waypoint_ids.index(goal_waypoint_id) + 1
             for j in range(js+1, je):
-                locations.append({"waypoint_id": waypoint_ids[j - 1], "arrow_code": arrow_code})
+                locations.append({
+                    "waypoint_id": waypoint_ids[j - 1],
+                    "arrow_code": arrow_code,
+                    "geohash": self.__waypoint.get_geohash(waypoint_ids[j - 1])
+                })
             if arrow_code == arrow_codes[-1]:
-                locations.append({"waypoint_id": waypoint_ids[je - 1], "arrow_code": arrow_code})
+                locations.append({
+                    "waypoint_id": waypoint_ids[je - 1],
+                    "arrow_code": arrow_code,
+                    "geohash": self.__waypoint.get_geohash(waypoint_ids[je - 1])
+                })
 
         return Location.new_locations(locations)
 
@@ -357,33 +365,3 @@ class Route(object):
         waypoint_ids = self.get_route_waypoint_ids(route)
         speed_limits = list(map(self.__waypoint.get_speed_limit, waypoint_ids))
         return speed_limits
-
-    def get_moved_position(self, position, distance, route):
-        arrow_code, waypoint_id, _, moved_distance = \
-            self.__arrow.get_point_to_arrows(position, route.arrow_codes)
-
-        arrow_codes = route.arrow_codes[route.arrow_codes.index(arrow_code):]
-        locations = self.get_locations(self.new_route(
-            waypoint_id,
-            route.goal_waypoint_id,
-            arrow_codes
-        ))
-
-        for i in range(0, len(locations)-1):
-            p1 = self.__waypoint.get_position(locations[i].waypoint_id)
-            p2 = self.__waypoint.get_position(locations[i+1].waypoint_id)
-            d = self.__arrow.get_distance(p1, p2)
-            if distance <= moved_distance + d:
-                v1, v2 = list(map(Position.get_vector, (p1, p2)))
-                v12 = Vector.get_sub_vector(v2, v1)
-                return Position.new_position(*Vector.get_add_vector(
-                    v1, Vector.get_div_vector(
-                        Vector.get_mul_vector([d]*len(v12), v12),
-                        [Vector.get_norm(v12)]*len(v12)))), \
-                    locations[i+1].waypoint_id, \
-                    locations[i+1].arrow_code
-            moved_distance += d
-
-        return self.__waypoint.get_position(locations[-1].waypoint_id), \
-            locations[-1].waypoint_id, \
-            locations[-1].arrow_code
