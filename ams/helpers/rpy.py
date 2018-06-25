@@ -20,7 +20,7 @@ class Rpy(object):
     @staticmethod
     def to_quaternion(vector, theta, is_normalized=False):
         if not is_normalized:
-            vector = Vector.get_div_vector([vector]*len(vector), math.sqrt(Vector.get_dot(vector, vector)))
+            vector = Vector.get_div_vector(vector, [math.sqrt(Vector.get_dot(vector, vector))]*len(vector))
         t2 = theta / 2.0
         st2 = math.sin(t2)
         return [math.cos(t2)] + Vector.get_mul_vector(vector, [st2]*len(vector))
