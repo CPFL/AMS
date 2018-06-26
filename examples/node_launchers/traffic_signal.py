@@ -9,7 +9,7 @@ from uuid import uuid1 as uuid
 
 import paho.mqtt.client as mqtt
 
-from ams import Topic, Target
+from ams.helpers import Topic, Target
 from ams.nodes import TrafficSignal
 
 
@@ -51,18 +51,22 @@ if __name__ == '__main__':
     if args.cycle is not None:
         sleep(5)
         # print("publish cycles")
-        topicCycle = Topic()
-        topicCycle.set_targets(Target.new_target(None, "TrafficSignalCycleSetter"), traffic_signal.target)
-        topicCycle.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.CYCLE)
-        mqtt_client.publish(topicCycle.get_path(), topicCycle.serialize(json.loads(args.cycle)))
+        topic = Topic.get_topic(
+            from_target=Target.new_target("TrafficSignalCycleSetter", None),
+            to_target=traffic_signal.target,
+            categories=TrafficSignal.CONST.TOPIC.CATEGORIES.CYCLE,
+        )
+        mqtt_client.publish(topic, Topic.serialize(json.loads(args.cycle)))
 
     if args.schedules is not None:
         sleep(5)
         # print("publish schedules")
-        topicSchedules = Topic()
-        topicSchedules.set_targets(Target.new_target(None, "TrafficSignalSchedulesSetter"), traffic_signal.target)
-        topicSchedules.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.SCHEDULES)
-        mqtt_client.publish(topicSchedules.get_path(), topicSchedules.serialize(json.loads(args.schedules)))
+        topic = Topic.get_topic(
+            from_target=Target.new_target("TrafficSignalSchedulesSetter", None),
+            to_target=traffic_signal.target,
+            categories=TrafficSignal.CONST.TOPIC.CATEGORIES.SCHEDULES
+        )
+        mqtt_client.publish(topic, Topic.serialize(json.loads(args.schedules)))
 
     # print("wait join")
     process.join()

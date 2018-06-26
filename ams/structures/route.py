@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, get_namedtuple_from_dict
+from ams import get_structure_superclass, get_namedtuple_from_dict
+
 
 ROUTE = get_namedtuple_from_dict("CONST", {
     "DELIMITER": ":"
@@ -43,7 +44,7 @@ route_schema = {
 }
 
 
-class Route(get_base_class(route_template, route_schema)):
+class Route(get_structure_superclass(route_template, route_schema)):
     pass
 
 
@@ -60,5 +61,5 @@ routes_schema = {
 }
 
 
-class Routes(get_base_class(routes_template, routes_schema)):
+class Routes(get_structure_superclass(routes_template, routes_schema)):
     pass

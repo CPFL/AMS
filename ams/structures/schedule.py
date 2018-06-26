@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Targets, Period, Route
+from ams import get_structure_superclass
+from ams.structures import Targets, Period, Route
+
 
 schedule_template = {
     "id": "uuid",
@@ -38,7 +40,7 @@ schedule_schema = {
 }
 
 
-class Schedule(get_base_class(schedule_template, schedule_schema)):
+class Schedule(get_structure_superclass(schedule_template, schedule_schema)):
     pass
 
 
@@ -56,5 +58,5 @@ schedules_schema = {
 }
 
 
-class Schedules(get_base_class(schedules_template, schedules_schema)):
+class Schedules(get_structure_superclass(schedules_template, schedules_schema)):
     pass

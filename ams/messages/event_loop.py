@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 message_template = {
     "time": 0.0,
@@ -29,5 +30,5 @@ message_schema = {
 }
 
 
-class Message(get_base_class(message_template, message_schema)):
+class Message(get_structure_superclass(message_template, message_schema)):
     pass

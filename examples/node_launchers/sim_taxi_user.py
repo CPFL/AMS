@@ -6,7 +6,8 @@ from argparse import ArgumentParser
 from time import time
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Route, Schedule, Target
+from ams.maps import Waypoint, Arrow, Route
+from ams.helpers import Schedule, Target
 from ams.nodes import User, SimTaxiUser
 
 parser = ArgumentParser()

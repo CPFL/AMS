@@ -4,7 +4,8 @@
 from argparse import ArgumentParser
 from subprocess import Popen
 import json
-from ams import Intersection
+
+from ams.maps import Intersection
 
 
 parser = ArgumentParser()

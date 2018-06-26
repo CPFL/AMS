@@ -4,7 +4,8 @@
 from time import time
 from copy import deepcopy
 
-from ams import Topic, Target, StateMachine
+from ams import StateMachine
+from ams.helpers import Topic, Target
 from ams.nodes import User
 from ams.messages import VehicleStatus
 from ams.structures import SIM_BUS, VEHICLE, SIM_BUS_USER, USER
@@ -26,17 +27,21 @@ class SimBusUser(User):
         self.vehicle_statuses = self.manager.dict()
         self.vehicle_statuses_lock = self.manager.Lock()
 
-        self.__topicSubVehicleStatus = Topic()
-        self.__topicSubVehicleStatus.set_targets(Target.new_target(None, SIM_BUS.NODE_NAME), None)
-        self.__topicSubVehicleStatus.set_categories(VEHICLE.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubVehicleStatus.set_message(VehicleStatus)
-        self.set_subscriber(self.__topicSubVehicleStatus, self.update_vehicle_status)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_BUS.NODE_NAME, None),
+                categories=VEHICLE.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_vehicle_status,
+            structure=VehicleStatus
+        )
 
-    def update_vehicle_status(self, _client, _userdata, topic, payload):
-        vehicle_id = self.__topicSubVehicleStatus.get_from_id(topic)
+    def update_vehicle_status(self, _client, _userdata, topic, vehicle_status):
+        vehicle_id = Topic.get_from_id(topic)
 
         self.vehicle_statuses_lock.acquire()
-        self.vehicle_statuses[vehicle_id] = self.__topicSubVehicleStatus.unserialize(payload)
+        self.vehicle_statuses[vehicle_id] = vehicle_status
         self.vehicle_statuses_lock.release()
 
     def get_state_machine(self, initial_state=USER.STATE.LOG_IN):
@@ -133,7 +138,7 @@ class SimBusUser(User):
                 SIM_BUS_USER.TRIGGER.GET_OUT,
                 SIM_BUS_USER.TRIGGER.GOT_OUT,
             ]:
-                schedules[i].targets.append(Target.new_target(vehicle_id, SIM_BUS.NODE_NAME))
+                schedules[i].targets.append(Target.new_target(SIM_BUS.NODE_NAME, vehicle_id))
         return True
 
     def condition_bus_arrived_at_start_and_update_schedules(

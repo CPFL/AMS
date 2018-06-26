@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, get_namedtuple_from_dict
+from ams import get_structure_superclass, get_namedtuple_from_dict
+
 
 TARGET = get_namedtuple_from_dict("CONST", {
     "DELIMITER": "/"
@@ -26,7 +27,7 @@ target_schema = {
 }
 
 
-class Target(get_base_class(target_template, target_schema)):
+class Target(get_structure_superclass(target_template, target_schema)):
     pass
 
 
@@ -45,5 +46,5 @@ targets_schema = {
 }
 
 
-class Targets(get_base_class(targets_template, targets_schema)):
+class Targets(get_structure_superclass(targets_template, targets_schema)):
     pass

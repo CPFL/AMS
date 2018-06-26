@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, get_namedtuple_from_dict, Pose
+from ams import get_structure_superclass, get_namedtuple_from_dict
+from ams.structures import Pose
+
 
 WAYPOINT = get_namedtuple_from_dict("CONST", {
     "GEOHASH_PRECISION": 15
@@ -40,5 +42,5 @@ schema = {
 }
 
 
-class Waypoint(get_base_class(template, schema)):
+class Waypoint(get_structure_superclass(template, schema)):
     pass

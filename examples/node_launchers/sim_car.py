@@ -6,7 +6,9 @@ from time import time
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import logger, Waypoint, Arrow, Intersection, Route, Schedule, Target
+from ams import logger
+from ams.maps import Waypoint, Arrow, Intersection, Route
+from ams.helpers import Schedule, Target
 from ams.nodes import SimCar
 
 
@@ -76,12 +78,10 @@ if __name__ == '__main__':
     sim_car = SimCar(
         _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        intersection=intersection,
         dt=0.5
     )
+    sim_car.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    sim_car.set_maps_intersection(intersection=intersection)
 
     next_start_waypoint_id = start_waypoint_id
     schedules = [Schedule.new_schedule(

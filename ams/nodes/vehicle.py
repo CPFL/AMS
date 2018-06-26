@@ -4,7 +4,7 @@
 from time import time, sleep
 from copy import deepcopy
 
-from ams import Topic, Location, Position, Schedule
+from ams.helpers import Topic, Location, Schedule
 from ams.nodes import EventLoop
 from ams.messages import VehicleStatus
 from ams.structures import Pose, Orientation, Rpy, Schedules, VEHICLE, FLEET_MANAGER
@@ -14,7 +14,7 @@ class Vehicle(EventLoop):
 
     CONST = VEHICLE
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+    def __init__(self, _id, name, dt=1.0):
         super().__init__(_id)
 
         self.status = VehicleStatus.new_data(
@@ -26,48 +26,51 @@ class Vehicle(EventLoop):
             pose=None
         )
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
+        self.waypoint = None
+        self.arrow = None
+        self.route = None
         self.state_machine = None
-        self.np_position = None
         self.dt = dt
 
         self.schedules = self.manager.list()
         self.schedules_lock = self.manager.Lock()
 
-        self.__topicPubStatus = Topic()
-        self.__topicPubStatus.set_targets(self.target)
-        self.__topicPubStatus.set_categories(VEHICLE.TOPIC.CATEGORIES.STATUS)
+        self.__pub_status_topic = Topic.get_topic(
+            from_target=self.target,
+            categories=VEHICLE.TOPIC.CATEGORIES.STATUS
+        )
 
-        self.__topicSubSchedules = Topic()
-        self.__topicSubSchedules.set_targets(None, self.target)
-        self.__topicSubSchedules.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES)
-        self.__topicSubSchedules.set_message(Schedules)
-        self.set_subscriber(self.__topicSubSchedules, self.update_schedules)
-
-        self.__topicPubGeotopic = Topic()
-        self.__topicPubGeotopic.set_targets(self.target, None)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=None,
+                to_target=self.target,
+                categories=FLEET_MANAGER.TOPIC.CATEGORIES.SCHEDULES,
+                use_wild_card=True
+            ),
+            callback=self.update_schedules,
+            structure=Schedules
+        )
 
         self.set_main_loop(self.__main_loop)
+
+    def set_maps(self, waypoint, arrow, route):
+        self.waypoint = waypoint
+        self.arrow = arrow
+        self.route = route
 
     def set_waypoint_id_and_arrow_code(self, waypoint_id, arrow_code):
         self.set_location(Location.new_location(waypoint_id, arrow_code, self.waypoint.get_geohash(waypoint_id)))
 
     def set_location(self, location):
         self.status.location = location
-        self.update_np_position()
         self.status.pose = Pose.new_data(
-            position=Position.new_position_from_np_position(self.np_position),
+            position=self.waypoint.get_position(self.status.location.waypoint_id),
             orientation=Orientation.new_data(
                 rpy=Rpy.new_data(
                     yaw=self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
                 )
             )
         )
-
-    def update_np_position(self):
-        self.np_position = self.waypoint.get_np_position(self.status.location.waypoint_id)
 
     def set_schedules(self, schedules):
         self.schedules[:] = schedules
@@ -78,27 +81,25 @@ class Vehicle(EventLoop):
         self.status.state = self.state_machine.state
         if self.status.location is not None:
             self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
-        if self.np_position is not None:
-            self.status.pose.position = Position.new_position_from_np_position(self.np_position)
-        payload = self.__topicPubStatus.serialize(self.status)
-        self.publish(self.__topicPubStatus, payload)
+        payload = Topic.serialize(self.status)
+        self.publish(self.__pub_status_topic, payload)
 
     def publish_geotopic(self):
         if self.status.location is not None:
-            self.__topicPubGeotopic.set_categories(
-                VEHICLE.TOPIC.CATEGORIES.GEOTOPIC + list(self.status.location.geohash)
+            geo_topic = Topic.get_topic(
+                from_target=self.target,
+                categories=VEHICLE.TOPIC.CATEGORIES.GEOTOPIC + list(self.status.location.geohash)
             )
-            self.publish(self.__topicPubGeotopic, self.__topicPubGeotopic.serialize(self.target))
+            self.publish(geo_topic, Topic.serialize(self.target))
 
     def update_status_schedule(self):
         pass
 
-    def update_schedules(self, _client, _userdata, _topic, payload):
-        new_schedules = self.__topicSubSchedules.unserialize(payload)
-        index = list(map(lambda x: x.id, new_schedules)).index(self.status.schedule.id)
+    def update_schedules(self, _client, _userdata, _topic, schedules):
+        index = list(map(lambda x: x.id, schedules)).index(self.status.schedule.id)
 
         self.schedules_lock.acquire()
-        self.schedules[:] = new_schedules[index:]
+        self.schedules[:] = schedules[index:]
         self.update_status_schedule()
         self.schedules_lock.release()
 

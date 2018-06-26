@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 location_template = {
     "geohash": "123456789012345",
@@ -29,7 +30,7 @@ location_schema = {
 }
 
 
-class Location(get_base_class(location_template, location_schema)):
+class Location(get_structure_superclass(location_template, location_schema)):
     pass
 
 
@@ -47,5 +48,5 @@ locations_schema = {
 }
 
 
-class Locations(get_base_class(locations_template, locations_schema)):
+class Locations(get_structure_superclass(locations_template, locations_schema)):
     pass

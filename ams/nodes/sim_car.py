@@ -4,7 +4,9 @@
 from time import time
 from copy import deepcopy
 
-from ams import logger, Topic, Route, Target, StateMachine
+from ams import logger, StateMachine
+from ams.maps import Route
+from ams.helpers import Topic, Target
 from ams.nodes import Vehicle
 from ams.messages import TrafficSignalStatus
 from ams.structures import SIM_CAR, TRAFFIC_SIGNAL, Location
@@ -14,8 +16,10 @@ class SimCar(Vehicle):
 
     CONST = SIM_CAR
 
-    def __init__(self, _id, name, waypoint, arrow, route, intersection, dt=1.0):
-        super().__init__(_id, name, waypoint, arrow, route, dt=dt)
+    def __init__(self, _id, name, dt=1.0):
+        super().__init__(_id, name, dt=dt)
+
+        self.intersection = None
 
         self.state_machine = self.get_state_machine()
         self.velocity = None
@@ -24,46 +28,53 @@ class SimCar(Vehicle):
         self.traffic_signals_lock = self.manager.Lock()
         self.other_vehicle_locations = self.manager.dict()
         self.other_vehicle_locations_lock = self.manager.Lock()
+
+        self.__pub_location_topic = Topic.get_topic(
+            from_target=Target.new_target(SIM_CAR.NODE_NAME, self.target.id),
+            categories=SIM_CAR.TOPIC.CATEGORIES.LOCATION
+        )
+
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(SIM_CAR.NODE_NAME, None),
+                categories=SIM_CAR.TOPIC.CATEGORIES.LOCATION,
+                use_wild_card=True
+            ),
+            callback=self.update_other_vehicle_locations,
+            structure=Location
+        )
+
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(TRAFFIC_SIGNAL.NODE_NAME, None),
+                categories=TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_traffic_signals,
+            structure=TrafficSignalStatus
+        )
+
+    def set_maps_intersection(self, intersection):
         self.intersection = intersection
-
-        self.__topicPubLocation = Topic()
-        self.__topicPubLocation.set_targets(Target.new_target(self.target.id, SIM_CAR.NODE_NAME))
-        self.__topicPubLocation.set_categories(SIM_CAR.TOPIC.CATEGORIES.LOCATION)
-
-        self.__topicSubStatus = Topic()
-        self.__topicSubStatus.set_targets(Target.new_target(None, SIM_CAR.NODE_NAME), None)
-        self.__topicSubStatus.set_categories(SIM_CAR.TOPIC.CATEGORIES.LOCATION)
-        self.__topicSubStatus.set_message(Location)
-        self.set_subscriber(self.__topicSubStatus, self.update_other_vehicle_locations)
-
-        self.__topicSubTrafficSignalStatus = Topic()
-        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
-        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signals)
 
     def set_velocity(self, velocity):
         self.velocity = velocity
 
     def publish_location(self):
         self.status.location.geohash = self.waypoint.get_geohash(self.status.location.waypoint_id)
-        payload = self.__topicPubLocation.serialize(self.status.location)
-        self.publish(self.__topicPubLocation, payload)
+        payload = Topic.serialize(self.status.location)
+        self.publish(self.__pub_location_topic, payload)
 
-    def update_traffic_signals(self, _client, _user_data, _topic, payload):
-        # todo: localize
-        traffic_signal_status = self.__topicSubTrafficSignalStatus.unserialize(payload)
-
+    def update_traffic_signals(self, _client, _user_data, _topic, traffic_signal_status):
         self.traffic_signals_lock.acquire()
         self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
         self.traffic_signals_lock.release()
 
-    def update_other_vehicle_locations(self, _client, _user_data, topic, payload):
-        # todo: localize
+    def update_other_vehicle_locations(self, _client, _user_data, topic, locations):
         from_id = Topic.get_from_id(topic)
         if self.target.id != from_id:
             self.other_vehicle_locations_lock.acquire()
-            self.other_vehicle_locations[from_id] = self.__topicSubStatus.unserialize(payload)
+            self.other_vehicle_locations[from_id] = locations
             self.other_vehicle_locations_lock.release()
 
     def get_monitored_route(self, distance=100.0):
@@ -154,7 +165,7 @@ class SimCar(Vehicle):
         movable_distance = self.__get_movable_distance()
         delta_distance = min(self.velocity * self.dt, movable_distance)
         if 0.0 < delta_distance:
-            self.np_position, self.status.pose.orientation.rpy.yaw,\
+            self.status.pose.position, self.status.pose.orientation.rpy.yaw,\
                 self.status.location.arrow_code, self.status.location.waypoint_id = \
                 self.get_next_pose(delta_distance, self.status.schedule.route)
         self.publish_location()
@@ -174,14 +185,14 @@ class SimCar(Vehicle):
 
     def get_next_pose(self, delta_distance, route):
         position, waypoint_id, arrow_code = self.route.get_moved_position(
-            self.np_position, delta_distance, route)
+            self.status.pose.position, delta_distance, route)
         yaw = self.arrow.get_yaw(arrow_code, waypoint_id)
         return position, yaw, arrow_code, waypoint_id
 
     def update_pose_to_route_start(self):
         self.status.location.waypoint_id = self.status.schedule.route.start_waypoint_id
         self.status.location.arrow_code = self.status.schedule.route.arrow_codes[0]
-        self.np_position = self.waypoint.get_np_position(self.status.location.waypoint_id)
+        self.status.pose.position = self.waypoint.get_position(self.status.location.waypoint_id)
         self.status.pose.orientation.rpy.yaw = \
             self.arrow.get_yaw(self.status.location.arrow_code, self.status.location.waypoint_id)
         self.velocity = 0.0

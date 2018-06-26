@@ -1,68 +1,68 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time, sleep
+from time import time
+from multiprocessing import Manager
 
-from ams import Topic, Target, Relation
-from ams.nodes import EventLoop
-from ams.messages import TrafficSignalStatus, FleetStatus
-from ams.structures import FLEET_MANAGER, TRAFFIC_SIGNAL
+from ams import AttrDict
+from ams.helpers import Topic, Target, Relation
+from ams.messages import FleetStatus
+from ams.structures import FLEET_MANAGER
 
 
-class FleetManager(EventLoop):
+class FleetManager(object):
 
     CONST = FLEET_MANAGER
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=3.0):
-        super().__init__(_id)
+    def __init__(self, _id, name):
+        self.manager = Manager()
+        self.target = Target.new_target(self.__class__.__name__, _id)
 
-        self.status = FleetStatus.new_data(
+        self.mqtt_client = None
+        self.status = AttrDict()
+        self.maps = AttrDict()
+
+        self.subscribers = []
+        self.initialize_fleet_manager(name)
+
+    def initialize_fleet_manager(self, name):
+        self.status.relation = Relation()
+
+        self.status.status = FleetStatus.new_data(
             name=name,
             time=time(),
             state=FLEET_MANAGER.STATE.LOG_IN,
             relations={}
         )
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
-        self.relation = Relation()
-        self.traffic_signals = self.manager.dict()
-        self.state_machine = None
-        self.dt = dt
+        self.status.pub_fleet_manager_status_topic = Topic.get_topic(
+            from_target=self.target,
+            categories=FLEET_MANAGER.TOPIC.CATEGORIES.STATUS
+        )
 
-        self.__pubTopicStatus = Topic()
-        self.__pubTopicStatus.set_targets(self.target)
-        self.__pubTopicStatus.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.STATUS)
+    def set_mqtt_client(self, mqtt_client):
+        self.mqtt_client = mqtt_client
 
-        self.__topicSubTrafficSignalStatus = Topic()
-        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
-        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signal_status)
-
-        self.set_main_loop(self.__main_loop)
+    def set_maps(self, waypoint, arrow, route):
+        self.maps.waypoint = waypoint
+        self.maps.arrow = arrow
+        self.maps.route = route
 
     def publish_status(self):
-        self.status.relations = dict(map(
-            lambda key: (Target.get_code(key), list(map(Target.get_code, self.relation.get_related(key)))),
-            self.relation.get_keys()
+        self.status.status.relations = dict(map(
+            lambda key: (Target.get_code(key), list(map(Target.get_code, self.status.relation.get_related(key)))),
+            self.status.relation.get_keys()
         ))
-        payload = self.__pubTopicStatus.serialize(self.status)
-        self.publish(self.__pubTopicStatus, payload)
-
-    def update_traffic_signal_status(self, _client, _userdata, _topic, payload):
-        traffic_signal = self.__topicSubTrafficSignalStatus.unserialize(payload)
-        self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
+        payload = Topic.serialize(self.status.status)
+        self.mqtt_client.publish(self.status.pub_fleet_manager_status_topic, payload)
 
     def update_status(self):
         return
 
-    def __main_loop(self):
+    def start(self):
+        for subscriber in self.subscribers:
+            self.mqtt_client.subscribe(**subscriber)
+        self.mqtt_client.connect()
 
-        while self.status.state != FLEET_MANAGER.STATE.LOG_OUT:
-            sleep(self.dt)
-            self.update_status()
-            self.publish_status()
-
-        return True
+    def stop(self):
+        self.mqtt_client.disconnect()

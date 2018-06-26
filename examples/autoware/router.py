@@ -11,7 +11,8 @@ from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
 
 from config.env import env
-from ams import Waypoint, Arrow, Intersection, Topic, Target
+from ams.maps import Waypoint, Arrow, Intersection
+from ams.helpers import Topic, Target
 from ams.nodes import Vehicle, Autoware, TrafficSignal
 
 from pprint import PrettyPrinter
@@ -37,17 +38,18 @@ with app.app_context():
     app.intersection = Intersection()
     app.intersection.load(args.path_intersection_json)
 
-    app.topics = {}
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, Autoware.CONST.NODE_NAME), None)
-    topic.set_categories(Vehicle.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["vehicle"] = topic.get_path(use_wild_card=True)
-
-    topic = Topic()
-    topic.set_targets(Target.new_target(None, TrafficSignal.CONST.NODE_NAME), None)
-    topic.set_categories(TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS)
-    app.topics["traffic_signal"] = topic.get_path(use_wild_card=True)
+    app.topics = {
+        "vehicle": Topic.get_topic(
+            from_target=Target.new_target(Autoware.__name__, None),
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        ),
+        "traffic_signal": Topic.get_topic(
+            from_target=Target.new_target(TrafficSignal.__name__, None),
+            categories=TrafficSignal.CONST.TOPIC.CATEGORIES.STATUS,
+            use_wild_card=True
+        )
+    }
 
     pp(app.topics)
 
@@ -94,7 +96,7 @@ def get_view_data():
         lng_max = max(lng_max, lng)
         waypoints[waypoint_id] = {
             "geohash": app.waypoint.get_geohash(waypoint_id),
-            "position": dict(zip(["x", "y", "z"], app.waypoint.get_xyz(waypoint_id)))
+            "position": app.waypoint.get_position(waypoint_id)
         }
     return api_response(code=200, message={
         "viewPoint": {
@@ -108,12 +110,6 @@ def get_view_data():
 
 @app.route("/requestFleetRelations")
 def request_fleet_relations():
-    # topic = Topic()
-    # topic.set_root(FleetManager.TOPIC.SUBSCRIBE)
-    # topic.set_message(fleet_manager_message)
-    # message = topic.get_template()
-    # message["action"] = FleetManager.ACTION.PUBLISH_RELATIONS
-    # mqtt.publish(topic.root, topic.serialize(message))
     return api_response(code=200, message={"result": "requested"})
 
 

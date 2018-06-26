@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_namedtuple_from_dict
+from ams import get_namedtuple_from_dict
 
 
 EVENT_LOOP = get_namedtuple_from_dict("CONST", {

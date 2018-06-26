@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Schedule
+from ams import get_structure_superclass
+from ams.structures import Schedule
+
 
 status_template = {
     "name": "u0",
@@ -45,5 +47,5 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status_template, status_schema)):
+class Status(get_structure_superclass(status_template, status_schema)):
     pass
