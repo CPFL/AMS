@@ -45,10 +45,10 @@ if __name__ == '__main__':
         "/closest_waypoint", ros_to_ams_base_topic + "/closest_waypoint",
         "std_msgs/Int32"
     ])
-    process_decision_maker_states_ros_to_mqtt = Process(target=launch_ros_to_mqtt_bridge, args=[
-        "ros_to_ams_decision_maker_states",
-        "/decisionmaker/states", ros_to_ams_base_topic + "/decisionmaker/states",
-        "autoware_msgs/state"
+    process_decision_maker_state_ros_to_mqtt = Process(target=launch_ros_to_mqtt_bridge, args=[
+        "ros_to_ams_decision_maker_state",
+        "/decision_maker/state", ros_to_ams_base_topic + "/decision_maker/state",
+        "std_msgs/String"
     ])
     process_based_lane_waypoints_array_mqtt_to_ros = Process(target=launch_mqtt_to_ros_bridge, args=[
         "ams_to_ros_based_lane_waypoints_array",
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     process_state_cmd_mqtt_to_ros = Process(target=launch_mqtt_to_ros_bridge, args=[
         "ams_to_ros_state_cmd",
          ams_to_ros_base_topic + "/state_cmd", "/state_cmd",
-        "std_msgs/Int32"
+        "std_msgs/String"
     ])
     process_light_color_mqtt_to_ros = Process(target=launch_mqtt_to_ros_bridge, args=[
         "ams_to_ros_light_color",
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     try:
         process_current_pose_ros_to_mqtt.start()
         process_closest_waypoint_ros_to_mqtt.start()
-        process_decision_maker_states_ros_to_mqtt.start()
+        process_decision_maker_state_ros_to_mqtt.start()
         process_based_lane_waypoints_array_mqtt_to_ros.start()
         process_state_cmd_mqtt_to_ros.start()
         process_light_color_mqtt_to_ros.start()
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         process_current_pose_ros_to_mqtt.terminate()
         process_closest_waypoint_ros_to_mqtt.terminate()
-        process_decision_maker_states_ros_to_mqtt.terminate()
+        process_decision_maker_state_ros_to_mqtt.terminate()
         process_based_lane_waypoints_array_mqtt_to_ros.terminate()
         process_state_cmd_mqtt_to_ros.terminate()
         process_light_color_mqtt_to_ros.terminate()
