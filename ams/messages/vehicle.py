@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Pose, Location, Schedule
+from ams import get_structure_superclass
+from ams.structures import Pose, Location, Schedule
 
-status = {
+
+status_template = {
     "name": "v0",
     "time": 0.0,
     "state": "default",
@@ -49,5 +51,5 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status, status_schema)):
+class Status(get_structure_superclass(status_template, status_schema)):
     pass

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
 
-message = {
+
+message_template = {
     "time": 0.0,
     "event": "default",  # start, check, kill, ok
     "pid": 0
@@ -29,5 +30,5 @@ message_schema = {
 }
 
 
-class Message(get_base_class(message, message_schema)):
+class Message(get_structure_superclass(message_template, message_schema)):
     pass

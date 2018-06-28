@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass, get_namedtuple_from_dict
 
-template = {
+
+TARGET = get_namedtuple_from_dict("CONST", {
+    "DELIMITER": "/"
+})
+
+target_template = {
     "id": "uuid",
     "group": "EventLoop"
 }
 
-schema = {
+target_schema = {
     "id": {
         "type": "string",
         "required": True,
@@ -22,11 +27,11 @@ schema = {
 }
 
 
-class Target(get_base_class(template, schema)):
+class Target(get_structure_superclass(target_template, target_schema)):
     pass
 
 
-targets = [Target.get_template()]
+targets_template = [Target.get_template()]
 
 targets_schema = {
     "type": "list",
@@ -41,5 +46,5 @@ targets_schema = {
 }
 
 
-class Targets(get_base_class(targets, targets_schema)):
+class Targets(get_structure_superclass(targets_template, targets_schema)):
     pass

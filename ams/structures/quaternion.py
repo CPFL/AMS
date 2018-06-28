@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 template = {
     "w": 0.0,
@@ -34,5 +35,5 @@ schema = {
 }
 
 
-class Quaternion(get_base_class(template, schema)):
+class Quaternion(get_structure_superclass(template, schema)):
     pass

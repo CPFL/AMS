@@ -6,11 +6,10 @@ from time import time
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Intersection, Route, Schedule, Target
-from ams.nodes import Vehicle, SimCar
-
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
+from ams import logger
+from ams.maps import Waypoint, Arrow, Intersection, Route
+from ams.helpers import Schedule, Target
+from ams.nodes import SimCar
 
 
 parser = ArgumentParser()
@@ -63,8 +62,12 @@ if __name__ == '__main__':
     ]
 
     if args.route_code is not None:
-        start_waypoint_id, arrow_codes, goal_waypoint_id = Route.split_route_code(args.route_code)
+        arg_route = Route.decode_route_code(args.route_code)
+        start_waypoint_id = arg_route.start_waypoint_id
+        arrow_codes = arg_route.arrow_codes
+        goal_waypoint_id = arg_route.goal_waypoint_id
         start_arrow_code = arrow_codes[0]
+        goal_arrow_code = arrow_codes[-1]
     else:
         start_waypoint_id = args.start_waypoint_id
         if start_waypoint_id is None:
@@ -75,17 +78,15 @@ if __name__ == '__main__':
     sim_car = SimCar(
         _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        intersection=intersection,
         dt=0.5
     )
+    sim_car.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    sim_car.set_maps_intersection(intersection=intersection)
 
     next_start_waypoint_id = start_waypoint_id
     schedules = [Schedule.new_schedule(
         [Target.new_node_target(sim_car)],
-        Vehicle.CONST.ACTION.STOP, current_time, current_time+5,
+        SimCar.CONST.TRIGGER.STOP, current_time, current_time+5,
         Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [start_arrow_code])
     )]
     current_time += 5
@@ -93,10 +94,12 @@ if __name__ == '__main__':
     if args.route_code is not None:
         schedule = Schedule.new_schedule(
             [Target.new_node_target(sim_car)],
-            Vehicle.CONST.ACTION.MOVE, current_time, current_time + 100,
+            SimCar.CONST.TRIGGER.MOVE, current_time, current_time + 100,
             Route.new_route(next_start_waypoint_id, goal_waypoint_id, arrow_codes)
         )
         schedules = Schedule.get_merged_schedules(schedules, [schedule])
+
+        next_start_waypoint_id = arg_route.goal_waypoint_id
     else:
         for i in range(10):
             start_point = {
@@ -106,11 +109,12 @@ if __name__ == '__main__':
             goal_waypoint_id = random.choice(stop_waypoint_ids)
             if goal_waypoint_id == next_start_waypoint_id:
                 continue
+            goal_arrow_code = arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0]
 
             goal_id = "route" + goal_waypoint_id
             goal_points = [{
                 "goal_id": goal_id,
-                "arrow_code": arrow.get_arrow_codes_from_waypoint_id(goal_waypoint_id)[0],
+                "arrow_code": goal_arrow_code,
                 "waypoint_id": goal_waypoint_id,
             }]
 
@@ -121,7 +125,7 @@ if __name__ == '__main__':
 
             schedule = Schedule.new_schedule(
                 [Target.new_node_target(sim_car)],
-                Vehicle.CONST.ACTION.MOVE, current_time, current_time+100,
+                SimCar.CONST.TRIGGER.MOVE, current_time, current_time+100,
                 Route.new_route(next_start_waypoint_id, goal_waypoint_id, shortest_route.arrow_codes)
             )
             schedules = Schedule.get_merged_schedules(schedules, [schedule])
@@ -131,9 +135,11 @@ if __name__ == '__main__':
 
     schedules = Schedule.get_merged_schedules(schedules, [Schedule.new_schedule(
         [Target.new_node_target(sim_car)],
-        Vehicle.CONST.ACTION.STOP, current_time, current_time+86400,
-        Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [start_arrow_code])
+        SimCar.CONST.TRIGGER.STOP, current_time, current_time+86400,
+        Route.new_route(next_start_waypoint_id, next_start_waypoint_id, [goal_arrow_code])
     )])
+
+    logger.pp(schedules)
 
     sim_car.set_waypoint_id_and_arrow_code(start_waypoint_id, start_arrow_code)
     sim_car.set_velocity(3.0)

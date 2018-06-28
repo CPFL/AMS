@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
+
 
 template = {
     "time": 0.0,
@@ -46,5 +47,5 @@ schema = {
 }
 
 
-class Cycle(get_base_class(template, schema)):
+class Cycle(get_structure_superclass(template, schema)):
     pass

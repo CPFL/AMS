@@ -4,7 +4,8 @@
 from time import time
 from argparse import ArgumentParser
 
-from ams import Waypoint, Arrow, Route, Schedule, Target
+from ams.maps import Waypoint, Arrow, Route
+from ams.helpers import Schedule, Target
 from ams.nodes import Autoware
 
 
@@ -42,9 +43,22 @@ if __name__ == "__main__":
         route=route,
         dt=0.5
     )
-    autoware.set_schedules([Schedule.new_schedule(
-        [Target.new_node_target(autoware)],
-        Autoware.CONST.STATE.STOP, current_time, current_time+100,
-        None
-    )])
+    autoware.set_schedules([
+        Schedule.new_schedule(
+            [Target.new_node_target(autoware)],
+            Autoware.CONST.TRIGGER.LAUNCH, current_time, current_time+100,
+            None
+        ),
+        Schedule.new_schedule(
+            [Target.new_node_target(autoware)],
+            Autoware.CONST.TRIGGER.ACTIVATE, current_time, current_time+100,
+            None
+        ),
+        Schedule.new_schedule(
+            [Target.new_node_target(autoware)],
+            Autoware.CONST.TRIGGER.SCHEDULE, current_time, current_time + 1,
+            None
+        )
+    ])
+    # autoware.set_velocity(3.0)
     autoware.start(host=args.host, port=args.port)

@@ -6,7 +6,8 @@ import random
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from ams import Waypoint, Arrow, Route, Intersection, Schedule, Target
+from ams.maps import Waypoint, Arrow, Route, Intersection
+from ams.helpers import Schedule, Target
 from ams.nodes import SimBus
 
 from pprint import PrettyPrinter
@@ -71,17 +72,16 @@ if __name__ == '__main__':
     sim_bus = SimBus(
         _id=args.id if args.id is not None else str(uuid()),
         name=args.name,
-        waypoint=waypoint,
-        arrow=arrow,
-        route=route,
-        intersection=intersection,
         dt=0.5
     )
+    sim_bus.set_maps(waypoint=waypoint, arrow=arrow, route=route)
+    sim_bus.set_maps_intersection(intersection=intersection)
+
     sim_bus.set_waypoint_id_and_arrow_code(start_waypoint_id, start_arrow_code)
     sim_bus.set_velocity(3.0)
     sim_bus.set_schedules([Schedule.new_schedule(
         [Target.new_node_target(sim_bus)],
-        SimBus.CONST.SCHEDULE.STAND_BY, current_time, current_time + 86400,
+        SimBus.CONST.TRIGGER.STAND_BY, current_time, current_time + 86400,
         Route.new_point_route(start_waypoint_id, start_arrow_code)
     )])
     sim_bus.start(host=args.host, port=args.port)

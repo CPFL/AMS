@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Position, Location
+from ams import get_structure_superclass
+from ams.structures import Position, Location
+
 
 template = {
     "positions": [Position.get_template()],
@@ -34,5 +36,5 @@ schema = {
 }
 
 
-class Polygon(get_base_class(template, schema)):
+class Polygon(get_structure_superclass(template, schema)):
     pass

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class
+from ams import get_structure_superclass
 
-status = {
+
+status_template = {
     "route_code": "0:0_1:1",
     "time": 0.0,
     "state": "default"
@@ -28,5 +29,5 @@ status_schema = {
 }
 
 
-class Status(get_base_class(status, status_schema)):
+class Status(get_structure_superclass(status_template, status_schema)):
     pass

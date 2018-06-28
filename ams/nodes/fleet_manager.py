@@ -1,75 +1,68 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time, sleep
+from time import time
+from multiprocessing import Manager
 
-from ams import Topic, Target
-from ams.nodes import EventLoop
-from ams.messages import TrafficSignalStatus, FleetStatus
-from ams.structures import FLEET_MANAGER, TRAFFIC_SIGNAL
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
+from ams import AttrDict
+from ams.helpers import Topic, Target, Relation
+from ams.messages import FleetStatus
+from ams.structures import FLEET_MANAGER
 
 
-class FleetManager(EventLoop):
+class FleetManager(object):
 
     CONST = FLEET_MANAGER
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=3.0):
-        super().__init__(_id)
+    def __init__(self, _id, name):
+        self.manager = Manager()
+        self.target = Target.new_target(self.__class__.__name__, _id)
 
-        self.name = name
-        self.state = FLEET_MANAGER.STATE.STAND_BY
-        self.dt = dt
+        self.mqtt_client = None
+        self.status = AttrDict()
+        self.maps = AttrDict()
 
-        self.waypoint = waypoint
-        self.arrow = arrow
-        self.route = route
+        self.subscribers = []
+        self.initialize_fleet_manager(name)
 
-        self.traffic_signals = {}
-        self.relations = {}  # user_id <-> vehicle_id, route_id <-> vehicle_id
+    def initialize_fleet_manager(self, name):
+        self.status.relation = Relation()
 
-        self.__pubTopicStatus = Topic()
-        self.__pubTopicStatus.set_targets(self.target)
-        self.__pubTopicStatus.set_categories(FLEET_MANAGER.TOPIC.CATEGORIES.STATUS)
-
-        self.__topicSubTrafficSignalStatus = Topic()
-        self.__topicSubTrafficSignalStatus.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), None)
-        self.__topicSubTrafficSignalStatus.set_categories(TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS)
-        self.__topicSubTrafficSignalStatus.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignalStatus, self.update_traffic_signal_status)
-
-        self.set_main_loop(self.__main_loop)
-
-    def get_status(self):
-        return FleetStatus.new_data(
-            name=self.name,
+        self.status.status = FleetStatus.new_data(
+            name=name,
             time=time(),
-            state=self.state,
-            relations=self.relations
+            state=FLEET_MANAGER.STATE.LOG_IN,
+            relations={}
         )
 
-    def publish_status(self):
-        message = self.get_status()
-        payload = self.__pubTopicStatus.serialize(message)
-        self.publish(self.__pubTopicStatus, payload)
+        self.status.pub_fleet_manager_status_topic = Topic.get_topic(
+            from_target=self.target,
+            categories=FLEET_MANAGER.TOPIC.CATEGORIES.STATUS
+        )
 
-    def update_traffic_signal_status(self, _client, _userdata, _topic, payload):
-        traffic_signal = self.__topicSubTrafficSignalStatus.unserialize(payload)
-        self.traffic_signals[traffic_signal["route_code"]] = traffic_signal
+    def set_mqtt_client(self, mqtt_client):
+        self.mqtt_client = mqtt_client
+
+    def set_maps(self, waypoint, arrow, route):
+        self.maps.waypoint = waypoint
+        self.maps.arrow = arrow
+        self.maps.route = route
+
+    def publish_status(self):
+        self.status.status.relations = dict(map(
+            lambda key: (Target.get_code(key), list(map(Target.get_code, self.status.relation.get_related(key)))),
+            self.status.relation.get_keys()
+        ))
+        payload = Topic.serialize(self.status.status)
+        self.mqtt_client.publish(self.status.pub_fleet_manager_status_topic, payload)
 
     def update_status(self):
         return
 
-    def __main_loop(self):
-        sleep(1)
+    def start(self):
+        for subscriber in self.subscribers:
+            self.mqtt_client.subscribe(**subscriber)
+        self.mqtt_client.connect()
 
-        self.publish_status()
-
-        self.state = FLEET_MANAGER.STATE.RUNNING
-        while self.state == FLEET_MANAGER.STATE.RUNNING:
-            sleep(self.dt)
-            self.update_status()
-            self.publish_status()
-
-        return True
+    def stop(self):
+        self.mqtt_client.disconnect()

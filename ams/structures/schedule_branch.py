@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Schedules
+from ams import get_structure_superclass
+from ams.structures import Schedules
 
-template = {
+
+schedule_branch_template = {
     "key": {
         "type": "common",
         "index": 0
@@ -13,7 +15,7 @@ template = {
     "sub": Schedules.get_template(),
 }
 
-schema = {
+schedule_branch_schema = {
     "key": {
         "type": "dict",
         "schema": {
@@ -35,11 +37,11 @@ schema = {
 }
 
 
-class ScheduleBranch(get_base_class(template, schema)):
+class ScheduleBranch(get_structure_superclass(schedule_branch_template, schedule_branch_schema)):
     pass
 
 
-schedule_branches = [ScheduleBranch.get_template()]
+schedule_branches_template = [ScheduleBranch.get_template()]
 
 schedule_branches_schema = {
     "type": "list",
@@ -52,5 +54,5 @@ schedule_branches_schema = {
 }
 
 
-class ScheduleBranches(get_base_class(schedule_branches, schedule_branches_schema)):
+class ScheduleBranches(get_structure_superclass(schedule_branches_template, schedule_branches_schema)):
     pass

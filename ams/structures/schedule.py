@@ -1,16 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_base_class, Targets, Period, Route
+from ams import get_structure_superclass
+from ams.structures import Targets, Period, Route
 
-template = {
+
+schedule_template = {
+    "id": "uuid",
     "event": "default",
     "period": Period.get_template(),
     "route": Route.get_template(),
     "targets": Targets.get_template(),
 }
 
-schema = {
+schedule_schema = {
+    "id": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
     "event": {
         "type": "string",
         "required": True,
@@ -32,11 +40,11 @@ schema = {
 }
 
 
-class Schedule(get_base_class(template, schema)):
+class Schedule(get_structure_superclass(schedule_template, schedule_schema)):
     pass
 
 
-schedules = [Schedule.get_template()]
+schedules_template = [Schedule.get_template()]
 
 schedules_schema = {
     "type": "list",
@@ -50,5 +58,5 @@ schedules_schema = {
 }
 
 
-class Schedules(get_base_class(schedules, schedules_schema)):
+class Schedules(get_structure_superclass(schedules_template, schedules_schema)):
     pass

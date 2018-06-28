@@ -137,3 +137,16 @@ Temporary Items
 
 # JetBrains
 .idea
+
+
+# DOT
+*.dot
+
+# Image
+*.png
+
+# Vim Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]

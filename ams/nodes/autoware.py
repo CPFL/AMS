@@ -2,249 +2,485 @@
 # coding: utf-8
 
 from time import time
+from copy import deepcopy
 
-from ams import Topic, Route, Schedule, MapMatch, Target
-from ams.nodes import Vehicle
-from ams.messages import CurrentPose, ClosestWaypoint, DecisionMakerStates,\
-    LaneArray, StateCommand, LightColor, TrafficSignalStatus
-from ams.structures import AUTOWARE, TRAFFIC_SIGNAL,\
-    LANE_ARRAY_PUBLISHER, STATE_COMMAND_PUBLISHER, LIGHT_COLOR_PUBLISHER,\
-    CURRENT_POSE_SUBSCRIBER, CLOSEST_WAYPOINT_SUBSCRIBER, DECISION_MAKER_STATES_SUBSCRIBER
-
-
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=2).pprint
+from ams import StateMachine
+from ams.maps import Route, MapMatch
+from ams.helpers import Topic, Schedule, Target
+from ams.nodes import Vehicle, SimCar
+from ams.messages import TrafficSignalStatus, ROSMessage
+from ams.structures import AUTOWARE, TRAFFIC_SIGNAL, Pose, Position, Orientation, Quaternion
 
 
 class Autoware(Vehicle):
 
     CONST = AUTOWARE
 
-    def __init__(self, _id, name, waypoint, arrow, route, dt=1.0):
+    def __init__(self, _id, name, waypoint, arrow, route, dt=0.5):
         super().__init__(_id, name, waypoint, arrow, route, dt=dt)
 
-        self.name = name
+        self.upper_distance_from_stopline = AUTOWARE.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
+        self.state_machine = self.get_state_machine()
+
         self.__map_match = MapMatch()
         self.__map_match.set_waypoint(self.waypoint)
         self.__map_match.set_arrow(self.arrow)
 
-        self.current_pose = None
-        self.closest_waypoint = None
-        self.decision_maker_states = None
-        self.current_arrow_waypoint_array = []
-        self.traffic_signals = {}
+        self.ros_closest_waypoint = None
+        self.ros_closest_waypoint_lock = self.manager.Lock()
 
-        self.__topicPubLaneArray = Topic()
-        self.__topicPubLaneArray.set_targets(
-            self.target, Target.new_target(self.target.id, LANE_ARRAY_PUBLISHER.NODE_NAME))
-        self.__topicPubLaneArray.set_categories(AUTOWARE.TOPIC.CATEGORIES.LANE_ARRAY)
+        self.ros_current_pose = None
+        self.ros_current_pose_lock = self.manager.Lock()
 
-        self.__topicPubStateCommand = Topic()
-        self.__topicPubStateCommand.set_targets(
-            self.target, Target.new_target(self.target.id, STATE_COMMAND_PUBLISHER.NODE_NAME))
-        self.__topicPubStateCommand.set_categories(AUTOWARE.TOPIC.CATEGORIES.STATE_COMMAND)
+        self.ros_decisionmaker_states = None
+        self.ros_decisionmaker_states_lock = self.manager.Lock()
 
-        self.__topicPubLightColor = Topic()
-        self.__topicPubLightColor.set_targets(
-            self.target, Target.new_target(self.target.id, LIGHT_COLOR_PUBLISHER.NODE_NAME))
-        self.__topicPubLightColor.set_categories(AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
+        self.current_locations = []
 
-        self.__topicSubCurrentPose = Topic()
-        self.__topicSubCurrentPose.set_targets(
-            Target.new_target(self.target.id, CURRENT_POSE_SUBSCRIBER.NODE_NAME), self.target)
-        self.__topicSubCurrentPose.set_categories(CURRENT_POSE_SUBSCRIBER.TOPIC_CATEGORIES)
-        self.__topicSubCurrentPose.set_message(CurrentPose)
-        self.set_subscriber(self.__topicSubCurrentPose, self.update_current_pose)
+        self.traffic_signals = self.manager.dict()
+        self.traffic_signals_lock = self.manager.Lock()
 
-        self.__topicSubClosestWaypoint = Topic()
-        self.__topicSubClosestWaypoint.set_targets(
-            Target.new_target(self.target.id, CLOSEST_WAYPOINT_SUBSCRIBER.NODE_NAME), self.target)
-        self.__topicSubClosestWaypoint.set_categories(CLOSEST_WAYPOINT_SUBSCRIBER.TOPIC_CATEGORIES)
-        self.__topicSubClosestWaypoint.set_message(ClosestWaypoint)
-        self.set_subscriber(self.__topicSubClosestWaypoint, self.update_closest_waypoint)
+        self.__previous_state_command = None
 
-        self.__topicSubDecisionMakerStates = Topic()
-        self.__topicSubDecisionMakerStates.set_targets(
-            Target.new_target(self.target.id, DECISION_MAKER_STATES_SUBSCRIBER.NODE_NAME), self.target)
-        self.__topicSubDecisionMakerStates.set_categories(
-            DECISION_MAKER_STATES_SUBSCRIBER.TOPIC.CATEGORIES.DECISION_MAKER_STATES)
-        self.__topicSubDecisionMakerStates.set_message(DecisionMakerStates)
-        self.set_subscriber(self.__topicSubDecisionMakerStates, self.update_decision_maker_states)
-
-        self.__topicSubTrafficSignal = Topic()
-        self.__topicSubTrafficSignal.set_targets(Target.new_target(None, TRAFFIC_SIGNAL.NODE_NAME), self.target)
-        self.__topicSubTrafficSignal.set_categories(TRAFFIC_SIGNAL.TOPIC_CATEGORIES)
-        self.__topicSubTrafficSignal.set_message(TrafficSignalStatus)
-        self.set_subscriber(self.__topicSubTrafficSignal, self.update_traffic_signals)
-
-    def publish_lane_array(self):
-        schedule = self.schedules[0]
-
-        arrow_waypoint_array = self.route.get_arrow_waypoint_array(schedule.route)
-        lane_array = self.get_lane_array_from_arrow_waypoint_array(arrow_waypoint_array)
-
-        if 0 < len(lane_array.lanes[0].waypoints):
-            num = min(10, len(lane_array.lanes[0].waypoints))
-            for i in range(num-1, 0, -1):
-                lane_array.lanes[0].waypoints[-i].velocity = (i/num)*lane_array.lanes[0].waypoints[-i-1].velocity
-            self.current_arrow_waypoint_array = arrow_waypoint_array
-            payload = self.__topicPubLaneArray.serialize(lane_array)
-            self.publish(self.__topicPubLaneArray, payload)
-
-    def publish_state_command(self, state):
-        payload = self.__topicPubStateCommand.serialize(StateCommand.new_data(
-            time=time(),
-            state=state
-        ))
-        self.publish(self.__topicPubStateCommand, payload)
-
-    def publish_light_color(self):
-        if self.schedules[0].event == Vehicle.CONST.ACTION.MOVE:
-            monitored_route = self.get_monitored_route()
-            if monitored_route is None:
-                traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.RED
-            else:
-                inter_traffic_signal_distance = self.get_inter_traffic_signal_distance(monitored_route)
-                # print("inter_traffic_signal_distance", inter_traffic_signal_distance)
-                if inter_traffic_signal_distance <= 20.0:
-                    traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.RED
-                else:
-                    traffic_light = LIGHT_COLOR_PUBLISHER.TRAFFIC_LIGHT.GREEN
-            payload = self.__topicPubLightColor.serialize(LightColor.new_data(
-                time=time(),
-                traffic_light=traffic_light
-            ))
-            self.publish(self.__topicPubLightColor, payload)
-
-    def update_current_pose(self, _client, _userdata, _topic, payload):
-        self.current_pose = self.__topicSubCurrentPose.unserialize(payload)
-
-    def update_closest_waypoint(self, _client, _userdata, _topic, payload):
-        self.closest_waypoint = self.__topicSubClosestWaypoint.unserialize(payload)
-
-    def update_decision_maker_states(self, _client, _userdata, _topic, payload):
-        self.decision_maker_states = self.__topicSubDecisionMakerStates.unserialize(payload)
-
-    def update_traffic_signals(self, _client, _user_data, _topic, payload):
-        traffic_signal_status = self.__topicSubTrafficSignal.unserialize(payload)
-        self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
-
-    def update_pose_from_current_pose(self):
-        location = self.__map_match.get_matched_location_on_arrows(
-            self.current_pose.pose, self.arrow.get_arrow_codes())
-        self.arrow_code = location.arrow_code
-        self.waypoint_id = location.waypoint_id
-        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
-        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
-
-    def update_pose_from_closest_arrow_waypoint(self, closest_arrow_waypoint):
-        self.arrow_code = closest_arrow_waypoint["arrow_code"]
-        self.waypoint_id = closest_arrow_waypoint["waypoint_id"]
-        self.np_position = self.waypoint.get_np_position(self.waypoint_id)
-        self.yaw = self.arrow.get_yaw(self.arrow_code, self.waypoint_id)
-
-    def get_lane_array_from_arrow_waypoint_array(self, arrow_waypoint_array):
-        waypoints = []
-        for arrow_waypoint in arrow_waypoint_array:
-            waypoints.append({
-                "pose": self.waypoint.get_pose(arrow_waypoint["waypoint_id"]),
-                "velocity": 2.0
-            })
-        lanes = [{"waypoints": waypoints}]
-        return LaneArray.new_data(
-            time=time(),
-            lanes=lanes
+        self.__pub_based_lane_waypoints_array_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.BASED_LANE_WAYPOINTS_ARRAY
         )
 
-    def get_inter_traffic_signal_distance(self, monitored_route):
-        monitored_arrow_codes = monitored_route.arrow_codes
-        inter_traffic_signal_distance = AUTOWARE.FLOAT_MAX
+        self.__pub_state_cmd_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.STATE_CMD
+        )
 
-        not_green_traffic_signal_route_codes = list(map(
-            lambda x: x.route_code, filter(
-                lambda x: x.state in [
-                    TRAFFIC_SIGNAL.STATE.UNKNOWN, TRAFFIC_SIGNAL.STATE.YELLOW, TRAFFIC_SIGNAL.STATE.RED],
-                self.traffic_signals.values())))
+        self.__pub_light_color_topic = Topic.get_topic(
+            from_target=self.target,
+            to_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            categories=AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR
+        )
 
-        new_monitored_route = None
-        for i, monitored_arrow_code in enumerate(monitored_arrow_codes):
-            for not_green_traffic_signal_route_code in not_green_traffic_signal_route_codes:
-                if monitored_arrow_code in not_green_traffic_signal_route_code:
-                    not_green_traffic_signal_route = Route.decode_route_code(not_green_traffic_signal_route_code)
-                    if monitored_arrow_code == not_green_traffic_signal_route.arrow_codes[0]:
-                        waypoint_ids = self.arrow.get_waypoint_ids(monitored_arrow_code)
-                        if self.waypoint_id not in waypoint_ids or \
-                                waypoint_ids.index(self.waypoint_id) <= waypoint_ids.index(
-                                    not_green_traffic_signal_route.start_waypoint_id):
-                            new_monitored_route = Route.new_route(
-                                monitored_route.start_waypoint_id,
-                                not_green_traffic_signal_route.start_waypoint_id,
-                                monitored_arrow_codes[:i+1])
-                            break
-            if new_monitored_route is not None:
-                break
+        self.__sub_current_pose_topic = Topic.get_topic(
+            from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+            to_target=self.target,
+            categories=AUTOWARE.TOPIC.CATEGORIES.CURRENT_POSE,
+            use_wild_card=True
+        )
+        self.set_subscriber(
+            topic=self.__sub_current_pose_topic,
+            callback=self.update_current_pose,
+            structure=ROSMessage.CurrentPose
+        )
 
-        if new_monitored_route is not None:
-            inter_traffic_signal_distance = self.route.get_route_length(new_monitored_route)
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+                to_target=self.target,
+                categories=AUTOWARE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT,
+                use_wild_card=True
+            ),
+            callback=self.update_closest_waypoint,
+            structure=ROSMessage.ClosestWaypoint
+        )
 
-        return inter_traffic_signal_distance
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(AUTOWARE.TOPIC.ROS_NODE_NAME, self.target.id),
+                to_target=self.target,
+                categories=AUTOWARE.TOPIC.CATEGORIES.DECISION_MAKER_STATES,
+                use_wild_card=True
+            ),
+            callback=self.update_decisionmaker_states,
+            structure=ROSMessage.DecisionMakerStates
+        )
 
-    def get_monitored_route(self, distance=100.0):
-        if distance <= 0:
-            return None
+        self.set_subscriber(
+            topic=Topic.get_topic(
+                from_target=Target.new_target(TRAFFIC_SIGNAL.NODE_NAME, None),
+                categories=TRAFFIC_SIGNAL.TOPIC.CATEGORIES.STATUS,
+                use_wild_card=True
+            ),
+            callback=self.update_traffic_signals,
+            structure=TrafficSignalStatus
+        )
 
-        arrow_codes = self.schedules[0].route.arrow_codes
-        if arrow_codes is None:
-            return None
+    def set_upper_distance_from_stopline(self, distance_from_stopline):
+        self.upper_distance_from_stopline = distance_from_stopline
 
-        i_s = 0
-        if self.arrow_code in arrow_codes:
-            i_s = arrow_codes.index(self.arrow_code)
-        arrow_codes = arrow_codes[i_s:]
-        route = Route.new_route(
-            self.waypoint_id,
-            self.arrow.get_waypoint_ids(self.schedules[0].route.arrow_codes[-1])[-1],
-            arrow_codes)
-        return self.route.get_sliced_route(route, distance)
+    def publish_lane_array(self, route):
+        locations = self.route.get_locations(route)
+        ros_lane_array = self.get_ros_lane_array_from_locations(locations)
 
-    def update_pose(self):
-        if self.closest_waypoint is None or self.closest_waypoint.index == -1:
-            if self.current_pose is not None:
-                self.update_pose_from_current_pose()
-            else:
-                print("Lost Autoware.")
+        if ros_lane_array is not None:
+            self.current_locations = locations
+            payload = Topic.serialize(ros_lane_array)
+            self.publish(self.__pub_based_lane_waypoints_array_topic, payload)
+
+    def publish_state_command(self, state_command):
+        if True:
+            payload = Topic.serialize(state_command)
+            self.__previous_state_command = state_command
+            self.publish(self.__pub_state_cmd_topic, payload)
+
+    def publish_init_state_command(self, decisionmaker_states):
+        if decisionmaker_states.main_state != AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.INITIAL:
+            state_command = ROSMessage.StateCommand.new_data()
+            state_command.data = AUTOWARE.ROS.STATE_CMD.MAIN.INIT
+            self.publish_state_command(state_command)
+
+    def publish_drive_state_command(self, decisionmaker_states):
+        if any([
+            all([
+                decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.MISSION_COMPLETE,
+                AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS in decisionmaker_states.behavior_state
+            ]),
+            decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.INITIAL
+        ]):
+            state_command = ROSMessage.StateCommand.new_data()
+            state_command.data = AUTOWARE.ROS.STATE_CMD.MAIN.DRIVE
+            self.publish_state_command(state_command)
+
+    def publish_stop_state_command(self, decisionmaker_states):
+        if decisionmaker_states.acc_state != AUTOWARE.ROS.DECISION_MAKER_STATES.ACC.STOP:
+            state_command = ROSMessage.StateCommand.new_data()
+            state_command.data = AUTOWARE.ROS.STATE_CMD.SUB.STOP
+            self.publish_state_command(state_command)
+
+    def publish_light_color(self):
+        monitored_route = self.get_monitored_route()
+        if monitored_route is None:
+            traffic_light = AUTOWARE.ROS.TRAFFIC_LIGHT.RED
         else:
-            if 0 < len(self.current_arrow_waypoint_array):
-                self.update_pose_from_closest_arrow_waypoint(
-                    self.current_arrow_waypoint_array[self.closest_waypoint.index])
+            distance_from_stopline = self.get_distance_from_stopline(monitored_route)
+            if distance_from_stopline <= self.upper_distance_from_stopline:
+                traffic_light = AUTOWARE.ROS.TRAFFIC_LIGHT.RED
             else:
-                print("Lost Autoware.")
+                traffic_light = AUTOWARE.ROS.TRAFFIC_LIGHT.GREEN
+        header = ROSMessage.Header.get_template()
+        header.stamp.secs = int(time())
+        header.stamp.nsecs = int((time() - int(time())) * 1000000000)
 
-    def is_arriving_soon(self):
+        payload = Topic.serialize(ROSMessage.LightColor.new_data(
+            header=header,
+            traffic_light=traffic_light
+        ))
+        self.publish(self.__pub_light_color_topic, payload)
+
+    def update_current_pose(self, _client, _userdata, _topic, ros_current_pose):
+        self.ros_current_pose_lock.acquire()
+        self.ros_current_pose = ros_current_pose
+        self.ros_current_pose_lock.release()
+
+    def update_closest_waypoint(self, _client, _userdata, _topic, ros_closest_waypoint):
+        self.ros_closest_waypoint_lock.acquire()
+        self.ros_closest_waypoint = ros_closest_waypoint
+        self.ros_closest_waypoint_lock.release()
+
+    def update_decisionmaker_states(self, _client, _userdata, _topic, ros_decisionmaker_states):
+        self.ros_decisionmaker_states_lock.acquire()
+        self.ros_decisionmaker_states = ros_decisionmaker_states
+        self.ros_decisionmaker_states_lock.release()
+
+    def update_traffic_signals(self, _client, _user_data, _topic, traffic_signal_status):
+        self.traffic_signals_lock.acquire()
+        self.traffic_signals[traffic_signal_status.route_code] = traffic_signal_status
+        self.traffic_signals_lock.release()
+
+    @staticmethod
+    def get_current_pose_from_ros_current_pose(ros_current_pose):
+        return Pose.new_data(
+            position=Position.new_data(**ros_current_pose.pose.position),
+            orientation=Orientation.new_data(
+                quaternion=Quaternion.new_data(**ros_current_pose.pose.orientation),
+            )
+        )
+
+    def update_pose_from_current_pose(self):
+        self.ros_current_pose_lock.acquire()
+        ros_current_pose = deepcopy(self.ros_current_pose)
+        self.ros_current_pose_lock.release()
+
+        if ros_current_pose is not None:
+            current_pose = Autoware.get_current_pose_from_ros_current_pose(ros_current_pose)
+            self.set_location(
+                self.__map_match.get_matched_location_on_arrows(current_pose, self.arrow.get_arrow_codes()))
+            self.remove_subscriber(self.__sub_current_pose_topic)
+
+    def update_pose_from_closest_arrow_waypoint(self):
+        self.ros_closest_waypoint_lock.acquire()
+        ros_closest_waypoint = deepcopy(self.ros_closest_waypoint)
+        self.ros_closest_waypoint_lock.release()
+
+        if ros_closest_waypoint is not None and \
+                0 <= ros_closest_waypoint.data < len(self.current_locations):
+            closest_location = self.current_locations[ros_closest_waypoint.data]
+            self.set_waypoint_id_and_arrow_code(
+                closest_location.waypoint_id, closest_location.arrow_code)
+
+    def get_ros_lane_array_from_locations(self, locations):
+        if 0 == len(locations):
+            return None
+
+        ros_lane_array = ROSMessage.LaneArray.new_data()
+        ros_lane = ROSMessage.Lane.new_data()
+        for location in locations:
+            pose = self.waypoint.get_pose(location.waypoint_id)
+            ros_waypoint = ROSMessage.Waypoint.new_data()
+            ros_waypoint.pose.pose.position.x = pose.position.x
+            ros_waypoint.pose.pose.position.y = pose.position.y
+            ros_waypoint.pose.pose.position.z = pose.position.z
+
+            ros_waypoint.pose.pose.orientation.z = pose.orientation.quaternion.z
+            ros_waypoint.pose.pose.orientation.w = pose.orientation.quaternion.w
+
+            ros_waypoint.twist.twist.linear.x = 0.2 * self.waypoint.get_speed_limit(location.waypoint_id)
+            ros_lane.waypoints.append(ros_waypoint)
+
+        ros_lane.header.stamp.secs = int(time()+1)
+        ros_lane_array.lanes.append(ros_lane)
+        return ros_lane_array
+
+    get_distance_from_stopline = SimCar.get_distance_from_stopline
+
+    get_monitored_route = SimCar.get_monitored_route
+
+    def get_random_route(self):
+        import random
+        start_point = {
+            "arrow_code": self.status.location.arrow_code,
+            "waypoint_id": self.status.location.waypoint_id,
+        }
+        while True:
+            while True:
+                goal_arrow_code = random.choice(self.arrow.get_arrow_codes())
+                goal_waypoint_id = random.choice(self.arrow.get_waypoint_ids(goal_arrow_code))
+                if goal_waypoint_id != self.status.location.waypoint_id:
+                    break
+
+            goal_id = None
+            goal_points = [{
+                "goal_id": goal_id,
+                "arrow_code": goal_arrow_code,
+                "waypoint_id": goal_waypoint_id,
+            }]
+
+            shortest_routes = self.route.get_shortest_routes(start_point, goal_points, reverse=False)
+            if 0 == len(shortest_routes):
+                continue
+            shortest_route = shortest_routes[goal_id]
+            shortest_route.pop("cost")
+            shortest_route.pop("goal_id")
+            break
+
+        return Route.new_route(self.status.location.waypoint_id, goal_waypoint_id, shortest_route.arrow_codes)
+
+    def add_random_schedule(self, current_time, schedules):
+        synchronize_route_schedule = Schedule.new_schedule(
+            [self.target],
+            AUTOWARE.TRIGGER.SYNCHRONIZE_ROUTE, current_time, current_time + 5,
+            self.route.new_point_route(
+                self.status.location.waypoint_id,
+                self.status.location.arrow_code
+            )
+        )
+        random_route = self.get_random_route()
+        move_schedule = Schedule.new_schedule(
+            [self.target],
+            AUTOWARE.TRIGGER.MOVE, synchronize_route_schedule.period.end, synchronize_route_schedule.period.end + 100,
+            random_route
+        )
+        stop_schedule = Schedule.new_schedule(
+            [self.target],
+            AUTOWARE.TRIGGER.STOP, move_schedule.period.end, move_schedule.period.end + 10,
+            self.route.new_point_route(
+                move_schedule.route.goal_waypoint_id,
+                move_schedule.route.arrow_codes[-1]
+            )
+        )
+        get_ready_schedule = Schedule.new_schedule(
+            [self.target],
+            AUTOWARE.TRIGGER.GET_READY, move_schedule.period.end, move_schedule.period.end + 1,
+            self.route.new_point_route(
+                move_schedule.route.goal_waypoint_id,
+                move_schedule.route.arrow_codes[-1]
+            )
+        )
+        reschedule_schedule = Schedule.new_schedule(
+            [self.target],
+            AUTOWARE.TRIGGER.SCHEDULE, move_schedule.period.end, move_schedule.period.end + 1,
+            self.route.new_point_route(
+                move_schedule.route.goal_waypoint_id,
+                move_schedule.route.arrow_codes[-1]
+            )
+        )
+        schedules[:] = Schedule.get_merged_schedules(
+            schedules,
+            [
+                synchronize_route_schedule, move_schedule, stop_schedule, get_ready_schedule, reschedule_schedule
+            ]
+        )
+
+    def get_state_machine(self, initial_state=AUTOWARE.STATE.LAUNCHED):
+        machine = StateMachine(
+            states=list(AUTOWARE.STATE),
+            initial=initial_state,
+        )
+        machine.add_transitions([
+            {
+                "trigger": AUTOWARE.TRIGGER.ACTIVATE,
+                "source": AUTOWARE.STATE.LAUNCHED, "dest": AUTOWARE.STATE.STAND_BY,
+                "conditions": [self.condition_activated_and_update_schedules]
+            },
+            {
+                "trigger": AUTOWARE.TRIGGER.SCHEDULE,
+                "source": AUTOWARE.STATE.STAND_BY, "dest": AUTOWARE.STATE.SCHEDULE_UPDATED,
+                "conditions": [self.condition_expected_schedules_length_and_update_schedules]
+            },
+            {
+                "trigger": AUTOWARE.TRIGGER.SYNCHRONIZE_ROUTE,
+                "source": AUTOWARE.STATE.SCHEDULE_UPDATED, "dest": AUTOWARE.STATE.READY_TO_MOVE,
+                "conditions": [self.condition_route_synchronized_and_update_schedules]
+            },
+            {
+                "trigger": AUTOWARE.TRIGGER.MOVE,
+                "source": AUTOWARE.STATE.READY_TO_MOVE, "dest": AUTOWARE.STATE.MOVE,
+                "conditions": [self.condition_decisionmaker_states_changed_to_drive_and_update_schedules]
+            },
+            {
+                "trigger": AUTOWARE.TRIGGER.STOP,
+                "source": AUTOWARE.STATE.MOVE, "dest": AUTOWARE.STATE.STOP,
+                "conditions": [self.condition_achieved_and_update_schedules]
+            },
+            {
+                "trigger": AUTOWARE.TRIGGER.GET_READY,
+                "source": AUTOWARE.STATE.STOP, "dest": AUTOWARE.STATE.STAND_BY,
+                "conditions": [self.condition_time_limit_devisionmaker_states_change_to_initial_and_update_schedules]
+            },
+        ])
+        return machine
+
+    def condition_activated(self, decisionmaker_states):
+        return self.condition_location() and \
+               self.condition_decisionmaker_states_changed_to_initial(decisionmaker_states)
+
+    def condition_location(self):
+        return self.status.location is not None
+
+    @staticmethod
+    def condition_decisionmaker_states_changed_to_initial(decisionmaker_states):
+        if decisionmaker_states is not None:
+            if decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.INITIAL:
+                return True
+
+    @staticmethod
+    def condition_expected_schedules_length(schedules, expected):
+        return expected == len(schedules)
+
+    condition_time_limit = SimCar.condition_time_limit
+
+    @staticmethod
+    def condition_decisionmaker_states_changed_to_mission_complete(decisionmaker_states):
+        if decisionmaker_states is not None:
+            if all([
+                decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.MISSION_COMPLETE,
+                AUTOWARE.ROS.DECISION_MAKER_STATES.BEHAVIOR.WAIT_ORDERS in decisionmaker_states.behavior_state
+            ]):
+                return True
+        return False
+
+    def condition_route_synchronized(self, route):
+        self.publish_lane_array(route)
+        return True
+
+    @staticmethod
+    def condition_decisionmaker_states_changed_to_drive(decisionmaker_states):
+        if decisionmaker_states is not None:
+            if decisionmaker_states.main_state == AUTOWARE.ROS.DECISION_MAKER_STATES.MAIN.DRIVE:
+                return True
+        return False
+
+    def after_state_change_update_schedules(self, current_time, schedules, _decisionmaker_states=None):
+        schedules[:] = self.get_next_schedules(schedules, current_time)
+        return True
+
+    def after_state_change_publish_drive(self, decisionmaker_states):
+        self.publish_drive_state_command(decisionmaker_states)
+
+    def condition_activated_and_update_schedules(self, current_time, schedules):
+        if self.condition_location():
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        else:
+            if not self.condition_location():
+                self.update_pose_from_current_pose()
+            return False
+
+    def condition_expected_schedules_length_and_update_schedules(
+            self, current_time, schedules, expected_schedules_length):
+        if self.condition_expected_schedules_length(schedules, expected_schedules_length):
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        else:
+            self.add_random_schedule(current_time, schedules)
+            return False
+
+    def condition_route_synchronized_and_update_schedules(self, current_time, schedules):
+        if self.condition_route_synchronized(schedules[2].route):
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        else:
+            return False
+
+    def condition_decisionmaker_states_changed_to_drive_and_update_schedules(
+            self, current_time, schedules, decisionmaker_states):
+        if self.condition_decisionmaker_states_changed_to_drive(decisionmaker_states):
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        else:
+            self.publish_drive_state_command(decisionmaker_states)
+            return False
+
+    def condition_achieved_and_update_schedules(self, current_time, schedules, decisionmaker_states):
+        if self.condition_decisionmaker_states_changed_to_mission_complete(decisionmaker_states):
+            self.after_state_change_update_schedules(current_time, schedules)
+            return True
+        return False
+
+    def condition_time_limit_devisionmaker_states_change_to_initial_and_update_schedules(
+            self, current_time, schedules, decisionmaker_states):
+        if self.condition_time_limit(current_time):
+            if True:
+                self.after_state_change_update_schedules(current_time, schedules)
+                return True
+            else:
+                self.publish_drive_state_command(decisionmaker_states)
         return False
 
     def update_status(self):
+        self.update_pose_from_closest_arrow_waypoint()
+        if self.status.location is not None and self.status.state == AUTOWARE.STATE.MOVE:
+            self.publish_light_color()
 
-        self.update_pose()
-        self.publish_light_color()
+        schedules = self.get_schedules_and_lock()
 
-        if None not in [self.waypoint_id, self.arrow_code]:
-            current_time = time()
+        self.ros_decisionmaker_states_lock.acquire()
+        decisionmaker_states = deepcopy(self.ros_decisionmaker_states)
+        self.ros_decisionmaker_states_lock.release()
 
-            if self.state == Vehicle.CONST.STATE.LOG_IN:
-                if self.schedules[0].period.end < current_time:
-                    self.schedules.pop(0)
+        current_time = time()
+        next_event = schedules[1].event
 
-                    self.publish_lane_array()
+        if next_event == AUTOWARE.TRIGGER.ACTIVATE:
+            self.state_machine.activate(current_time, schedules)
+        elif next_event == AUTOWARE.TRIGGER.SCHEDULE:
+            self.state_machine.schedule(current_time, schedules, 7)
+        elif next_event == AUTOWARE.TRIGGER.SYNCHRONIZE_ROUTE:
+            self.state_machine.synchronize_route(current_time, schedules)
+        elif next_event == AUTOWARE.TRIGGER.MOVE:
+            self.state_machine.move(current_time, schedules, decisionmaker_states)
+        elif next_event == AUTOWARE.TRIGGER.STOP:
+            self.state_machine.stop(current_time, schedules, decisionmaker_states)
+        elif next_event == AUTOWARE.TRIGGER.GET_READY:
+            self.state_machine.get_ready(current_time, schedules, decisionmaker_states)
 
-                    # update next schedule
-                    dif_time = current_time - self.schedules[0].period.start
-                    self.schedules = Schedule.get_shifted_schedules(self.schedules, dif_time)
-
-                    self.state = Vehicle.CONST.STATE.MOVE
-                    self.publish_state_command(AUTOWARE.STATE_CMD.MAIN.INIT)
-                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.KEEP)
-
-            elif self.state == Vehicle.CONST.STATE.MOVE:
-                if self.is_arriving_soon():
-                    self.publish_state_command(AUTOWARE.STATE_CMD.SUB.STOP)
+        self.set_schedules_and_unlock(schedules)

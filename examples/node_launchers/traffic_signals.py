@@ -4,7 +4,8 @@
 from argparse import ArgumentParser
 from subprocess import Popen
 import json
-from ams import Intersection
+
+from ams.maps import Intersection
 
 
 parser = ArgumentParser()
@@ -26,21 +27,28 @@ if __name__ == '__main__':
         data = json.load(f)
         cycles = data["cycles"]
 
-    traffic_signals = {}
-    for intersection_id in intersection.get_intersection_ids():
-        for route_code, traffic_signal_configs in intersection.get_traffic_signals(intersection_id).items():
-            cycle_option = []
-            if traffic_signal_configs["cycleID"] is not None:
-                cycle_option = ["--cycle", json.dumps(cycles[traffic_signal_configs["cycleID"]])]
+    traffic_signals = []
 
-            traffic_signals[route_code] = Popen([
-                "python", "../node_launchers/traffic_signal.py",
-                "--host", args.host,
-                "--port", str(args.port),
-                "--id", route_code,
-                "--route_code", route_code,
-                # "--schedules", json.dumps(traffic_signal_configs["schedules"])
-            ] + cycle_option)
+    try:
+        for intersection_id in intersection.get_intersection_ids():
+            for route_code, traffic_signal_configs in intersection.get_traffic_signals(intersection_id).items():
+                cycle_option = []
+                if traffic_signal_configs["cycleID"] is not None:
+                    cycle_option = ["--cycle", json.dumps(cycles[traffic_signal_configs["cycleID"]])]
 
-    for traffic_signal in traffic_signals.values():
-        traffic_signal.wait()
+                traffic_signals.append({
+                   "route_code": route_code,
+                   "process": Popen([
+                        "python", "../node_launchers/traffic_signal.py",
+                        "--host", args.host,
+                        "--port", str(args.port),
+                        "--id", route_code,
+                        "--route_code", route_code,
+                        # "--schedules", json.dumps(traffic_signal_configs["schedules"])
+                    ] + cycle_option)
+                })
+
+        traffic_signals[0]["process"].wait()
+    except:
+        for traffic_signal in traffic_signals:
+            traffic_signal["process"].terminate()

@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import get_namedtuple_from_dict
+from ams import get_namedtuple_from_dict
 
 
 SIM_TAXI = get_namedtuple_from_dict("CONST", {
+    "NODE_NAME": "SimTaxi",
+    "TRIGGER": {
+        "STAND_BY": "stand_by",
+        "MOVE": "move",
+        "STOP": "stop",
+    },
     "STATE": {
-        "STANDBY": "standBy",
-        "MOVE_TO_USER": "moveToUser",
-        "STOP_FOR_PICKING_UP": "pickingUp",
-        "MOVE_TO_USER_DESTINATION": "moveToUserDestination",
-        "STOP_FOR_DISCHARGING": "discharging",
-        "MOVE_TO_STANDBY": "moveToDeploy"
+        "STAND_BY": "stand_by",
+        "MOVE_FOR_PICKING_UP": "move_for_picking_up",
+        "STOP_FOR_PICKING_UP": "stop_for_picking_up",
+        "MOVE_FOR_DISCHARGING": "move_for_discharging",
+        "STOP_FOR_DISCHARGING": "stop_for_discharging"
     },
 })
