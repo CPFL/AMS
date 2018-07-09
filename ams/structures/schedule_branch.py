@@ -45,7 +45,8 @@ schedule_branches_template = [ScheduleBranch.get_template()]
 
 schedule_branches_schema = {
     "type": "list",
-    "valueschema": {
+    "schema": {
+        "type": "dict",
         "schema": ScheduleBranch.get_schema(),
         "required": True,
         "nullable": False,

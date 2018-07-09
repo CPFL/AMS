@@ -34,8 +34,9 @@ route_schema = {
     },
     "arrow_codes": {
         "type": "list",
-        "valueschema": {
-            "type": "string"
+        "schema": {
+            "type": "string",
+            "nullable": False
         },
         "required": True,
         "nullable": False,
@@ -52,7 +53,8 @@ routes_template = [Route.get_template()]
 
 routes_schema = {
     "type": "list",
-    "valueschema": {
+    "schema": {
+        "type": "dict",
         "schema": Route.get_schema(),
         "required": True,
         "nullable": False,

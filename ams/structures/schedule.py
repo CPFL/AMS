@@ -48,13 +48,14 @@ schedules_template = [Schedule.get_template()]
 
 schedules_schema = {
     "type": "list",
-    "valueschema": {
+    "schema": {
+        "type": "dict",
         "schema": Schedule.get_schema(),
         "required": True,
         "nullable": False,
     },
-    "nullable": True,
-    "minlength": 1
+    "nullable": False,
+    "minlength": 0
 }
 
 
