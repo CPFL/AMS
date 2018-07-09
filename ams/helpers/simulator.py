@@ -6,7 +6,7 @@ from sys import float_info
 from ams import logger
 from ams.helpers import Position, Vector
 from ams.maps import Route
-from ams.structures import TRAFFIC_SIGNAL, Pose
+from ams.structures import Pose
 
 
 class Simulator(object):
@@ -18,8 +18,12 @@ class Simulator(object):
     ):
         locations = maps_client.route.get_locations(route)
         if vehicle_status.location not in locations:
-            print(vehicle_status, locations)
-        forward_locations = locations[locations.index(vehicle_status.location):]
+            if vehicle_status.location.waypoint_id == locations[0].waypoint_id:
+                forward_locations = locations[:]
+            else:
+                raise ValueError(vehicle_status, locations)
+        else:
+            forward_locations = locations[locations.index(vehicle_status.location):]
 
         movable_distance = Simulator.get_movable_distance(
             maps_client, forward_locations, traffic_signals, other_vehicle_locations,
@@ -89,7 +93,7 @@ class Simulator(object):
 
         not_green_traffic_signal_locations_set = list(map(
             lambda x: maps_client.route.get_locations(Route.decode_route_code(x.route_code)), filter(
-                lambda x: x.state in [TRAFFIC_SIGNAL.STATE.YELLOW, TRAFFIC_SIGNAL.STATE.RED],
+                lambda x: x.state in [x.CONST.STATE.YELLOW, x.CONST.STATE.RED],
                 traffic_signals.values())))
 
         for not_green_traffic_signal_locations in not_green_traffic_signal_locations_set:
