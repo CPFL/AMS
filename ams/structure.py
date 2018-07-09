@@ -37,13 +37,13 @@ def get_structure_superclass(template, schema):
             if isinstance(template, list):
                 data = []
                 for _element in args[0]:
-                    element = AttrDict.set_recursively(_element, deepcopy(attr_template.list[0]))
+                    element = AttrDict.set_recursively(_element)
                     data.append(element)
                 if not validator.validate({"list": data}):
                     logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             else:
-                data = AttrDict.set_recursively(kwargs, deepcopy(attr_template))
+                data = AttrDict.set_recursively(kwargs)
                 if not validator.validate(data):
                     logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
