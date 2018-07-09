@@ -5,7 +5,7 @@ import json
 import math
 
 from ams.helpers import Position, Vector, Rpy, Location
-from ams.structures import ARROW, Orientation
+from ams.structures import ARROW, Orientation, Pose
 
 
 class Arrow(object):
@@ -82,6 +82,12 @@ class Arrow(object):
                 pitch=None,
                 yaw=self.get_yaw(arrow_code, waypoint_id)
             )
+        )
+
+    def get_pose(self, arrw_code, waypoint_id):
+        return Pose.new_data(
+            position=self.waypoint.get_position(waypoint_id),
+            orientation=self.get_orientation(arrw_code, waypoint_id)
         )
 
     def get_heading(self, arrow_code, waypoint_id):
