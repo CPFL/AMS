@@ -10,7 +10,9 @@ from config.env import env
 
 parser = ArgumentParser()
 parser.add_argument("-NN", "--node_name", type=str, required=True, help="node name")
-parser.add_argument("-ID", "--id", type=str, required=True, help="node id")
+parser.add_argument("-RID", "--ros_id", type=str, required=True, help="ros id")
+parser.add_argument("-AID", "--autoware_id", type=str, required=True, help="autoware id")
+parser.add_argument("-TD", "--topic_domain", type=str, default="ams", help="topic domain")
 
 parser.add_argument("-CAP", "--ca_file_path", type=str, default=None, help="./secrets/root-ca.crt")
 parser.add_argument("-KP", "--key_file_path", type=str, default="", help="./secrets/private.key")
@@ -50,8 +52,8 @@ def launch_aws_iot_to_ros_bridge(
 
 if __name__ == '__main__':
 
-    ros_to_ams_base_topic = "/ams/ros/" + args.id + "/" + args.node_name + "/" + args.id
-    ams_to_ros_base_topic = "/ams/" + args.node_name + "/" + args.id + "/ros/" + args.id
+    ros_to_ams_base_topic = "/".join(["", args.topic_domain, "ros", args.ros_id, args.node_name, args.autoware_id])
+    ams_to_ros_base_topic = "/".join(["", args.topic_domain, args.node_name, args.autoware_id, "ros", args.ros_id])
     rospy_rate = 1
     process_current_pose_ros_to_mqtt = Process(target=launch_ros_to_aws_iot_bridge, args=[
         "ros_to_ams_current_pose",
