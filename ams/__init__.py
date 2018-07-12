@@ -1,4 +1,4 @@
-VERSION = 0.3
+VERSION = "0.3"
 from ams.logger import logger
 from ams.attr_dict import AttrDict
 from ams.validator import Validator
