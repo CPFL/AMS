@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import random
-from time import time
 
 from ams.helpers import Schedule
 from ams.nodes.dispatcher import Helper as DispatcherHelper
@@ -18,20 +17,21 @@ class Helper(DispatcherHelper):
     Structure = Structure
 
     @classmethod
-    def get_random_location(cls, maps_client, stop_waypoint_ids):
-        return random.choice(maps_client.arrow.get_locations_by_waypoint_id(random.choice(stop_waypoint_ids)))
+    def get_random_location(cls, clients, stop_waypoint_ids):
+        return random.choice(clients["maps"].arrow.get_locations_by_waypoint_id(random.choice(stop_waypoint_ids)))
 
     @classmethod
-    def get_random_move_vehicle_schedules(
-            cls, start_location, goal_location, stop_waypoint_ids, targets, start_time, maps_client):
+    def get_transportation_vehicle_schedules(
+            cls, clients, targets, start_time=None, start_location=None, goal_location=None, stop_waypoint_ids=None):
 
         locations = [start_location]
         if 0 < len(stop_waypoint_ids):
-            while len(locations) < 3:
-                location = cls.get_random_location(maps_client, stop_waypoint_ids)
+            # while len(locations) < 3:
+            while len(locations) < 2:
+                location = cls.get_random_location(clients, stop_waypoint_ids)
                 if locations[-1] != location:
                     locations.append(location)
-        locations.append(goal_location)
+
 
         current_time = start_time
         schedules = [
@@ -56,7 +56,7 @@ class Helper(DispatcherHelper):
                 "arrow_code": locations[i].arrow_code
             }]
 
-            shortest_routes = maps_client.route.get_shortest_routes(start_point, goal_points, reverse=False)
+            shortest_routes = clients["maps"].route.get_shortest_routes(start_point, goal_points, reverse=False)
             shortest_route = shortest_routes[goal_id]
             shortest_route.pop("cost")
             shortest_route.pop("goal_id")
@@ -94,13 +94,16 @@ class Helper(DispatcherHelper):
 
     @classmethod
     def get_vehicle_schedules(
-            cls, kvs_client, target_dispatcher, target_vehicle, transportation_status, vehicle_status, vehicle_config,
-            dispatcher_config, maps_client):
-        current_time = time()
-        activation_vehicle_schedules = cls.get_activation_vehicle_schedules(transportation_status.targets, current_time)
-        transportation_vehicle_schedules = cls.get_random_move_vehicle_schedules(
-            vehicle_status.location, vehicle_status.location, dispatcher_config.stop_waypoint_ids,
-            transportation_status.targets, activation_vehicle_schedules[-1].period.end, maps_client)
+            cls, clients, target_roles, transportation_status, vehicle_status, vehicle_config, dispatcher_config):
+
+        activation_vehicle_schedules = cls.get_activation_vehicle_schedules(
+            clients, transportation_status.targets, cls.get_current_time())
+
+        transportation_vehicle_schedules = cls.get_transportation_vehicle_schedules(
+            clients, transportation_status.targets, activation_vehicle_schedules[-1].period.end,
+            vehicle_status.location, vehicle_status.location, dispatcher_config.stop_waypoint_ids)
+
         deactivation_vehicle_schedules = cls.get_deactivation_vehicle_schedules(
-            transportation_status.targets, transportation_vehicle_schedules[-1].period.end)
+            clients, transportation_status.targets, transportation_vehicle_schedules[-1].period.end)
+
         return activation_vehicle_schedules + transportation_vehicle_schedules + deactivation_vehicle_schedules

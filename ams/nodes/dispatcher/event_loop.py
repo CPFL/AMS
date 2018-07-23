@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from ams import logger
 from ams.helpers import Target
 from ams.nodes.vehicle import Message as VehicleMessage
 from ams.nodes.dispatcher import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
@@ -19,8 +20,6 @@ class EventLoop(object):
     VehicleMessage = VehicleMessage
 
     def __init__(self, _id, group=CONST.NODE_NAME):
-        self.target = Target.new_target(group, _id)
-
         self.dt = 1.0
         self.initials = {
             "config": Structure.Config.new_data(targets=[], active_api_keys=[], inactive_api_keys=[]),
@@ -28,16 +27,16 @@ class EventLoop(object):
             "schedules": None
         }
         self.user_data = {
-            "target": self.target,
-            "kvs_client": None,
-            "mqtt_client": None,
-            "maps_client": None,
+            "target_roles": {
+                "dispatcher": Target.new_target(group, _id)
+            },
+            "clients": {}
         }
         self.subscribers = {}
 
     def __set_dispatcher_subscriber(self):
-        for target_vehicle in self.initials["config"].targets:
-            topic = self.Subscriber.get_vehicle_status_topic(target_vehicle)
+        for target in self.initials["config"].targets:
+            topic = self.Subscriber.get_vehicle_status_topic({"vehicle": target})
             self.subscribers[topic] = {
                 "topic": topic,
                 "callback": self.Subscriber.on_vehicle_status_message,
@@ -45,7 +44,7 @@ class EventLoop(object):
                 "user_data": self.user_data
             }
 
-            topic = self.Subscriber.get_vehicle_config_topic(target_vehicle)
+            topic = self.Subscriber.get_vehicle_config_topic({"vehicle": target})
             self.subscribers[topic] = {
                 "topic": topic,
                 "callback": self.Subscriber.on_vehicle_config_message,
@@ -54,13 +53,13 @@ class EventLoop(object):
             }
 
     def set_kvs_client(self, kvs_client):
-        self.user_data["kvs_client"] = kvs_client
+        self.user_data["clients"]["kvs"] = kvs_client
 
     def set_mqtt_client(self, mqtt_client):
-        self.user_data["mqtt_client"] = mqtt_client
+        self.user_data["clients"]["mqtt"] = mqtt_client
 
     def set_maps_client(self, maps_client):
-        self.user_data["maps_client"] = maps_client
+        self.user_data["clients"]["maps"] = maps_client
 
     def set_initial_config(self, targets, active_api_keys=None, inactive_api_keys=None):
         self.initials["config"] = Structure.Config.new_data(
@@ -76,21 +75,23 @@ class EventLoop(object):
 
     def subscribe(self):
         for subscriber in self.subscribers.values():
-            print("subscribe: {}".format(subscriber["topic"]))
-            self.user_data["mqtt_client"].subscribe(**subscriber)
+            logger.info("subscribe: {}".format(subscriber["topic"]))
+            self.user_data["clients"]["mqtt"].subscribe(**subscriber)
 
     def __connect_and_set_user_data(self):
-        self.user_data["kvs_client"].connect()
+        self.user_data["clients"]["kvs"].connect()
         self.subscribe()
-        self.user_data["mqtt_client"].connect()
+        self.user_data["clients"]["mqtt"].connect()
 
     def start(self):
         self.__set_dispatcher_subscriber()
 
         self.__connect_and_set_user_data()
 
-        self.Helper.set_dispatcher_config(self.user_data["kvs_client"], self.target, self.initials["config"])
-        self.Helper.set_dispatcher_state(self.user_data["kvs_client"], self.target, self.initials["state"])
+        self.Helper.set_dispatcher_config(
+            self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
+        self.Helper.set_dispatcher_state(
+            self.user_data["clients"], self.user_data["target_roles"], self.initials["state"])
 
     def stop(self):
-        self.user_data["mqtt_client"].disconnect()
+        self.user_data["clients"]["mqtt"].disconnect()

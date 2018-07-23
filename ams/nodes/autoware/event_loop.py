@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
-from uuid import uuid4 as uuid
-
 from ams.helpers import Target
 from ams.nodes.vehicle import EventLoop as VehicleEventLoop
 from ams.nodes.traffic_signal import Message as TrafficSignalMessage
 from ams.nodes.autoware_dispatcher import Message as DispatcherMessage
+from ams.nodes.autoware_dispatcher import CONST as AUTOWARE_DISPATCHER
 from ams.nodes.autoware import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
 
 
@@ -21,6 +19,7 @@ class EventLoop(VehicleEventLoop):
     StateMachine = StateMachine
     Subscriber = Subscriber
 
+    DISPATCHER = AUTOWARE_DISPATCHER
     DispatcherMessage = DispatcherMessage
 
     def __init__(self, _id, group=CONST.NODE_NAME):
@@ -29,7 +28,7 @@ class EventLoop(VehicleEventLoop):
         self.upper_distance_from_stopline = CONST.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
 
     def __set_autoware_subscriber(self):
-        topic = self.Subscriber.get_closest_waypoint_topic(self.initials["config"].target_ros, self.target)
+        topic = self.Subscriber.get_closest_waypoint_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
             "callback": self.Subscriber.on_closest_waypoint_ros_message,
@@ -37,7 +36,7 @@ class EventLoop(VehicleEventLoop):
             "user_data": self.user_data
         }
 
-        topic = self.Subscriber.get_current_pose_topic(self.initials["config"].target_ros, self.target)
+        topic = self.Subscriber.get_current_pose_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
             "callback": self.Subscriber.on_current_pose_ros_message,
@@ -45,7 +44,7 @@ class EventLoop(VehicleEventLoop):
             "user_data": self.user_data
         }
 
-        topic = self.Subscriber.get_decision_maker_state_topic(self.initials["config"].target_ros, self.target)
+        topic = self.Subscriber.get_decision_maker_state_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
             "callback": self.Subscriber.on_decision_maker_state_ros_message,
@@ -63,16 +62,20 @@ class EventLoop(VehicleEventLoop):
 
     def set_initial_config(
         self, activation, target_ros_id=None,
-        upper_distance_from_stopline=CONST.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE
+        upper_distance_from_stopline=CONST.DEFAULT_UPPER_DISTANCE_FROM_STOPLINE, target_dispatcher_id=None
     ):
         self.initials["config"] = self.Structure.Config.new_data(
-            target_dispatcher=None,
             activation=activation,
             upper_distance_from_stopline=upper_distance_from_stopline,
             target_ros=Target.new_target(
-                CONST.ROS.NODE_NAME,
-                target_ros_id if target_ros_id is not None else str(uuid())),
+                self.CONST.ROS.NODE_NAME,
+                target_ros_id if target_ros_id is not None else self.Helper.get_uuid()),
+            target_dispatcher=Target.new_target(
+                self.DISPATCHER.NODE_NAME,
+                target_dispatcher_id if target_dispatcher_id is not None else self.Helper.get_uuid()),
         )
+        self.user_data["target_roles"]["ros"] = self.initials["config"].target_ros
+        self.user_data["target_roles"]["dispatcher"] = self.initials["config"].target_dispatcher
 
     def set_initial_status(
             self, state=CONST.STATE.START_PROCESSING, schedule_id=None, location=None, pose=None, velocity=0.0,
@@ -96,8 +99,10 @@ class EventLoop(VehicleEventLoop):
 
         self.__connect_and_subscribe()
 
-        self.Helper.set_vehicle_config(self.user_data["kvs_client"], self.target, self.initials["config"])
-        self.Helper.set_vehicle_status(self.user_data["kvs_client"], self.target, self.initials["status"])
+        self.Helper.set_vehicle_config(
+            self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
+        self.Helper.set_vehicle_status(
+            self.user_data["clients"], self.user_data["target_roles"], self.initials["status"])
 
     def stop(self):
-        self.user_data["mqtt_client"].disconnect()
+        self.user_data["clients"]["mqtt"].disconnect()

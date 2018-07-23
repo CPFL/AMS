@@ -4,8 +4,10 @@
 from ams import get_namedtuple_from_dict
 from ams.nodes.dispatcher.const import const as dispatcher_const
 
-topic = {}
-topic.update(dispatcher_const["TOPIC"])
+topic = {
+    "CATEGORIES": {}
+}
+topic["CATEGORIES"].update(dispatcher_const["TOPIC"]["CATEGORIES"])
 
 event = {}
 event.update(dispatcher_const["EVENT"])

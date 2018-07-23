@@ -3,7 +3,7 @@
 
 from ams import get_structure_superclass
 from ams.structures import Target
-from ams.nodes.vehicle import Structure
+from ams.nodes.vehicle import Structure as VehicleStructure
 
 
 timestamp_template = {
@@ -559,13 +559,13 @@ class ROSMessage(object):
     LightColor = LightColor
 
 
-config_template = Structure.Config.get_template()
+config_template = VehicleStructure.Config.get_template()
 config_template.update({
     "target_ros": Target.get_template(),
     "upper_distance_from_stopline": 50.0
 })
 
-config_schema = Structure.Config.get_schema()
+config_schema = VehicleStructure.Config.get_schema()
 config_schema.update({
     "target_ros": {
         "type": "dict",
@@ -585,7 +585,7 @@ class Config(get_structure_superclass(config_template, config_schema)):
     pass
 
 
-status_template = Structure.Status.get_template()
+status_template = VehicleStructure.Status.get_template()
 status_template.update({
     "route_code": None,
     "current_pose": CurrentPose.get_template(),
@@ -593,7 +593,7 @@ status_template.update({
     "decision_maker_state": DecisionMakerState.get_template()
 })
 
-status_schema = Structure.Status.get_schema()
+status_schema = VehicleStructure.Status.get_schema()
 status_schema.update({
     "route_code": {
         "type": "string",
@@ -625,7 +625,7 @@ class Status(get_structure_superclass(status_template, status_schema)):
     pass
 
 
-class Structure(Structure):
+class Structure(VehicleStructure):
     Config = Config
     Status = Status
     ROSMessage = ROSMessage

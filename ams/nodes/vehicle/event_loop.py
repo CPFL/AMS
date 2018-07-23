@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time, sleep
+from time import sleep
 
+from ams import logger
 from ams.helpers import Target
 from ams.nodes.dispatcher import Message as DispatcherMessage
 from ams.nodes.vehicle import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
@@ -21,23 +22,21 @@ class EventLoop(object):
     DispatcherMessage = DispatcherMessage
 
     def __init__(self, _id, group=CONST.NODE_NAME):
-        self.target = Target.new_target(group, _id)
-
         self.dt = 1.0
         self.initials = {
             "config": None,
             "status": None,
         }
         self.user_data = {
-            "target": self.target,
-            "kvs_client": None,
-            "mqtt_client": None,
-            "maps_client": None
+            "clients": {},
+            "target_roles": {
+                "vehicle": Target.new_target(group, _id)
+            }
         }
         self.subscribers = {}
 
     def __set_vehicle_subscriber(self):
-        topic = self.Subscriber.get_vehicle_schedules_topic(self.target)
+        topic = self.Subscriber.get_vehicle_schedules_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
             "callback": self.Subscriber.on_vehicle_schedules_message,
@@ -45,7 +44,7 @@ class EventLoop(object):
             "user_data": self.user_data
         }
 
-        topic = self.Subscriber.get_transportation_status_topic(self.target)
+        topic = self.Subscriber.get_transportation_status_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
             "callback": self.Subscriber.on_transportation_status_message,
@@ -57,13 +56,13 @@ class EventLoop(object):
         self.dt = 1.0/hz
 
     def set_kvs_client(self, kvs_client):
-        self.user_data["kvs_client"] = kvs_client
+        self.user_data["clients"]["kvs"] = kvs_client
 
     def set_mqtt_client(self, mqtt_client):
-        self.user_data["mqtt_client"] = mqtt_client
+        self.user_data["clients"]["mqtt"] = mqtt_client
 
     def set_maps_client(self, maps_client):
-        self.user_data["maps_client"] = maps_client
+        self.user_data["clients"]["maps"] = maps_client
 
     def set_initial_config(
             self, activation):
@@ -86,13 +85,13 @@ class EventLoop(object):
 
     def subscribe(self):
         for subscriber in self.subscribers.values():
-            print("subscribe: {}".format(subscriber["topic"]))
-            self.user_data["mqtt_client"].subscribe(**subscriber)
+            logger.info("subscribe: {}".format(subscriber["topic"]))
+            self.user_data["clients"]["mqtt"].subscribe(**subscriber)
 
     def __connect_and_subscribe(self):
-        self.user_data["kvs_client"].connect()
+        self.user_data["clients"]["kvs"].connect()
         self.subscribe()
-        self.user_data["mqtt_client"].connect()
+        self.user_data["clients"]["mqtt"].connect()
 
     def start(self):
         self.__set_vehicle_subscriber()
@@ -100,24 +99,26 @@ class EventLoop(object):
         self.__connect_and_subscribe()
 
         if self.initials["config"] is not None:
-            self.Helper.set_vehicle_config(self.user_data["kvs_client"], self.target, self.initials["config"])
+            self.Helper.set_vehicle_config(
+                self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
         if self.initials["status"] is not None:
-            self.Helper.set_vehicle_status(self.user_data["kvs_client"], self.target, self.initials["status"])
+            self.Helper.set_vehicle_status(
+                self.user_data["clients"], self.user_data["target_roles"], self.initials["status"])
 
         try:
             while True:
                 _ = self.StateMachine.update_vehicle_state(
-                    target_vehicle=self.target,
-                    kvs_client=self.user_data["kvs_client"],
-                    mqtt_client=self.user_data["mqtt_client"]
+                    clients=self.user_data["clients"],
+                    target_roles=self.user_data["target_roles"]
                 )
 
-                vehicle_status_key, vehicle_status = \
-                    self.Helper.get_vehicle_status_key_and_value(self.user_data["kvs_client"], self.target)
-                vehicle_config_key, vehicle_config = \
-                    self.Helper.get_vehicle_config_key_and_value(self.user_data["kvs_client"], self.target)
+                vehicle_status_key, vehicle_status = self.Helper.get_vehicle_status_key_and_value(
+                    self.user_data["clients"], self.user_data["target_roles"])
+                vehicle_config_key, vehicle_config = self.Helper.get_vehicle_config_key_and_value(
+                    self.user_data["clients"], self.user_data["target_roles"])
+                self.user_data["target_roles"]["dispatcher"] = vehicle_config.target_dispatcher
                 self.Publisher.publish_vehicle_status(
-                    self.user_data["mqtt_client"], self.target, vehicle_status, vehicle_config.target_dispatcher)
+                    self.user_data["clients"], self.user_data["target_roles"], vehicle_status)
 
                 if vehicle_status.state == self.CONST.STATE.END_PROCESSING:
                     break
@@ -126,8 +127,8 @@ class EventLoop(object):
 
         except KeyboardInterrupt:
             _, vehicle_status = \
-                self.Helper.get_vehicle_status_key_and_value(self.user_data["kvs_client"], self.target)
+                self.Helper.get_vehicle_status_key_and_value(self.user_data["clients"], self.user_data["target_roles"])
             self.StateMachine.EventHandler.Transition.to_end_processing(vehicle_status)
-            self.Helper.set_vehicle_status(self.user_data["kvs_client"], self.target, vehicle_status)
+            self.Helper.set_vehicle_status(self.user_data["clients"], self.user_data["target_roles"], vehicle_status)
 
-        self.user_data["mqtt_client"].disconnect()
+        self.user_data["clients"]["mqtt"].disconnect()
