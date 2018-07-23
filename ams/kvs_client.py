@@ -3,27 +3,11 @@
 
 from copy import copy, deepcopy
 import json
-from time import time
 import traceback
 
 from ams import AttrDict, logger
+from ams.helpers import Kvs
 from ams.structures import KVS_CLIENT
-
-
-def get_timestamp_string(timestamp=None):
-    if timestamp is None:
-        timestamp = time()
-    return str(int(1000.0*timestamp))
-
-
-def get_key_timestamp(key):
-    return key.split(KVS_CLIENT.KEY_PATTERN_DELIMITER)[-1]
-
-
-def delete_old_keys_and_get_latest_key(keys, delete_function):
-    sorted_keys = sorted(keys, key=lambda x: int(get_key_timestamp(x)))
-    list(map(delete_function, sorted_keys[:-1]))
-    return sorted_keys[-1] if 0 < len(sorted_keys) else None
 
 
 def get_ams_kvs_client_class(base_kvs_client_module):
@@ -67,7 +51,7 @@ def get_ams_kvs_client_class(base_kvs_client_module):
 
                 if len(keys) == 0:
                     return None
-                latest_key = delete_old_keys_and_get_latest_key(keys, self.delete)
+                latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
                 self.__key_relation[key] = latest_key
 
                 try:
@@ -80,18 +64,19 @@ def get_ams_kvs_client_class(base_kvs_client_module):
             def set(self, key, value, get_key=None, timestamp_string=None):
                 if get_key is None:
                     if timestamp_string is None:
-                        timestamp_string = get_timestamp_string()
+                        timestamp_string = Kvs.get_timestamp_string()
                     timestamped_key = KVS_CLIENT.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
                 else:
-                    timestamp_string = get_key_timestamp(self.__key_relation[get_key])
+                    timestamp_string = Kvs.get_key_timestamp(self.__key_relation[get_key])
                     timestamped_key = KVS_CLIENT.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
 
                 keys = list(filter(lambda x: key == x[:len(key)] and x[len(key)+1:].isdigit(), self.__d.keys()))
-                latest_key = delete_old_keys_and_get_latest_key(keys, self.delete)
+                latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
 
                 set_flag = False
                 if None in [latest_key, self.__key_relation.get(get_key, None)] or \
-                        int(get_key_timestamp(latest_key)) < int(get_key_timestamp(self.__key_relation[get_key])):
+                        int(Kvs.get_key_timestamp(latest_key)) < \
+                        int(Kvs.get_key_timestamp(self.__key_relation[get_key])):
                     if timestamped_key not in self.__d.keys():
                         self.__d_lock.acquire()
                         try:
@@ -108,8 +93,8 @@ def get_ams_kvs_client_class(base_kvs_client_module):
                 else:
                     logger.warning("Failed to set for the following reasons: None not in {} and {} >= {}".format(
                         [latest_key, self.__key_relation.get(get_key, None)],
-                        int(get_key_timestamp(latest_key)),
-                        int(get_key_timestamp(self.__key_relation[get_key]))
+                        int(Kvs.get_key_timestamp(latest_key)),
+                        int(Kvs.get_key_timestamp(self.__key_relation[get_key]))
                     ))
                 return set_flag
 
@@ -184,7 +169,7 @@ def get_ams_kvs_client_class(base_kvs_client_module):
 
             def get(self, key):
                 keys = get_keys(self.__client, key)
-                latest_key = delete_old_keys_and_get_latest_key(keys, self.delete)
+                latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
                 self.__key_relation[key] = latest_key
                 binary_value = self.__client.get(key if latest_key is None else latest_key)
                 return binary_value if binary_value is None else json.loads(binary_value.decode("utf-8"))
@@ -192,18 +177,19 @@ def get_ams_kvs_client_class(base_kvs_client_module):
             def set(self, key, value, get_key=None, timestamp_string=None):
                 if get_key is None:
                     if timestamp_string is None:
-                        timestamp_string = get_timestamp_string()
+                        timestamp_string = Kvs.get_timestamp_string()
                     timestamped_key = KVS_CLIENT.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
                 else:
-                    timestamp_string = get_key_timestamp(self.__key_relation[get_key])
+                    timestamp_string = Kvs.get_key_timestamp(self.__key_relation[get_key])
                     timestamped_key = KVS_CLIENT.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
 
                 keys = get_keys(self.__client, key)
-                latest_key = delete_old_keys_and_get_latest_key(keys, self.delete)
+                latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
 
                 set_flag = False
                 if None in [latest_key, self.__key_relation.get(get_key, None)] or \
-                        int(get_key_timestamp(latest_key)) < int(get_key_timestamp(self.__key_relation[get_key])):
+                        int(Kvs.get_key_timestamp(latest_key)) < \
+                        int(Kvs.get_key_timestamp(self.__key_relation[get_key])):
                     set_flag = self.__client.setnx(timestamped_key, json.dumps(value))
                 return set_flag
 
