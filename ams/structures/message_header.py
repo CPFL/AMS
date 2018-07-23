@@ -8,6 +8,7 @@ message_header_template = {
     "id": "message_id",
     "time": 0.0,
     "request_id": "request_message_id",
+    "version": 0.3
 }
 
 message_header_schema = {
@@ -24,6 +25,11 @@ message_header_schema = {
     "request_id": {
         "type": "string",
         "required": False,
+        "nullable": True
+    },
+    "version": {
+        "type": "string",
+        "required": True,
         "nullable": False
     }
 }
