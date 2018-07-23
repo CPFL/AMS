@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time, sleep
+import json
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
+from time import sleep
+
+from ams import MapsClient
+from ams.helpers import Target
+from ams.nodes import AutowareDispatcher, Autoware
 
 from clients.kvs.redis.helper import get_kvs_client as get_redis_client
 from clients.kvs.manager.helper import get_kvs_client as get_manager_client
@@ -12,23 +17,19 @@ from clients.kvs.helper import print_all
 from clients.mqtt.aws_iot.helper import get_mqtt_client as get_aws_iot_client
 from clients.mqtt.paho.helper import get_mqtt_client as get_paho_client
 
-from ams import MapsClient
-from ams.helpers import Topic
-from ams.nodes import Autoware
-
 parser = ArgumentParser()
 
 parser.add_argument("-ID", "--id", type=str, default=str(uuid()), help="node id")
-parser.add_argument("-RID", "--ros_id", type=str, default=str(uuid()), help="ros id")
-parser.add_argument("-DID", "--dispatcher_id", type=str, default=str(uuid()), help="dispatcher id")
-parser.add_argument("-TD", "--topic_domain", type=str, default="ams", help="topic domain")
+parser.add_argument("-VIC", "--vehicle_id_csv", type=str, default=None, help="vehicle ids as csv")
+# parser.add_argument("-UIC", "--user_id_csv", type=str, default=None, help="user ids as csv")
 
-parser.add_argument("-AK", "--path_activation_key", type=str,
-                    default="../../res/activation.key", help="activation.key path")
-parser.add_argument("-W", "--path_waypoint_json", type=str,
-                    default="../../res/waypoint.json", help="waypoint.json path")
-parser.add_argument("-A", "--path_arrow_json", type=str,
-                    default="../../res/arrow.json", help="arrow.json path")
+parser.add_argument(
+    "-W", "--path_waypoint_json", type=str, default="../../res/waypoint.json", help="waypoint.json path")
+parser.add_argument(
+    "-A", "--path_arrow_json", type=str, default="../../res/arrow.json", help="arrow.json path")
+parser.add_argument(
+    "-SW", "--path_stop_waypoint_ids_json", type=str, default="../../res/stop_waypoint_ids.json",
+    help="stop_waypoint_ids.json path")
 
 parser.add_argument("-KH", "--kvs_host", type=str, default="localhost", help="kvs host")
 parser.add_argument("-KP", "--kvs_port", type=int, default=6379, help="kvs port")
@@ -52,9 +53,6 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 
-    with open(args.path_activation_key, "r") as f:
-        activation_key = f.readline()[:-1]
-
     if args.kvs_client_type == "manager":
         kvs_client = get_manager_client()
     elif args.kvs_client_type == "redis":
@@ -69,28 +67,34 @@ if __name__ == '__main__':
     else:
         raise ValueError("Unknown mqtt client type: {}".format(args.mqtt_client_type))
 
-    Topic.domain = args.topic_domain
-
     maps_client = MapsClient()
     maps_client.load_waypoint_json_file(args.path_waypoint_json)
     maps_client.load_arrow_json_file(args.path_arrow_json)
 
-    autoware = Autoware(group=Autoware.CONST.NODE_NAME, _id=args.id)
-    autoware.set_kvs_client(kvs_client)
-    autoware.set_mqtt_client(mqtt_client)
-    autoware.set_maps_client(maps_client)
+    stop_waypoint_ids = []
+    with open(args.path_stop_waypoint_ids_json, "r") as f:
+        stop_waypoint_ids = json.load(f)
 
-    start_time = time()
+    autoware_dispatcher = AutowareDispatcher(group=AutowareDispatcher.CONST.NODE_NAME, _id=args.id)
+    autoware_dispatcher.set_kvs_client(kvs_client)
+    autoware_dispatcher.set_mqtt_client(mqtt_client)
+    autoware_dispatcher.set_maps_client(maps_client)
 
-    autoware.set_initial_config(
-        target_ros_id=args.ros_id,
-        target_dispatcher_id=args.dispatcher_id,
-        activation=activation_key
+    targets = []
+    if args.vehicle_id_csv is not None:
+        for vehicle_id in args.vehicle_id_csv.split(","):
+            targets.append(Target.new_target(
+                group=Autoware.CONST.NODE_NAME,
+                _id=vehicle_id
+            ))
+
+    autoware_dispatcher.set_initial_config(
+        targets,
+        inactive_api_keys=["test_api_key"],
+        stop_waypoint_ids=stop_waypoint_ids
     )
-    autoware.set_initial_status(
-        state=Autoware.CONST.STATE.START_PROCESSING,
-    )
-    autoware.start()
+    autoware_dispatcher.set_initial_state()
+    autoware_dispatcher.start()
     while True:
         sleep(2)
         # print_all(kvs_client)
