@@ -20,16 +20,17 @@ base_clients = {
     }
 }
 
-if importlib.util.find_spec("paho") is not None:
-    if importlib.util.find_spec("paho.mqtt") is not None:
-        if importlib.util.find_spec("paho.mqtt.client") is not None:
-            base_clients["PAHO_MQTT"]["DEFAULT_PROTOCOL"] = \
-                importlib.import_module("paho.mqtt.client").MQTTv311
+try:
+    base_clients["PAHO_MQTT"]["DEFAULT_PROTOCOL"] = \
+        importlib.import_module("paho.mqtt.client").MQTTv311
+except ImportError:
+    ImportError("paho.mqtt.client")
 
-if importlib.util.find_spec("AWSIoTPythonSDK") is not None:
-    if importlib.util.find_spec("AWSIoTPythonSDK.MQTTLib") is not None:
-        base_clients["AWS_IOT_SDK"]["DEFAULT_PROTOCOL"] = \
-            importlib.import_module("AWSIoTPythonSDK.MQTTLib").MQTTv3_1_1
+try:
+    base_clients["AWS_IOT_SDK"]["DEFAULT_PROTOCOL"] = \
+        importlib.import_module("AWSIoTPythonSDK.MQTTLib").MQTTv3_1_1
+except ImportError:
+    ImportError("paho.mqtt.client")
 
 MQTT_CLIENT = get_namedtuple_from_dict("CONST", {
     "BASE_CLIENTS": base_clients
