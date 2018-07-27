@@ -5,9 +5,10 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
-from ams.__init__ import VERSION
-
 here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, "./ams/_version.py")) as f:
+    version = f.read().split("\"")[-2]
 
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
@@ -17,7 +18,7 @@ with open(path.join(here, 'LICENSE'), encoding='utf-8') as f:
 
 setup(
     name='ams',
-    version=VERSION,
+    version=version,
     description='Autoware Management System',
     long_description=long_description,
     url='https://github.com/CPFL/Autoware-Management-System',
