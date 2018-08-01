@@ -20,6 +20,7 @@ transportation_state.update(dispatcher_const["TRANSPORTATION"]["STATE"])
 
 const = {
     "NODE_NAME": "autoware_dispatcher",
+    "ROLE_NAME": "dispatcher",
     "TOPIC": topic,
     "EVENT": event,
     "STATE": state,

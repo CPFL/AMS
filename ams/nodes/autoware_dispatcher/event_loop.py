@@ -39,8 +39,8 @@ class EventLoop(DispatcherEventLoop):
 
         self.__connect_and_set_user_data()
 
-        self.Helper.set_dispatcher_config(self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
-        self.Helper.set_dispatcher_state(self.user_data["clients"], self.user_data["target_roles"], self.initials["state"])
+        self.Helper.set_dispatcher_config(
+            self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
 
     def stop(self):
         self.user_data["clients"]["mqtt"].disconnect()

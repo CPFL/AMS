@@ -97,7 +97,7 @@ class Helper(DispatcherHelper):
             cls, clients, target_roles, transportation_status, vehicle_status, vehicle_config, dispatcher_config):
 
         activation_vehicle_schedules = cls.get_activation_vehicle_schedules(
-            clients, transportation_status.targets, cls.get_current_time())
+            clients, transportation_status.targets, Schedule.get_time())
 
         transportation_vehicle_schedules = cls.get_transportation_vehicle_schedules(
             clients, transportation_status.targets, activation_vehicle_schedules[-1].period.end,

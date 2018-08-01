@@ -25,19 +25,20 @@ class AfterHook(DispatcherStateMachine.Transition.AfterHook):
 
 class Transition(DispatcherStateMachine.Transition):
 
-    VEHICLE = AUTOWARE
     DISPATCHER = CONST
-
     Helper = Helper
     Condition = Condition
     BeforeHook = BeforeHook
     AfterHook = AfterHook
 
+    VEHICLE = AUTOWARE
+
 
 class StateMachine(DispatcherStateMachine):
 
     DISPATCHER = CONST
-    DispatcherStructure = Structure
-
+    Structure = Structure
     Helper = Helper
     Transition = Transition
+
+    VEHICLE = AUTOWARE

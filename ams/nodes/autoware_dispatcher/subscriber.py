@@ -8,7 +8,7 @@ from ams.nodes.autoware_dispatcher import Helper, StateMachine
 
 class Subscriber(DispatcherSubscriber):
 
-    VEHICLE = AUTOWARE
-
     Helper = Helper
     StateMachine = StateMachine
+
+    VEHICLE = AUTOWARE
