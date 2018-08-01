@@ -38,6 +38,7 @@ state = {
 
 const = {
     "NODE_NAME": "vehicle",
+    "ROLE_NAME": "vehicle",
     "TOPIC": topic,
     "EVENT": event,
     "STATE": state,

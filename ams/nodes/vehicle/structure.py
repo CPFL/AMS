@@ -31,7 +31,6 @@ class Config(get_structure_superclass(config_template, config_schema)):
 
 status_template = {
     "state": "default",
-    "schedule_id": "s0",
     "location": Location.get_template(),
     "pose": Pose.get_template(),
     "velocity": 0.0,

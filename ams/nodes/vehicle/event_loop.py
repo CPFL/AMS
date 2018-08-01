@@ -4,7 +4,7 @@
 from time import sleep
 
 from ams import logger
-from ams.helpers import Target
+from ams.helpers import Target, Schedule
 from ams.nodes.dispatcher import Message as DispatcherMessage
 from ams.nodes.vehicle import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
 
@@ -80,7 +80,7 @@ class EventLoop(object):
             location=location,
             pose=pose,
             velocity=velocity,
-            updated_at=self.Helper.get_current_time()
+            updated_at=Schedule.get_time()
         )
 
     def subscribe(self):

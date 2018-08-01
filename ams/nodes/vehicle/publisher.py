@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
-from uuid import uuid4 as uuid
-
 from ams import VERSION
-from ams.helpers import Topic
-from ams.nodes.vehicle import CONST, Message
+from ams.helpers import Topic, Schedule
+from ams.nodes.vehicle import CONST, Message, Helper
 
 
 class Publisher(object):
 
     VEHICLE = CONST
-    VehicleMessage = Message
+    Message = Message
+    Helper = Helper
 
     @classmethod
     def get_vehicle_config_topic(cls, target_roles):
@@ -40,9 +38,9 @@ class Publisher(object):
     @classmethod
     def publish_vehicle_config(cls, clients, target_roles, vehicle_config):
         topic = cls.get_vehicle_config_topic(target_roles)
-        vehicle_config_message = cls.VehicleMessage.Config.new_data(
-            id=str(uuid()),
-            time=time(),
+        vehicle_config_message = cls.Message.Config.new_data(
+            id=Schedule.get_id(),
+            time=Schedule.get_time(),
             version=VERSION,
             config=vehicle_config
         )
@@ -51,9 +49,9 @@ class Publisher(object):
     @classmethod
     def publish_vehicle_status(cls, clients, target_roles, vehicle_status):
         topic = cls.get_vehicle_status_topic(target_roles)
-        vehicle_status_message = cls.VehicleMessage.Status.new_data(
-            id=str(uuid()),
-            time=time(),
+        vehicle_status_message = cls.Message.Status.new_data(
+            id=Schedule.get_id(),
+            time=Schedule.get_time(),
             version=VERSION,
             status=vehicle_status
         )

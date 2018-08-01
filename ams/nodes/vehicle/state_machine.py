@@ -48,7 +48,7 @@ class AfterHook(object):
 
     @classmethod
     def update_next_vehicle_schedule_end_time_with_current_time_and_duration(cls, vehicle_status, vehicle_schedules):
-        current_time = Helper.get_current_time()
+        current_time = Schedule.get_time()
         next_vehicle_schedule_index = cls.Helper.get_next_vehicle_schedule_index(vehicle_status, vehicle_schedules)
         duration = vehicle_schedules[next_vehicle_schedule_index].period.end - \
             vehicle_schedules[next_vehicle_schedule_index].period.start
@@ -79,7 +79,8 @@ class Transition(object):
             cls.Condition.vehicle_located(vehicle_status),
             cls.Condition.dispatcher_assigned(vehicle_config),
         ]):
-            cls.Helper.update_and_set_vehicle_status(clients, target_roles, vehicle_status, cls.VEHICLE.STATE.INITIALIZED)
+            cls.Helper.update_and_set_vehicle_status(
+                clients, target_roles, vehicle_status, cls.VEHICLE.STATE.INITIALIZED)
             cls.AfterHook.publish_vehicle_config_to_target_dispatcher(clients, target_roles, vehicle_config)
             return True
 

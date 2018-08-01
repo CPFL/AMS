@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
-from uuid import uuid4 as uuid
-
 from ams.structures import KVS_CLIENT
 from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import CONST, Structure
@@ -12,7 +9,7 @@ from ams.nodes.vehicle import CONST, Structure
 class Helper(object):
 
     VEHICLE = CONST
-    VehicleStructure = Structure
+    Structure = Structure
 
     @classmethod
     def get_vehicle_config_key(cls, target_roles):
@@ -49,7 +46,7 @@ class Helper(object):
         key = cls.get_vehicle_config_key(target_roles)
         value = clients["kvs"].get(key)
         if value.__class__.__name__ == "dict":
-            value = cls.VehicleStructure.Config.new_data(**value)
+            value = cls.Structure.Config.new_data(**value)
         return key, value
 
     @classmethod
@@ -57,7 +54,7 @@ class Helper(object):
         key = cls.get_vehicle_status_key(target_roles)
         value = clients["kvs"].get(key)
         if value.__class__.__name__ == "dict":
-            value = cls.VehicleStructure.Status.new_data(**value)
+            value = cls.Structure.Status.new_data(**value)
         return key, value
 
     @classmethod
@@ -67,14 +64,6 @@ class Helper(object):
         if value.__class__.__name__ == "list":
             value = Schedule.new_schedules(value)
         return key, value
-
-    @classmethod
-    def get_uuid(cls):
-        return str(uuid())
-
-    @classmethod
-    def get_current_time(cls):
-        return time()
 
     @classmethod
     def set_vehicle_config(cls, clients, target_roles, vehicle_config, get_key=None):
@@ -103,11 +92,11 @@ class Helper(object):
     @classmethod
     def update_and_set_vehicle_status(cls, clients, target_roles, vehicle_status, new_state, vehicle_schedules=None):
         vehicle_status.state = new_state
-        vehicle_status.updated_at = cls.get_current_time()
+        vehicle_status.updated_at = Schedule.get_time()
         if vehicle_schedules is not None:
             vehicle_status.schedule_id = cls.get_next_vehicle_schedule_id(vehicle_status, vehicle_schedules)
         return cls.set_vehicle_status(clients, target_roles, vehicle_status)
 
     @classmethod
     def vehicle_activation_timeout(cls, vehicle_status):
-        return cls.VEHICLE.ACTIVATION_REQUEST_TIMEOUT < cls.get_current_time() - vehicle_status.updated_at
+        return cls.VEHICLE.ACTIVATION_REQUEST_TIMEOUT < Schedule.get_time() - vehicle_status.updated_at
