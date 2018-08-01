@@ -37,6 +37,7 @@ transportation_state = {
 
 const = {
     "NODE_NAME": "dispatcher",
+    "ROLE_NAME": "dispatcher",
     "TOPIC": topic,
     "EVENT": event,
     "STATE": state,

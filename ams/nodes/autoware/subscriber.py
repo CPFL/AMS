@@ -20,24 +20,24 @@ class Subscriber(VehicleSubscriber):
     @classmethod
     def get_current_pose_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles["ros"],
-            to_target=target_roles["vehicle"],
+            from_target=target_roles[cls.VEHICLE.ROS.ROLE_NAME],
+            to_target=target_roles[cls.VEHICLE.ROLE_NAME],
             categories=cls.VEHICLE.TOPIC.CATEGORIES.CURRENT_POSE,
         )
 
     @classmethod
     def get_closest_waypoint_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles["ros"],
-            to_target=target_roles["vehicle"],
+            from_target=target_roles[cls.VEHICLE.ROS.ROLE_NAME],
+            to_target=target_roles[cls.VEHICLE.ROLE_NAME],
             categories=cls.VEHICLE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT,
         )
 
     @classmethod
     def get_decision_maker_state_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles["ros"],
-            to_target=target_roles["vehicle"],
+            from_target=target_roles[cls.VEHICLE.ROS.ROLE_NAME],
+            to_target=target_roles[cls.VEHICLE.ROLE_NAME],
             categories=cls.VEHICLE.TOPIC.CATEGORIES.DECISION_MAKER_STATE,
         )
 

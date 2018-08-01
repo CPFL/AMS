@@ -3,27 +3,26 @@
 
 from ams.helpers import Topic
 from ams.nodes.vehicle import Publisher as VehiclePublisher
-from ams.nodes.autoware import CONST, Message
+from ams.nodes.autoware import CONST
 
 
 class Publisher(VehiclePublisher):
 
     VEHICLE = CONST
-    VehicleMessage = Message
 
     @classmethod
     def get_lane_waypoint_array_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles["vehicle"],
-            to_target=target_roles["ros"],
+            from_target=target_roles[cls.VEHICLE.ROLE_NAME],
+            to_target=target_roles[cls.VEHICLE.ROS.ROLE_NAME],
             categories=cls.VEHICLE.TOPIC.CATEGORIES.BASED_LANE_WAYPOINTS_ARRAY,
         )
 
     @classmethod
     def get_state_cmd_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles["vehicle"],
-            to_target=target_roles["ros"],
+            from_target=target_roles[cls.VEHICLE.ROLE_NAME],
+            to_target=target_roles[cls.VEHICLE.ROS.ROLE_NAME],
             categories=cls.VEHICLE.TOPIC.CATEGORIES.STATE_CMD,
         )
 

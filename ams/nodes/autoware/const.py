@@ -38,11 +38,13 @@ state.update(vehicle_const["STATE"])
 
 const = {
     "NODE_NAME": "autoware",
+    "ROLE_NAME": "vehicle",
     "TOPIC": topic,
     "EVENT": event,
     "STATE": state,
     "ROS": {
         "NODE_NAME": "ros",
+        "ROLE_NAME": "ros",
         "DECISION_MAKER_STATE": {
             "WAIT_MISSION_ORDER": "WaitMissionOrder\n",
             "WAIT_ORDER": "WaitOrder\n",

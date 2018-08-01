@@ -15,22 +15,31 @@ from ams.nodes.autoware import CONST, Structure
 class Helper(VehicleHelper):
 
     VEHICLE = CONST
-    VehicleStructure = Structure
+    Structure = Structure
 
     @classmethod
     def get_current_pose_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["vehicle"]), Target.get_code(target_roles["ros"]), "current_pose"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROS.ROLE_NAME])
+            ] + cls.VEHICLE.TOPIC.CATEGORIES.CURRENT_POSE)
 
     @classmethod
     def get_closest_waypoint_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["vehicle"]), Target.get_code(target_roles["ros"]), "closest_waypoint"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROS.ROLE_NAME])
+            ] + cls.VEHICLE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT)
 
     @classmethod
     def get_traffic_signal_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["vehicle"]), Target.get_code(target_roles["traffic_signal"]), "status"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
+                Target.get_code(target_roles["traffic_signal"]), "status"
+            ])
 
     @classmethod
     def get_all_traffic_signal_status_keys(cls, clients, target_roles):
@@ -58,7 +67,7 @@ class Helper(VehicleHelper):
         key = cls.get_current_pose_key(target_roles)
         value = clients["kvs"].get(key)
         if value.__class__.__name__ == "dict":
-            value = cls.VehicleStructure.ROSMessage.CurrentPose.new_data(**value)
+            value = cls.Structure.ROSMessage.CurrentPose.new_data(**value)
         return value
 
     @classmethod
@@ -66,7 +75,7 @@ class Helper(VehicleHelper):
         key = cls.get_closest_waypoint_key(target_roles)
         value = clients["kvs"].get(key)
         if value.__class__.__name__ == "dict":
-            value = cls.VehicleStructure.ROSMessage.ClosestWaypoint.new_data(**value)
+            value = cls.Structure.ROSMessage.ClosestWaypoint.new_data(**value)
         return value
 
     @classmethod
@@ -110,18 +119,18 @@ class Helper(VehicleHelper):
 
         logger.info(locations)
 
-        header = cls.VehicleStructure.ROSMessage.Header.get_template()
+        header = cls.Structure.ROSMessage.Header.get_template()
         nsec, sec = modf(time())
         header.stamp.secs = int(sec)
         header.stamp.nsecs = int(nsec*(10**9))
 
-        lane_array = cls.VehicleStructure.ROSMessage.LaneArray.get_template()
+        lane_array = cls.Structure.ROSMessage.LaneArray.get_template()
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
 
         for location in locations:
             pose = clients["maps"].waypoint.get_pose(location.waypoint_id)
-            waypoint = cls.VehicleStructure.ROSMessage.LaneArray.Lane.Waypoint.get_template()
+            waypoint = cls.Structure.ROSMessage.LaneArray.Lane.Waypoint.get_template()
             waypoint.pose.header = header
             waypoint.pose.pose.position.x = pose.position.x
             waypoint.pose.pose.position.y = pose.position.y
@@ -145,7 +154,7 @@ class Helper(VehicleHelper):
 
     @classmethod
     def get_state_cmd_from_data(cls, data):
-        return cls.VehicleStructure.ROSMessage.StateCMD.new_data(data=data)
+        return cls.Structure.ROSMessage.StateCMD.new_data(data=data)
 
     @classmethod
     def get_vehicle_route_code(cls, vehicle_status, vehicle_schedules):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.helpers import Target
+from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import EventLoop as VehicleEventLoop
 from ams.nodes.traffic_signal import Message as TrafficSignalMessage
 from ams.nodes.autoware_dispatcher import Message as DispatcherMessage
@@ -69,13 +69,13 @@ class EventLoop(VehicleEventLoop):
             upper_distance_from_stopline=upper_distance_from_stopline,
             target_ros=Target.new_target(
                 self.CONST.ROS.NODE_NAME,
-                target_ros_id if target_ros_id is not None else self.Helper.get_uuid()),
+                target_ros_id if target_ros_id is not None else Schedule.get_id()),
             target_dispatcher=Target.new_target(
                 self.DISPATCHER.NODE_NAME,
-                target_dispatcher_id if target_dispatcher_id is not None else self.Helper.get_uuid()),
+                target_dispatcher_id if target_dispatcher_id is not None else Schedule.get_id()),
         )
-        self.user_data["target_roles"]["ros"] = self.initials["config"].target_ros
-        self.user_data["target_roles"]["dispatcher"] = self.initials["config"].target_dispatcher
+        self.user_data["target_roles"][self.CONST.ROS.ROLE_NAME] = self.initials["config"].target_ros
+        self.user_data["target_roles"][self.DISPATCHER.ROLE_NAME] = self.initials["config"].target_dispatcher
 
     def set_initial_status(
             self, state=CONST.STATE.START_PROCESSING, schedule_id=None, location=None, pose=None, velocity=0.0,
@@ -90,7 +90,7 @@ class EventLoop(VehicleEventLoop):
             current_pose=current_pose,
             closest_waypoint=closest_waypoint,
             decision_maker_state=decision_maker_state,
-            updated_at=self.Helper.get_current_time()
+            updated_at=Schedule.get_time()
         )
 
     def start(self):

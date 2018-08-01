@@ -169,6 +169,10 @@ class StateMachine(VehicleStateMachine):
         vehicle_status_key, vehicle_status = cls.Helper.get_vehicle_status_key_and_value(clients, target_roles)
         vehicle_schedules_key, vehicle_schedules = cls.Helper.get_vehicle_schedules_key_and_value(clients, target_roles)
 
+        update_flag = False
+        if vehicle_status is None:
+            return update_flag
+
         state = vehicle_status.state
 
         if state in [
