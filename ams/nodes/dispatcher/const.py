@@ -6,6 +6,7 @@ from ams import get_namedtuple_from_dict
 
 topic = {
     "CATEGORIES": {
+        "CONFIG": ["config"],
         "STATUS": ["status"],
         "SCHEDULES": ["schedules"],
         "TRANSPORTATION_STATUS": ["transportation", "status"]

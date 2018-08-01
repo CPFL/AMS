@@ -3,6 +3,7 @@
 
 from ams import logger
 from ams.helpers import Target
+from ams.nodes.vehicle import CONST as VEHICLE
 from ams.nodes.vehicle import Message as VehicleMessage
 from ams.nodes.dispatcher import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
 
@@ -17,6 +18,7 @@ class EventLoop(object):
     StateMachine = StateMachine
     Subscriber = Subscriber
 
+    VEHICLE = VEHICLE
     VehicleMessage = VehicleMessage
 
     def __init__(self, _id, group=CONST.NODE_NAME):
@@ -36,7 +38,7 @@ class EventLoop(object):
 
     def __set_dispatcher_subscriber(self):
         for target in self.initials["config"].targets:
-            topic = self.Subscriber.get_vehicle_status_topic({"vehicle": target})
+            topic = self.Subscriber.get_vehicle_status_topic({self.VEHICLE.ROLE_NAME: target})
             self.subscribers[topic] = {
                 "topic": topic,
                 "callback": self.Subscriber.on_vehicle_status_message,
@@ -44,7 +46,7 @@ class EventLoop(object):
                 "user_data": self.user_data
             }
 
-            topic = self.Subscriber.get_vehicle_config_topic({"vehicle": target})
+            topic = self.Subscriber.get_vehicle_config_topic({self.VEHICLE.ROLE_NAME: target})
             self.subscribers[topic] = {
                 "topic": topic,
                 "callback": self.Subscriber.on_vehicle_config_message,
@@ -68,11 +70,6 @@ class EventLoop(object):
             inactive_api_keys=inactive_api_keys if inactive_api_keys is not None else []
         )
 
-    def set_initial_state(self, state=CONST.STATE.START_PROCESSING):
-        self.initials["state"] = self.Structure.Status.new_data(
-            state=state
-        )
-
     def subscribe(self):
         for subscriber in self.subscribers.values():
             logger.info("subscribe: {}".format(subscriber["topic"]))
@@ -90,8 +87,6 @@ class EventLoop(object):
 
         self.Helper.set_dispatcher_config(
             self.user_data["clients"], self.user_data["target_roles"], self.initials["config"])
-        self.Helper.set_dispatcher_state(
-            self.user_data["clients"], self.user_data["target_roles"], self.initials["state"])
 
     def stop(self):
         self.user_data["clients"]["mqtt"].disconnect()

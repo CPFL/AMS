@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams import logger
+from ams.helpers import Schedule
 from ams.nodes.vehicle import CONST as VEHICLE
 from ams.nodes.dispatcher import CONST, Structure, Helper, Publisher
 
@@ -60,8 +60,10 @@ class AfterHook(object):
 
     @classmethod
     def set_vehicle_api_key_to_inactive_list(cls, clients, target_roles, vehicle_config, dispatcher_config):
-        dispatcher_config.inactive_api_keys.append(vehicle_config.activation)
-        dispatcher_config.active_api_keys.remove(vehicle_config.activation)
+        if vehicle_config.activation not in dispatcher_config.active_api_keys:
+            dispatcher_config.inactive_api_keys.append(vehicle_config.activation)
+        if vehicle_config.activation in dispatcher_config.inactive_api_keys:
+            dispatcher_config.active_api_keys.remove(vehicle_config.activation)
         return cls.Helper.set_dispatcher_config(clients, target_roles, dispatcher_config)
 
     @classmethod
@@ -142,10 +144,11 @@ class Transition(object):
 class StateMachine(object):
 
     DISPATCHER = CONST
-    DispatcherStructure = Structure
-
+    Structure = Structure
     Helper = Helper
     Transition = Transition
+
+    VEHICLE = VEHICLE
 
     @classmethod
     def update_transportation_state(cls, clients, target_roles):
@@ -153,10 +156,10 @@ class StateMachine(object):
         transportation_status_key, transportation_status = cls.Helper.get_transportation_status_key_and_value(
             clients, target_roles)
         if transportation_status is None:
-            transportation_status = cls.DispatcherStructure.TransportationStatus.new_data(
-                targets=[target_roles["vehicle"]],
+            transportation_status = cls.Structure.TransportationStatus.new_data(
+                targets=[target_roles[cls.VEHICLE.ROLE_NAME]],
                 state=cls.DISPATCHER.TRANSPORTATION.STATE.START_PROCESSING,
-                updated_at=cls.Helper.get_current_time()
+                updated_at=Schedule.get_time()
             )
 
         vehicle_status_key, vehicle_status = \

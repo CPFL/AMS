@@ -79,7 +79,6 @@ transportation_statuses_schema = {
     },
     "nullable": True,
     "minlength": 0
-
 }
 
 

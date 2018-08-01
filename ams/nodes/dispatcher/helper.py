@@ -1,62 +1,73 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
-from uuid import uuid4 as uuid
-
 from ams.structures import KVS_CLIENT, Schedules
 from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import CONST as VEHICLE
 from ams.nodes.vehicle import Structure as VehicleStructure
-from ams.nodes.dispatcher import Structure
+from ams.nodes.dispatcher import CONST, Structure
 
 
 class Helper(object):
 
+    DISPATCHER = CONST
+    Structure = Structure
+
     VEHICLE = VEHICLE
     VehicleStructure = VehicleStructure
-    Structure = Structure
 
     @classmethod
     def get_dispatcher_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["dispatcher"]), "config"])
-
-    @classmethod
-    def get_dispatcher_state_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]),
-            "state"
-        ])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME])
+            ] + cls.DISPATCHER.TOPIC.CATEGORIES.CONFIG)
 
     @classmethod
     def get_transportation_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["vehicle"]), "transportation"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
+            ] + cls.DISPATCHER.TOPIC.CATEGORIES.TRANSPORTATION_STATUS)
 
     @classmethod
     def get_user_status_key(cls, target_roles):
         return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["user"]), "status"])
+            Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+            Target.get_code(target_roles["user"]), "status"
+        ])
 
     @classmethod
     def get_user_schedules_key(cls, target_roles):
         return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["user"]), "schedules"])
+            Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+            Target.get_code(target_roles["user"]), "schedules"
+        ])
 
     @classmethod
     def get_vehicle_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["vehicle"]), "config"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
+            ] + cls.VEHICLE.TOPIC.CATEGORIES.CONFIG)
 
     @classmethod
     def get_vehicle_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["vehicle"]), "status"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
+            ] + cls.VEHICLE.TOPIC.CATEGORIES.STATUS)
 
     @classmethod
     def get_vehicle_schedules_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["dispatcher"]), Target.get_code(target_roles["vehicle"]), "schedules"])
+        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
+                Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
+            ] + cls.DISPATCHER.TOPIC.CATEGORIES.SCHEDULES)
 
     @classmethod
     def get_dispatcher_config_key_and_value(cls, clients, target_roles):
@@ -64,14 +75,6 @@ class Helper(object):
         value = clients["kvs"].get(key)
         if value.__class__.__name__ == "dict":
             value = cls.Structure.Config.new_data(**value)
-        return key, value
-
-    @classmethod
-    def get_dispatcher_state_key_and_value(cls, clients, target_roles):
-        key = cls.get_dispatcher_state_key(target_roles)
-        value = clients["kvs"].get(key)
-        if value.__class__.__name__ == "dict":
-            value = cls.Structure.Status.new_data(**value)
         return key, value
 
     @classmethod
@@ -178,7 +181,7 @@ class Helper(object):
             vehicle_config, dispatcher_config):
 
         activation_vehicle_schedules = cls.get_activation_vehicle_schedules(
-            clients, transportation_status.targets, cls.get_current_time())
+            clients, transportation_status.targets, Schedule.get_time())
 
         transportation_vehicle_schedules = cls.get_transportation_vehicle_schedules(
             clients, transportation_status.targets, activation_vehicle_schedules[-1].period.end)
@@ -189,28 +192,12 @@ class Helper(object):
         return activation_vehicle_schedules + transportation_vehicle_schedules + deactivation_vehicle_schedules
 
     @classmethod
-    def get_uuid(cls):
-        return str(uuid())
-
-    @classmethod
-    def get_current_time(cls):
-        return time()
-
-    @classmethod
     def set_dispatcher_config(cls, clients, target_roles, dispatcher_config, get_key=None, timestamp_string=None):
         return clients["kvs"].set(
             cls.get_dispatcher_config_key(target_roles),
             dispatcher_config,
             get_key=get_key,
             timestamp_string=timestamp_string
-        )
-
-    @classmethod
-    def set_dispatcher_state(cls, clients, target_roles, dispatcher_status, get_key=None):
-        return clients["kvs"].set(
-            cls.get_dispatcher_state_key(target_roles),
-            dispatcher_status.state,
-            get_key=get_key
         )
 
     @classmethod
@@ -266,7 +253,7 @@ class Helper(object):
     def update_and_set_transportation_status(
             cls, clients, target_roles, transportation_status, new_state, get_key):
         transportation_status.state = new_state
-        transportation_status.updated_at = cls.get_current_time()
+        transportation_status.updated_at = Schedule.get_time()
         return cls.set_transportation_status(clients, target_roles, transportation_status, get_key)
 
     @classmethod
