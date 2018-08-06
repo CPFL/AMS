@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import traceback
+
 from logging import config, getLogger
 from pprint import PrettyPrinter
 
@@ -9,7 +11,8 @@ default_config = {
     "disable_existing_loggers": False,
     "formatters": {
         "simple": {
-            "format": "%(name)s %(asctime)s %(levelname)s pid %(process)d line %(lineno)d in %(module)s/%(funcName)s: %(message)s"
+            "format": "%(name)s %(asctime)s %(levelname)s pid %(process)d line %(lineno)d " +
+                      "in %(module)s/%(funcName)s: %(message)s"
         },
     },
     "handlers": {
@@ -41,7 +44,14 @@ default_config = {
     }
 }
 
-config.dictConfig(default_config)
+try:
+    config.dictConfig(default_config)
+except OSError:
+    pass
+except ValueError:
+    pass
+except:
+    traceback.print_exc()
 
 logger = getLogger("ams")
 logger.pp = PrettyPrinter(indent=2).pprint
