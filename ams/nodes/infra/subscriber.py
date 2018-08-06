@@ -18,7 +18,7 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=target_roles["controller"] if "controller" in target_roles else None,
             to_target=target_roles[cls.INFRA.ROLE_NAME],
-            categories=cls.INFRA.CATEGORIES.CONFIG,
+            categories=cls.INFRA.TOPIC.CATEGORIES.CONFIG,
             use_wild_card=True
         )
 
@@ -27,7 +27,7 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=None,
             to_target=target_roles[cls.INFRA.ROLE_NAME],
-            categories=cls.INFRA.CATEGORIES.SCHEDULES,
+            categories=cls.INFRA.TOPIC.CATEGORIES.SCHEDULES,
             use_wild_card=True
         )
 
