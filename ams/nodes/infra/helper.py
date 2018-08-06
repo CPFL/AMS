@@ -76,23 +76,23 @@ class Helper(object):
         return clients["kvs"].set(key, config)
 
     @classmethod
-    def set_schedules(cls, clients, target_roles, schedules):
+    def set_schedules(cls, clients, target_roles, schedules, timestamp_string=None):
         key = cls.get_schedules_key(target_roles)
-        return clients["kvs"].set(key, schedules)
+        return clients["kvs"].set(key, schedules, timestamp_string=timestamp_string)
 
     @classmethod
-    def set_status(cls, clients, target_roles, status):
+    def set_status(cls, clients, target_roles, status, schedules_key=None):
         key = cls.get_status_key(target_roles)
-        return clients["kvs"].set(key, status)
+        return clients["kvs"].set(key, status, schedules_key)
 
     @classmethod
     def activation_timeout(cls, status):
         return cls.INFRA.ACTIVATION_REQUEST_TIMEOUT < cls.get_time() - status.updated_at
 
     @classmethod
-    def update_and_set_status(cls, clients, target_roles, status, new_state, schedules=None):
+    def update_and_set_status(cls, clients, target_roles, status, new_state, schedules=None, schedules_key=None):
         status.state = new_state
         status.updated_at = cls.get_time()
         if schedules is not None:
             status.schedule_id = cls.get_next_schedule_id(status, schedules)
-        return cls.set_status(clients, target_roles, status)
+        return cls.set_status(clients, target_roles, status, schedules_key)

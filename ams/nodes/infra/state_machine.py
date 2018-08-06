@@ -85,28 +85,31 @@ class Transition(object):
         return False
 
     @classmethod
-    def initialized_to_active(cls, clients, target_roles, status, schedules):
+    def initialized_to_active(cls, clients, target_roles, status, schedules, schedules_key):
         if cls.Condition.schedules_existance(schedules):
             if cls.Condition.schedules_include_any_expected_events(schedules, cls.INFRA.MISSION_EVENTS):
-                return cls.Helper.update_and_set_status(clients, target_roles, status, cls.INFRA.STATE.ACTIVE)
+                return cls.Helper.update_and_set_status(
+                    clients, target_roles, status, cls.INFRA.STATE.ACTIVE, schedules_key)
         return False
 
     @classmethod
-    def active_to_mission_started(cls, clients, target_roles, status, schedules):
-        cls.Helper.update_and_set_status(clients, target_roles, status, cls.INFRA.STATE.MISSION_STARTED, schedules)
+    def active_to_mission_started(cls, clients, target_roles, status, schedules, schedules_key):
+        cls.Helper.update_and_set_status(
+            clients, target_roles, status, cls.INFRA.STATE.MISSION_STARTED, schedules, schedules_key)
         cls.AfterHook.update_next_schedule_end_time_with_current_time_and_duration(status, schedules)
         return True
 
     @classmethod
-    def mission_started_to_mission_ended(cls, clients, target_roles, status, schedules):
+    def mission_started_to_mission_ended(cls, clients, target_roles, status, schedules, schedules_key):
         if cls.Condition.activation_timeout(status):
             return cls.Helper.update_and_set_status(
-                clients, target_roles, status, cls.INFRA.STATE.MISSION_ENDED, schedules)
+                clients, target_roles, status, cls.INFRA.STATE.MISSION_ENDED, schedules, schedules_key)
         return False
 
     @classmethod
-    def mission_ended_to_inactive(cls, clients, target_roles, status, schedules):
-        return cls.Helper.update_and_set_status(clients, target_roles, status, cls.INFRA.STATE.INACTIVE, schedules)
+    def mission_ended_to_inactive(cls, clients, target_roles, status, schedules, schedules_key):
+        return cls.Helper.update_and_set_status(
+            clients, target_roles, status, cls.INFRA.STATE.INACTIVE, schedules, schedules_key)
 
     @classmethod
     def to_end_processing(cls, clients, target_roles, status):
@@ -119,25 +122,25 @@ class EventHandler(object):
     Transition = Transition
 
     @classmethod
-    def start_mission(cls, clients, target_roles, status, schedules):
+    def start_mission(cls, clients, target_roles, status, schedules, schedules_key):
         state = status.state
         if state == cls.INFRA.STATE.ACTIVE:
             return cls.Transition.active_to_mission_started(
-                clients, target_roles, status, schedules)
+                clients, target_roles, status, schedules, schedules_key)
         else:
             raise ValueError("Transition from {} is undefined.".format(state))
 
     @classmethod
-    def end_mission(cls, clients, target_roles, status, schedules):
+    def end_mission(cls, clients, target_roles, status, schedules, schedules_key):
         return cls.Transition.mission_started_to_mission_ended(
-            clients, target_roles, status, schedules)
+            clients, target_roles, status, schedules, schedules_key)
 
     @classmethod
-    def deactivate(cls, clients, target_roles, status, schedules):
+    def deactivate(cls, clients, target_roles, status, schedules, schedules_key):
         state = status.state
         if state == cls.INFRA.STATE.MISSION_ENDED:
             return cls.Transition.mission_ended_to_inactive(
-                clients, target_roles, status, schedules)
+                clients, target_roles, status, schedules, schedules_key)
         else:
             raise ValueError("Transition from {} is undefined.".format(state))
 
@@ -169,23 +172,23 @@ class StateMachine(object):
                 cls.INFRA.STATE.INACTIVE, cls.INFRA.STATE.END_PROCESSING
         ]:
             update_flag = cls.update_state_without_schedules(
-                clients, target_roles, status, config, schedules)
+                clients, target_roles, status, config, schedules, schedules_key)
         else:
             update_flag = cls.update_state_with_schedules(
-                clients, target_roles, status, schedules)
+                clients, target_roles, status, schedules, schedules_key)
 
         return update_flag
 
     @classmethod
     def update_state_without_schedules(
-            cls, clients, target_roles, status, config, schedules):
+            cls, clients, target_roles, status, config, schedules, schedules_key):
         state = status.state
         if state == cls.INFRA.STATE.START_PROCESSING:
             update_flag = cls.EventHandler.Transition.start_processing_to_initialized(
                 clients, target_roles, status, config)
         elif state == cls.INFRA.STATE.INITIALIZED:
             update_flag = cls.EventHandler.Transition.initialized_to_active(
-                clients, target_roles, status, schedules)
+                clients, target_roles, status, schedules, schedules_key)
         elif state == cls.INFRA.STATE.INACTIVE:
             update_flag = cls.EventHandler.Transition.to_end_processing(clients, target_roles, status)
         elif state == cls.INFRA.STATE.END_PROCESSING:
@@ -197,7 +200,7 @@ class StateMachine(object):
 
     @classmethod
     def update_state_with_schedules(
-            cls, clients, target_roles, status, schedules):
+            cls, clients, target_roles, status, schedules, schedules_key):
         update_flag = False
 
         if status.schedule_id is None:
@@ -209,13 +212,13 @@ class StateMachine(object):
             event = next_schedule.event
             if event == cls.INFRA.EVENT.START_MISSION:
                 update_flag = cls.EventHandler.start_mission(
-                    clients, target_roles, status, schedules)
+                    clients, target_roles, status, schedules, schedules_key)
             elif event == cls.INFRA.EVENT.END_MISSION:
                 update_flag = cls.EventHandler.end_mission(
-                    clients, target_roles, status, schedules)
+                    clients, target_roles, status, schedules, schedules_key)
             elif event == cls.INFRA.EVENT.DEACTIVATE:
                 update_flag = cls.EventHandler.deactivate(
-                    clients, target_roles, status, schedules)
+                    clients, target_roles, status, schedules, schedules_key)
             else:
                 raise ValueError("Unknown Event {}.".format(event))
 
