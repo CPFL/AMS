@@ -7,7 +7,7 @@ from sys import float_info
 from ams import logger
 from ams.helpers import Location, Position, Vector
 from ams.maps import Arrow
-from ams.structures import ROUTE
+from ams.structures import ROUTE, RouteDetail
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -68,8 +68,7 @@ class Route(object):
         return self.__routes.keys()
 
     def get_route(self, route_id):
-        start_waypoint_id, arrow_codes, goal_waypoint_id = \
-            self.split_route_code(self.__routes[route_id]["code"])
+        start_waypoint_id, arrow_codes, goal_waypoint_id = self.split_route_code(self.__routes[route_id]["code"])
         return Route.new_route(
             start_waypoint_id=start_waypoint_id,
             goal_waypoint_id=goal_waypoint_id,
@@ -79,6 +78,37 @@ class Route(object):
         arrow = self.__arrow.get_arrow(arrow_code)
         return self.new_route(
             arrow["waypointIDs"][0], arrow["waypointIDs"][-1], [arrow_code])
+
+    def get_detail(self, route):
+        arrow_codes = route.arrow_codes
+        start_waypoint_id = route.start_waypoint_id
+        goal_waypoint_id = route.goal_waypoint_id
+        details = []
+        for i, arrow_code in enumerate(arrow_codes):
+            waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
+            js = 0
+            if i == 0 and start_waypoint_id in waypoint_ids:
+                js = waypoint_ids.index(start_waypoint_id)
+            je = len(waypoint_ids)
+            if i == len(arrow_codes)-1 and goal_waypoint_id in waypoint_ids:
+                je = waypoint_ids.index(goal_waypoint_id) + 1
+            for j in range(js+1, je):
+                details.append({
+                    "waypoint_id": waypoint_ids[j - 1],
+                    "arrow_code": arrow_code,
+                    "pose": self.__arrow.get_pose(arrow_code, waypoint_ids[j - 1]),
+                    "geohash": self.__waypoint.get_geohash(waypoint_ids[j - 1]),
+                    "speed_limit": self.__waypoint.get_speed_limit(waypoint_ids[j - 1])
+                })
+            if arrow_code == arrow_codes[-1]:
+                details.append({
+                    "waypoint_id": waypoint_ids[je - 1],
+                    "arrow_code": arrow_code,
+                    "pose": self.__arrow.get_pose(arrow_code, waypoint_ids[je - 1]),
+                    "geohash": self.__waypoint.get_geohash(waypoint_ids[je - 1]),
+                    "speed_limit": self.__waypoint.get_speed_limit(waypoint_ids[je - 1])
+                })
+        return RouteDetail.new_data(details)
 
     def get_locations(self, route):
         arrow_codes = route.arrow_codes

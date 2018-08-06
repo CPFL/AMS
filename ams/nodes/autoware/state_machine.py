@@ -29,9 +29,22 @@ class BeforeHook(VehicleStateMachine.EventHandler.Transition.BeforeHook):
     Publisher = Publisher
 
     @classmethod
-    def publish_lane_waypoint_array(cls, clients, target_roles, vehicle_status, vehicle_schedules):
-        lane_waypoint_array = cls.Helper.get_next_schedule_lane_waypoint_array(
-            clients, vehicle_status, vehicle_schedules)
+    def update_and_set_vehicle_pose_to_route_start(cls, clients, target_roles, vehicle_status):
+        return cls.Helper.update_and_set_vehicle_pose_to_route_start(clients, target_roles, vehicle_status)
+
+    @classmethod
+    def update_and_set_vehicle_pose(cls, clients, target_roles, vehicle_status):
+        return cls.Helper.update_and_set_vehicle_pose(clients, target_roles, vehicle_status)
+
+    @classmethod
+    def set_next_schedule_route_detail(cls, clients, target_roles, vehicle_status, vehicle_schedules):
+        route_detail = cls.Helper.get_next_schedule_route_detail(clients, vehicle_status, vehicle_schedules)
+        return cls.Helper.set_route_detail(clients, target_roles, route_detail)
+
+    @classmethod
+    def publish_lane_waypoint_array(cls, clients, target_roles):
+        route_detail = cls.Helper.get_route_detail(clients, target_roles)
+        lane_waypoint_array = cls.Helper.get_lane_waypoint_array_from_route_detail(route_detail)
         cls.Publisher.publish_lane_waypoint_array(clients, target_roles, lane_waypoint_array)
 
     @classmethod
@@ -65,14 +78,13 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
 
     @classmethod
     def start_processing_to_initialized(cls, clients, target_roles, vehicle_status, vehicle_config):
+        cls.BeforeHook.update_and_set_vehicle_pose(clients, target_roles, vehicle_status)
         if cls.Condition.vehicle_located(vehicle_status):
             if cls.Condition.dispatcher_assigned(vehicle_config):
                 cls.Helper.update_and_set_vehicle_status(
                     clients, target_roles, vehicle_status, cls.VEHICLE.STATE.INITIALIZED)
                 cls.AfterHook.publish_vehicle_config_to_target_dispatcher(clients, target_roles, vehicle_config)
                 return True
-        else:
-            cls.Helper.update_and_set_vehicle_pose(clients, target_roles, vehicle_status)
 
         return False
 
@@ -80,38 +92,44 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
     def mission_started_to_waiting_for_decision_maker_state_drive_ready(
             cls, clients, target_roles, vehicle_status, vehicle_schedules):
         if cls.Condition.autoware_is_waiting_for_lane_waypoints_array(vehicle_status):
-            cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles, vehicle_status, vehicle_schedules)
-            return False
+            set_flag = cls.BeforeHook.set_next_schedule_route_detail(
+                clients, target_roles, vehicle_status, vehicle_schedules)
+            if set_flag:
+                cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles)
         else:
             if cls.Condition.autoware_is_waiting_for_engage_state_cmd(vehicle_status):
                 cls.BeforeHook.update_vehicle_route_code(vehicle_status, vehicle_schedules)
+                cls.BeforeHook.update_and_set_vehicle_pose_to_route_start(clients, target_roles, vehicle_status)
                 update_flag = cls.Helper.update_and_set_vehicle_status(
                     clients, target_roles, vehicle_status, cls.VEHICLE.STATE.WAITING_FOR_AUTOWARE_STATE_DRIVE_READY,
                     vehicle_schedules)
                 # if update_flag:
                 #     cls.AfterHook.update_traffic_signal_status_subscribers()
                 return update_flag
-            else:
-                return False
+        return False
 
     @classmethod
     def waiting_for_decision_maker_state_wait_order_to_waiting_for_decision_maker_state_drive_ready(
             cls, clients, target_roles, vehicle_status, vehicle_schedules):
         if cls.Condition.autoware_is_waiting_for_lane_waypoints_array(vehicle_status):
-            cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles, vehicle_status, vehicle_schedules)
-            return False
+            set_flag = cls.BeforeHook.set_next_schedule_route_detail(
+                clients, target_roles, vehicle_status, vehicle_schedules)
+            if set_flag:
+                cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles)
         else:
             if cls.Condition.autoware_is_waiting_for_engage_state_cmd(vehicle_status):
                 cls.BeforeHook.update_vehicle_route_code(vehicle_status, vehicle_schedules)
-                return cls.Helper.update_and_set_vehicle_status(
+                cls.BeforeHook.update_and_set_vehicle_pose_to_route_start(clients, target_roles, vehicle_status)
+                update_flag = cls.Helper.update_and_set_vehicle_status(
                     clients, target_roles, vehicle_status, cls.VEHICLE.STATE.WAITING_FOR_AUTOWARE_STATE_DRIVE_READY,
                     vehicle_schedules)
-            else:
-                return False
+                return update_flag
+        return False
 
     @classmethod
     def waiting_for_decision_maker_state_drive_ready_to_waiting_for_decision_maker_state_wait_order(
             cls, clients, target_roles, vehicle_status, vehicle_schedules):
+        cls.BeforeHook.update_and_set_vehicle_pose(clients, target_roles, vehicle_status)
         if cls.Condition.autoware_is_waiting_for_engage_state_cmd(vehicle_status):
             cls.BeforeHook.publish_state_cmd_engage(clients, target_roles)
             return False
