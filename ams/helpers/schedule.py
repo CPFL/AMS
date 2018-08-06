@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from uuid import uuid1 as uuid
+from time import time
+from uuid import uuid4 as uuid
 
 from ams.structures import Schedule as Structure
 from ams.structures import Schedules as Structures
@@ -13,7 +14,7 @@ class Schedule(object):
     @staticmethod
     def new_schedule(targets, event, _id=None, start_time=None, end_time=None, route=None):
         return Structure.new_data(
-            id=_id if _id is not None else str(uuid()),
+            id=_id if _id is not None else Schedule.get_id(),
             targets=targets,
             event=event,
             period=Period.new_data(
@@ -29,6 +30,14 @@ class Schedule(object):
 
     validate_schedule = Structure.validate_data
     get_errors = Structure.get_errors
+
+    @staticmethod
+    def get_id():
+        return str(uuid())
+
+    @staticmethod
+    def get_time():
+        return time()
 
     @staticmethod
     def get_shifted_schedules(schedules, dt):
