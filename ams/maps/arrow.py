@@ -66,11 +66,12 @@ class Arrow(object):
         sub_vector = Vector.get_sub_vector(*map(
             Position.get_vector,
             (
-                self.waypoint.get_position(waypoint_ids[max([0, index - 1])]),
-                self.waypoint.get_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])])
+                self.waypoint.get_position(waypoint_ids[min([len(waypoint_ids) - 1, index + 1])]),
+                self.waypoint.get_position(waypoint_ids[max([0, index - 1])])
             )
         ))
-        return math.pi+math.atan2(sub_vector[0], sub_vector[1])
+        atan2 = math.atan2(sub_vector[1], sub_vector[0])
+        return atan2 if 0 < atan2 else 2.0 * math.pi + atan2
 
     def get_orientation(self, arrow_code, waypoint_id):
         return Orientation.new_data(
@@ -84,10 +85,10 @@ class Arrow(object):
             )
         )
 
-    def get_pose(self, arrw_code, waypoint_id):
+    def get_pose(self, arrow_code, waypoint_id):
         return Pose.new_data(
             position=self.waypoint.get_position(waypoint_id),
-            orientation=self.get_orientation(arrw_code, waypoint_id)
+            orientation=self.get_orientation(arrow_code, waypoint_id)
         )
 
     def get_heading(self, arrow_code, waypoint_id):
