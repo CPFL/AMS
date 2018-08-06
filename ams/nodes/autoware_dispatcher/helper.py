@@ -7,14 +7,16 @@ from ams.helpers import Schedule
 from ams.nodes.dispatcher import Helper as DispatcherHelper
 from ams.nodes.autoware import CONST as AUTOWARE
 from ams.nodes.autoware import Structure as AutowareStructure
-from ams.nodes.autoware_dispatcher import Structure
+from ams.nodes.autoware_dispatcher import CONST, Structure
 
 
 class Helper(DispatcherHelper):
 
+    DISPATCHER = CONST
+    Structure = Structure
+
     VEHICLE = AUTOWARE
     VehicleStructure = AutowareStructure
-    Structure = Structure
 
     @classmethod
     def get_random_location(cls, clients, stop_waypoint_ids):

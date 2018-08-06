@@ -34,17 +34,17 @@ class BeforeHook(object):
         dispatcher_config.inactive_api_keys.remove(vehicle_config.activation)
         return cls.Helper.set_dispatcher_config(clients, target_roles, dispatcher_config)
 
-
-class AfterHook(object):
-
-    Helper = Helper
-    Publisher = Publisher
-
     @classmethod
     def get_vehicle_schedules(
             cls, clients, target_roles, transportation_status, vehicle_status, vehicle_config, dispatcher_config):
         return cls.Helper.get_vehicle_schedules(
             clients, target_roles, transportation_status, vehicle_status, vehicle_config, dispatcher_config)
+
+
+class AfterHook(object):
+
+    Helper = Helper
+    Publisher = Publisher
 
     @classmethod
     def set_vehicle_schedules(cls, clients, target_roles, vehicle_schedules, vehicle_status_key):
@@ -104,19 +104,19 @@ class Transition(object):
                     if cls.BeforeHook.set_vehicle_api_key_to_active_list(
                             clients, target_roles, vehicle_config, dispatcher_config):
 
-                        cls.Helper.update_and_set_transportation_status(
+                        transportation_status.vehicle_schedules = cls.BeforeHook.get_vehicle_schedules(
+                            clients, target_roles, transportation_status, vehicle_status, vehicle_config,
+                            dispatcher_config)
+
+                        update_flag = cls.Helper.update_and_set_transportation_status(
                             clients, target_roles, transportation_status,
                             cls.DISPATCHER.TRANSPORTATION.STATE.WAITING_FOR_VEHICLE_STATE_END_PROCESSING,
                             vehicle_status_key)
 
-                        vehicle_schedules = cls.AfterHook.get_vehicle_schedules(
-                            clients, target_roles, transportation_status, vehicle_status, vehicle_config,
-                            dispatcher_config)
-                        set_flag = cls.AfterHook.set_vehicle_schedules(
-                            clients, target_roles, vehicle_schedules, vehicle_status_key)
-                        if set_flag:
-                            cls.AfterHook.publish_vehicle_schedules(clients, target_roles, vehicle_schedules)
-                        return True
+                        if update_flag:
+                            cls.AfterHook.publish_vehicle_schedules(
+                                clients, target_roles, transportation_status.vehicle_schedules)
+                        return update_flag
         return False
 
     @classmethod
@@ -159,7 +159,8 @@ class StateMachine(object):
             transportation_status = cls.Structure.TransportationStatus.new_data(
                 targets=[target_roles[cls.VEHICLE.ROLE_NAME]],
                 state=cls.DISPATCHER.TRANSPORTATION.STATE.START_PROCESSING,
-                updated_at=Schedule.get_time()
+                updated_at=Schedule.get_time(),
+                vehicle_schedules=[]
             )
 
         vehicle_status_key, vehicle_status = \

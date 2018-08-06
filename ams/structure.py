@@ -3,8 +3,9 @@
 
 from copy import deepcopy
 from pprint import pformat
-from ams import logger, AttrDict, Validator
 from collections import namedtuple
+
+from ams import logger, AttrDict, Validator
 
 
 def get_structure_superclass(template, schema):

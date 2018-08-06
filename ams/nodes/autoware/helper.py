@@ -191,7 +191,6 @@ class Helper(VehicleHelper):
                 geohash=closest_route_point.geohash
             )
             vehicle_status.pose = closest_route_point.pose
-            print("update_and_set_vehicle_pose.vehicle_status", vehicle_status)
             cls.set_vehicle_status(clients, target_roles, vehicle_status)
 
     @classmethod
@@ -209,7 +208,6 @@ class Helper(VehicleHelper):
                     geohash=closest_route_point.geohash
                 )
                 vehicle_status.pose = closest_route_point.pose
-                print("update_and_set_vehicle_pose.vehicle_status", vehicle_status)
                 cls.set_vehicle_status(clients, target_roles, vehicle_status)
         else:
             # on current_pose_ros_message

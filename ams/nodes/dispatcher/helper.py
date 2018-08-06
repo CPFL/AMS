@@ -177,8 +177,7 @@ class Helper(object):
 
     @classmethod
     def get_vehicle_schedules(
-            cls, clients, target_roles, transportation_status, vehicle_status,
-            vehicle_config, dispatcher_config):
+            cls, clients, target_roles, transportation_status, vehicle_status, vehicle_config, dispatcher_config):
 
         activation_vehicle_schedules = cls.get_activation_vehicle_schedules(
             clients, transportation_status.targets, Schedule.get_time())
@@ -201,8 +200,7 @@ class Helper(object):
         )
 
     @classmethod
-    def set_transportation_status(
-            cls, clients, target_roles, transportation_status, get_key=None):
+    def set_transportation_status(cls, clients, target_roles, transportation_status, get_key=None):
         return clients["kvs"].set(
             cls.get_transportation_status_key(target_roles),
             transportation_status,
@@ -250,8 +248,7 @@ class Helper(object):
         )
 
     @classmethod
-    def update_and_set_transportation_status(
-            cls, clients, target_roles, transportation_status, new_state, get_key):
+    def update_and_set_transportation_status(cls, clients, target_roles, transportation_status, new_state, get_key):
         transportation_status.state = new_state
         transportation_status.updated_at = Schedule.get_time()
         return cls.set_transportation_status(clients, target_roles, transportation_status, get_key)

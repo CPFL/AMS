@@ -44,7 +44,7 @@ transportation_status_template = {
     "targets": Targets.get_template(),
     "state": "s0",
     "updated_at": 0.0,
-    "schedules": Schedules.get_template()
+    "vehicle_schedules": Schedules.get_template()
 }
 
 transportation_status_schema = {
@@ -59,7 +59,7 @@ transportation_status_schema = {
         "required": True,
         "nullable": False
     },
-    "schedules": Schedules.get_schema()
+    "vehicle_schedules": Schedules.get_schema()
 }
 
 
