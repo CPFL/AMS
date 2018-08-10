@@ -45,6 +45,9 @@ class Topic(object):
             from_target = Topic.get_to_target(topic)
         to_target = Topic.get_from_target(topic)
         categories = Topic.get_categories(topic)
+        if categories[0] != TOPIC.REQUEST_CATEGORIES_HEAD:
+            logger.error("Unknown request topic categories head: {}".format(categories[0]))
+        categories[0] = TOPIC.RESPONSE_CATEGORIES_HEAD
         return Topic.get_topic(from_target, domain, to_target, categories)
 
     @staticmethod
