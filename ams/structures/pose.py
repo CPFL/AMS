@@ -27,4 +27,5 @@ schema = {
 
 
 class Pose(get_structure_superclass(template, schema)):
-    pass
+    Position = Position
+    Orientation = Orientation

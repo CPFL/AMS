@@ -27,4 +27,5 @@ schema = {
 
 
 class Orientation(get_structure_superclass(template, schema)):
-    pass
+    Rpy = Rpy
+    Quaternion = Quaternion
