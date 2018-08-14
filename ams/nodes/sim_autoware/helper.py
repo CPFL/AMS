@@ -4,7 +4,7 @@
 from time import time
 from math import modf
 
-from ams.structures import KVS_CLIENT
+from ams.structures import CLIENT
 from ams.helpers import Target
 from ams.nodes.sim_autoware import CONST, Structure
 
@@ -24,48 +24,48 @@ class Helper(object):
 
     @classmethod
     def get_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target_roles["autoware"]),
             "config"])
 
     @classmethod
     def get_closest_waypoint_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT)
 
     @classmethod
     def get_current_pose_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.CURRENT_POSE)
 
     @classmethod
     def get_state_cmd_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.STATE_CMD)
 
     @classmethod
     def get_lane_waypoints_array_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.LANE_WAYPOINTS_ARRAY)
 
     @classmethod
     def get_decision_maker_state_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.DECISION_MAKER_STATE)
 
     @classmethod
     def get_light_color_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
             ] + cls.AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)

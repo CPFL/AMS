@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import KVS_CLIENT
+from ams.structures import CLIENT
 from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import CONST, Structure
 
@@ -13,15 +13,15 @@ class Helper(object):
 
     @classmethod
     def get_vehicle_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "config"])
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "config"])
 
     @classmethod
     def get_vehicle_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "status"])
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "status"])
 
     @classmethod
     def get_vehicle_schedules_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "schedules"])
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_roles["vehicle"]), "schedules"])
 
     @classmethod
     def get_current_vehicle_schedule(cls, vehicle_status, vehicle_schedules):

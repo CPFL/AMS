@@ -29,9 +29,9 @@ class Publisher(VehiclePublisher):
     @classmethod
     def publish_lane_waypoint_array(cls, clients, target_roles, lane_waypoint_array):
         topic = cls.get_lane_waypoint_array_topic(target_roles)
-        clients["mqtt"].publish(topic, lane_waypoint_array)
+        clients["pubsub"].publish(topic, lane_waypoint_array)
 
     @classmethod
     def publish_state_cmd(cls, clients, target_roles, state_cmd):
         topic = cls.get_state_cmd_topic(target_roles)
-        clients["mqtt"].publish(topic, state_cmd)
+        clients["pubsub"].publish(topic, state_cmd)

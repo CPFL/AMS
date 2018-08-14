@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import KVS_CLIENT
+from ams.structures import CLIENT
 from ams.helpers import Target, Schedule
 from ams.nodes.infra import CONST, Structure
 
@@ -16,19 +16,19 @@ class Helper(object):
 
     @classmethod
     def get_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [Target.get_code(target_roles[cls.INFRA.ROLE_NAME])] +
             cls.INFRA.TOPIC.CATEGORIES.CONFIG)
 
     @classmethod
     def get_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [Target.get_code(target_roles[cls.INFRA.ROLE_NAME])] +
             cls.INFRA.TOPIC.CATEGORIES.STATUS)
 
     @classmethod
     def get_schedules_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target_roles[cls.INFRA.ROLE_NAME])] +
             cls.INFRA.TOPIC.CATEGORIES.SCHEDULES)
 

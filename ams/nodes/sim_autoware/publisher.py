@@ -39,7 +39,7 @@ class Publisher(object):
         topic = cls.get_current_pose_topic(target_roles)
         message = cls.Helper.get_current_pose(clients, target_roles)
         if message is not None:
-            clients["mqtt"].publish(topic, message)
+            clients["pubsub"].publish(topic, message)
             return True
         return False
 
@@ -48,7 +48,7 @@ class Publisher(object):
         topic = cls.get_closest_waypoint_topic(target_roles)
         message = cls.Helper.get_closest_waypoint(clients, target_roles)
         if message is not None:
-            clients["mqtt"].publish(topic, message)
+            clients["pubsub"].publish(topic, message)
             return True
         return False
 
@@ -57,6 +57,6 @@ class Publisher(object):
         topic = cls.get_decision_maker_state_topic(target_roles)
         message = cls.Helper.get_decision_maker_state(clients, target_roles)
         if message is not None:
-            clients["mqtt"].publish(topic, message)
+            clients["pubsub"].publish(topic, message)
             return True
         return False
