@@ -69,17 +69,20 @@ class EventLoop(object):
         )
         self.user_data["target_roles"]["vehicle"] = target_vehicle
 
-    def set_initial_status(self, decision_maker_state, pose):
-        self.initials["status"] = self.Structure.Status.new_data(
-            decision_maker_state={"data": decision_maker_state},
-            current_pose=self.Structure.Status.CurrentPose.new_data(
+    def set_initial_status(self, decision_maker_state, pose=None):
+        current_pose = None
+        if pose is not None:
+            current_pose = self.Structure.Status.CurrentPose.new_data(
                 header={
                     "seq": 0,
                     "frame_id": "",
                     "stamp": self.Helper.get_timestamp()
                 },
                 pose=pose
-            ),
+            )
+        self.initials["status"] = self.Structure.Status.new_data(
+            decision_maker_state={"data": decision_maker_state},
+            current_pose=current_pose,
             closest_waypoint=None,
             lane_waypoints_array=None,
             state_cmd=None,

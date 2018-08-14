@@ -3,7 +3,6 @@
 
 from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import EventLoop as VehicleEventLoop
-from ams.nodes.traffic_signal import Message as TrafficSignalMessage
 from ams.nodes.autoware_dispatcher import Message as DispatcherMessage
 from ams.nodes.autoware_dispatcher import CONST as AUTOWARE_DISPATCHER
 from ams.nodes.autoware import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
@@ -49,14 +48,6 @@ class EventLoop(VehicleEventLoop):
             "topic": topic,
             "callback": self.Subscriber.on_decision_maker_state_ros_message,
             "structure": self.Structure.ROSMessage.DecisionMakerState,
-            "user_data": self.user_data
-        }
-
-        topic = self.Subscriber.get_traffic_signal_status_topic()
-        self.subscribers[topic] = {
-            "topic": topic,
-            "callback": self.Subscriber.on_traffic_signal_status_message,
-            "structure": TrafficSignalMessage.Status,
             "user_data": self.user_data
         }
 

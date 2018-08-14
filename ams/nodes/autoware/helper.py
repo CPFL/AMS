@@ -8,7 +8,6 @@ from ams import logger, MapsClient
 from ams.helpers import Target
 from ams.structures import KVS_CLIENT, Pose, RouteDetail, Location
 from ams.nodes.vehicle import Helper as VehicleHelper
-from ams.nodes.traffic_signal import CONST as TRAFFIC_SIGNAL
 from ams.nodes.autoware import CONST, Structure
 
 
@@ -41,34 +40,6 @@ class Helper(VehicleHelper):
         ])
 
     @classmethod
-    def get_traffic_signal_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
-            Target.get_code(target_roles["traffic_signal"]), "status"
-        ])
-
-    @classmethod
-    def get_all_traffic_signal_status_keys(cls, clients, target_roles):
-        return clients["kvs"].keys(KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["vehicle"]),
-            Target.get_code(Target.new_target(group=TRAFFIC_SIGNAL.NODE_NAME)),
-            "status"
-        ]))
-
-    @classmethod
-    def get_traffic_signal_status(cls, clients, traffic_signal_status_key):
-        return clients["kvs"].get(traffic_signal_status_key)
-
-    @classmethod
-    def get_traffic_signal_statuses(cls, clients, traffic_signal_status_keys):
-        traffic_signal_statuses = {}
-        for traffic_signal_status_key in traffic_signal_status_keys:
-            route_code = traffic_signal_status_key.split(KVS_CLIENT.KEY_PATTERN_DELIMITER)[1]
-            traffic_signal_statuses[route_code] = cls.get_traffic_signal_status(
-                clients["kvs"], traffic_signal_status_key)
-        return traffic_signal_statuses
-
-    @classmethod
     def get_current_pose(cls, clients, target_roles):
         key = cls.get_current_pose_key(target_roles)
         value = clients["kvs"].get(key)
@@ -91,10 +62,6 @@ class Helper(VehicleHelper):
         if value.__class__.__name__ == "list":
             value = RouteDetail.new_data(value)
         return value
-
-    @classmethod
-    def set_traffic_signal_status(cls, clients, target_roles, traffic_signal_status, get_key=None):
-        return clients["kvs"].set(cls.get_traffic_signal_status_key(clients), traffic_signal_status, get_key)
 
     @classmethod
     def set_current_pose(cls, clients, target_roles, current_pose):
@@ -221,8 +188,3 @@ class Helper(VehicleHelper):
                     cls.set_vehicle_status(clients, target_roles, vehicle_status)
                 else:
                     logger.warning("Current pose is out of range.")
-    # @classmethod
-    # def update_traffic_signal_status_subscribers(cls, vehicle_status):
-    #     traffic_signal_arrow_code = cls.get_target_traffic_signal_arrow_codes_on_route(vehicle_status.route_code)
-    #     # todo
-    #     return

@@ -62,10 +62,6 @@ class AfterHook(VehicleStateMachine.EventHandler.Transition.AfterHook):
     Helper = Helper
     Publisher = Publisher
 
-    # @classmethod
-    # def update_traffic_signal_status_subscribers(cls):
-    #     cls.Helper.update_traffic_signal_status_subscribers()
-
 
 class Transition(VehicleStateMachine.EventHandler.Transition):
 
@@ -103,8 +99,6 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
                 update_flag = cls.Helper.update_and_set_vehicle_status(
                     clients, target_roles, vehicle_status, cls.VEHICLE.STATE.WAITING_FOR_AUTOWARE_STATE_DRIVE_READY,
                     vehicle_schedules)
-                # if update_flag:
-                #     cls.AfterHook.update_traffic_signal_status_subscribers()
                 return update_flag
         return False
 
@@ -134,8 +128,6 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
             cls.BeforeHook.publish_state_cmd_engage(clients, target_roles)
             return False
         else:
-            # cls.BeforeHook.publish_light_color(
-            #   clients, target_roles, vehicle_status, vehicle_schedules, traffic_signal_statuses)
             if cls.Condition.autoware_is_waiting_for_lane_waypoints_array(vehicle_status):
                 return cls.Helper.update_and_set_vehicle_status(
                     clients, target_roles, vehicle_status, cls.VEHICLE.STATE.WAITING_FOR_AUTOWARE_STATE_WAIT_ORDER,

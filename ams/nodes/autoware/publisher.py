@@ -35,24 +35,3 @@ class Publisher(VehiclePublisher):
     def publish_state_cmd(cls, clients, target_roles, state_cmd):
         topic = cls.get_state_cmd_topic(target_roles)
         clients["mqtt"].publish(topic, state_cmd)
-
-    # @classmethod
-    # def publish_light_color(cls):
-    #     monitored_route = cls.get_monitored_route()
-    #     if monitored_route is None:
-    #         traffic_light = cls.VEHICLE.ROS.TRAFFIC_LIGHT.RED
-    #     else:
-    #         distance_from_stopline = cls.get_distance_from_stopline(monitored_route)
-    #         if distance_from_stopline <= cls.upper_distance_from_stopline:
-    #             traffic_light = cls.VEHICLE.ROS.TRAFFIC_LIGHT.RED
-    #         else:
-    #             traffic_light = cls.VEHICLE.ROS.TRAFFIC_LIGHT.GREEN
-    #     header = ROSMessage.Header.get_template()
-    #     header.stamp.secs = int(time())
-    #     header.stamp.nsecs = int((time() - int(time())) * 1000000000)
-    #
-    #     payload = Topic.serialize(ROSMessage.LightColor.new_data(
-    #         header=header,
-    #         traffic_light=traffic_light
-    #     ))
-    #     cls.publish(cls.__pub_light_color_topic, payload)
