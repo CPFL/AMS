@@ -41,7 +41,7 @@ class Publisher(object):
             version=VERSION,
             status=transportation_status,
         )
-        clients["mqtt"].publish(topic, transportation_status_message)
+        clients["pubsub"].publish(topic, transportation_status_message)
 
     @classmethod
     def publish_schedules_message(cls, clients, target_roles, schedules):
@@ -52,4 +52,4 @@ class Publisher(object):
             version=VERSION,
             schedules=schedules
         )
-        clients["mqtt"].publish(topic, schedules_message)
+        clients["pubsub"].publish(topic, schedules_message)

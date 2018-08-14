@@ -17,5 +17,4 @@ from ams.structures.spot import Spot
 
 from ams.structures.topic import TOPIC
 from ams.structures.message_header import MessageHeader
-from ams.structures.kvs_client import KVS_CLIENT
-from ams.structures.mqtt_client import MQTT_CLIENT
+from ams.structures.client import CLIENT

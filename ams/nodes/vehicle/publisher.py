@@ -44,7 +44,7 @@ class Publisher(object):
             version=VERSION,
             config=vehicle_config
         )
-        clients["mqtt"].publish(topic, vehicle_config_message)
+        clients["pubsub"].publish(topic, vehicle_config_message)
 
     @classmethod
     def publish_vehicle_status(cls, clients, target_roles, vehicle_status):
@@ -55,9 +55,9 @@ class Publisher(object):
             version=VERSION,
             status=vehicle_status
         )
-        clients["mqtt"].publish(topic, vehicle_status_message)
+        clients["pubsub"].publish(topic, vehicle_status_message)
 
     @classmethod
     def publish_vehicle_geotopic(cls, clients, target_roles, vehicle_status):
         topic = cls.get_geotopic_topic(target_roles["vehicle"], vehicle_status.location)
-        clients["mqtt"].publish(topic, target_roles["vehicle"])
+        clients["pubsub"].publish(topic, target_roles["vehicle"])

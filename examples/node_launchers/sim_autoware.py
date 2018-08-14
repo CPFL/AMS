@@ -5,15 +5,10 @@ from time import time, sleep
 from argparse import ArgumentParser
 from uuid import uuid1 as uuid
 
-from clients.kvs.redis.helper import get_kvs_client as get_redis_client
-from clients.kvs.manager.helper import get_kvs_client as get_manager_client
-from clients.kvs.helper import print_all
-
-from clients.mqtt.aws_iot.helper import get_mqtt_client as get_aws_iot_client
-from clients.mqtt.paho.helper import get_mqtt_client as get_paho_client
-
 from ams.helpers import Topic, Target
 from ams.nodes import SimAutoware
+
+from clients.helper import get_manager_client, get_redis_client, get_paho_client, get_aws_iot_client
 
 
 if __name__ == '__main__':
@@ -34,17 +29,17 @@ if __name__ == '__main__':
     parser.add_argument("-KP", "--kvs_port", type=int, default=6379, help="kvs port")
     parser.add_argument("-KCT", "--kvs_client_type", type=str, default="manager", help="manager or redis")
 
-    parser.add_argument("-MH", "--mqtt_host", type=str, default="localhost", help="mqtt broker host")
-    parser.add_argument("-MP", "--mqtt_port", type=int, default=1883, help="mqtt broker port")
+    parser.add_argument("-MH", "--pubsub_host", type=str, default="localhost", help="pubsub broker host")
+    parser.add_argument("-MP", "--pubsub_port", type=int, default=1883, help="pubsub broker port")
     parser.add_argument(
-        "-MCT", "--mqtt_client_type", type=str, default="paho", help="paho or aws_iot", choices=["paho", "aws_iot"])
+        "-MCT", "--pubsub_client_type", type=str, default="paho", help="paho or aws_iot", choices=["paho", "aws_iot"])
     parser.add_argument(
-        "-CAP", "--path_ca", type=str, default="./clients/mqtt/aws_iot/key_dev/root-CA.crt", help="root ca file path")
+        "-CAP", "--path_ca", type=str, default="./clients/key_dev/root-CA.crt", help="root ca file path")
     parser.add_argument(
-        "-PKP", "--path_private_key", type=str, default="./clients/mqtt/aws_iot/key_dev/dev-autoware.private.key",
+        "-PKP", "--path_private_key", type=str, default="./clients/key_dev/dev-autoware.private.key",
         help="private key file path")
     parser.add_argument(
-        "-CP", "--path_cert", type=str, default="./clients/mqtt/aws_iot/key_dev/dev-autoware.cert.pem",
+        "-CP", "--path_cert", type=str, default="./clients/key_dev/dev-autoware.cert.pem",
         help="certificate file path")
 
     args = parser.parse_args()
@@ -52,23 +47,23 @@ if __name__ == '__main__':
     if args.kvs_client_type == "manager":
         kvs_client = get_manager_client()
     elif args.kvs_client_type == "redis":
-        kvs_client = get_redis_client(args)
+        kvs_client = get_redis_client(args.kvs_host)
     else:
         raise ValueError("Unknown kvs client type: {}".format(args.kvs_client_type))
 
-    if args.mqtt_client_type == "paho":
-        mqtt_client = get_paho_client(args)
-    elif args.mqtt_client_type == "aws_iot":
-        mqtt_client = get_aws_iot_client(
-            args.mqtt_host, args.mqtt_port, args.path_ca, args.path_private_key, args.path_cert)
+    if args.pubsub_client_type == "paho":
+        pubsub_client = get_paho_client(args.mqtt_host, args.mqtt_port)
+    elif args.pubsub_client_type == "aws_iot":
+        pubsub_client = get_aws_iot_client(
+            args.pubsub_host, args.pubsub_port, args.path_ca, args.path_private_key, args.path_cert)
     else:
-        raise ValueError("Unknown mqtt client type: {}".format(args.mqtt_client_type))
+        raise ValueError("Unknown pubsub client type: {}".format(args.pubsub_client_type))
 
     Topic.domain = args.topic_domain
 
     sim_autoware = SimAutoware(group=args.name, _id=args.id)
     sim_autoware.set_kvs_client(kvs_client)
-    sim_autoware.set_mqtt_client(mqtt_client)
+    sim_autoware.set_pubsub_client(pubsub_client)
 
     start_time = time()
 

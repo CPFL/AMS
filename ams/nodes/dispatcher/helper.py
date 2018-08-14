@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.structures import KVS_CLIENT, Schedules
+from ams.structures import CLIENT, Schedules
 from ams.helpers import Target, Schedule
 from ams.nodes.vehicle import CONST as VEHICLE
 from ams.nodes.vehicle import Structure as VehicleStructure
@@ -18,14 +18,14 @@ class Helper(object):
 
     @classmethod
     def get_dispatcher_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME])
             ] + cls.DISPATCHER.TOPIC.CATEGORIES.CONFIG)
 
     @classmethod
     def get_transportation_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
@@ -33,21 +33,21 @@ class Helper(object):
 
     @classmethod
     def get_user_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
             Target.get_code(target_roles["user"]), "status"
         ])
 
     @classmethod
     def get_user_schedules_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
             Target.get_code(target_roles["user"]), "schedules"
         ])
 
     @classmethod
     def get_vehicle_config_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
@@ -55,7 +55,7 @@ class Helper(object):
 
     @classmethod
     def get_vehicle_status_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])
@@ -63,7 +63,7 @@ class Helper(object):
 
     @classmethod
     def get_vehicle_schedules_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.DISPATCHER.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME])

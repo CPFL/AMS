@@ -4,9 +4,10 @@
 from time import time
 from math import modf
 
-from ams import logger, MapsClient
+from ams import logger
+from ams.clients import MapsClient
 from ams.helpers import Target
-from ams.structures import KVS_CLIENT, Pose, RouteDetail, Location
+from ams.structures import CLIENT, Pose, RouteDetail, Location
 from ams.nodes.vehicle import Helper as VehicleHelper
 from ams.nodes.autoware import CONST, Structure
 
@@ -18,7 +19,7 @@ class Helper(VehicleHelper):
 
     @classmethod
     def get_current_pose_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROS.ROLE_NAME])
@@ -26,7 +27,7 @@ class Helper(VehicleHelper):
 
     @classmethod
     def get_closest_waypoint_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join(
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
                 Target.get_code(target_roles[cls.VEHICLE.ROS.ROLE_NAME])
@@ -34,7 +35,7 @@ class Helper(VehicleHelper):
 
     @classmethod
     def get_route_detail_key(cls, target_roles):
-        return KVS_CLIENT.KEY_PATTERN_DELIMITER.join([
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target_roles[cls.VEHICLE.ROLE_NAME]),
             "route_detail"
         ])

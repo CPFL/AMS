@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from time import time
-from ams.structures import KVS_CLIENT
+from ams.structures import CLIENT
 
 
 class Kvs(object):
@@ -15,7 +15,7 @@ class Kvs(object):
 
     @staticmethod
     def get_key_timestamp(key):
-        return key.split(KVS_CLIENT.KEY_PATTERN_DELIMITER)[-1]
+        return key.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[-1]
 
     @staticmethod
     def delete_old_keys_and_get_latest_key(keys, delete_function):

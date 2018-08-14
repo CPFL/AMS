@@ -39,7 +39,7 @@ class Publisher(object):
             ),
             body=config
         )
-        clients["mqtt"].publish(topic, config_message)
+        clients["pubsub"].publish(topic, config_message)
 
     @classmethod
     def publish_status(cls, clients, target_roles, status):
@@ -52,4 +52,4 @@ class Publisher(object):
             ),
             body=status
         )
-        clients["mqtt"].publish(topic, status_message)
+        clients["pubsub"].publish(topic, status_message)

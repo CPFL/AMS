@@ -4,9 +4,9 @@
 from sys import float_info
 
 from ams import logger
+from ams.structures import Pose
 from ams.helpers import Position, Vector
 from ams.maps import Route
-from ams.structures import Pose
 
 
 class Simulator(object):

@@ -96,4 +96,4 @@ class EventLoop(VehicleEventLoop):
             self.user_data["clients"], self.user_data["target_roles"], self.initials["status"])
 
     def stop(self):
-        self.user_data["clients"]["mqtt"].disconnect()
+        self.user_data["clients"]["pubsub"].disconnect()

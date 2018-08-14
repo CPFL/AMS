@@ -60,8 +60,8 @@ class EventLoop(object):
     def set_kvs_client(self, kvs_client):
         self.user_data["clients"]["kvs"] = kvs_client
 
-    def set_mqtt_client(self, mqtt_client):
-        self.user_data["clients"]["mqtt"] = mqtt_client
+    def set_pubsub_client(self, pubsub_client):
+        self.user_data["clients"]["pubsub"] = pubsub_client
 
     def set_initial_config(self, target_vehicle):
         self.initials["config"] = self.Structure.Config.new_data(
@@ -92,12 +92,12 @@ class EventLoop(object):
     def subscribe(self):
         for subscriber in self.subscribers.values():
             logger.info("subscribe: {}".format(subscriber["topic"]))
-            self.user_data["clients"]["mqtt"].subscribe(**subscriber)
+            self.user_data["clients"]["pubsub"].subscribe(**subscriber)
 
     def __connect_and_subscribe(self):
         self.user_data["clients"]["kvs"].connect()
         self.subscribe()
-        self.user_data["clients"]["mqtt"].connect()
+        self.user_data["clients"]["pubsub"].connect()
 
     def start(self):
         self.__set_sim_autoware_subscriber()
@@ -122,4 +122,4 @@ class EventLoop(object):
         except KeyboardInterrupt:
             pass
 
-        self.user_data["clients"]["mqtt"].disconnect()
+        self.user_data["clients"]["pubsub"].disconnect()
