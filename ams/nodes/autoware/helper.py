@@ -219,7 +219,8 @@ class Helper(VehicleHelper):
                     vehicle_status.pose = cls.get_pose_from_location(clients, vehicle_status.location)
 
                     cls.set_vehicle_status(clients, target_roles, vehicle_status)
-
+                else:
+                    logger.warning("Current pose is out of range.")
     # @classmethod
     # def update_traffic_signal_status_subscribers(cls, vehicle_status):
     #     traffic_signal_arrow_code = cls.get_target_traffic_signal_arrow_codes_on_route(vehicle_status.route_code)
