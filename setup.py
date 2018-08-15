@@ -27,10 +27,8 @@ setup(
     license=license,
     packages=find_packages(exclude=["config", "res", 'tools', 'docs', 'tests', "examples"]),
     install_requires=[
-        "paho-mqtt==1.3.1",
         "python-geohash==0.8.5",
         "Cerberus==1.1",
-        "transitions==0.6.4"
     ],
     test_suite="tests"
 )
