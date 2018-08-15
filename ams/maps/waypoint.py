@@ -36,6 +36,9 @@ class Waypoint(object):
             }),
             waypoints.items()))
 
+    def get_waypoints(self):
+        return self.__waypoints
+
     def get_waypoint_ids(self):
         return list(self.__waypoints.keys())
 
