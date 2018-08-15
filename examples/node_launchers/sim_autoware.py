@@ -29,10 +29,10 @@ if __name__ == '__main__':
     parser.add_argument("-KP", "--kvs_port", type=int, default=6379, help="kvs port")
     parser.add_argument("-KCT", "--kvs_client_type", type=str, default="manager", help="manager or redis")
 
-    parser.add_argument("-MH", "--pubsub_host", type=str, default="localhost", help="pubsub broker host")
-    parser.add_argument("-MP", "--pubsub_port", type=int, default=1883, help="pubsub broker port")
+    parser.add_argument("-PSH", "--pubsub_host", type=str, default="localhost", help="pubsub broker host")
+    parser.add_argument("-PSP", "--pubsub_port", type=int, default=1883, help="pubsub broker port")
     parser.add_argument(
-        "-MCT", "--pubsub_client_type", type=str, default="paho", help="paho or aws_iot", choices=["paho", "aws_iot"])
+        "-PSCT", "--pubsub_client_type", type=str, default="paho", help="paho or aws_iot", choices=["paho", "aws_iot"])
     parser.add_argument(
         "-CAP", "--path_ca", type=str, default="./clients/key_dev/root-CA.crt", help="root ca file path")
     parser.add_argument(
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         raise ValueError("Unknown kvs client type: {}".format(args.kvs_client_type))
 
     if args.pubsub_client_type == "paho":
-        pubsub_client = get_paho_client(args.mqtt_host, args.mqtt_port)
+        pubsub_client = get_paho_client(args.pubsub_host, args.pubsub_port)
     elif args.pubsub_client_type == "aws_iot":
         pubsub_client = get_aws_iot_client(
             args.pubsub_host, args.pubsub_port, args.path_ca, args.path_private_key, args.path_cert)
