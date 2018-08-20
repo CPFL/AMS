@@ -37,7 +37,6 @@
 		<script src="./static/js/threejs/Detector.js"></script>
 		<script src="./static/js/threejs/stats.min.js"></script>
 		<script src="./static/js/threejs/three.js"></script>
-		<script src="./static/js/threejs/TrackballControls.js"></script>
 		<script src="./static/js/threejs/OrbitControls.js"></script>
 		<script src="./static/js/threejs/PCDLoader.js"></script>
 		<script src="./static/js/threejs/ColladaLoader.js"></script>
@@ -101,6 +100,7 @@
 
 
 					this.camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 4000 );
+					this.camera.up.set(0,0,1);
 
 					this.scene = new THREE.Scene();
 
@@ -118,7 +118,6 @@
 					this.container.appendChild( this.stats.dom );
 
 					this.setOrbitControls();
-					// this.setTrackballControls();
 
 					this.container.appendChild( this.stats.dom );
 
@@ -126,27 +125,13 @@
 
 					this.scene.add( this.camera );
 
-				}
-
-				setTrackballControls() {
-					this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
-					this.controls.rotateSpeed = 2.0;
-					this.controls.zoomSpeed = 3.0;
-					this.controls.panSpeed = 2.0;
-					this.controls.noZoom = false;
-					this.controls.noPan = false;
-					this.controls.staticMoving = true;
-					this.controls.dynamicDampingFactor = 0.3;
-					this.controls.keys = [ 65, 83, 68 ];
-					this.controls.addEventListener( 'change', this.render.bind(this) );
-
                     this.animate();
+
 				}
 
 				setOrbitControls() {
                     this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
                     this.controls.addEventListener( 'change', this.render.bind(this) );
-                    this.animate();
                 }
 
 				animate() {
@@ -154,12 +139,10 @@
 						requestAnimationFrame( this.animate.bind(this) );
 						this.render();
 						this.stats.update();
-						this.controls.update();
 					}
 				}
 
 				render() {
-				    // print("camera.position", this.camera.position);
 					this.renderer.render( this.scene, this.camera );
 				}
 
@@ -171,8 +154,8 @@
 				}
 
 				updateViewPoseByTargetPosition(position) {
-					this.controls.target.set( position.x, position.y, position.z);
-				    print(this.controls.target.position, this.camera.position, position)
+                    this.controls.target.set( position.x, position.y, position.z + 20);
+				    print(this.controls.target.position, this.camera.position, position);
 					this.camera.position.x = position.x;
 					this.camera.position.y = position.y;
 					this.camera.position.z = position.z + 300;
@@ -252,7 +235,7 @@
 
                     for(const arrow of Object.values(this.amsMaps.arrows)) {
                         var geometry = new THREE.Geometry();
-                        for(const waypointID of arrow.waypointIDs) {
+                        for(const waypointID of Object.values(arrow.waypointIDs)) {
                             const point = this.amsMaps.waypoints[waypointID];
                             geometry.vertices.push(new THREE.Vector3(point.position.x, point.position.y, point.position.z));
                         }
@@ -262,11 +245,12 @@
                         line.name = "arrowLine/"+arrow.arrowCode;
                         this.scene.add( line );
 
-                        var from = geometry.vertices[geometry.vertices.length-2];
                         var to = geometry.vertices[geometry.vertices.length-1];
+                        var from = geometry.vertices[geometry.vertices.length-2];
                         var direction = to.clone().sub(from);
-                        var length = direction.length();
-                        var arrowHelper = new THREE.ArrowHelper(direction.normalize(), from, length, color, 0.5*length, 0.2*length);
+                        const headLength = 1.0;
+                        const headWidth = 0.5;
+                        var arrowHelper = new THREE.ArrowHelper(direction.normalize(), from, headLength+0.00000001, color, headLength, headWidth);
                         arrowHelper.name = "arrowHead/"+arrow.arrowCode;
                         this.scene.add( arrowHelper );
 
@@ -276,11 +260,22 @@
 				onCurrentPoseMessage(topic, message) {
 				    const currentPose = JSON.parse(message.toString());
 				    const sceneObjectName = "collada/" + Topic.get_from_target_code(topic);
+				    const to_name = Topic.get_to_name(topic);
+				    let daeFileName = "milee.dae";
+				    if( to_name.includes("milee") ) {
+				        daeFileName = "milee.dae"
+					}
+					else if( to_name.includes("logiee") ) {
+				        daeFileName = "logiee.dae"
+					}
+				    else if( to_name.includes("postee") ) {
+				        daeFileName = "milee.dae"
+					}
 				    const sceneObject = this.scene.getObjectByName(sceneObjectName);
 				    const that = this;
 					if(typeof sceneObject === "undefined") {
 						this.colladaLoader.load(
-						    "http://"+location.host+'/static/dae/milee.dae',
+						    "http://"+location.host+"/static/dae/"+daeFileName,
 							function ( collada ) {
 						        collada.scene.name = sceneObjectName;
 								that.scene.add(collada.scene);
@@ -312,7 +307,6 @@
 			class SimAutowareMonitor {
 
 			    constructor() {
-			        this.simAutowares = {};
 			        this.onMessageCallbacks = {};
 					var client  = mqtt.connect('mqtt://localhost:8080');
 
