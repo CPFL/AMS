@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import unittest
-import json
 import sys
-from argparse import ArgumentParser
+import unittest
+
 from ams.helpers import Route
-from numpy import allclose, ndarray
 
 
 class TestRouteHelper(unittest.TestCase):
@@ -51,14 +49,21 @@ class TestRouteHelper(unittest.TestCase):
         self.assertEqual(expected, route)
 
 
+def test_route_helper(test_loader, suite):
+    test_names = test_loader.getTestCaseNames(TestRouteHelper)
+
+    for test_name in test_names:
+        suite.addTest(TestRouteHelper(test_name))
+
+    return suite
+
+
 if __name__ == "__main__":
 
     test_loader = unittest.TestLoader()
-    test_names = test_loader.getTestCaseNames(TestRouteHelper)
-
     suite = unittest.TestSuite()
-    for test_name in test_names:
-        suite.addTest(TestRouteHelper(test_name))
+
+    test_route_helper(test_loader, suite)
 
     result = unittest.TextTestRunner().run(suite)
     sys.exit(not result.wasSuccessful())
