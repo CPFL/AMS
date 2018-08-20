@@ -35,14 +35,15 @@ targets_template = [Target.get_template()]
 
 targets_schema = {
     "type": "list",
-    "valueschema": {
+    "schema": {
+        "type": "dict",
         "schema": Target.get_schema(),
         "required": True,
         "nullable": False,
     },
     "required": False,
     "nullable": True,
-    "minlength": 1
+    "minlength": 0
 }
 
 

@@ -13,7 +13,8 @@ template = {
 schema = {
     "positions": {
         "type": "list",
-        "valueschema": {
+        "schema": {
+            "type": "dict",
             "schema": Position.get_schema(),
             "required": True,
             "nullable": False,
@@ -24,7 +25,8 @@ schema = {
     },
     "locations": {
         "type": "list",
-        "valueschema": {
+        "schema": {
+            "type": "dict",
             "schema": Location.get_schema(),
             "required": True,
             "nullable": False,

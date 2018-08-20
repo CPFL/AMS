@@ -26,7 +26,8 @@ schema = {
     },
     "phases": {
         "type": "list",
-        "valueschema": {
+        "schema": {
+            "type": "dict",
             "schema": {
                 "state": {
                     "type": "string",
@@ -39,6 +40,8 @@ schema = {
                     "nullable": False
                 }
             },
+            "required": True,
+            "nullable": False
         },
         "required": True,
         "nullable": False,

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="jp">
+	<head>
+		<title>SimAutowareViewer</title>
+		<link rel="icon" href="./static/ico/autoware_icon.ico">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #cccccc;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+
+		</style>
+
+		<!-- MQTT -->
+		<script src="./static/js/mqtt/mqtt.min.js" type="text/javascript"></script>
+
+		<!-- ThreeJS -->
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<script src="./static/js/threejs/Detector.js"></script>
+		<script src="./static/js/threejs/stats.min.js"></script>
+		<script src="./static/js/threejs/three.js"></script>
+		<script src="./static/js/threejs/OrbitControls.js"></script>
+		<script src="./static/js/threejs/PCDLoader.js"></script>
+		<script src="./static/js/threejs/ColladaLoader.js"></script>
+		<script src="./static/js/threejs/GeometryUtils.js"></script>
+		<script src="./static/js/threejs/WebGLDeferredRenderer.js"></script>
+
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script>
+            const print = console.info;
+
+			class Topic {
+    
+				static get_domain(topic) {
+				    return topic.split("/")[1]
+				}
+
+				static get_from_name(topic) {
+				    return topic.split("/")[2]
+				}
+
+				static get_from_id(topic) {
+				    return topic.split("/")[3]
+				}
+
+				static get_to_name(topic) {
+				    return topic.split("/")[4]
+				}
+
+				static get_to_id(topic) {
+				    return topic.split("/")[5]
+				}
+
+				static get_categories(topic) {
+				    return topic.split("/").slice(6)
+				}
+
+				static get_from_target_code(topic) {
+				    return [this.get_from_name(topic), this.get_from_id(topic)].join("/")
+				}
+			}
+
+			class ThreeMap {
+
+				constructor() {
+					if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+					this.manager = new THREE.LoadingManager();
+					this.fontLoader = new THREE.FontLoader();
+					this.colladaLoader = new THREE.ColladaLoader(this.manager);
+
+					this.controls = null;
+
+					this.amsMaps = null;
+					this.pcdMeshes = {};
+					this.tfBaseLinkToVelodyne = null;
+					this.pointsMapViewPosition = null;
+					this.vehiclePose = null;
+
+
+					this.camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, 1, 4000 );
+					this.camera.up.set(0,0,1);
+
+					this.scene = new THREE.Scene();
+
+					this.renderer = new THREE.WebGLRenderer( { antialias: false } );
+					this.renderer.setPixelRatio( window.devicePixelRatio );
+					this.renderer.setSize( window.innerWidth, window.innerHeight );
+					this.renderer.gammaInput = true;
+					this.renderer.gammaOutput = true;
+                    this.renderer.setClearColor(0x333333, 1.0);
+
+                    this.stats = new Stats();
+
+					this.container = document.getElementById( 'container' );
+					this.container.appendChild( this.renderer.domElement );
+					this.container.appendChild( this.stats.dom );
+
+					this.setOrbitControls();
+
+					this.container.appendChild( this.stats.dom );
+
+					window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
+
+					this.scene.add( this.camera );
+
+                    this.animate();
+
+				}
+
+				setOrbitControls() {
+                    this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+                    this.controls.addEventListener( 'change', this.render.bind(this) );
+                }
+
+				animate() {
+					if( this.camera !== null && this.controls !==null ) {
+						requestAnimationFrame( this.animate.bind(this) );
+						this.render();
+						this.stats.update();
+					}
+				}
+
+				render() {
+					this.renderer.render( this.scene, this.camera );
+				}
+
+				onWindowResize() {
+					this.camera.aspect = window.innerWidth / window.innerHeight;
+					this.camera.updateProjectionMatrix();
+					this.renderer.setSize( window.innerWidth, window.innerHeight );
+					this.controls.handleResize();
+				}
+
+				updateViewPoseByTargetPosition(position) {
+                    this.controls.target.set( position.x, position.y, position.z + 20);
+				    print(this.controls.target.position, this.camera.position, position);
+					this.camera.position.x = position.x;
+					this.camera.position.y = position.y;
+					this.camera.position.z = position.z + 300;
+                    this.camera.lookAt(this.controls.target);
+				}
+
+				getViewTargetPosition() {
+			   		print("getViewTargetPosition");
+					let that = this;
+					const xhttpPCDs = new XMLHttpRequest();
+					xhttpPCDs.onreadystatechange = function() {
+						if (this.readyState == 4 && this.status == 200) {
+							that.updateViewPoseByTargetPosition(JSON.parse(this.responseText));
+						}
+					};
+					xhttpPCDs.open("GET", "http://"+location.host+"/get/view/target/position", true);
+					xhttpPCDs.send();
+				}
+
+				getAMSMaps() {
+			   		print("getAMSMaps");
+					let that = this;
+					const xhttpPCDs = new XMLHttpRequest();
+					xhttpPCDs.onreadystatechange = function() {
+						if (this.readyState == 4 && this.status == 200) {
+						    that.amsMaps = JSON.parse(this.responseText)
+							print("amsMaps", that.amsMaps);
+                            that.drawArrows();
+						}
+					};
+					xhttpPCDs.open("GET", "http://"+location.host+"/get/ams/maps", true);
+					xhttpPCDs.send();
+				}
+
+				getPCDFileNames() {
+			   		print("getPCDFileNames");
+					let that = this;
+					const xhttpPCDs = new XMLHttpRequest();
+					xhttpPCDs.onreadystatechange = function() {
+						if (this.readyState == 4 && this.status == 200) {
+							that.getPointsMap(JSON.parse(this.responseText), that.scene, 0.1);
+						}
+					};
+
+					xhttpPCDs.open("GET", "http://"+location.host+"/get/pcd/file/names", true);
+					xhttpPCDs.send();
+				}
+
+				getPointsMap(pcdFileNames, scene, pointSize=0.1) {
+			   		print("getPointsMap", pcdFileNames);
+					let loader = new THREE.PCDLoader();
+					for(const pcdFileName of pcdFileNames) {
+					    print(location.host+"/get/pcd/file/"+pcdFileName);
+                        loader.load(
+                            "http://"+location.host+"/get/pcd/file/"+pcdFileName,
+                            function ( mesh ) {
+                                mesh.name = "pointsMap/"+pcdFileName;
+                                mesh.material.size = pointSize;
+                                scene.add(mesh);
+                                print(scene);
+                            },
+                            // called when loading is in progresses
+                            function ( xhr ) {
+                                //print( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                            },
+                            // called when loading has errors
+                            function ( error ) {
+                                print( 'An error happened' );
+                            }
+                        );
+					}
+				}
+
+                drawArrows() {
+                    const color = 0xFF0000;
+                    var material = new THREE.LineBasicMaterial({ color: color, linewidth: 5 });
+
+                    for(const arrow of Object.values(this.amsMaps.arrows)) {
+                        var geometry = new THREE.Geometry();
+                        for(const waypointID of Object.values(arrow.waypointIDs)) {
+                            const point = this.amsMaps.waypoints[waypointID];
+                            geometry.vertices.push(new THREE.Vector3(point.position.x, point.position.y, point.position.z));
+                        }
+                        geometry.computeBoundingSphere();
+
+                        const line = new THREE.Line( geometry, material );
+                        line.name = "arrowLine/"+arrow.arrowCode;
+                        this.scene.add( line );
+
+                        var to = geometry.vertices[geometry.vertices.length-1];
+                        var from = geometry.vertices[geometry.vertices.length-2];
+                        var direction = to.clone().sub(from);
+                        const headLength = 1.0;
+                        const headWidth = 0.5;
+                        var arrowHelper = new THREE.ArrowHelper(direction.normalize(), from, headLength+0.00000001, color, headLength, headWidth);
+                        arrowHelper.name = "arrowHead/"+arrow.arrowCode;
+                        this.scene.add( arrowHelper );
+
+                    }
+                }
+
+				onCurrentPoseMessage(topic, message) {
+				    const currentPose = JSON.parse(message.toString());
+				    const sceneObjectName = "collada/" + Topic.get_from_target_code(topic);
+				    const to_name = Topic.get_to_name(topic);
+				    let daeFileName = "milee.dae";
+				    if( to_name.includes("milee") ) {
+				        daeFileName = "milee.dae"
+					}
+					else if( to_name.includes("logiee") ) {
+				        daeFileName = "logiee.dae"
+					}
+				    else if( to_name.includes("postee") ) {
+				        daeFileName = "milee.dae"
+					}
+				    const sceneObject = this.scene.getObjectByName(sceneObjectName);
+				    const that = this;
+					if(typeof sceneObject === "undefined") {
+						this.colladaLoader.load(
+						    "http://"+location.host+"/static/dae/"+daeFileName,
+							function ( collada ) {
+						        collada.scene.name = sceneObjectName;
+								that.scene.add(collada.scene);
+								print("setCollada", collada.scene, currentPose);
+								that.updateCollada(collada.scene, currentPose);
+							}
+						);
+					}
+					else {
+					    print("updateCollada", sceneObject, currentPose);
+					    this.updateCollada(sceneObject, currentPose);
+					}
+				}
+
+				updateCollada(collada, currentPose) {
+					collada.position.x = currentPose.pose.position.x;
+					collada.position.y = currentPose.pose.position.y;
+					collada.position.z = currentPose.pose.position.z;
+					collada.setRotationFromQuaternion(currentPose.pose.orientation);
+				}
+
+				drawAll() {
+				    this.getViewTargetPosition();
+				    this.getAMSMaps();
+					this.getPCDFileNames();
+				}
+			}
+
+			class SimAutowareMonitor {
+
+			    constructor() {
+			        this.onMessageCallbacks = {};
+					var client  = mqtt.connect('mqtt://localhost:8080');
+
+					client.on('connect', function () {
+					  client.subscribe('/+/+/+/+/+/current_pose');
+					});
+
+                    const that = this;
+					client.on('message', function (topic, message) {
+					    const key = String(Topic.get_categories(topic));
+					    print(key, that.onMessageCallbacks, Object.keys(that.onMessageCallbacks).includes(key));
+						if( Object.keys(that.onMessageCallbacks).includes(key) ) {
+        					that.onMessageCallbacks[key](topic, message);
+						}
+					});
+
+				}
+				setOnCurrentPoseMessage(categories, onCurrentPoseMessage) {
+			        this.onMessageCallbacks[String(categories)] = onCurrentPoseMessage;
+			        print("setOnCurrentPoseMessage", this.onMessageCallbacks);
+				}
+			}
+
+			const threeMap = new ThreeMap();
+			const simAutowareMonitor = new SimAutowareMonitor();
+
+			threeMap.drawAll();
+			simAutowareMonitor.setOnCurrentPoseMessage("current_pose", threeMap.onCurrentPoseMessage.bind(threeMap));
+
+		</script>
+	</body>
+</html>

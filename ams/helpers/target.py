@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from ams.helpers import Converter
 from ams.structures import TARGET
 from ams.structures import Target as Structure
 from ams.structures import Targets as Structures
@@ -11,7 +12,7 @@ class Target(object):
     CONST = TARGET
 
     @staticmethod
-    def new_target(group, _id):
+    def new_target(group, _id=None):
         return Structure.new_data(
             group=group,
             id=_id,
@@ -20,9 +21,9 @@ class Target(object):
     @staticmethod
     def new_node_target(node):
         if isinstance(node, type):
-            return Target.new_target(node.__name__, None)
+            return Target.new_target(Converter.camel_case_to_snake_case(node.__name__), None)
         else:
-            return Target.new_target(node.__class__.__name__, node.event_loop_id)
+            return node.target
 
     validate_target = Structure.validate_data
     get_errors = Structure.get_errors

@@ -38,7 +38,8 @@ locations_template = [Location.get_template()]
 
 locations_schema = {
     "type": "list",
-    "valueschema": {
+    "schema": {
+        "type": "dict",
         "schema": Location.get_schema(),
         "required": True,
         "nullable": False,

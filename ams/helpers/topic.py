@@ -11,6 +11,7 @@ from ams.structures import TOPIC
 class Topic(object):
 
     CONST = TOPIC
+    domain = TOPIC.DOMAIN
 
     @staticmethod
     def get_target_topic_part(target, use_wild_card=False):
@@ -26,7 +27,9 @@ class Topic(object):
                 return TOPIC.DELIMITER.join([TOPIC.ANY, TOPIC.ANY])
 
     @staticmethod
-    def get_topic(from_target, domain=TOPIC.DOMAIN, to_target=None, categories=None, use_wild_card=False):
+    def get_topic(from_target, domain=None, to_target=None, categories=None, use_wild_card=False):
+        if domain is None:
+            domain = Topic.domain
         return TOPIC.DELIMITER.join([
             "",
             domain,
@@ -42,6 +45,9 @@ class Topic(object):
             from_target = Topic.get_to_target(topic)
         to_target = Topic.get_from_target(topic)
         categories = Topic.get_categories(topic)
+        if categories[0] != TOPIC.REQUEST_CATEGORIES_HEAD:
+            logger.error("Unknown request topic categories head: {}".format(categories[0]))
+        categories[0] = TOPIC.RESPONSE_CATEGORIES_HEAD
         return Topic.get_topic(from_target, domain, to_target, categories)
 
     @staticmethod
@@ -58,10 +64,7 @@ class Topic(object):
 
     @staticmethod
     def get_from_target(topic):
-        return Target.new_data(
-            group=Topic.get_from_group(topic),
-            id=Topic.get_from_id(topic)
-        )
+        return Target.new_target(Topic.get_from_group(topic), Topic.get_from_id(topic))
 
     @staticmethod
     def get_to_group(topic):
@@ -73,10 +76,7 @@ class Topic(object):
 
     @staticmethod
     def get_to_target(topic):
-        return Target.new_data(
-            group=Topic.get_to_group(topic),
-            id=Topic.get_to_id(topic)
-        )
+        return Target.new_target(Topic.get_to_group(topic), Topic.get_to_id(topic))
 
     @staticmethod
     def get_targets(topic):
@@ -84,7 +84,7 @@ class Topic(object):
 
     @staticmethod
     def get_categories(topic):
-        return topic.split(TOPIC.DELIMITER)[TOPIC.CATEGORIES_HEAD_INDEX]
+        return topic.split(TOPIC.DELIMITER)[TOPIC.CATEGORIES_HEAD_INDEX:]
 
     @staticmethod
     def compare_topics(subscribe_topic, incoming_topic):
@@ -94,7 +94,7 @@ class Topic(object):
             subscribe_topic_parts = subscribe_topic.split(TOPIC.DELIMITER)
             incoming_topic_parts = incoming_topic.split(TOPIC.DELIMITER)
             for i, subscribe_topic_part in enumerate(subscribe_topic_parts):
-                if subscribe_topic_parts == "#":
+                if subscribe_topic_part == "#":
                     return True
                 else:
                     if all([
@@ -111,14 +111,20 @@ class Topic(object):
 
     @staticmethod
     def unserialize(payload, structure=None):
-        json_message = json.loads(payload)
+        message = json.loads(payload)
         if structure is None:
-            return json_message
+            return message
         else:
-            if isinstance(json_message, dict):
-                return structure.new_data(**json.loads(payload))
-            elif isinstance(json_message, list):
-                return structure.new_data(json.loads(payload))
+            if isinstance(message, dict):
+                return structure.new_data(**message)
+            elif isinstance(message, list):
+                return structure.new_data(message)
+            elif message is None:
+                return message
             else:
-                logger.error("ValueError: " + str(json_message))
-                raise ValueError("ValueError: " + str(json_message))
+                logger.error(
+                    "ValueError: message={}, type_of_message={}, payload={}, type_of_payload={}".format
+                    (message, type(message), payload, type(payload)))
+                raise ValueError(
+                    "ValueError: message={}, type_of_message={}, payload={}, type_of_payload={}".format(
+                        message, type(message), payload, type(payload)))

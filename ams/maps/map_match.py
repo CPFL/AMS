@@ -9,15 +9,16 @@ class MapMatch(object):
     def __init__(self):
         self.__waypoint = None
         self.__arrow = None
-        self.__route = Route()
+        self.__route = None
 
     def set_waypoint(self, waypoint):
         self.__waypoint = waypoint
-        self.__route.set_waypoint(self.__waypoint)
 
     def set_arrow(self, arrow):
         self.__arrow = arrow
-        self.__route.set_arrow(self.__arrow)
+
+    def set_route(self, route):
+        self.__route = route
 
     @staticmethod
     def get_similarity_between_poses(pose1, pose2):
@@ -59,10 +60,18 @@ class MapMatch(object):
         similarity_max = 0.0
         matched_location = None
         for arrow_code in arrow_codes:
-            for waypoint_id in self.__arrow.get_waypoint_ids(arrow_code):
-                pose_on_route = self.__waypoint.get_pose(waypoint_id)
-                similarity = MapMatch.get_similarity_between_poses(pose, pose_on_route)
-                if matched_location is None or similarity_max < similarity:
-                    matched_location = Location.new_location(waypoint_id, arrow_code)
-                    similarity_max = similarity
+
+            # easy filter
+            waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
+            pose_on_route = self.__waypoint.get_pose(waypoint_ids[0])
+            similarity_head = MapMatch.get_similarity_between_poses(pose, pose_on_route)
+            if -15.0 < similarity_head:
+
+                for waypoint_id in self.__arrow.get_waypoint_ids(arrow_code):
+                    pose_on_route = self.__waypoint.get_pose(waypoint_id)
+                    similarity = MapMatch.get_similarity_between_poses(pose, pose_on_route)
+                    if matched_location is None or similarity_max < similarity:
+                        matched_location = Location.new_location(waypoint_id, arrow_code)
+                        similarity_max = similarity
+
         return matched_location
