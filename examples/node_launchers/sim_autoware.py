@@ -3,7 +3,6 @@
 
 from time import time, sleep
 from argparse import ArgumentParser
-from uuid import uuid1 as uuid
 
 from ams.helpers import Topic, Target
 from ams.nodes import SimAutoware
@@ -95,4 +94,3 @@ if __name__ == '__main__':
     sim_autoware.start()
     while True:
         sleep(2)
-        # print_all(kvs_client)
