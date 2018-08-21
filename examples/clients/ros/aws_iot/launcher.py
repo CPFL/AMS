@@ -78,7 +78,7 @@ if __name__ == '__main__':
     ])
     process_based_lane_waypoints_array_mqtt_to_ros = Process(target=launch_aws_iot_to_ros_bridge, args=[
         "ams_to_ros_based_lane_waypoints_array",
-        ams_to_ros_base_topic + "/based/lane_waypoints_array", "/based/lane_waypoints_array",
+        ams_to_ros_base_topic + "/based/lane_waypoints_array", "/based/lane_waypoints_raw",
         "autoware_msgs/LaneArray",
         rospy_rate,
         args.ca_file_path, args.key_file_path, args.certificate_file_path
