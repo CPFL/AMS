@@ -30,6 +30,9 @@ pubsub = {
         "AWS_IOT_BOTO3": {
             "MODULE_NAME": "boto3",
             "CLIENT_TYPE": "iot-data"
+        },
+        "ROS_NODE":{
+            "MODULE_NAME": "rospy"
         }
     }
 }

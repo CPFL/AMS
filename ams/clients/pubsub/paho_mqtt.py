@@ -4,7 +4,6 @@
 from copy import copy
 from multiprocessing import Manager
 from _ssl import PROTOCOL_TLSv1_2
-
 from paho.mqtt.client import Client
 
 from ams import AttrDict, logger
@@ -59,7 +58,7 @@ def set_on_message_and_connect(client, args, subscribers, subscribers_lock):
 
 class PubSubClient(ArgsSetters):
     def __init__(self):
-        super().__init__()
+        super(PubSubClient, self).__init__()
         self.__manager = Manager()
         self.__subscribers = {}
         self.__subscribers_lock = self.__manager.Lock()
