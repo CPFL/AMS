@@ -1,4 +1,4 @@
-from ams.structures.rpy import Rpy
+from ams.structures.rpy import RPY, Rpy
 from ams.structures.quaternion import Quaternion
 from ams.structures.position import Position
 from ams.structures.orientation import Orientation
@@ -18,3 +18,5 @@ from ams.structures.spot import Spot
 from ams.structures.topic import TOPIC
 from ams.structures.message_header import MessageHeader
 from ams.structures.client import CLIENT
+
+from ams.structures.autoware_message import AutowareMessage

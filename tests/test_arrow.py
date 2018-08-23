@@ -6,11 +6,11 @@ import unittest
 from ams.helpers import Arrow, Position
 
 
-class TestArrowHelper(unittest.TestCase):
+class TestArrow(unittest.TestCase):
 
     def __init__(self, method_name):
 
-        super(TestArrowHelper, self).__init__(method_name)
+        super(TestArrow, self).__init__(method_name)
 
     def test_get_distance(self):
         position1 = Position.new_position(1.0, 2.0, 3.0)
@@ -26,11 +26,11 @@ class TestArrowHelper(unittest.TestCase):
         self.assertEqual(expected, value)
 
 
-def test_arrow_helper(test_loader, suite):
-    test_names = test_loader.getTestCaseNames(TestArrowHelper)
+def test_arrow(test_loader, suite):
+    test_names = test_loader.getTestCaseNames(TestArrow)
 
     for test_name in test_names:
-        suite.addTest(TestArrowHelper(test_name))
+        suite.addTest(TestArrow(test_name))
 
 
 if __name__ == "__main__":
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     test_loader = unittest.TestLoader()
     suite = unittest.TestSuite()
 
-    test_arrow_helper(test_loader, suite)
+    test_arrow(test_loader, suite)
 
     result = unittest.TextTestRunner().run(suite)
     sys.exit(not result.wasSuccessful())

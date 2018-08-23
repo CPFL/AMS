@@ -5,8 +5,7 @@ from time import time
 from math import modf
 
 from ams import logger
-from ams.clients import MapsClient
-from ams.helpers import Target
+from ams.helpers import Target, Route
 from ams.structures import CLIENT, Pose, RouteDetail, Location
 from ams.nodes.vehicle import Helper as VehicleHelper
 from ams.nodes.autoware import CONST, Structure
@@ -91,7 +90,7 @@ class Helper(VehicleHelper):
 
     @classmethod
     def get_location_from_closest_waypoint(cls, clients, closest_waypoint, vehicle_status):
-        route = clients["maps"].route.decode_route_code(vehicle_status.route_code)
+        route = Route.decode(vehicle_status.route_code)
         locations = clients["maps"].route.get_locations(route)
         return locations[closest_waypoint.data]
 
@@ -145,7 +144,7 @@ class Helper(VehicleHelper):
     def get_vehicle_route_code(cls, vehicle_status, vehicle_schedules):
         next_vehicle_schedule_index = cls.get_next_vehicle_schedule_index(vehicle_status, vehicle_schedules)
         route = vehicle_schedules[next_vehicle_schedule_index].route
-        return MapsClient.Route.encode_route(route)
+        return Route.encode(route)
 
     @classmethod
     def update_and_set_vehicle_pose_to_route_start(cls, clients, target_roles, vehicle_status):

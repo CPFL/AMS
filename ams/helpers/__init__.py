@@ -1,6 +1,7 @@
 from ams.helpers.position import Position
 from ams.helpers.vector import Vector
 from ams.helpers.rpy import Rpy
+from ams.helpers.orientation import Orientation
 from ams.helpers.converter import Converter
 from ams.helpers.location import Location
 from ams.helpers.schedule import Schedule
@@ -8,5 +9,8 @@ from ams.helpers.schedule_branch import ScheduleBranch
 from ams.helpers.target import Target
 from ams.helpers.topic import Topic
 from ams.helpers.kvs import Kvs
+from ams.helpers.waypoint import Waypoint
+from ams.helpers.arrow import Arrow
+from ams.helpers.route import Route
 from ams.helpers.relation import Relation
 from ams.helpers.simulator import Simulator
