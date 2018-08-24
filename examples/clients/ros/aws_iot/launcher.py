@@ -16,7 +16,7 @@ from ams.nodes.ros_bridge import EventLoop as RosBridge
 
 
 def launch_route_code_to_lane_array_bridge(
-        waypoint_json_path, arrow_json_path, ros_node_name, ros_id, bridge_node_name, bridge_node_id, message_type, rospy_rate,
+        waypoint_json_path, arrow_json_path, autoware_node_name, autoware_node_id, bridge_node_name, bridge_node_id,
         ca_file_path, key_file_path, certificate_file_path):
     maps_client = MapsClient()
     maps_client.load_waypoint_json_file(waypoint_json_path)
@@ -34,13 +34,15 @@ def launch_route_code_to_lane_array_bridge(
     ros_client = ROSClient()
 
     ros_bridge = RosBridge(group=bridge_node_name, _id=bridge_node_id)
+    ros_bridge.set_target(autoware_node_name, autoware_node_id)
     ros_bridge.set_maps_client(maps_client)
     ros_bridge.set_pubsub_clients(aws_iot_client, ros_client)
+    print("start lane_array_bridge.")
     ros_bridge.start()
 
 
 def launch_ros_to_aws_iot_bridge(
-        ros_node_name, from_topic, to_topic, message_type, rospy_rate,
+        autoware_node_name, from_topic, to_topic, message_type, rospy_rate,
         ca_file_path, key_file_path, certificate_file_path
 ):
     ros_to_aws_iot = ROSToAWSIoT(from_topic, to_topic, message_type)
@@ -48,14 +50,14 @@ def launch_ros_to_aws_iot_bridge(
     ros_to_aws_iot.set_aws_iot_configureEndpoint(env["AWS_IOT_ENDPOINT"], 8883)
     ros_to_aws_iot.set_aws_iot_configureCredentials(ca_file_path, key_file_path, certificate_file_path)
     ros_to_aws_iot.set_aws_iot_connect()
-    ros_to_aws_iot.set_ros_init_node_args(name=ros_node_name)
+    ros_to_aws_iot.set_ros_init_node_args(name=autoware_node_name)
     ros_to_aws_iot.set_ros_rate_args(hz=rospy_rate)
     print("start ros_to_aws_iot_bridge {} -> {}.".format(from_topic, to_topic))
     ros_to_aws_iot.start()
 
 
 def launch_aws_iot_to_ros_bridge(
-        ros_node_name, from_topic, to_topic, message_type, rospy_rate,
+        autoware_node_name, from_topic, to_topic, message_type, rospy_rate,
         ca_file_path, key_file_path, certificate_file_path
 ):
     aws_iot_to_ros = AWSIoTToROS(from_topic, to_topic, message_type)
@@ -63,7 +65,7 @@ def launch_aws_iot_to_ros_bridge(
     aws_iot_to_ros.set_aws_iot_configureEndpoint(env["AWS_IOT_ENDPOINT"], 8883)
     aws_iot_to_ros.set_aws_iot_configureCredentials(ca_file_path, key_file_path, certificate_file_path)
     aws_iot_to_ros.set_aws_iot_connect()
-    aws_iot_to_ros.set_ros_init_node_args(name=ros_node_name)
+    aws_iot_to_ros.set_ros_init_node_args(name=autoware_node_name)
     aws_iot_to_ros.set_ros_rate_args(hz=rospy_rate)
     print("start mqtt_to_ros_bridge {} -> {}.".format(from_topic, to_topic))
     aws_iot_to_ros.start()
@@ -71,20 +73,24 @@ def launch_aws_iot_to_ros_bridge(
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("-RNN", "--ros_node_name", type=str, required=True, help="ros node name")
     parser.add_argument("-RID", "--ros_id", type=str, required=True, help="ros id")
-    parser.add_argument("-BNN", "--bridge_node_name", type=str, required=True, help="ros_bridge node name")
+    parser.add_argument("-BNN", "--bridge_node_name", type=str, default="ros_bridge", help="ros_bridge node name")
     parser.add_argument("-BID", "--bridge_node_id", type=str, required=True, help="ros_bridge node id")
-    parser.add_argument("-AID", "--autoware_id", type=str, required=True, help="autoware id")
+    parser.add_argument("-ANN", "--autoware_node_name", type=str, required=True, help="autoware node name")
+    parser.add_argument("-AID", "--autoware_node_id", type=str, required=True, help="autoware node id")
     parser.add_argument("-TD", "--topic_domain", type=str, default="ams", help="topic domain")
 
     parser.add_argument("-CAP", "--ca_file_path", type=str, default=None, help="./secrets/root-ca.crt")
     parser.add_argument("-KP", "--key_file_path", type=str, default="", help="./secrets/private.key")
     parser.add_argument("-CP", "--certificate_file_path", type=str, default="", help="./secrets/cert.pem")
+
+    parser.add_argument("-WJP", "--waypoint_json_path", type=str, default="./static/maps/waypoint.json", help="waypoint.json file path")
+    parser.add_argument("-AJP", "--arrow_json_path", type=str, default="./static/maps/arrow.json", help="arrow.json file path")
+
     args = parser.parse_args()
 
-    ros_to_ams_base_topic = "/".join(["", args.topic_domain, "ros", args.ros_id, args.ros_node_name, args.autoware_id])
-    ams_to_ros_base_topic = "/".join(["", args.topic_domain, args.ros_node_name, args.autoware_id, "ros", args.ros_id])
+    ros_to_ams_base_topic = "/".join(["", args.topic_domain, "ros", args.ros_id, args.autoware_node_name, args.autoware_node_id])
+    ams_to_ros_base_topic = "/".join(["", args.topic_domain, args.autoware_node_name, args.autoware_node_id, "ros", args.ros_id])
     rospy_rate = 1
     process_current_pose_ros_to_mqtt = Process(target=launch_ros_to_aws_iot_bridge, args=[
         "ros_to_ams_current_pose",
@@ -136,7 +142,9 @@ if __name__ == '__main__':
         # process_based_lane_waypoints_array_mqtt_to_ros.start()
         process_state_cmd_mqtt_to_ros.start()
         process_light_color_mqtt_to_ros.start()
-
+        launch_route_code_to_lane_array_bridge(
+                args.waypoint_json_path, args.arrow_json_path, args.autoware_node_name, args.autoware_node_id, args.bridge_node_name, args.bridge_node_id,
+                args.ca_file_path, args.key_file_path, args.certificate_file_path)
     except KeyboardInterrupt:
         process_current_pose_ros_to_mqtt.terminate()
         process_closest_waypoint_ros_to_mqtt.terminate()
@@ -144,3 +152,4 @@ if __name__ == '__main__':
         # process_based_lane_waypoints_array_mqtt_to_ros.terminate()
         process_state_cmd_mqtt_to_ros.terminate()
         process_light_color_mqtt_to_ros.terminate()
+

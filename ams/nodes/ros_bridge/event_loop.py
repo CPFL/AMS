@@ -38,6 +38,9 @@ class EventLoop(object):
             "user_data": self.user_data
         }
 
+    def set_target(self, target_node, target_id):
+        self.user_data["target_roles"]["vehicle"] = Target.new_target(target_node, target_id)
+
     def set_pubsub_clients(self, aws_iot_client, ros_client):
         self.user_data["clients"]["aws_iot"] = aws_iot_client
         self.user_data["clients"]["ros"] = ros_client

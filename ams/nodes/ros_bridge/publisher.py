@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from autoware.msgs import LaneArray
+from autoware_msgs.msg import LaneArray
 
 from ams.nodes.ros_bridge import CONST, Helper
 
