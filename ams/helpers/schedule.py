@@ -12,17 +12,19 @@ from ams.structures import Period
 class Schedule(object):
 
     @staticmethod
-    def new_schedule(targets, event, _id=None, start_time=None, end_time=None, route=None):
-        return Structure.new_data(
+    def new_schedule(targets, event, _id=None, start_time=None, end_time=None, route_code=None):
+        schedule = Structure.new_data(
             id=_id if _id is not None else Schedule.get_id(),
             targets=targets,
             event=event,
             period=Period.new_data(
                 start=start_time,
                 end=end_time
-            ) if None not in [start_time, end_time] else None,
-            route=route
+            ) if None not in [start_time, end_time] else None
         )
+        if route_code is not None:
+            schedule.route_code = route_code
+        return schedule
 
     @staticmethod
     def new_schedules(schedules):

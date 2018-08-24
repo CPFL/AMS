@@ -3,7 +3,7 @@
 
 import random
 
-from ams.helpers import Schedule
+from ams.helpers import Schedule, Route
 from ams.nodes.dispatcher import Helper as DispatcherHelper
 from ams.nodes.autoware import CONST as AUTOWARE
 from ams.nodes.autoware import Structure as AutowareStructure
@@ -42,7 +42,7 @@ class Helper(DispatcherHelper):
                 event=cls.VEHICLE.EVENT.START_MISSION,
                 start_time=current_time,
                 end_time=current_time + 10,
-                route=None
+                route_code=None
             )
         ]
         current_time += 10
@@ -69,14 +69,14 @@ class Helper(DispatcherHelper):
                     cls.VEHICLE.EVENT.SEND_LANE_WAYPOINT_ARRAY,
                     start_time=current_time,
                     end_time=current_time + 100,
-                    route=shortest_route
+                    route_code=Route.decode(shortest_route)
                 ),
                 Schedule.new_schedule(
                     targets,
                     cls.VEHICLE.EVENT.SEND_ENGAGE,
                     start_time=current_time,
                     end_time=current_time + 100,
-                    route=None
+                    route_code=None
                 )
             ])
 
@@ -88,7 +88,7 @@ class Helper(DispatcherHelper):
                 event=cls.VEHICLE.EVENT.END_MISSION,
                 start_time=current_time+5,
                 end_time=current_time+5,
-                route=None
+                route_code=None
             )
         ])
 

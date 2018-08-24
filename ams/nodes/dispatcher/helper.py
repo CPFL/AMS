@@ -133,7 +133,7 @@ class Helper(object):
                 event=cls.VEHICLE.EVENT.ACTIVATE,
                 start_time=current_time,
                 end_time=current_time + 100,
-                route=None
+                route_code=None
             )
         ]
 
@@ -145,14 +145,14 @@ class Helper(object):
                 event=cls.VEHICLE.EVENT.START_MISSION,
                 start_time=current_time,
                 end_time=current_time + 10,
-                route=None
+                route_code=None
             ),
             Schedule.new_schedule(
                 targets=targets,
                 event=cls.VEHICLE.EVENT.END_MISSION,
                 start_time=current_time,
                 end_time=current_time,
-                route=None
+                route_code=None
             )
         ]
 
@@ -164,14 +164,14 @@ class Helper(object):
                 event=cls.VEHICLE.EVENT.DEACTIVATE,
                 start_time=current_time,
                 end_time=current_time + 100,
-                route=None
+                route_code=None
             ),
             Schedule.new_schedule(
                 targets=targets,
                 event=cls.VEHICLE.EVENT.END,
                 start_time=current_time,
                 end_time=current_time + 100,
-                route=None
+                route_code=None
             )
         ]
 

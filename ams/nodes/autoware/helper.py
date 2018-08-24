@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
-from math import modf
-
 from ams import logger
 from ams.helpers import Target, Route
 from ams.structures import CLIENT, Pose, RouteDetail, Location
@@ -99,41 +96,9 @@ class Helper(VehicleHelper):
         return clients["maps"].arrow.get_pose(location.arrow_code, location.waypoint_id)
 
     @classmethod
-    def get_lane_waypoint_array_from_route_detail(cls, route_detail):
-        if 0 == len(route_detail):
-            return None
-
-        logger.info(route_detail)
-
-        header = cls.Structure.ROSMessage.Header.get_template()
-        nsec, sec = modf(time())
-        header.stamp.secs = int(sec)
-        header.stamp.nsecs = int(nsec*(10**9))
-
-        lane_array = cls.Structure.ROSMessage.LaneArray.get_template()
-        lane_array.lanes[0].header = header
-        lane_array.lanes[0].waypoints = []
-
-        for route_point in route_detail:
-            waypoint = cls.Structure.ROSMessage.LaneArray.Lane.Waypoint.get_template()
-            waypoint.pose.header = header
-            waypoint.pose.pose.position.x = route_point.pose.position.x
-            waypoint.pose.pose.position.y = route_point.pose.position.y
-            waypoint.pose.pose.position.z = route_point.pose.position.z
-            waypoint.pose.pose.orientation.z = route_point.pose.orientation.quaternion.z
-            waypoint.pose.pose.orientation.w = route_point.pose.orientation.quaternion.w
-
-            waypoint.twist.header = header
-            waypoint.twist.twist.linear.x = route_point.speed_limit
-
-            lane_array.lanes[0].waypoints.append(waypoint)
-
-        return lane_array
-
-    @classmethod
     def get_next_schedule_route_detail(cls, clients, vehicle_status, vehicle_schedules):
         next_vehicle_schedule_index = cls.get_next_vehicle_schedule_index(vehicle_status, vehicle_schedules)
-        route = vehicle_schedules[next_vehicle_schedule_index].route
+        route = Route.decode(vehicle_schedules[next_vehicle_schedule_index].route_code)
         return clients["maps"].route.get_detail(route)
 
     @classmethod
@@ -141,10 +106,9 @@ class Helper(VehicleHelper):
         return cls.Structure.ROSMessage.StateCMD.new_data(data=data)
 
     @classmethod
-    def get_vehicle_route_code(cls, vehicle_status, vehicle_schedules):
+    def get_route_code(cls, vehicle_status, vehicle_schedules):
         next_vehicle_schedule_index = cls.get_next_vehicle_schedule_index(vehicle_status, vehicle_schedules)
-        route = vehicle_schedules[next_vehicle_schedule_index].route
-        return Route.encode(route)
+        return vehicle_schedules[next_vehicle_schedule_index].route_code
 
     @classmethod
     def update_and_set_vehicle_pose_to_route_start(cls, clients, target_roles, vehicle_status):

@@ -12,6 +12,7 @@ from ros_mqtt_bridge import AWSIoTToROS, ROSToAWSIoT
 
 from config.env import env
 from ams.clients import MapsClient, get_pubsub_client_class
+from ams.helpers import Topic
 from ams.nodes.ros_bridge import EventLoop as RosBridge
 
 
@@ -74,7 +75,7 @@ def launch_aws_iot_to_ros_bridge(
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-RID", "--ros_id", type=str, required=True, help="ros id")
-    parser.add_argument("-BNN", "--bridge_node_name", type=str, default="ros_bridge", help="ros_bridge node name")
+    parser.add_argument("-BNN", "--bridge_node_name", type=str, default="ros", help="ros_bridge node name")
     parser.add_argument("-BID", "--bridge_node_id", type=str, required=True, help="ros_bridge node id")
     parser.add_argument("-ANN", "--autoware_node_name", type=str, required=True, help="autoware node name")
     parser.add_argument("-AID", "--autoware_node_id", type=str, required=True, help="autoware node id")
@@ -88,6 +89,8 @@ if __name__ == '__main__':
     parser.add_argument("-AJP", "--arrow_json_path", type=str, default="./static/maps/arrow.json", help="arrow.json file path")
 
     args = parser.parse_args()
+
+    Topic.domain = args.topic_domain
 
     ros_to_ams_base_topic = "/".join(["", args.topic_domain, "ros", args.ros_id, args.autoware_node_name, args.autoware_node_id])
     ams_to_ros_base_topic = "/".join(["", args.topic_domain, args.autoware_node_name, args.autoware_node_id, "ros", args.ros_id])
