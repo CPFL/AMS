@@ -112,9 +112,6 @@ class Arrow(object):
                 }
             prev_position = next_position
 
-        if len(matched_waypoints) == 0:
-            raise Exception
-
         most_matched_waypoint = min(matched_waypoints.values(), key=lambda x: x["distance"])
         return most_matched_waypoint["waypoint_id"], \
             most_matched_waypoint["position"], \
@@ -137,9 +134,6 @@ class Arrow(object):
                 "position": position,
                 "distance": distance
             }
-
-        if len(matched_waypoints) == 0:
-            raise Exception
 
         most_matched_waypoint = min(matched_waypoints.values(), key=lambda x: x["distance"])
         return most_matched_waypoint["arrow_code"],\
