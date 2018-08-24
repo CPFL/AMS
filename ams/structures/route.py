@@ -1,18 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from sys import float_info
+
 from ams import get_structure_superclass, get_namedtuple_from_dict
 from ams.structures import Pose
 
 
 ROUTE = get_namedtuple_from_dict("CONST", {
-    "DELIMITER": ":"
+    "DELIMITERS": {
+        "WAYPOINT_ON_ARROW": ":",
+        "FOREWARD": ">",
+        "BACKWARD": "<",
+    },
+    "COST_LIMIT": float_info.max
 })
 
 route_template = {
-    "start_waypoint_id": "0",
-    "goal_waypoint_id": "1",
-    "arrow_codes": ["0_1"]
+    "waypoint_ids": ["0", "1"],
+    "arrow_codes": ["0_1"],
+    "delimiters": [":", ">", ":"]
 }
 
 '''
@@ -23,15 +30,15 @@ routes = {
 '''
 
 route_schema = {
-    "start_waypoint_id": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
-    "goal_waypoint_id": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
+    "waypoint_ids": {
+        "type": "list",
+        "schema": {
+            "type": "string",
+            "nullable": False
+        },
+        "required": False,
+        "nullable": True,
+        "minlength": 2
     },
     "arrow_codes": {
         "type": "list",
@@ -40,6 +47,16 @@ route_schema = {
             "nullable": False
         },
         "required": True,
+        "nullable": False,
+        "minlength": 1
+    },
+    "delimiters": {
+        "type": "list",
+        "schema": {
+            "type": "string",
+            "nullable": False
+        },
+        "required": False,
         "nullable": False,
         "minlength": 1
     }

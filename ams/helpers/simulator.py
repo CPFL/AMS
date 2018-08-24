@@ -5,8 +5,7 @@ from sys import float_info
 
 from ams import logger
 from ams.structures import Pose
-from ams.helpers import Position, Vector
-from ams.maps import Route
+from ams.helpers import Position, Vector, Route
 
 
 class Simulator(object):
@@ -92,7 +91,7 @@ class Simulator(object):
         distance_from_stopline = float_info.max
 
         not_green_traffic_signal_locations_set = list(map(
-            lambda x: maps_client.route.get_locations(Route.decode_route_code(x.route_code)), filter(
+            lambda x: maps_client.route.get_locations(Route.decode(x.route_code)), filter(
                 lambda x: x.state in [x.CONST.STATE.YELLOW, x.CONST.STATE.RED],
                 traffic_signals.values())))
 

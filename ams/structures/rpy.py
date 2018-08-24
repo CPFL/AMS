@@ -6,7 +6,8 @@ from ams import get_structure_superclass, get_namedtuple_from_dict
 
 
 RPY = get_namedtuple_from_dict("CONST", {
-    "PI2": 2.0 * pi
+    "MIN": 0.0,
+    "MAX": 2.0 * pi
 })
 
 template = {
@@ -20,22 +21,22 @@ schema = {
         "type": "number",
         "required": True,
         "nullable": True,
-        "min": 0.0,
-        "max": RPY.PI2
+        "min": RPY.MIN,
+        "max": RPY.MAX
     },
     "pitch": {
         "type": "number",
         "required": True,
         "nullable": True,
-        "min": 0.0,
-        "max": RPY.PI2
+        "min": RPY.MIN,
+        "max": RPY.MAX
     },
     "yaw": {
         "type": "number",
         "required": True,
         "nullable": True,
-        "min": 0.0,
-        "max": RPY.PI2
+        "min": RPY.MIN,
+        "max": RPY.MAX
     }
 }
 
