@@ -39,6 +39,14 @@ class TestRoute(unittest.TestCase):
         value = Route.decode("1:0>2:2:2<0:1:0>2>4:3")
         self.assertEqual(expected, value)
 
+        expected = Route.new_route(
+            waypoint_ids=["1942", "2078"],
+            arrow_codes=["2078_1942"],
+            delimiters=[":", "<", ":"]
+        )
+        value = Route.decode("1942:1942<2078:2078")
+        self.assertEqual(expected, value)
+
     def test_get_shortest_routes(self):
         arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
         waypoints = Waypoint.load("./res/waypoint.json")
@@ -75,9 +83,12 @@ class TestRoute(unittest.TestCase):
 
         arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
         waypoints = Waypoint.load("./res/waypoint.json")
-        value = Route.get_lane_array(
+        value1 = Route.get_lane_array(
             "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
-        self.assertEqual(expected, value)
+        self.assertEqual(expected, value1)
+        value2 = Route.get_lane_array(
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
+        self.assertEqual(expected, value2)
 
 
 def test_route(test_loader, suite):
