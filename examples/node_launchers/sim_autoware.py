@@ -5,6 +5,7 @@ from time import time, sleep
 from argparse import ArgumentParser
 
 from ams.helpers import Topic, Target
+from ams.clients import MapsClient
 from ams.nodes import SimAutoware
 
 from clients.helper import get_manager_client, get_redis_client, get_paho_client, get_aws_iot_client
@@ -41,6 +42,11 @@ if __name__ == '__main__':
         "-CP", "--path_cert", type=str, default="./clients/key_dev/dev-autoware.cert.pem",
         help="certificate file path")
 
+    parser.add_argument(
+        "-WJP", "--waypoint_json_path", type=str, default="./static/maps/waypoint.json", help="waypoint.json file path")
+    parser.add_argument(
+        "-AJP", "--arrow_json_path", type=str, default="./static/maps/arrow.json", help="arrow.json file path")
+
     args = parser.parse_args()
 
     if args.kvs_client_type == "manager":
@@ -58,11 +64,16 @@ if __name__ == '__main__':
     else:
         raise ValueError("Unknown pubsub client type: {}".format(args.pubsub_client_type))
 
+    maps_client = MapsClient()
+    maps_client.load_waypoint_json_file(args.waypoint_json_path)
+    maps_client.load_arrow_json_file(args.arrow_json_path)
+
     Topic.domain = args.topic_domain
 
     sim_autoware = SimAutoware(group=args.name, _id=args.id)
     sim_autoware.set_kvs_client(kvs_client)
     sim_autoware.set_pubsub_client(pubsub_client)
+    sim_autoware.set_maps_client(maps_client)
 
     start_time = time()
 

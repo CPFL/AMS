@@ -47,6 +47,31 @@ class StatusMessage(get_structure_superclass(status_message_template, status_mes
     pass
 
 
+route_code_message_template = {
+    "header": MessageHeader.get_template(),
+    "body":  "0:0>1:1"
+}
+
+route_code_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class RouteCodeMessage(get_structure_superclass(route_code_message_template, route_code_message_schema)):
+    Header = MessageHeader
+
+
 class Message(VehicleMessage):
     Config = ConfigMessage
     Status = StatusMessage
+    RouteCode = RouteCodeMessage
