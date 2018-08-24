@@ -77,6 +77,10 @@
 				    return topic.split("/").slice(6)
 				}
 
+				static get_categories_code(topic) {
+				    return Topic.get_categories(topic).join("/")
+				}
+
 				static get_from_target_code(topic) {
 				    return [this.get_from_name(topic), this.get_from_id(topic)].join("/")
 				}
@@ -134,8 +138,22 @@
                     this.controls.addEventListener( 'change', this.render.bind(this) );
                 }
 
+				updateTextFacing() {
+				    const textSceneObjects = this.scene.children.filter(x => x.name.includes("text"))
+				    for( const textSceneObject of textSceneObjects ) {
+				        const colladaSceneObjectName = "collada/"+textSceneObject.name.split("/").slice(1).join("/");
+	                    const colladaSceneObject = this.scene.getObjectByName(colladaSceneObjectName);
+	                    const centerOffset = -0.5 * ( textSceneObject.geometry.boundingBox.max.x - textSceneObject.geometry.boundingBox.min.x );
+						textSceneObject.position.x = colladaSceneObject.position.x + centerOffset;
+						textSceneObject.position.y = colladaSceneObject.position.y;
+						textSceneObject.position.z = colladaSceneObject.position.z + 1.0;
+	                    textSceneObject.lookAt( this.camera.position );
+                    }
+				}
+
 				animate() {
 					if( this.camera !== null && this.controls !==null ) {
+					    this.updateTextFacing();
 						requestAnimationFrame( this.animate.bind(this) );
 						this.render();
 						this.stats.update();
@@ -150,15 +168,14 @@
 					this.camera.aspect = window.innerWidth / window.innerHeight;
 					this.camera.updateProjectionMatrix();
 					this.renderer.setSize( window.innerWidth, window.innerHeight );
-					this.controls.handleResize();
 				}
 
 				updateViewPoseByTargetPosition(position) {
-                    this.controls.target.set( position.x, position.y, position.z + 20);
-				    print(this.controls.target.position, this.camera.position, position);
-					this.camera.position.x = position.x;
-					this.camera.position.y = position.y;
-					this.camera.position.z = position.z + 300;
+                    this.controls.target.set( position.x, position.y, position.z);
+				    // print(this.controls.target.position, this.camera.position, position);
+					this.camera.position.x = position.x + 25;
+					this.camera.position.y = position.y + 20;
+					this.camera.position.z = position.z + 80;
                     this.camera.lookAt(this.controls.target);
 				}
 
@@ -205,17 +222,17 @@
 				}
 
 				getPointsMap(pcdFileNames, scene, pointSize=0.1) {
-			   		print("getPointsMap", pcdFileNames);
+			   		// print("getPointsMap", pcdFileNames);
 					let loader = new THREE.PCDLoader();
 					for(const pcdFileName of pcdFileNames) {
-					    print(location.host+"/get/pcd/file/"+pcdFileName);
+					    // print(location.host+"/get/pcd/file/"+pcdFileName);
                         loader.load(
                             "http://"+location.host+"/get/pcd/file/"+pcdFileName,
                             function ( mesh ) {
                                 mesh.name = "pointsMap/"+pcdFileName;
                                 mesh.material.size = pointSize;
                                 scene.add(mesh);
-                                print(scene);
+                                // print(scene);
                             },
                             // called when loading is in progresses
                             function ( xhr ) {
@@ -256,7 +273,48 @@
 
                     }
                 }
+/*
+            that.fontLoader.load("http://"+location.host+'/res/static/helvetiker_regular.typeface.json', function(font) {
+                console.log("getWaypoints.topic.subscribe.onMessage.onLoadFont");
+                // arrow
+                const arrow = {};
+                for(let i=1; i<message.lanes[0].waypoints.length; i++) {
+                    const pos_1 = message.lanes[0].waypoints[i-1].pose.pose.position;
+                    const pos = message.lanes[0].waypoints[i].pose.pose.position;
+                    var from = new THREE.Vector3( pos_1.x, pos_1.y, pos_1.z );
+                    var to = new THREE.Vector3( pos.x, pos.y, pos.z );
+                    const mesh = that.drawArrowHead(0xFF0000, [from, to]);
+                    mesh.name = "arrow_"+mesh.uuid;
+                    arrow[mesh.name] = mesh;
+                }
 
+                // text
+                const text = {};
+                const textMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, overdraw: 0.2 } );
+                for( const waypoint of message.lanes[0].waypoints ) {
+                    const position = waypoint.pose.pose.position;
+                    const velocity = (Math.round(waypoint.twist.twist.linear.x*36)/10).toFixed(1).toString();
+                    const textGeometry = new THREE.TextGeometry(velocity, {
+                        font: font,
+                        size: 0.2,
+                        height: 0,
+                        curveSegments: 1,
+                    });
+                    const mesh = new THREE.Mesh( textGeometry, textMaterial );
+                    mesh.name = "text_" + mesh.uuid;
+                    mesh.position.x = position.x;
+                    mesh.position.y = position.y;
+                    mesh.position.z = position.z;
+                    mesh.lookAt( that.camera.position );
+                    text[mesh.name] = mesh;
+                }
+                that.sceneData.waypoints = {
+                    arrow: arrow,
+                    text: text,
+                    isAdded: false
+                };
+            });
+* */
 				onCurrentPoseMessage(topic, message) {
 				    const currentPose = JSON.parse(message.toString());
 				    const sceneObjectName = "collada/" + Topic.get_from_target_code(topic);
@@ -279,15 +337,65 @@
 							function ( collada ) {
 						        collada.scene.name = sceneObjectName;
 								that.scene.add(collada.scene);
-								print("setCollada", collada.scene, currentPose);
+								// print("setCollada", collada.scene, currentPose);
 								that.updateCollada(collada.scene, currentPose);
 							}
 						);
 					}
 					else {
-					    print("updateCollada", sceneObject, currentPose);
+					    // print("updateCollada", sceneObject, currentPose);
 					    this.updateCollada(sceneObject, currentPose);
 					}
+				}
+
+				onDecisionMakerStateMessage(topic, message) {
+					const decisionMakerState = JSON.parse(message.toString()).data;
+					const colladaSceneObjectName = "collada/" + Topic.get_from_target_code(topic);
+				    const stateSceneObjectName = "text/" + Topic.get_from_target_code(topic);
+				    const that = this;
+		            this.fontLoader.load("http://"+location.host+'/static/json/helvetiker_regular.typeface.json', function(font) {
+						const colladaSceneObject = that.scene.getObjectByName(colladaSceneObjectName);
+						if(typeof colladaSceneObject === "undefined") return;
+
+						let stateSceneObject = that.scene.getObjectByName(stateSceneObjectName);
+						if(typeof stateSceneObject !== "undefined") {
+						    if( stateSceneObject.geometry.parameters.text === decisionMakerState ) {
+			                    stateSceneObject.lookAt( that.camera.position );
+                                return;
+                            }
+						    else that.scene.remove(stateSceneObject);
+                        }
+
+						let color = 0xFFFFFF;
+                        switch (decisionMakerState) {
+							case "WaitOrder\n":
+			                	color = 0xFF0000;
+							    break;
+							case "DriveReady\n":
+			                	color = 0x11CCFF;
+							    break;
+							case "Drive\n":
+			                	color = 0x22FF00;
+							    break;
+							default:
+		                        color = 0xFFFFFF;
+							    break;
+                        }
+						const textMaterial = new THREE.MeshBasicMaterial({color: color, overdraw: 0.2});
+						const textGeometry = new THREE.TextGeometry(
+							decisionMakerState,
+							{
+								font: font,
+								size: 0.2,
+								height: 0,
+								curveSegments: 1
+							});
+						textGeometry.computeBoundingBox();
+						stateSceneObject = new THREE.Mesh(textGeometry, textMaterial);
+						stateSceneObject.name = stateSceneObjectName;
+						stateSceneObject.up.set(0,0,1);
+						that.scene.add(stateSceneObject);
+					});
 				}
 
 				updateCollada(collada, currentPose) {
@@ -312,21 +420,26 @@
 
 					client.on('connect', function () {
 					  client.subscribe('/+/+/+/+/+/current_pose');
+					  client.subscribe('/+/+/+/+/+/decision_maker/state');
 					});
 
                     const that = this;
 					client.on('message', function (topic, message) {
-					    const key = String(Topic.get_categories(topic));
-					    print(key, that.onMessageCallbacks, Object.keys(that.onMessageCallbacks).includes(key));
+					    const key = Topic.get_categories_code(topic);
+					    // print(key, that.onMessageCallbacks, Object.keys(that.onMessageCallbacks).includes(key));
 						if( Object.keys(that.onMessageCallbacks).includes(key) ) {
         					that.onMessageCallbacks[key](topic, message);
 						}
 					});
 
 				}
-				setOnCurrentPoseMessage(categories, onCurrentPoseMessage) {
-			        this.onMessageCallbacks[String(categories)] = onCurrentPoseMessage;
-			        print("setOnCurrentPoseMessage", this.onMessageCallbacks);
+				setOnCurrentPoseMessage(categories_code, onCurrentPoseMessage) {
+			        this.onMessageCallbacks[categories_code] = onCurrentPoseMessage;
+			        // print("setOnCurrentPoseMessage", this.onMessageCallbacks);
+				}
+				setOnDecisionMakerStateMessage(categories_code, onDecisionMakerStateMessage) {
+			        this.onMessageCallbacks[categories_code] = onDecisionMakerStateMessage;
+			        // print("setOnDecisionMakerStateMessage", this.onMessageCallbacks);
 				}
 			}
 
@@ -335,6 +448,7 @@
 
 			threeMap.drawAll();
 			simAutowareMonitor.setOnCurrentPoseMessage("current_pose", threeMap.onCurrentPoseMessage.bind(threeMap));
+			simAutowareMonitor.setOnDecisionMakerStateMessage("decision_maker/state", threeMap.onDecisionMakerStateMessage.bind(threeMap));
 
 		</script>
 	</body>

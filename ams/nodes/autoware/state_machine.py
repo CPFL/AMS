@@ -42,14 +42,13 @@ class BeforeHook(VehicleStateMachine.EventHandler.Transition.BeforeHook):
         return cls.Helper.set_route_detail(clients, target_roles, route_detail)
 
     @classmethod
-    def publish_lane_waypoint_array(cls, clients, target_roles):
-        route_detail = cls.Helper.get_route_detail(clients, target_roles)
-        lane_waypoint_array = cls.Helper.get_lane_waypoint_array_from_route_detail(route_detail)
-        cls.Publisher.publish_lane_waypoint_array(clients, target_roles, lane_waypoint_array)
+    def publish_route_code(cls, clients, target_roles, vehicle_status, vehicle_schedules):
+        route_code = cls.Helper.get_route_code(vehicle_status, vehicle_schedules)
+        cls.Publisher.publish_route_code(clients, target_roles, route_code)
 
     @classmethod
     def update_vehicle_route_code(cls, vehicle_status, vehicle_schedules):
-        vehicle_status.route_code = cls.Helper.get_vehicle_route_code(vehicle_status, vehicle_schedules)
+        vehicle_status.route_code = cls.Helper.get_route_code(vehicle_status, vehicle_schedules)
 
     @classmethod
     def publish_state_cmd_engage(cls, clients, target_roles):
@@ -91,7 +90,7 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
             set_flag = cls.BeforeHook.set_next_schedule_route_detail(
                 clients, target_roles, vehicle_status, vehicle_schedules)
             if set_flag:
-                cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles)
+                cls.BeforeHook.publish_route_code(clients, target_roles, vehicle_status, vehicle_schedules)
         else:
             if cls.Condition.autoware_is_waiting_for_engage_state_cmd(vehicle_status):
                 cls.BeforeHook.update_vehicle_route_code(vehicle_status, vehicle_schedules)
@@ -109,7 +108,7 @@ class Transition(VehicleStateMachine.EventHandler.Transition):
             set_flag = cls.BeforeHook.set_next_schedule_route_detail(
                 clients, target_roles, vehicle_status, vehicle_schedules)
             if set_flag:
-                cls.BeforeHook.publish_lane_waypoint_array(clients, target_roles)
+                cls.BeforeHook.publish_route_code(clients, target_roles, vehicle_status, vehicle_schedules)
         else:
             if cls.Condition.autoware_is_waiting_for_engage_state_cmd(vehicle_status):
                 cls.BeforeHook.update_vehicle_route_code(vehicle_status, vehicle_schedules)

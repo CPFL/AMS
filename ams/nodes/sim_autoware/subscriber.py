@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.helpers import Topic
+from ams.helpers import Topic, Route
 from ams.nodes.sim_autoware import CONST, Helper
+from ams.nodes.autoware import CONST as AUTOWARE
 
 
 class Subscriber(object):
 
-    AUTOWARE = CONST
+    CONST = CONST
     Helper = Helper
 
+    VEHICLE = AUTOWARE
+
     @classmethod
-    def get_lane_waypoints_array_topic(cls, target_roles):
+    def get_route_code_message_topic(cls, target_roles):
         return Topic.get_topic(
             from_target=target_roles["vehicle"],
             to_target=target_roles["autoware"],
-            categories=cls.AUTOWARE.TOPIC.CATEGORIES.LANE_WAYPOINTS_ARRAY
+            categories=cls.VEHICLE.TOPIC.CATEGORIES.ROUTE_CODE
         )
 
     @classmethod
@@ -23,7 +26,7 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=target_roles["vehicle"],
             to_target=target_roles["autoware"],
-            categories=cls.AUTOWARE.TOPIC.CATEGORIES.STATE_CMD
+            categories=cls.CONST.TOPIC.CATEGORIES.STATE_CMD
         )
 
     @classmethod
@@ -31,11 +34,12 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=target_roles["vehicle"],
             to_target=target_roles["autoware"],
-            categories=cls.AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR
+            categories=cls.CONST.TOPIC.CATEGORIES.LIGHT_COLOR
         )
 
     @classmethod
-    def on_lane_waypoints_array(cls, _client, user_data, _topic, lane_waypoints_array):
+    def on_route_code_message(cls, _client, user_data, _topic, route_code_message):
+        lane_waypoints_array = cls.Helper.get_lane_array(user_data["clients"], route_code_message.body)
         cls.Helper.set_lane_waypoints_array(
             user_data["clients"], user_data["target_roles"], lane_waypoints_array
         )

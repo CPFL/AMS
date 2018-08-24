@@ -18,8 +18,8 @@ config_schema.update({
             "type": "string",
             "nullable": False
         },
-        "required": True,
-        "nullable": False,
+        "required": False,
+        "nullable": True,
         "minlength": 0
     }
 })

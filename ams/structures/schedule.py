@@ -9,7 +9,7 @@ schedule_template = {
     "id": "uuid",
     "event": "default",
     "period": Period.get_template(),
-    "route": Route.get_template(),
+    "route_code": "0:0>1:1",
     "targets": Targets.get_template(),
 }
 
@@ -30,11 +30,10 @@ schedule_schema = {
         "required": False,
         "nullable": True,
     },
-    "route": {
-        "type": "dict",
-        "schema": Route.get_schema(),
+    "route_code": {
+        "type": "string",
         "required": False,
-        "nullable": True,
+        "nullable": False,
     },
     "targets": Targets.get_schema(),
 }

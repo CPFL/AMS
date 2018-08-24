@@ -10,7 +10,7 @@ from ams.nodes.vehicle.const import mission_event as vehicle_mission_event
 
 topic = {
     "CATEGORIES": {
-        "BASED_LANE_WAYPOINTS_ARRAY": ["based", "lane_waypoints_array"],
+        "ROUTE_CODE": ["route_code"],
         "STATE_CMD": ["state_cmd"],
         "LIGHT_COLOR": ["light_color"],
         "CURRENT_POSE": ["current_pose"],

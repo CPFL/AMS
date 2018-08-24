@@ -5,6 +5,7 @@ from time import sleep
 
 from ams import logger
 from ams.helpers import Target
+from ams.nodes.autoware import Message as VehicleMessage
 from ams.nodes.sim_autoware import CONST, Structure, Message, Helper, Publisher, StateMachine, Subscriber
 
 
@@ -17,6 +18,8 @@ class EventLoop(object):
     Publisher = Publisher
     StateMachine = StateMachine
     Subscriber = Subscriber
+
+    VehicleMessage = VehicleMessage
 
     def __init__(self, _id, group=CONST.NODE_NAME):
         self.dt = 1.0
@@ -33,11 +36,11 @@ class EventLoop(object):
         self.subscribers = {}
 
     def __set_sim_autoware_subscriber(self):
-        topic = self.Subscriber.get_lane_waypoints_array_topic(self.user_data["target_roles"])
+        topic = self.Subscriber.get_route_code_message_topic(self.user_data["target_roles"])
         self.subscribers[topic] = {
             "topic": topic,
-            "callback": self.Subscriber.on_lane_waypoints_array,
-            "structure": self.Structure.Status.LaneArray,
+            "callback": self.Subscriber.on_route_code_message,
+            "structure": VehicleMessage.RouteCode,
             "user_data": self.user_data
         }
 
@@ -62,6 +65,9 @@ class EventLoop(object):
 
     def set_pubsub_client(self, pubsub_client):
         self.user_data["clients"]["pubsub"] = pubsub_client
+
+    def set_maps_client(self, maps_client):
+        self.user_data["clients"]["maps"] = maps_client
 
     def set_initial_config(self, target_vehicle):
         self.initials["config"] = self.Structure.Config.new_data(
@@ -111,7 +117,13 @@ class EventLoop(object):
 
         try:
             while True:
-                _ = self.StateMachine.update(self.user_data["clients"], self.user_data["target_roles"])
+                update_flag = self.StateMachine.update(self.user_data["clients"], self.user_data["target_roles"])
+                if update_flag:
+                    logger.info(
+                        self.Helper.get_status(
+                            self.user_data["clients"],
+                            self.user_data["target_roles"]).decision_maker_state.data
+                    )
 
                 self.Publisher.publish_current_pose(self.user_data["clients"], self.user_data["target_roles"])
                 self.Publisher.publish_closest_waypoint(self.user_data["clients"], self.user_data["target_roles"])

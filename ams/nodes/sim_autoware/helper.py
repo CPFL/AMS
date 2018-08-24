@@ -112,65 +112,71 @@ class Helper(object):
         )
 
     @classmethod
+    def get_lane_array(cls, clients, route_code):
+        return clients["maps"].route.get_lane_array(route_code)
+
+    @classmethod
     def set_config(cls, clients, target_roles, value):
         key = cls.get_config_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_status(cls, clients, target_roles, value):
-        cls.set_current_pose(clients, target_roles, value.current_pose)
-        cls.set_closest_waypoint(clients, target_roles, value.closest_waypoint)
-        cls.set_state_cmd(clients, target_roles, value.state_cmd)
-        cls.set_lane_waypoints_array(clients, target_roles, value.lane_waypoints_array)
-        cls.set_decision_maker_state(clients, target_roles, value.decision_maker_state)
+        set_flag = cls.set_current_pose(clients, target_roles, value.current_pose)
+        set_flag *= cls.set_closest_waypoint(clients, target_roles, value.closest_waypoint)
+        set_flag *= cls.set_state_cmd(clients, target_roles, value.state_cmd)
+        set_flag *= cls.set_lane_waypoints_array(clients, target_roles, value.lane_waypoints_array)
+        set_flag *= cls.set_decision_maker_state(clients, target_roles, value.decision_maker_state)
+        return set_flag
 
     @classmethod
     def set_closest_waypoint(cls, clients, target_roles, value):
         key = cls.get_closest_waypoint_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_current_pose(cls, clients, target_roles, value):
         key = cls.get_current_pose_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_state_cmd(cls, clients, target_roles, value):
         key = cls.get_state_cmd_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_lane_waypoints_array(cls, clients, target_roles, value):
         key = cls.get_lane_waypoints_array_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_decision_maker_state(cls, clients, target_roles, value):
         key = cls.get_decision_maker_state_key(target_roles)
-        clients["kvs"].set(key, value)
+        return clients["kvs"].set(key, value)
 
     @classmethod
     def initialize_closest_waypoint(cls, clients, target_roles):
-        cls.set_closest_waypoint(clients, target_roles, cls.Structure.Status.ClosestWaypoint.new_data(data=0))
+        return cls.set_closest_waypoint(clients, target_roles, cls.Structure.Status.ClosestWaypoint.new_data(data=0))
 
     @classmethod
     def initialize_state_cmd(cls, clients, target_roles):
-        cls.set_state_cmd(clients, target_roles, None)
+        return cls.set_state_cmd(clients, target_roles, None)
 
     @classmethod
     def initialize_lane_waypoints_array(cls, clients, target_roles):
-        cls.set_lane_waypoints_array(clients, target_roles, None)
+        return cls.set_lane_waypoints_array(clients, target_roles, None)
 
     @classmethod
     def update_closest_waypoint(cls, clients, target_roles, status):
         status.closest_waypoint.data = min(
             status.closest_waypoint.data + 1, len(status.lane_waypoints_array.lanes[0].waypoints) - 1)
-        cls.set_closest_waypoint(clients, target_roles, status.closest_waypoint)
+        return cls.set_closest_waypoint(clients, target_roles, status.closest_waypoint)
 
     @classmethod
     def update_current_pose(cls, clients, target_roles, status):
         if status.lane_waypoints_array is not None:
             if 0 <= status.closest_waypoint.data < len(status.lane_waypoints_array.lanes[0].waypoints):
-                cls.set_current_pose(
+                return cls.set_current_pose(
                     clients, target_roles,
                     status.lane_waypoints_array.lanes[0].waypoints[status.closest_waypoint.data].pose)
+        return False
