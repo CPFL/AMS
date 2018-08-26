@@ -68,7 +68,7 @@ class Route(object):
 
     @classmethod
     def get_route_ids(cls, routes):
-        return routes.keys()
+        return tuple(routes.keys())
 
     @classmethod
     def get_route_from_arrow_code(cls, arrow_code, arrows):
@@ -173,8 +173,7 @@ class Route(object):
                 velocity = Waypoint.get_velocity(waypoint_id, waypoints)
                 pose = Arrow.get_pose(route.arrow_codes[i], waypoint_id, arrows, waypoints)
                 if action_delimitiers[i] == ROUTE.DELIMITERS.BACKWARD:
-                    velocity *= -1.0
-                    pose.orientation = Orientation.get_inverted(pose.orientation)
+                    velocity = -velocity
                 pose_and_velocity_set.append([pose, velocity])
         return pose_and_velocity_set
 

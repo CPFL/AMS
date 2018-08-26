@@ -3,6 +3,7 @@
 
 import json
 import geohash
+from copy import copy
 
 from ams.helpers import Position, Rpy
 from ams.structures import WAYPOINT, Pose, Orientation
@@ -30,7 +31,7 @@ class Waypoint(object):
 
     @classmethod
     def get_waypoint_ids(cls, waypoints):
-        return list(waypoints.keys())
+        return tuple(waypoints.keys())
 
     @classmethod
     def get_latlng(cls, waypoint_id, waypoints):
@@ -42,7 +43,7 @@ class Waypoint(object):
 
     @classmethod
     def get_position(cls, waypoint_id, waypoints):
-        return waypoints[waypoint_id]["position"]
+        return copy(waypoints[waypoint_id]["position"])
 
     @classmethod
     def get_yaw(cls, waypoint_id, waypoints):

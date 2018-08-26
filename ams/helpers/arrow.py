@@ -3,6 +3,7 @@
 
 import json
 import math
+from copy import copy, deepcopy
 
 from ams.helpers import Position, Vector, Rpy, Location, Waypoint
 from ams.structures import ARROW, Orientation, Pose
@@ -20,15 +21,15 @@ class Arrow(object):
 
     @classmethod
     def get_arrow_codes(cls, arrows):
-        return list(arrows.keys())
+        return tuple(arrows.keys())
 
     @classmethod
     def get_arrow(cls, arrow_code, arrows):
-        return arrows[arrow_code]
+        return deepcopy(arrows[arrow_code])
 
     @classmethod
     def get_waypoint_ids(cls, arrow_code, arrows):
-        return arrows[arrow_code]["waypointIDs"]
+        return copy(arrows[arrow_code]["waypointIDs"])
 
     @classmethod
     def get_length(cls, arrow_code, arrows):
