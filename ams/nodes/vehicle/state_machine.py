@@ -40,12 +40,6 @@ class BeforeHook(object):
     Helper = Helper
     Publisher = Publisher
 
-
-class AfterHook(object):
-
-    Helper = Helper
-    Publisher = Publisher
-
     @classmethod
     def update_next_vehicle_schedule_end_time_with_current_time_and_duration(cls, vehicle_status, vehicle_schedules):
         current_time = Schedule.get_time()
@@ -55,13 +49,10 @@ class AfterHook(object):
         vehicle_schedules[next_vehicle_schedule_index].period.start = current_time
         vehicle_schedules[next_vehicle_schedule_index].period.end = current_time + duration
 
+
     @classmethod
     def publish_vehicle_config_to_target_dispatcher(cls, clients, target_roles, vehicle_config):
         cls.Publisher.publish_vehicle_config(clients, target_roles, vehicle_config)
-
-    @classmethod
-    def publish_vehicle_status(cls, clients, target_roles, vehicle_status):
-        cls.Publisher.publish_vehicle_status(clients, target_roles, vehicle_status)
 
 
 class Transition(object):
@@ -71,36 +62,32 @@ class Transition(object):
     Helper = Helper
     Condition = Condition
     BeforeHook = BeforeHook
-    AfterHook = AfterHook
 
     @classmethod
-    def start_processing_to_initialized(cls, clients, target_roles, vehicle_status, vehicle_config):
-        if all([
-            cls.Condition.vehicle_located(vehicle_status),
-            cls.Condition.dispatcher_assigned(vehicle_config),
-        ]):
-            cls.Helper.update_and_set_vehicle_status(
-                clients, target_roles, vehicle_status, cls.VEHICLE.STATE.INITIALIZED)
-            cls.AfterHook.publish_vehicle_config_to_target_dispatcher(clients, target_roles, vehicle_config)
-            return True
-
+    def start_processing_to_initialized(cls, clients, target_roles, vehicle_status, vehicle_config, vehicle_schedules):
+        if cls.Condition.vehicle_located(vehicle_status):
+            if cls.Condition.dispatcher_assigned(vehicle_config):
+                if not cls.Condition.vehicle_schedules_existance(vehicle_schedules):
+                    cls.BeforeHook.publish_vehicle_config_to_target_dispatcher(clients, target_roles, vehicle_config)
+                else:
+                    return cls.Helper.update_and_set_vehicle_status(
+                        clients, target_roles, vehicle_status, cls.VEHICLE.STATE.INITIALIZED)
         return False
 
     @classmethod
     def initialized_to_active(cls, clients, target_roles, vehicle_status, vehicle_schedules):
-        if cls.Condition.vehicle_schedules_existance(vehicle_schedules):
-            if cls.Condition.vehicle_schedules_include_any_expected_events(
-                    vehicle_schedules, cls.VEHICLE.MISSION_EVENTS):
-                return cls.Helper.update_and_set_vehicle_status(
-                    clients, target_roles, vehicle_status, cls.VEHICLE.STATE.ACTIVE)
+        if cls.Condition.vehicle_schedules_include_any_expected_events(
+                vehicle_schedules, cls.VEHICLE.MISSION_EVENTS):
+            return cls.Helper.update_and_set_vehicle_status(
+                clients, target_roles, vehicle_status, cls.VEHICLE.STATE.ACTIVE)
         return False
 
     @classmethod
     def active_to_mission_started(cls, clients, target_roles, vehicle_status, vehicle_schedules):
+        cls.BeforeHook.update_next_vehicle_schedule_end_time_with_current_time_and_duration(
+            vehicle_status, vehicle_schedules)
         cls.Helper.update_and_set_vehicle_status(
             clients, target_roles, vehicle_status, cls.VEHICLE.STATE.MISSION_STARTED, vehicle_schedules)
-        cls.AfterHook.update_next_vehicle_schedule_end_time_with_current_time_and_duration(
-            vehicle_status, vehicle_schedules)
         return True
 
     @classmethod
@@ -192,7 +179,7 @@ class StateMachine(object):
         state = vehicle_status.state
         if state == cls.VEHICLE.STATE.START_PROCESSING:
             update_flag = cls.EventHandler.Transition.start_processing_to_initialized(
-                clients, target_roles, vehicle_status, vehicle_config)
+                clients, target_roles, vehicle_status, vehicle_config, vehicle_schedules)
         elif state == cls.VEHICLE.STATE.INITIALIZED:
             update_flag = cls.EventHandler.Transition.initialized_to_active(
                 clients, target_roles, vehicle_status, vehicle_schedules)

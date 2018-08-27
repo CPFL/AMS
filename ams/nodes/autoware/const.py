@@ -22,7 +22,9 @@ topic["CATEGORIES"].update(vehicle_const["TOPIC"]["CATEGORIES"])
 
 mission_event = {
     "SEND_LANE_WAYPOINT_ARRAY": "send_lane_waypoint_array",
+    "SEND_DRIVE_PERMISSION": "send_drive_permission",
     "SEND_ENGAGE": "send_engage",
+    "CHECK_ON_MISSION": "check_on_mission"
 }
 mission_event.update(vehicle_mission_event)
 
@@ -33,6 +35,8 @@ event.update(mission_event)
 state = {
     "WAITING_FOR_AUTOWARE_STATE_WAIT_ORDER": "waiting_for_decision_maker_state_wait_order",
     "WAITING_FOR_AUTOWARE_STATE_DRIVE_READY": "waiting_for_decision_maker_state_drive_ready",
+    "WAITING_FOR_AUTOWARE_STATE_WAIT_PERMISSION": "waiting_for_drive_permission",
+    "WAITING_FOR_AUTOWARE_STATE_ON_MISSION": "waiting_for_on_mission"
 }
 state.update(vehicle_const["STATE"])
 
@@ -48,6 +52,7 @@ const = {
         "DECISION_MAKER_STATE": {
             "WAIT_MISSION_ORDER": "WaitMissionOrder\n",
             "WAIT_ORDER": "WaitOrder\n",
+            "WAIT_PERMISSION": "WaitPermission\n",
             "DRIVE_READY": "DriveReady\n"
         },
         "STATE_CMD": {
