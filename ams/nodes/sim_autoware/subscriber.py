@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.helpers import Topic, Route
+from ams.helpers import Topic
 from ams.nodes.sim_autoware import CONST, Helper
 from ams.nodes.autoware import CONST as AUTOWARE
 
