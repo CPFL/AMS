@@ -78,7 +78,7 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_lane_array(self):
-        with open("./res/lane_array_expected1.json", "r") as f:
+        with open("./tests/res/lane_array_expected1.json", "r") as f:
             expected = json.load(f)
 
         arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
