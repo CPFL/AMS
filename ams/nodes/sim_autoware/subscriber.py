@@ -2,11 +2,12 @@
 # coding: utf-8
 
 from ams.helpers import Topic
-from ams.nodes.sim_autoware import CONST, Helper
+from ams.nodes.base import Subscriber as BaseSubscriber
 from ams.nodes.autoware import CONST as AUTOWARE
+from ams.nodes.sim_autoware import CONST, Helper
 
 
-class Subscriber(object):
+class Subscriber(BaseSubscriber):
 
     CONST = CONST
     Helper = Helper

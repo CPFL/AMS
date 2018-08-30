@@ -2,20 +2,25 @@
 # coding: utf-8
 
 from ams import get_namedtuple_from_dict
+from ams.nodes.base.const import const as base_const
 
 
 topic = {
-    "CATEGORIES": {
-        "LANE_WAYPOINTS_ARRAY": ["based", "lane_waypoints_array"],
-        "STATE_CMD": ["state_cmd"],
-        "LIGHT_COLOR": ["light_color"],
-        "CURRENT_POSE": ["current_pose"],
-        "CLOSEST_WAYPOINT": ["closest_waypoint"],
-        "DECISION_MAKER_STATE": ["decision_maker", "state"]
-    }
+    "CATEGORIES": {}
 }
+topic["CATEGORIES"].update(base_const["TOPIC"]["CATEGORIES"])
+topic["CATEGORIES"].update({
+    "LANE_WAYPOINTS_ARRAY": ["based", "lane_waypoints_array"],
+    "STATE_CMD": ["state_cmd"],
+    "LIGHT_COLOR": ["light_color"],
+    "CURRENT_POSE": ["current_pose"],
+    "CLOSEST_WAYPOINT": ["closest_waypoint"],
+    "DECISION_MAKER_STATE": ["decision_maker", "state"]
+})
 
-const = {
+const = {}
+const.update(base_const)
+const.update({
     "NODE_NAME": "sim_autoware",
     "ROLE_NAME": "autoware",
     "TOPIC": topic,
@@ -34,6 +39,6 @@ const = {
         "GREEN": 1,
         "UNKNOWN": 2
     }
-}
+})
 
 CONST = get_namedtuple_from_dict("CONST", const)

@@ -3,8 +3,24 @@
 
 from ams import get_structure_superclass
 from ams.structures import MessageHeader
-from ams.nodes.base import Message as BaseMessage
-from ams.nodes.infra import Structure
+from ams.nodes.base import Structure
+
+request_config_message_template = {
+    "header": MessageHeader.get_template()
+}
+
+request_config_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class RequestConfigMessage(get_structure_superclass(request_config_message_template, request_config_message_schema)):
+    pass
 
 
 config_message_template = {
@@ -57,6 +73,9 @@ class StatusMessage(get_structure_superclass(status_message_template, status_mes
     pass
 
 
-class Message(BaseMessage):
+class Message(object):
+    Header = MessageHeader
+    RequestConfig = RequestConfigMessage
+    RequestStatus = RequestConfigMessage
     Config = ConfigMessage
     Status = StatusMessage

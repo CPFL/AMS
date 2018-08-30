@@ -2,15 +2,18 @@
 # coding: utf-8
 
 from ams import get_namedtuple_from_dict
+from ams.nodes.base.const import const as base_const
 
 
 topic = {
-    "CATEGORIES": {
-        "CONFIG": ["config"],
-        "STATUS": ["status"],
-        "SCHEDULES": ["schedules"],
-    }
+    "CATEGORIES": {}
 }
+topic["CATEGORIES"].update(base_const["TOPIC"]["CATEGORIES"])
+topic["CATEGORIES"].update({
+    "CONFIG": ["config"],
+    "STATUS": ["status"],
+    "SCHEDULES": ["schedules"],
+})
 
 mission_event = {
     "START_MISSION": "start_mission",
@@ -36,13 +39,15 @@ state = {
     "END_PROCESSING": "end_processing"
 }
 
-const = {
+const = {}
+const.update(base_const)
+const.update({
     "NODE_NAME": "infra",
     "ROLE_NAME": "infra",
     "TOPIC": topic,
     "EVENT": event,
     "STATE": state,
     "MISSION_EVENTS": mission_event.values(),
-}
+})
 
 CONST = get_namedtuple_from_dict("CONST", const)

@@ -8,24 +8,24 @@ from ams.nodes.infra import CONST, Message, Helper
 
 class Publisher(object):
 
-    INFRA = CONST
+    CONST = CONST
     Message = Message
     Helper = Helper
 
     @classmethod
     def get_config_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles[cls.INFRA.ROLE_NAME],
+            from_target=target_roles[cls.CONST.ROLE_NAME],
             to_target=target_roles["controller"],
-            categories=cls.INFRA.TOPIC.CATEGORIES.CONFIG
+            categories=cls.CONST.TOPIC.CATEGORIES.CONFIG
         )
 
     @classmethod
     def get_status_topic(cls, target_roles):
         return Topic.get_topic(
-            from_target=target_roles[cls.INFRA.ROLE_NAME],
+            from_target=target_roles[cls.CONST.ROLE_NAME],
             to_target=target_roles["controller"],
-            categories=cls.INFRA.TOPIC.CATEGORIES.STATUS
+            categories=cls.CONST.TOPIC.CATEGORIES.STATUS
         )
 
     @classmethod
