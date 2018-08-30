@@ -5,14 +5,16 @@ from time import time
 from math import modf
 
 from ams.structures import CLIENT
-from ams.helpers import Target
-from ams.nodes.sim_autoware import CONST, Structure
+from ams.helpers import Target, Schedule
+from ams.nodes.base import Helper as BaseHelper
+from ams.nodes.sim_autoware import CONST, Structure, Message
 
 
-class Helper(object):
+class Helper(BaseHelper):
 
-    AUTOWARE = CONST
+    CONST = CONST
     Structure = Structure
+    Message = Message
 
     @staticmethod
     def get_timestamp():
@@ -23,52 +25,46 @@ class Helper(object):
         )
 
     @classmethod
-    def get_config_key(cls, target_roles):
-        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_roles["autoware"]),
-            "config"])
-
-    @classmethod
     def get_closest_waypoint_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.CLOSEST_WAYPOINT)
+            ] + cls.CONST.TOPIC.CATEGORIES.CLOSEST_WAYPOINT)
 
     @classmethod
     def get_current_pose_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.CURRENT_POSE)
+            ] + cls.CONST.TOPIC.CATEGORIES.CURRENT_POSE)
 
     @classmethod
     def get_state_cmd_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.STATE_CMD)
+            ] + cls.CONST.TOPIC.CATEGORIES.STATE_CMD)
 
     @classmethod
     def get_lane_waypoints_array_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.LANE_WAYPOINTS_ARRAY)
+            ] + cls.CONST.TOPIC.CATEGORIES.LANE_WAYPOINTS_ARRAY)
 
     @classmethod
     def get_decision_maker_state_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.DECISION_MAKER_STATE)
+            ] + cls.CONST.TOPIC.CATEGORIES.DECISION_MAKER_STATE)
 
     @classmethod
     def get_light_color_key(cls, target_roles):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target_roles["autoware"]),
-            ] + cls.AUTOWARE.TOPIC.CATEGORIES.LIGHT_COLOR)
+            ] + cls.CONST.TOPIC.CATEGORIES.LIGHT_COLOR)
 
     @classmethod
     def get_closest_waypoint(cls, clients, target_roles):
@@ -108,17 +104,13 @@ class Helper(object):
             state_cmd=cls.get_state_cmd(clients, target_roles),
             lane_waypoints_array=cls.get_lane_waypoints_array(clients, target_roles),
             decision_maker_state=cls.get_decision_maker_state(clients, target_roles),
-            light_color=cls.get_light_color(clients, target_roles)
+            light_color=cls.get_light_color(clients, target_roles),
+            updated_at=Schedule.get_time()
         )
 
     @classmethod
     def get_lane_array(cls, clients, route_code):
         return clients["maps"].route.get_lane_array(route_code)
-
-    @classmethod
-    def set_config(cls, clients, target_roles, value):
-        key = cls.get_config_key(target_roles)
-        return clients["kvs"].set(key, value)
 
     @classmethod
     def set_status(cls, clients, target_roles, value):
