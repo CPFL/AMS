@@ -2,69 +2,47 @@
 # coding: utf-8
 
 from ams import get_structure_superclass
-from ams.structures import Pose, Target
+from ams.nodes.base.structure import Structure as BaseStructure
 
 
-config_template = {
+config_template = BaseStructure.Config.get_template()
+config_template.update({
     "activation": None,
-    "target_controller": None,
-    "pose": Pose.get_template(),
-}
+})
 
-config_schema = {
+config_schema = BaseStructure.Config.get_schema()
+config_schema.update({
     "activation": {
         "type": "string",
         "required": True,
         "nullable": True
-    },
-    "target_controller": {
-        "type": "dict",
-        "schema": Target.get_schema(),
-        "required": True,
-        "nullable": True
-    },
-    "pose": {
-        "type": "dict",
-        "schema": Pose.get_schema(),
-        "required": True,
-        "nullable": True,
     }
-}
+})
 
 
 class Config(get_structure_superclass(config_template, config_schema)):
-    Target = Target
+    pass
 
 
-status_template = {
-    "state": "default",
+status_template = BaseStructure.Status.get_template()
+status_template.update({
     "schedule_id": "s0",
-    "updated_at": 0.0
-}
+})
 
-status_schema = {
-    "state": {
-        "type": "string",
-        "required": True,
-        "nullable": False,
-    },
+status_schema = BaseStructure.Status.get_schema()
+status_schema.update({
     "schedule_id": {
         "type": "string",
         "required": True,
         "nullable": True,
-    },
-    "updated_at": {
-        "type": "number",
-        "required": True,
-        "nullable": False,
     }
-}
+})
 
 
 class Status(get_structure_superclass(status_template, status_schema)):
-    Pose = Pose
+    pass
 
 
-class Structure(object):
+class Structure(BaseStructure):
     Config = Config
     Status = Status

@@ -3,6 +3,7 @@
 
 from ams import get_structure_superclass
 from ams.structures import MessageHeader
+from ams.nodes.base import Message as BaseMessage
 from ams.nodes.infra import Structure
 
 
@@ -56,7 +57,6 @@ class StatusMessage(get_structure_superclass(status_message_template, status_mes
     pass
 
 
-class Message(object):
-    Header = MessageHeader
+class Message(BaseMessage):
     Config = ConfigMessage
     Status = StatusMessage

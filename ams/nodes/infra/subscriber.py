@@ -2,13 +2,13 @@
 # coding: utf-8
 
 from ams.helpers import Topic
+from ams.nodes.base import Subscriber as BaseSubscriber
 from ams.nodes.infra import CONST, Helper, Publisher, StateMachine
 
 
-class Subscriber(object):
+class Subscriber(BaseSubscriber):
 
-    INFRA = CONST
-
+    CONST = CONST
     Helper = Helper
     Publisher = Publisher
     StateMachine = StateMachine
@@ -17,8 +17,8 @@ class Subscriber(object):
     def get_config_topic(cls, target_roles):
         return Topic.get_topic(
             from_target=target_roles["controller"] if "controller" in target_roles else None,
-            to_target=target_roles[cls.INFRA.ROLE_NAME],
-            categories=cls.INFRA.TOPIC.CATEGORIES.CONFIG,
+            to_target=target_roles[cls.CONST.ROLE_NAME],
+            categories=cls.CONST.TOPIC.CATEGORIES.CONFIG,
             use_wild_card=True
         )
 
@@ -26,8 +26,8 @@ class Subscriber(object):
     def get_schedules_topic(cls, target_roles):
         return Topic.get_topic(
             from_target=None,
-            to_target=target_roles[cls.INFRA.ROLE_NAME],
-            categories=cls.INFRA.TOPIC.CATEGORIES.SCHEDULES,
+            to_target=target_roles[cls.CONST.ROLE_NAME],
+            categories=cls.CONST.TOPIC.CATEGORIES.SCHEDULES,
             use_wild_card=True
         )
 
