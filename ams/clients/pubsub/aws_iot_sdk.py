@@ -20,8 +20,7 @@ class ArgsSetters(object):
         self.args = AttrDict()
 
     def set_args_of_AWSIoTMQTTClient(
-            self, clientID, protocolType=CONST.DEFAULT_PROTOCOL,
-            useWebsocket=False, cleanSession=True):
+            self, clientID, protocolType=CONST.DEFAULT_PROTOCOL, useWebsocket=False, cleanSession=True):
         self.args.aws_iot_mqtt_client = copy(locals())
         self.args.aws_iot_mqtt_client.pop("self")
 
@@ -40,6 +39,10 @@ class ArgsSetters(object):
     def set_args_of_configureLastWill(self, topic, payload, QoS, retain=False):
         self.args.configure_last_will = copy(locals())
         self.args.configure_last_will.pop("self")
+
+    def set_args_of_configureMQTTOperationTimeout(self, timeoutSecond=5):
+        self.args.configure_mqtt_operation_timeout = copy(locals())
+        self.args.configure_mqtt_operation_timeout.pop("self")
 
     def set_args_of_connect(self, keepAliveIntervalSecond=600):
         self.args.connect = copy(locals())
@@ -90,9 +93,11 @@ class PubSubClient(ArgsSetters):
             self.__client.configureIAMCredentials(**self.args.configure_iam_credentials)
         if "configure_last_will" in self.args.keys():
             self.__client.configureLastWill(**self.args.configure_last_will)
-        self.__client.connect(**self.args.connect)
+        if "configure_mqtt_operation_timeout" in self.args.keys():
+            self.__client.configureMQTTOperationTimeout(**self.args.configure_mqtt_operation_timeout)
         for topic, subscriber in self.__subscribers.items():
             set_on_message(self.__client, self.__subscribers[topic], self.__subscribers_lock)
+        self.__client.connect(**self.args.connect)
 
     def publish(self, topic, message, qos=0, retain=False):
         self.__client.publish(topic, Topic.serialize(message), QoS=qos)
