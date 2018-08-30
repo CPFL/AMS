@@ -159,9 +159,9 @@ class Helper(BaseHelper):
         return cls.set_lane_waypoints_array(clients, target_roles, None)
 
     @classmethod
-    def update_closest_waypoint(cls, clients, target_roles, status):
+    def update_closest_waypoint(cls, clients, target_roles, config, status):
         status.closest_waypoint.data = min(
-            status.closest_waypoint.data + 1, len(status.lane_waypoints_array.lanes[0].waypoints) - 1)
+            status.closest_waypoint.data + config.step_size, len(status.lane_waypoints_array.lanes[0].waypoints) - 1)
         return cls.set_closest_waypoint(clients, target_roles, status.closest_waypoint)
 
     @classmethod

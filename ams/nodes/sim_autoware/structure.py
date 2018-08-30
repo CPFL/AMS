@@ -6,6 +6,25 @@ from ams.structures import AutowareMessage
 from ams.nodes.base.structure import Structure as BaseStructure
 
 
+config_template = BaseStructure.Config.get_template()
+config_template.update({
+    "step_size": 1
+})
+
+config_schema = BaseStructure.Config.get_schema()
+config_schema.update({
+    "step_size": {
+        "type": "number",
+        "required": True,
+        "nullable": False
+    }
+})
+
+
+class Config(get_structure_superclass(config_template, config_schema)):
+    pass
+
+
 status_template = BaseStructure.Status.get_template()
 status_template.update({
     "lane_waypoints_array": AutowareMessage.LaneArray.get_template(),
@@ -67,4 +86,5 @@ class Status(get_structure_superclass(status_template, status_schema)):
 
 
 class Structure(BaseStructure):
+    Config = Config
     Status = Status

@@ -7,6 +7,31 @@ from ams.nodes.base import Message as BaseMessage
 from ams.nodes.sim_autoware import Structure
 
 
+config_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": Structure.Config.get_template()
+}
+
+config_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": Structure.Config.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class ConfigMessage(get_structure_superclass(config_message_template, config_message_schema)):
+    pass
+
+
 status_message_template = {
     "header": MessageHeader.get_template(),
     "body": Structure.Status.get_template()
@@ -33,6 +58,7 @@ class StatusMessage(get_structure_superclass(status_message_template, status_mes
 
 
 class Message(BaseMessage):
+    Config = ConfigMessage
     Status = StatusMessage
     CurrentPose = Structure.Status.CurrentPose
     ClosestWaypoint = Structure.Status.ClosestWaypoint
