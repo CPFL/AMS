@@ -51,8 +51,8 @@ class BeforeHook(object):
         cls.Helper.initialize_lane_waypoints_array(clients, target_roles)
 
     @classmethod
-    def update_closest_waypoint(cls, clients, target_roles, status):
-        cls.Helper.update_closest_waypoint(clients, target_roles, status)
+    def update_closest_waypoint(cls, clients, target_roles, config, status):
+        cls.Helper.update_closest_waypoint(clients, target_roles, config, status)
 
     @classmethod
     def update_current_pose(cls, clients, target_roles, status):
@@ -103,13 +103,13 @@ class Transition(object):
         return False
 
     @classmethod
-    def drive_to_wait_order(cls, clients, target_roles, status):
+    def drive_to_wait_order(cls, clients, target_roles, config, status):
         if not cls.Condition.state_cmd_initialized(status):
             cls.BeforeHook.initialize_state_cmd(clients, target_roles)
         else:
             if cls.Condition.lane_waypoints_array_exists(status):
                 if not cls.Condition.closest_waypoint_is_end_point(status):
-                    cls.BeforeHook.update_closest_waypoint(clients, target_roles, status)
+                    cls.BeforeHook.update_closest_waypoint(clients, target_roles, config, status)
                     cls.BeforeHook.update_current_pose(clients, target_roles, status)
                 else:
                     cls.BeforeHook.initialize_lane_waypoints_array(clients, target_roles)
@@ -134,6 +134,7 @@ class StateMachine(object):
 
     @classmethod
     def update(cls, clients, target_roles):
+        config = cls.Helper.get_config(clients, target_roles)
         status = cls.Helper.get_status(clients, target_roles)
 
         state = status.decision_maker_state.data
@@ -152,7 +153,7 @@ class StateMachine(object):
                 clients, target_roles, status)
         elif state == cls.AUTOWARE.DECISION_MAKER_STATE.DRIVE:
             update_flag = cls.EventHandler.Transition.drive_to_wait_order(
-                clients, target_roles, status)
+                clients, target_roles, config, status)
         else:
             raise ValueError("Transition from {} without event is undefined.".format(state))
 
