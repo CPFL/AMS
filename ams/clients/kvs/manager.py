@@ -97,12 +97,12 @@ class KVSClient(object):
         return set_flag
 
     def delete(self, key):
-        try:
             keys = list(filter(lambda x: key == x[:len(key)] and x[len(key) + 1:].isdigit(), self.__d.keys()))
             for k in keys:
-                self.__d.pop(k)
-        except KeyError:
-            pass
+                try:
+                    self.__d.pop(k)
+                except KeyError:
+                    pass
 
     def keys(self, pattern="*"):
         return list(filter(lambda x: compare_keys(x, pattern), self.__d.keys()))
