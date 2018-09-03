@@ -47,6 +47,33 @@ class TestRoute(unittest.TestCase):
         value = Route.decode("1942:1942<2078:2078")
         self.assertEqual(expected, value)
 
+    def test_get_routes_divided_by_action(self):
+        expected = [
+            Route.new_route(
+                waypoint_ids=["1", "2"],
+                arrow_codes=["0_2"],
+                delimiters=[":", ">", ":"]
+            ),
+            Route.new_route(
+                waypoint_ids=["2", "1"],
+                arrow_codes=["0_2"],
+                delimiters=[":", "<", ":"]
+            ),
+            Route.new_route(
+                waypoint_ids=["1", "3"],
+                arrow_codes=["0_2", "2_4"],
+                delimiters=[":", ">", ">", ":"]
+            )
+        ]
+        value = Route.get_routes_divided_by_action(
+            Route.new_route(
+                waypoint_ids=["1", "2", "1", "3"],
+                arrow_codes=["0_2", "0_2", "0_2", "2_4"],
+                delimiters=[":", ">", ":", ":", "<", ":", ":", ">", ">", ":"]
+            )
+        )
+        self.assertEqual(expected, value)
+
     def test_get_shortest_routes(self):
         arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
         waypoints = Waypoint.load("./res/waypoint.json")
@@ -75,6 +102,15 @@ class TestRoute(unittest.TestCase):
                 'cost': 139.6795663094191
             }
         }
+        self.assertEqual(expected, value)
+
+    def test_get_pose_and_velocity_set(self):
+        with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
+            expected = json.load(f)
+        arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
+        waypoints = Waypoint.load("./res/waypoint.json")
+        value = Route.get_pose_and_velocity_set(
+            "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", arrows, waypoints)
         self.assertEqual(expected, value)
 
     def test_get_lane_array(self):
