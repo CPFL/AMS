@@ -49,7 +49,7 @@ class KVSClient(object):
 
         if len(keys) == 0:
             return None
-        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
+        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.__d.pop)
         self.__key_relation[key] = latest_key
 
         try:
@@ -69,7 +69,7 @@ class KVSClient(object):
             timestamped_key = CLIENT.KVS.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
 
         keys = list(filter(lambda x: key == x[:len(key)] and x[len(key)+1:].isdigit(), self.__d.keys()))
-        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
+        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.__d.pop)
 
         set_flag = False
         if None in [latest_key, self.__key_relation.get(get_key, None)] or \
@@ -98,7 +98,9 @@ class KVSClient(object):
 
     def delete(self, key):
         try:
-            self.__d.pop(key)
+            keys = list(filter(lambda x: key == x[:len(key)] and x[len(key) + 1:].isdigit(), self.__d.keys()))
+            for k in keys:
+                self.__d.pop(k)
         except KeyError:
             pass
 
