@@ -6,9 +6,8 @@ from sys import float_info
 from math import modf
 from time import time
 
-from ams import logger
-from ams.helpers import Location, Position, Vector, Waypoint, Arrow, Orientation
-from ams.structures import ROUTE, RouteDetail, AutowareMessage
+from ams.helpers import Waypoint, Arrow
+from ams.structures import ROUTE, AutowareMessage
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -152,29 +151,64 @@ class Route(object):
         return Route.new_route(waypoint_ids, arrow_codes, delimiters)
 
     @classmethod
+    def get_routes_divided_by_action(cls, route):
+        routes = [{
+            "waypoint_ids": [route.waypoint_ids[0]],
+            "arrow_codes": [],
+            "delimiters": [ROUTE.DELIMITERS.WAYPOINT_ON_ARROW]
+        }]
+        waypoint_ids_index = 1
+        arrow_codes_index = 0
+        delimiters_index = 1
+        while(delimiters_index < len(route.delimiters)):
+            if ROUTE.DELIMITERS.WAYPOINT_ON_ARROW == route.delimiters[delimiters_index]:
+                routes[-1]["waypoint_ids"].append(route.waypoint_ids[waypoint_ids_index])
+                routes[-1]["delimiters"].append(route.delimiters[delimiters_index])
+                delimiters_index += 1
+                if delimiters_index == len(route.delimiters):
+                    break
+                routes.append({
+                    "waypoint_ids": [route.waypoint_ids[waypoint_ids_index]],
+                    "arrow_codes": [],
+                    "delimiters": [route.delimiters[delimiters_index]]
+                })
+                waypoint_ids_index += 1
+                delimiters_index += 1
+            else:
+                routes[-1]["arrow_codes"].append(route.arrow_codes[arrow_codes_index])
+                arrow_codes_index += 1
+                routes[-1]["delimiters"].append(route.delimiters[delimiters_index])
+                delimiters_index += 1
+        return Structures.new_data(routes)
+
+    @classmethod
     def get_pose_and_velocity_set(cls, route_code, arrows, waypoints):
-        route = cls.decode(route_code)
-
-        waypoint_ids_set = []
-        action_delimitiers = list(filter(lambda x: x != ROUTE.DELIMITERS.WAYPOINT_ON_ARROW, route.delimiters))
-        for i, arrow_code in enumerate(route.arrow_codes):
-            waypoint_ids_set.append(Arrow.get_waypoint_ids(arrow_code, arrows))
-            if action_delimitiers[i] == ROUTE.DELIMITERS.BACKWARD:
-                waypoint_ids_set[-1].reverse()
-
+        routes = cls.get_routes_divided_by_action(cls.decode(route_code))
         pose_and_velocity_set = []
-        for i, waypoint_ids in enumerate(waypoint_ids_set):
-            start_waypoint_id = route.waypoint_ids[i]
-            goal_waypoint_id = route.waypoint_ids[i+1]
-            start_index = waypoint_ids.index(start_waypoint_id)
-            goal_index = len(waypoint_ids) - 1 - list(reversed(waypoint_ids)).index(goal_waypoint_id)
+        for route in routes:
+            for i, arrow_code in enumerate(route.arrow_codes):
+                arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+                if i == 0:
+                    index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+                    arrow_waypoint_ids = arrow_waypoint_ids[index:]
 
-            for waypoint_id in waypoint_ids[start_index:goal_index+1]:
-                velocity = Waypoint.get_velocity(waypoint_id, waypoints)
-                pose = Arrow.get_pose(route.arrow_codes[i], waypoint_id, arrows, waypoints)
-                if action_delimitiers[i] == ROUTE.DELIMITERS.BACKWARD:
-                    velocity = -velocity
-                pose_and_velocity_set.append([pose, velocity])
+                if i == len(route.arrow_codes) - 1:
+                    index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+                    arrow_waypoint_ids = arrow_waypoint_ids[:index+1]
+
+                if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                    arrow_waypoint_ids.reverse()
+
+                for waypoint_id in arrow_waypoint_ids:
+                    velocity = Waypoint.get_velocity(waypoint_id, waypoints)
+                    pose = Arrow.get_pose(arrow_code, waypoint_id, arrows, waypoints)
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        velocity = -velocity
+                    pose_and_velocity_set.append([pose, velocity])
         return pose_and_velocity_set
 
     @classmethod
