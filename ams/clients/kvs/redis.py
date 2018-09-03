@@ -71,7 +71,7 @@ class KVSClient(ArgsSetters):
 
     def get(self, key):
         keys = get_keys(self.__client, key)
-        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
+        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.__client.delete)
         self.__key_relation[key] = latest_key
         binary_value = self.__client.get(key if latest_key is None else latest_key)
         return binary_value if binary_value is None else json.loads(binary_value.decode("utf-8"))
@@ -86,7 +86,7 @@ class KVSClient(ArgsSetters):
             timestamped_key = CLIENT.KVS.KEY_PATTERN_DELIMITER.join([key, timestamp_string])
 
         keys = get_keys(self.__client, key)
-        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.delete)
+        latest_key = Kvs.delete_old_keys_and_get_latest_key(keys, self.__client.delete)
 
         set_flag = False
         if None in [latest_key, self.__key_relation.get(get_key, None)] or \
@@ -96,7 +96,9 @@ class KVSClient(ArgsSetters):
         return set_flag
 
     def delete(self, key):
-        self.__client.delete(key)
+        keys = get_keys(self.__client, key)
+        for k in keys:
+            self.__client.delete(k)
 
     def keys(self, pattern="*"):
         return list(map(lambda x: x.decode("utf-8"), self.__client.keys(pattern)))

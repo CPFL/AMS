@@ -20,5 +20,8 @@ class Kvs(object):
     @staticmethod
     def delete_old_keys_and_get_latest_key(keys, delete_function):
         sorted_keys = sorted(keys, key=lambda x: int(Kvs.get_key_timestamp(x)))
-        list(map(delete_function, sorted_keys[:-1]))
+        try:
+            list(map(delete_function, sorted_keys[:-1]))
+        except KeyError:
+            pass
         return sorted_keys[-1] if 0 < len(sorted_keys) else None
