@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+
+[packages]
+python-dotenv = "==0.7.1"
+flask-mqtt = "==0.0.8"
+eventlet = "==0.21.0"
+Flask = "==0.12.2"
+Flask-Cors = "==3.0.3"
+Flask-SocketIO = "==2.9.2"
+ams = {path = "./..", editable = true}
+
+[requires]
+python_version = "3.6"

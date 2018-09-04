@@ -8,11 +8,12 @@ Open-source software for the fleet management and simulation system of vehicles 
 ## Requirements
 
 - mqtt broker ( ex. mosquitto )
+- pipenv
 
 ## Installing
 
-```
-python setup.py install
+```terminal
+$ pipenv install --dev
 ```
 
 ## Running
@@ -20,7 +21,8 @@ python setup.py install
 1. Launch Flask server and nodes(fleet_manager, vehicle, user, traffic_signal).
 
 ```terminal
-examples/sim_taxi $ python launcher.py
+exammples $ pipenv install
+examples/sim_taxi $ pipenv run python launcher.py
 ```
 
 2. Access localhost:5000
