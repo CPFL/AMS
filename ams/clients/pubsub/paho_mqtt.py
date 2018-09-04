@@ -48,8 +48,13 @@ def set_on_message_and_connect(client, args, subscribers, subscribers_lock):
         payload = message_data.payload.decode("utf-8")
         subscribers_lock.acquire()
         for topic, subscriber in subscribers.items():
-            if Topic.compare_topics(topic, message_data.topic):
-                subscriber["callback"](_client, subscriber["user_data"], message_data.topic, payload)
+            try:
+                if Topic.compare_topics(topic, message_data.topic):
+                    subscriber["callback"](_client, subscriber["user_data"], message_data.topic, payload)
+            except ValueError as e:
+                logger.exception("ValueError is raised in paho mqtt client. Case: %s", e.message)
+            except Exception as e:
+                logger.exception("UnkownError is raised in paho mqtt client. Case: %s", e.message)
         subscribers_lock.release()
 
     client.on_message = on_message
