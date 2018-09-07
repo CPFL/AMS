@@ -3,6 +3,7 @@
 
 from copy import copy
 from multiprocessing import Manager
+from time import sleep
 from _ssl import PROTOCOL_TLSv1_2
 
 import boto3
@@ -26,7 +27,7 @@ class PubSubClient(object):
     def connect(self):
         self.__client = boto3.client(CLIENT.PUBSUB.BASE_CLIENTS.AWS_IOT_BOTO3.CLIENT_TYPE)
 
-    def publish(self, topic, message, qos=0, retain=False):
+    def publish(self, topic, message, qos=0, retain=False, wait=False):
         self.__client.publish(topic=topic, qos=qos, payload=Topic.serialize(message))
 
     def unsubscribe(self, topic):

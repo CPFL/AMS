@@ -99,8 +99,13 @@ class PubSubClient(ArgsSetters):
             set_on_message(self.__client, self.__subscribers[topic], self.__subscribers_lock)
         self.__client.connect(**self.args.connect)
 
-    def publish(self, topic, message, qos=0, retain=False):
-        self.__client.publish(topic, Topic.serialize(message), QoS=qos)
+    def publish(self, topic, message, qos=0, retain=False, wait=False):
+        if wait:
+            if qos == 0:
+                qos = 1
+            self.__client.publish(topic, Topic.serialize(message), QoS=qos)
+        else:
+            self.__client.publishAsync(topic, Topic.serialize(message), QoS=qos)
 
     def unsubscribe(self, topic):
         self.__client.unsubscribe(topic)
