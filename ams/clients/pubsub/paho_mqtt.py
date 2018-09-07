@@ -107,8 +107,10 @@ class PubSubClient(ArgsSetters):
             self.__client, self.args, self.__subscribers, self.__subscribers_lock)
         self.__client.loop_start()
 
-    def publish(self, topic, message, qos=0, retain=False):
-        self.__client.publish(topic, Topic.serialize(message), qos, retain)
+    def publish(self, topic, message, qos=0, retain=False, wait=False):
+        info = self.__client.publish(topic, Topic.serialize(message), qos, retain)
+        if wait:
+            info.wait_for_publish()
 
     def unsubscribe(self, topic):
         self.__client.unsubscribe(topic)
