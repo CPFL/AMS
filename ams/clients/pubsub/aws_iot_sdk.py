@@ -55,16 +55,16 @@ def get_enable_pool(pool):
     return dict(filter(lambda x: x[1]["instance"] is not None, pool.items()))
 
 
-def get_min_subscribers_client(pool):
+def get_least_subscribers_client(pool):
     return min(pool.values(), key=lambda x: x["num_of_subscribers"])
 
 
-def get_min_last_time_client(pool):
+def get_oldest_client(pool):
     return min(pool.values(), key=lambda x: x["last_time"])
 
 
 def set_on_message(pool, subscriber, subscribers_lock):
-    _client = get_min_subscribers_client(pool)
+    _client = get_least_subscribers_client(pool)
 
     def on_message(client, _user_data, message_data):
         payload = message_data.payload.decode("utf-8")
@@ -136,7 +136,7 @@ class PubSubClient(ArgsSetters):
     def publish(self, topic, message, qos=0, retain=False, wait=False):
         pool = get_enable_pool(self.__client_pool)
         if 0 < len(pool):
-            client = get_min_last_time_client(pool)
+            client = get_oldest_client(pool)
             client["last_time"] = time()
             if wait:
                 if qos == 0:
