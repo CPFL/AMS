@@ -180,3 +180,7 @@ class Route(object):
 
     def get_lane_array(self, route_code):
         return Helper.get_lane_array(route_code, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
+
+    def get_nth_pose_and_location(self, n, route_code):
+        return Helper.get_nth_pose_and_location(
+            n, route_code, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
