@@ -6,7 +6,7 @@ from sys import float_info
 from math import modf
 from time import time
 
-from ams.helpers import Waypoint, Arrow
+from ams.helpers import Waypoint, Arrow, Location
 from ams.structures import ROUTE, AutowareMessage
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
@@ -180,6 +180,33 @@ class Route(object):
                 routes[-1]["delimiters"].append(route.delimiters[delimiters_index])
                 delimiters_index += 1
         return Structures.new_data(routes)
+
+    @classmethod
+    def get_nth_pose_and_location(cls, n, route_code, arrows, waypoints):
+        routes = cls.get_routes_divided_by_action(cls.decode(route_code))
+        m = 0
+        for route in routes:
+            for i, arrow_code in enumerate(route.arrow_codes):
+                arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+                if i == 0:
+                    index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+                    arrow_waypoint_ids = arrow_waypoint_ids[index:]
+
+                if i == len(route.arrow_codes) - 1:
+                    index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+                    arrow_waypoint_ids = arrow_waypoint_ids[:index+1]
+
+                if n <= m + len(arrow_waypoint_ids):
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        arrow_waypoint_ids.reverse()
+                    return Arrow.get_pose(arrow_code, arrow_waypoint_ids[n-m], arrows, waypoints),\
+                        Location.new_location(arrow_waypoint_ids[n-m], arrow_code)
+                else:
+                    m += len(arrow_waypoint_ids)
 
     @classmethod
     def get_pose_and_velocity_set(cls, route_code, arrows, waypoints):
