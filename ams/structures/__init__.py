@@ -14,6 +14,7 @@ from ams.structures.schedule import Schedule, Schedules
 from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
+from ams.structures.state_machine import StateMachineResource
 
 from ams.structures.topic import TOPIC
 from ams.structures.message_header import MessageHeader
