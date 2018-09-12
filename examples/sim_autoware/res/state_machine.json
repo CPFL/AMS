@@ -1,0 +1,144 @@
+{
+  "initial_state": "WaitMissionOrder\n",
+  "variables": {
+    "clients": {},
+    "target_roles": {},
+    "config": {},
+    "status": {}
+  },
+  "transitions": [
+    {
+      "event": null,
+      "from": "WaitMissionOrder\n",
+      "to": "MissionCheck\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "lane_waypoints_array_exists",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "WaitOrder\n",
+      "to": "MissionCheck\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "lane_waypoints_array_exists",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "MissionCheck\n",
+      "to": "DriveReady-1\n",
+      "hooks": [
+        {
+          "function": "initialize_closest_waypoint",
+          "args": ["clients", "target_roles"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "closest_waypoint_initialized",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "DriveReady-1\n",
+      "to": "DriveReady\n",
+      "hooks": [
+        {
+          "function": "update_current_pose",
+          "args": ["clients", "target_roles", "status"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "DriveReady\n",
+      "to": "Drive-2\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "state_cmd_is_engage",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "Drive-2\n",
+      "to": "Drive-1\n",
+      "hooks": [
+        {
+          "function": "initialize_state_cmd",
+          "args": ["clients", "target_roles"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "state_cmd_initialized",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "Drive-1\n",
+      "to": "Drive\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "lane_waypoints_array_exists",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "Drive\n",
+      "to": "WaitOrder-1\n",
+      "hooks": [
+        {
+          "function": "update_closest_waypoint",
+          "args": ["clients", "target_roles", "config", "status"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["clients", "target_roles", "status"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "closest_waypoint_is_end_point",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "WaitOrder-1\n",
+      "to": "WaitOrder\n",
+      "hooks": [
+        {
+          "function": "initialize_lane_waypoints_array",
+          "args": ["clients", "target_roles"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "lane_waypoints_array_exists",
+          "args": ["status"],
+          "not": true
+        }
+      ]
+    }
+  ]
+}
