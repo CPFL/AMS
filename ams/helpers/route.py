@@ -200,7 +200,7 @@ class Route(object):
                         index = arrow_waypoint_ids.index(route.waypoint_ids[0])
                     arrow_waypoint_ids = arrow_waypoint_ids[:index+1]
 
-                if n <= m + len(arrow_waypoint_ids):
+                if n < m + len(arrow_waypoint_ids):
                     if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
                         arrow_waypoint_ids.reverse()
                     return Arrow.get_pose(arrow_code, arrow_waypoint_ids[n-m], arrows, waypoints),\
