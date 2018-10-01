@@ -152,6 +152,12 @@ class TestRoute(unittest.TestCase):
         value = Route.get_nth_pose_and_location(35, route_code, arrows, waypoints)
         self.assertEqual(expected, value)
 
+        route_code = "9883:9875>9887>9563:9563"
+        expected = (None, None)
+        value = Route.get_nth_pose_and_location(100, route_code, arrows, waypoints)
+        self.assertEqual(expected, value)
+
+
     def test_get_pose_and_velocity_set(self):
         with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
