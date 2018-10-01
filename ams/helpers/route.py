@@ -160,7 +160,7 @@ class Route(object):
         waypoint_ids_index = 1
         arrow_codes_index = 0
         delimiters_index = 1
-        while(delimiters_index < len(route.delimiters)):
+        while delimiters_index < len(route.delimiters):
             if ROUTE.DELIMITERS.WAYPOINT_ON_ARROW == route.delimiters[delimiters_index]:
                 routes[-1]["waypoint_ids"].append(route.waypoint_ids[waypoint_ids_index])
                 routes[-1]["delimiters"].append(route.delimiters[delimiters_index])
@@ -207,6 +207,7 @@ class Route(object):
                         Location.new_location(arrow_waypoint_ids[n-m], arrow_code)
                 else:
                     m += len(arrow_waypoint_ids)
+        return None, None
 
     @classmethod
     def get_pose_and_velocity_set(cls, route_code, arrows, waypoints):
