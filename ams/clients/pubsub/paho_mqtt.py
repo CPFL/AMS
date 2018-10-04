@@ -2,8 +2,11 @@
 # coding: utf-8
 
 from copy import copy
+from pprint import pformat
+import json
 from multiprocessing import Manager
 from _ssl import PROTOCOL_TLSv1_2
+
 from paho.mqtt.client import Client
 
 from ams import AttrDict, logger
@@ -49,12 +52,11 @@ class ArgsSetters(object):
 
 def set_on_message_and_connect(client, args, subscribers, subscribers_lock):
     def on_message(_client, _userdata, message_data):
-        payload = message_data.payload.decode("utf-8")
         subscribers_lock.acquire()
         for topic, subscriber in subscribers.items():
             try:
                 if Topic.compare_topics(topic, message_data.topic):
-                    subscriber["callback"](_client, subscriber["user_data"], message_data.topic, payload)
+                    subscriber["callback"](_client, subscriber["user_data"], message_data.topic, message_data.payload)
             except ValueError as e:
                 logger.exception("ValueError is raised in paho mqtt client. Case: %s", e.message)
             except Exception as e:
@@ -72,12 +74,20 @@ class PubSubClient(ArgsSetters):
         self.__subscribers = {}
         self.__subscribers_lock = self.__manager.Lock()
         self.__client = None
+        self.__dumps = json.dumps
+        self.__loads = json.loads
+
+    def set_dumps(self, dumps):
+        self.__dumps = dumps
+
+    def set_loads(self, loads):
+        self.__loads = loads
 
     def subscribe(self, topic, callback, qos=0, user_data=None, structure=None):
-        logger.info("subscribe {}, qos: {}".format(topic, qos))
+        loads = self.__loads
 
         def wrapped_callback(_client, _user_data, _topic, _payload):
-            message = Topic.unserialize(_payload, structure)
+            message = Topic.deserialize(_payload, structure, loads)
             callback(_client, _user_data, _topic, message)
 
         self.__subscribers_lock.acquire()
@@ -121,8 +131,14 @@ class PubSubClient(ArgsSetters):
 
         self.__client.loop_start()
 
-    def publish(self, topic, message, qos=0, retain=False, wait=False):
-        info = self.__client.publish(topic, Topic.serialize(message), qos, retain)
+    def publish(self, topic, message, structure=None, qos=0, retain=False, wait=False):
+        if structure is not None:
+            if not structure.validate_data(message):
+                logger.error(pformat({"errors": structure.get_errors(), "message": message}))
+                raise ValueError
+
+        payload = Topic.serialize(message, self.__dumps)
+        info = self.__client.publish(topic, payload, qos, retain)
         if wait:
             info.wait_for_publish()
 

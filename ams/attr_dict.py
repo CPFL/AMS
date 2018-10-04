@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import traceback
 from ams import logger
 
 
@@ -41,3 +40,19 @@ class AttrDict(dict):
             return _list
         else:
             return _obj
+
+    @staticmethod
+    def get_dict(attr_dict):
+        if isinstance(attr_dict, dict):
+            _dict = {}
+            for k, v in attr_dict.items():
+                if isinstance(v, (dict, list)):
+                    _dict[k] = AttrDict.get_dict(v)
+                else:
+                    _dict[k] = v
+            return _dict
+        elif isinstance(attr_dict, list):
+            _list = []
+            for v in attr_dict:
+                _list.append(AttrDict.get_dict(v))
+            return _list
