@@ -3,9 +3,10 @@
 
 from copy import copy
 from multiprocessing import Manager
-from _ssl import PROTOCOL_TLSv1_2
+from pprint import pformat
 from time import time
 from uuid import uuid4
+import json
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
@@ -67,10 +68,9 @@ def set_on_message(pool, subscriber, subscribers_lock):
     _client = get_least_subscribers_client(pool)
 
     def on_message(client, _user_data, message_data):
-        payload = message_data.payload.decode("utf-8")
         _client["last_time"] = time()
         subscribers_lock.acquire()
-        subscriber["callback"](client, subscriber["user_data"], message_data.topic, payload)
+        subscriber["callback"](client, subscriber["user_data"], message_data.topic, message_data.payload)
         subscribers_lock.release()
 
     _client["instance"].subscribe(subscriber["topic"], QoS=subscriber["qos"], callback=on_message)
@@ -93,10 +93,20 @@ class PubSubClient(ArgsSetters):
                 "last_time": time(),
                 "instance": None
             }
+        self.__dumps = json.dumps
+        self.__loads = json.loads
+
+    def set_dumps(self, dumps):
+        self.__dumps = dumps
+
+    def set_loads(self, loads):
+        self.__loads = loads
 
     def subscribe(self, topic, callback, qos=0, user_data=None, structure=None):
+        loads = self.__loads
+
         def wrapped_callback(_client, _user_data, _topic, _payload):
-            message = Topic.unserialize(_payload, structure)
+            message = Topic.deserialize(_payload, structure, loads)
             callback(_client, _user_data, _topic, message)
 
         self.__subscribers_lock.acquire()
@@ -133,7 +143,12 @@ class PubSubClient(ArgsSetters):
         for client_id, client in self.__client_pool.items():
             client["instance"].connect(**self.args.connect)
 
-    def publish(self, topic, message, qos=0, retain=False, wait=False):
+    def publish(self, topic, message, structure=None, qos=0, retain=False, wait=False):
+        if structure is not None:
+            if not structure.validate_data(message):
+                logger.error(pformat({"errors": structure.get_errors(), "message": message}))
+                raise ValueError
+
         pool = get_enable_pool(self.__client_pool)
         if 0 < len(pool):
             client = get_oldest_client(pool)
@@ -141,9 +156,9 @@ class PubSubClient(ArgsSetters):
             if wait:
                 if qos == 0:
                     qos = 1
-                client["instance"].publish(topic, Topic.serialize(message), QoS=qos)
+                client["instance"].publish(topic, Topic.serialize(message, self.__dumps), QoS=qos)
             else:
-                client["instance"].publishAsync(topic, Topic.serialize(message), QoS=qos)
+                client["instance"].publishAsync(topic, Topic.serialize(message, self.__dumps), QoS=qos)
 
     def unsubscribe(self, topic):
         self.__subscribers_lock.acquire()
