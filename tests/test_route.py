@@ -6,6 +6,7 @@ import unittest
 import json
 
 from ams.helpers import Route, Arrow, Waypoint
+from ams.structures import RoutePoint
 
 
 class TestRoute(unittest.TestCase):
@@ -104,10 +105,13 @@ class TestRoute(unittest.TestCase):
         }
         self.assertEqual(expected, value)
 
-    def test_get_nth_pose_and_location(self):
+    def test_get_route_point_pose_and_location(self):
         arrows, _, _ = Arrow.load("./res/arrow.json")
         waypoints = Waypoint.load("./res/waypoint.json")
-        route_code = "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676"
+        route_point = RoutePoint.new_data(**{
+            "route_code": "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676",
+            "index": 0
+        })
         expected = (
             {
                 'position': {'x': 3753.102, 'y': -99405.981, 'z': 85.725},
@@ -120,7 +124,7 @@ class TestRoute(unittest.TestCase):
                 'waypoint_id': '10502', 'arrow_code': '10471_9686', 'geohash': None
             }
         )
-        value = Route.get_nth_pose_and_location(0, route_code, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
         self.assertEqual(expected, value)
 
         expected = (
@@ -133,28 +137,31 @@ class TestRoute(unittest.TestCase):
                 'waypoint_id': '9676', 'arrow_code': '9673_9988', 'geohash': None
             }
         )
-        value = Route.get_nth_pose_and_location(22, route_code, arrows, waypoints)
+        route_point.index = 20
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
         self.assertEqual(expected, value)
 
-        route_code = "10472:10471>9686:9686:9686<9673:9673:9673>9988:10333"
         expected = (
             {
-                'position': {'x': 3754.354, 'y': -99409.875, 'z': 85.677},
+                'position': {'x': 3754.353, 'y': -99408.875, 'z': 85.681},
                 'orientation': {
-                    'quaternion': {'w': -0.7074602460561826, 'x': 0.0, 'y': 0.0, 'z': 0.7067531395403387},
-                    'rpy': {'roll': None, 'pitch': None, 'yaw': 4.713388980051105}
+                    'quaternion': {'w': -0.707283535768144, 'x': 0.0, 'y': 0.0, 'z': 0.7069299824107849},
+                    'rpy': {'roll': None, 'pitch': None, 'yaw': 4.712888980342898}
                 }
             },
             {
-                'waypoint_id': '9686', 'arrow_code': '9673_9686', 'geohash': None
+                'waypoint_id': '9685', 'arrow_code': '9673_9686', 'geohash': None
             }
         )
-        value = Route.get_nth_pose_and_location(35, route_code, arrows, waypoints)
+        route_point.route_code = "10472:10471>9686:9686:9686<9673:9673:9673>9988:10333"
+        route_point.index = 35
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
         self.assertEqual(expected, value)
 
-        route_code = "9883:9875>9887>9563:9563"
+        route_point.route_code = "9883:9875>9887>9563:9563"
+        route_point.index = 100
         expected = (None, None)
-        value = Route.get_nth_pose_and_location(100, route_code, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
         self.assertEqual(expected, value)
 
 

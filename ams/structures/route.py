@@ -134,3 +134,26 @@ route_detail_schema = {
 
 class RouteDetail(get_structure_superclass(route_detail_template, route_detail_schema)):
     Pose = Pose
+
+
+route_point_template = {
+    "route_code": "0:0>1:1",
+    "index": 0
+}
+
+route_point_schema = {
+    "route_code": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "index": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+}
+
+
+class RoutePoint(get_structure_superclass(route_point_template, route_point_schema)):
+    pass
