@@ -7,7 +7,7 @@ from math import modf
 from time import time
 
 from ams.helpers import Waypoint, Arrow, Location
-from ams.structures import ROUTE, AutowareMessage
+from ams.structures import ROUTE, Autoware
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -266,19 +266,20 @@ class Route(object):
     def get_lane_array(cls, route_code, arrows, waypoints, current_time=None):
         pose_and_velocity_set = Route.get_pose_and_velocity_set(route_code, arrows, waypoints)
 
-        header = AutowareMessage.Header.get_template()
+        header = Autoware.ROSMessage.Header.get_template()
         if current_time is None:
             current_time = time()
         nsec, sec = modf(current_time)
         header.stamp.secs = int(sec)
         header.stamp.nsecs = int(nsec * (10 ** 9))
     
-        lane_array = AutowareMessage.LaneArray.get_template()
+        lane_array = Autoware.ROSMessage.LaneArray.get_template()
+        lane_array.id = int(current_time * (10 ** 3))
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
     
         for pose, velocity in pose_and_velocity_set:
-            waypoint = AutowareMessage.LaneArray.Lane.Waypoint.get_template()
+            waypoint = Autoware.ROSMessage.LaneArray.Lane.Waypoint.get_template()
             waypoint.pose.header = header
             waypoint.pose.pose.position.x = pose.position.x
             waypoint.pose.pose.position.y = pose.position.y

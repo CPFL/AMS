@@ -56,3 +56,14 @@ def get_aws_iot_client(host, port, path_ca, path_private_key, path_cert):
     except ImportError:
         traceback.print_exc()
         return None
+
+
+def get_ros_client():
+    try:
+        import rospy
+        PUBSUBClient = get_pubsub_client_class(rospy)
+        pubsub_client = PUBSUBClient()
+        return pubsub_client
+    except ImportError:
+        traceback.print_exc()
+        return None

@@ -1,0 +1,217 @@
+{
+  "initial_state": "Start\n",
+  "variables": {
+    "kvs_client": {},
+    "target_autoware": null,
+    "target_vehicle": null,
+    "config": {},
+    "status": {}
+  },
+  "transitions": [
+    {
+      "event": null,
+      "from": "Start\n",
+      "to": "WaitVehicleReady\n",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "WaitVehicleReady\n",
+      "to": "WaitOrder\n",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "WaitOrder\n",
+      "to": "MissionCheck\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "lane_array_exists",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "MissionCheck\n",
+      "to": "DriveReady-1\n",
+      "hooks": [
+        {
+          "function": "initialize_closest_waypoint",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "closest_waypoint_initialized",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "DriveReady-1\n",
+      "to": "DriveReady\n",
+      "hooks": [
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware", "status"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": "engage",
+      "from": "DriveReady\n",
+      "to": "Driving-1\n",
+      "hooks": [
+        {
+          "function": "initialize_state_cmd",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "Driving-1\n",
+      "to": "Driving\n",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "lane_array_exists",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": "mission_canceled",
+      "from": "DriveReady\n",
+      "to": "MissionAborted\n",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "Driving\n",
+      "to": "MissionComplete\n",
+      "hooks": [
+        {
+          "function": "update_closest_waypoint",
+          "args": ["kvs_client", "target_autoware", "config", "status"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware", "status"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "closest_waypoint_is_end_point",
+          "args": ["status"]
+        }
+      ]
+    },
+    {
+      "event": "request_mission_change",
+      "from": "Driving\n",
+      "to": "DrivingMissionChange\n",
+      "hooks": [
+        {
+          "function": "update_closest_waypoint",
+          "args": ["kvs_client", "target_autoware", "config", "status"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware", "status"]
+        },
+        {
+          "function": "initialize_state_cmd",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "DrivingMissionChange\n",
+      "to": "MissionChangeSucceeded\n",
+      "hooks": [
+        {
+          "function": "update_closest_waypoint",
+          "args": ["kvs_client", "target_autoware", "config", "status"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware", "status"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": "return_to_driving",
+      "from": "MissionChangeSucceeded\n",
+      "to": "Driving\n",
+      "hooks": [
+        {
+          "function": "update_closest_waypoint",
+          "args": ["kvs_client", "target_autoware", "config", "status"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware", "status"]
+        },
+        {
+          "function": "initialize_state_cmd",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": "go_to_wait_order",
+      "from": "MissionAborted\n",
+      "to": "WaitOrder-1\n",
+      "hooks": [
+        {
+          "function": "initialize_state_cmd",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": "go_to_wait_order",
+      "from": "MissionComplete\n",
+      "to": "WaitOrder-1\n",
+      "hooks": [
+        {
+          "function": "initialize_state_cmd",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "WaitOrder-1\n",
+      "to": "WaitOrder\n",
+      "hooks": [
+        {
+          "function": "initialize_lane_array",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "lane_array_exists",
+          "args": ["status"],
+          "not": true
+        }
+      ]
+    }
+  ]
+}

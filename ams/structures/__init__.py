@@ -20,4 +20,9 @@ from ams.structures.topic import TOPIC
 from ams.structures.message_header import MessageHeader
 from ams.structures.client import CLIENT
 
-from ams.structures.autoware_message import AutowareMessage
+from ams.structures.event_loop import EventLoop
+from ams.structures.autoware import Autoware
+from ams.structures.vehicle import Vehicle
+from ams.structures.dispatcher import Dispatcher
+
+from ams.structures.autoware_interface import AutowareInterface

@@ -1,0 +1,12 @@
+{
+  "config": {
+    "target_self": {
+      "group": "autoware",
+      "id": "a_random1"
+    },
+    "target_vehicle": {
+      "group": "vehicle",
+      "id": "v_random1"
+    }
+  }
+}

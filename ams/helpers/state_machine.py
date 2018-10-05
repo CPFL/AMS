@@ -8,23 +8,33 @@ from ams.structures import StateMachineResource
 class StateMachine(object):
 
     @classmethod
-    def load(cls, path):
+    def load_resource(cls, path):
         with open(path, "r") as f:
             state_machine_resource = StateMachineResource.new_data(**json.load(f))
+        return state_machine_resource
+
+    @classmethod
+    def create_data(cls, resource):
         return {
-            "resource": state_machine_resource,
-            "state": state_machine_resource.initial_state,
+            "resource": resource,
+            "state": resource["initial_state"],
             "callbacks": {},
-            "variables": state_machine_resource.variables
+            "variables": resource["variables"]
         }
 
     @classmethod
-    def set_callbacks(cls, data, callbacks):
+    def attach(cls, data, callbacks, variables=None):
         for callback in callbacks:
             data["callbacks"][callback.__name__] = callback
+        if variables is not None:
+            data["variables"].update(variables)
 
     @classmethod
-    def update(cls, data, event=None):
+    def reset_state(cls, data, state):
+        data["state"] = state
+
+    @classmethod
+    def update_state(cls, data, event=None):
         transitions = list(filter(
             lambda x: x["event"] == event and x["from"] == data["state"],
             data["resource"]["transitions"]
