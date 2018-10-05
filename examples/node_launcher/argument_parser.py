@@ -7,6 +7,8 @@ parser.add_argument("-IFP", "--initials_file_path", type=str, required=True, hel
 
 parser.add_argument("-TD", "--topic_domain", type=str, default="ams", help="topic domain")
 
+parser.add_argument("-URF", "--use_ros_flag", type=bool, default=False, help="use ros flag")
+
 parser.add_argument("-KH", "--kvs_host", type=str, default="localhost", help="kvs host")
 parser.add_argument("-KP", "--kvs_port", type=int, default=6379, help="kvs port")
 parser.add_argument("-KCT", "--kvs_client_type", type=str, default="manager", help="manager or redis")
