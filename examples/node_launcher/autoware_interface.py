@@ -32,14 +32,14 @@ if __name__ == '__main__':
         raise ValueError("Unknown pubsub client type: {}".format(args.pubsub_client_type))
 
     if args.use_ros_flag:
-        from std_msgs.msg import Int32, String
+        from std_msgs.msg import String
         from geometry_msgs.msg import PoseStamped
-        from autoware_msgs.msg import LaneArray, traffic_light
+        from autoware_msgs.msg import VehicleLocation, LaneArray, traffic_light
 
         from clients.helper import get_ros_client
 
         ros_msgs = {
-            "Int32": Int32,
+            "VehicleLocation": VehicleLocation,
             "String": String,
             "PoseStamped": PoseStamped,
             "LaneArray": LaneArray,
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         ros_client = get_ros_client()
     else:
         ros_msgs = {
-            "Int32": None,
+            "VehicleLocation": None,
             "String": None,
             "PoseStamped": None,
             "LaneArray": None,

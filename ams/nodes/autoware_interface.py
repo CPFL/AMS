@@ -14,7 +14,6 @@ class AutowareInterface(EventLoop):
     Message = Structure.Message
 
     def __init__(self, config, ros_msgs=None):
-        logger.info("AAAA" + logger.pformat(self.Config.get_schema()))
         super(AutowareInterface, self).__init__(config)
 
         self.user_data["target_autoware"] = self.config.target_self
@@ -60,7 +59,7 @@ class AutowareInterface(EventLoop):
         self.ros_subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_vehicle_location_publish_route_point,
-            "structure": ros_msgs["Int32"],
+            "structure": ros_msgs["VehicleLocation"],
             "user_data": self.user_data
         }
 

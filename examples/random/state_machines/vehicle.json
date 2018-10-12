@@ -22,7 +22,7 @@
     "MISSION_COMPLETE": "MissionComplete\n",
     "MISSION_ABORTED": "MissionAborted\n",
     "ENGAGE": {"data": "engage"},
-    "GO_TO_WAIT_ORDER": {"data": "go_to_wait_order"},
+    "GO_TO_WAIT_ORDER": {"data": "goto_wait_order"},
     "REQUEST_MISSION_CHANGE": {"data": "request_mission_change"},
     "RETURN_TO_DRIVING": {"data": "return_to_driving"}
   },

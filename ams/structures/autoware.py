@@ -436,8 +436,14 @@ waypoint_template = {
     "twist": TwistStamped.get_template(),
     "dtlane": Dtlane.get_template(),
     "change_flag": 0,
-    "wpstate": WaypointState.get_template()
-
+    "wpstate": WaypointState.get_template(),
+    "lane_id": 0,
+    "left_lane_id": 0,
+    "right_lane_id": 0,
+    "stop_line_id": 0,
+    "cost": 0.0,
+    "time_cost": 0.0,
+    "direction": 0
 }
 
 waypoint_schema = {
@@ -480,6 +486,42 @@ waypoint_schema = {
         "required": True,
         "nullable": False,
     },
+
+    "lane_id": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "left_lane_id": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "right_lane_id": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "stop_line_id": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "cost": {
+        "type": "float",
+        "required": True,
+        "nullable": False,
+    },
+    "time_cost": {
+        "type": "float",
+        "required": True,
+        "nullable": False,
+    },
+    "direction": {
+        "type": "integer",
+        "required": True,
+        "nullable": False
+    }
 }
 
 
@@ -494,7 +536,12 @@ lane_template = {
     "header": Header.get_template(),
     "increment": 0,
     "lane_id": 0,
-    "waypoints": [Waypoint.get_template()]
+    "waypoints": [Waypoint.get_template()],
+    "lane_index": 0,
+    "cost": 0.0,
+    "closest_object_distance": 0.0,
+    "closest_object_velocity": 0.0,
+    "is_blocked": False
 }
 
 lane_schema = {
@@ -524,6 +571,31 @@ lane_schema = {
         },
         "required": True,
         "nullable": False
+    },
+    "lane_index": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "cost": {
+        "type": "float",
+        "required": True,
+        "nullable": False,
+    },
+    "closest_object_distance": {
+        "type": "float",
+        "required": True,
+        "nullable": False,
+    },
+    "closest_object_velocity": {
+        "type": "float",
+        "required": True,
+        "nullable": False,
+    },
+    "is_blocked": {
+        "type": "boolean",
+        "required": True,
+        "nullable": False,
     }
 }
 

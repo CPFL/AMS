@@ -488,19 +488,17 @@
                         }
 
                         let color = null;
-                        switch (decisionMakerState) {
-                            case "WaitOrder\n":
-                                color = new THREE.Color(0xFF0000);
-                                break;
-                            case "DriveReady\n":
-                                color = new THREE.Color(0x11CCFF);
-                                break;
-                            case "Driving\n":
-                                color = new THREE.Color(0x22FF00);
-                                break;
-                            default:
+                        if(decisionMakerState.includes("\nWaitOrder\n")){
+                            color = new THREE.Color(0xFF0000);
+                        }
+                        else if(decisionMakerState.includes("\nDriveReady\n")){
+                            color = new THREE.Color(0x11CCFF);
+                        }
+                        else if(decisionMakerState.includes("\nDriving\n")){
+                            color = new THREE.Color(0x22FF00);
+                        }
+                        else {
                                 color = new THREE.Color(0xFFFFFF);
-                                break;
                         }
                         const textMaterial = new THREE.MeshBasicMaterial({color: color, overdraw: 0.2});
                         const textGeometry = new THREE.TextGeometry(

@@ -154,7 +154,7 @@ class Subscriber(object):
         # logger.info("on_state_cmd: {}".format(Schedule.get_time()))
         if state_cmd.data == Autoware.CONST.STATE_CMD.ENGAGE:
             decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
-            if decision_maker_state.data == Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY:
+            if "\n" + Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY in decision_maker_state.data:
                 Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
         else:
             Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
@@ -210,9 +210,11 @@ class Subscriber(object):
     @classmethod
     def on_vehicle_location_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
-        route_point = Hook.generate_route_point(user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
-        Publisher.publish_route_point(
-            user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
+        if vehicle_location.waypoint_index != -1:
+            route_point = Hook.generate_route_point(
+                user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
+            Publisher.publish_route_point(
+                user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
 
     @classmethod
     def on_decision_maker_state(cls, _client, user_data, _topic, decision_maker_state):
