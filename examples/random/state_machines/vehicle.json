@@ -201,7 +201,7 @@
           "args": ["kvs_client", "target_vehicle", "DRIVING"]
         },
         {
-          "function": "closest_waypoint_is_on_event_route",
+          "function": "vehicle_location_is_on_event_route",
           "args": ["kvs_client", "maps_client", "target_vehicle"]
         }
       ]

@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from ams.helpers import Hook, Schedule
-from ams.structures import Autoware, Vehicle, Dispatcher
+from ams.structures import Autoware, Vehicle
 
 
 class Condition(object):
@@ -12,10 +12,10 @@ class Condition(object):
         return status.lane_array is not None
 
     @classmethod
-    def closest_waypoint_initialized(cls, status):
-        if status.closest_waypoint is None:
+    def vehicle_location_initialized(cls, status):
+        if status.vehicle_location is None:
             return False
-        return status.closest_waypoint.index == 0
+        return status.vehicle_location.waypoint_index == 0
 
     @classmethod
     def state_cmd_is_engage(cls, status):
@@ -28,8 +28,8 @@ class Condition(object):
         return status.state_cmd is None
 
     @classmethod
-    def closest_waypoint_is_end_point(cls, status):
-        return status.closest_waypoint.index == len(status.lane_array.lanes[0].waypoints) - 1
+    def vehicle_location_is_end_point(cls, status):
+        return status.vehicle_location.waypoint_index == len(status.lane_array.lanes[0].waypoints) - 1
 
     @classmethod
     def vehicle_located(cls, kvs_client, target_vehicle):
@@ -46,14 +46,14 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_activation_timeout(cls, kvs_client, target_vehicle):
+    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            return Vehicle.CONST.ACTIVATION_REQUEST_TIMEOUT < Schedule.get_time() - vehicle_status.updated_at
+            return timeout < Schedule.get_time() - vehicle_status.updated_at
         return False
 
     @classmethod
-    def vehicle_schedules_existance(cls, kvs_client, target_vehicle):
+    def vehicle_schedules_exists(cls, kvs_client, target_vehicle):
         vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
         if vehicle_schedules is None:
             return False
@@ -92,7 +92,7 @@ class Condition(object):
         return False
 
     @classmethod
-    def closest_waypoint_is_on_event_route(cls, kvs_client, maps_client, target_vehicle):
+    def vehicle_location_is_on_event_route(cls, kvs_client, maps_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedules]:
@@ -111,14 +111,6 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_config_existance(cls, kvs_client, target_vehicle):
+    def vehicle_config_exists(cls, kvs_client, target_vehicle):
         vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
         return vehicle_config is not None
-
-    @classmethod
-    def vehicle_api_key_is_avalable(cls, kvs_client, target_vehicle, target_dispatcher):
-        vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
-        dispatcher_config = Hook.get_config(kvs_client, target_dispatcher, Dispatcher.Config)
-        if None not in [vehicle_config, dispatcher_config]:
-            return vehicle_config.activation in dispatcher_config.inactive_api_keys
-        return False

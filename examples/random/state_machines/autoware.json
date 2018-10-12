@@ -40,13 +40,13 @@
       "to": "DriveReady-1\n",
       "hooks": [
         {
-          "function": "initialize_closest_waypoint",
+          "function": "initialize_vehicle_location",
           "args": ["kvs_client", "target_autoware"]
         }
       ],
       "conditions": [
         {
-          "function": "closest_waypoint_initialized",
+          "function": "vehicle_location_initialized",
           "args": ["status"]
         }
       ]
@@ -100,7 +100,7 @@
       "to": "MissionComplete\n",
       "hooks": [
         {
-          "function": "update_closest_waypoint",
+          "function": "update_vehicle_location",
           "args": ["kvs_client", "target_autoware", "config", "status"]
         },
         {
@@ -110,7 +110,7 @@
       ],
       "conditions": [
         {
-          "function": "closest_waypoint_is_end_point",
+          "function": "vehicle_location_is_end_point",
           "args": ["status"]
         }
       ]
@@ -121,7 +121,7 @@
       "to": "DrivingMissionChange\n",
       "hooks": [
         {
-          "function": "update_closest_waypoint",
+          "function": "update_vehicle_location",
           "args": ["kvs_client", "target_autoware", "config", "status"]
         },
         {
@@ -141,7 +141,7 @@
       "to": "MissionChangeSucceeded\n",
       "hooks": [
         {
-          "function": "update_closest_waypoint",
+          "function": "update_vehicle_location",
           "args": ["kvs_client", "target_autoware", "config", "status"]
         },
         {
@@ -157,7 +157,7 @@
       "to": "Driving\n",
       "hooks": [
         {
-          "function": "update_closest_waypoint",
+          "function": "update_vehicle_location",
           "args": ["kvs_client", "target_autoware", "config", "status"]
         },
         {

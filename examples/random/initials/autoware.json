@@ -33,7 +33,7 @@
         }
       }
     },
-    "closest_waypoint": null,
+    "vehicle_location": null,
     "lane_array": null,
     "state_cmd": null,
     "light_color": null,

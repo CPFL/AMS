@@ -20,11 +20,11 @@ class Publisher(object):
         )
 
     @classmethod
-    def get_closest_waypoint_topic(cls, target_autoware, target_vehicle):
+    def get_vehicle_location_topic(cls, target_autoware, target_vehicle):
         return Topic.get_topic(
             from_target=target_autoware,
             to_target=target_vehicle,
-            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.CLOSEST_WAYPOINT
+            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.VEHICLE_LOCATION
         )
 
     @classmethod
@@ -107,10 +107,10 @@ class Publisher(object):
         return False
 
     @classmethod
-    def publish_ros_closest_waypoint(cls, pubsub_client, kvs_client, target_autoware, wait=False):
-        message = AttrDict.get_dict(Hook.get_closest_waypoint(kvs_client, target_autoware))
+    def publish_ros_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+        message = AttrDict.get_dict(Hook.get_vehicle_location(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.CLOSEST_WAYPOINT, yaml.dump(message), wait=wait)
+            pubsub_client.publish(Autoware.CONST.TOPIC.VEHICLE_LOCATION, yaml.dump(message), wait=wait)
             return True
         return False
 
@@ -132,9 +132,9 @@ class Publisher(object):
         return False
 
     @classmethod
-    def publish_closest_waypoint(cls, pubsub_client, kvs_client, target_autoware, target_vehicle, wait=False):
-        topic = cls.get_closest_waypoint_topic(target_autoware, target_vehicle)
-        message = AttrDict.get_dict(Hook.get_closest_waypoint(kvs_client, target_autoware))
+    def publish_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, target_vehicle, wait=False):
+        topic = cls.get_vehicle_location_topic(target_autoware, target_vehicle)
+        message = AttrDict.get_dict(Hook.get_vehicle_location(kvs_client, target_autoware))
         if message is not None:
             pubsub_client.publish(topic, yaml.dump(message), wait=wait)
             return True
