@@ -56,10 +56,10 @@ class AutowareInterface(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = Autoware.CONST.TOPIC.CLOSEST_WAYPOINT
+        topic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
         self.ros_subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_closest_waypoint_publish_route_point,
+            "callback": Subscriber.on_vehicle_location_publish_route_point,
             "structure": ros_msgs["Int32"],
             "user_data": self.user_data
         }

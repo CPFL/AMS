@@ -80,11 +80,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_closest_waypoint_topic(cls, target_autoware, target_vehicle):
+    def get_vehicle_location_topic(cls, target_autoware, target_vehicle):
         return Topic.get_topic(
             from_target=target_autoware,
             to_target=target_vehicle,
-            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.CLOSEST_WAYPOINT,
+            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.VEHICLE_LOCATION,
         )
 
     @classmethod
@@ -152,7 +152,12 @@ class Subscriber(object):
     @classmethod
     def on_state_cmd(cls, _client, user_data, _topic, state_cmd):
         # logger.info("on_state_cmd: {}".format(Schedule.get_time()))
-        Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
+        if state_cmd.data == Autoware.CONST.STATE_CMD.ENGAGE:
+            decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
+            if decision_maker_state.data == Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY:
+                Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
+        else:
+            Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
 
     @classmethod
     def on_state_cmd_publish(cls, _client, user_data, _topic, state_cmd):
@@ -203,9 +208,9 @@ class Subscriber(object):
         Hook.set_route_point(user_data["kvs_client"], user_data["target_vehicle"], route_point_message.body)
 
     @classmethod
-    def on_closest_waypoint_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
-        closest_waypoint = Autoware.ROSMessage.ClosestWaypoint.new_data(**yaml.load(str(ros_message_object)))
-        route_point = Hook.generate_route_point(user_data["kvs_client"], user_data["target_autoware"], closest_waypoint)
+    def on_vehicle_location_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
+        vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
+        route_point = Hook.generate_route_point(user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
         Publisher.publish_route_point(
             user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
 
@@ -248,12 +253,12 @@ class Subscriber(object):
                         Publisher.publish_state_cmd,
                         Condition.vehicle_located,
                         Condition.dispatcher_assigned,
-                        Condition.vehicle_schedules_existance,
+                        Condition.vehicle_schedules_exists,
                         Condition.vehicle_route_code_updated,
                         Condition.vehicle_status_schedule_id_initialized,
                         Condition.vehicle_schedules_include_any_expected_events,
                         Condition.decision_maker_state_is_expected,
-                        Condition.closest_waypoint_is_on_event_route
+                        Condition.vehicle_location_is_on_event_route
                     ],
                     variables
                 )

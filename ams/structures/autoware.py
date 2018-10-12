@@ -9,7 +9,7 @@ from ams.structures import MessageHeader, EventLoop
 topic = {
     "CATEGORIES": {},
     "CURRENT_POSE": "/current_pose",
-    "CLOSEST_WAYPOINT": "/closest_waypoint",
+    "VEHICLE_LOCATION": "/vehicle_location",
     "DECISION_MAKER_STATE": "/decision_maker/state"
 }
 topic["CATEGORIES"].update(event_loop_const["TOPIC"]["CATEGORIES"])
@@ -199,18 +199,25 @@ class CurrentPose(get_structure_superclass(current_pose_template, current_pose_s
     pass
 
 
-closest_waypoint_template = {
+vehicle_location_template = {
+    "header": Header.get_template(),
     "index": 0,
     "lane_array_id": 0
 }
 
-closest_waypoint_schema = {
-    "index": {
+vehicle_location_schema = {
+    "header": {
+        "type": "dict",
+        "schema": Header.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "lane_array_id": {
         "type": "integer",
         "required": True,
         "nullable": False,
     },
-    "lane_array_id": {
+    "waypoint_index": {
         "type": "integer",
         "required": True,
         "nullable": False,
@@ -218,7 +225,7 @@ closest_waypoint_schema = {
 }
 
 
-class ClosestWaypoint(get_structure_superclass(closest_waypoint_template, closest_waypoint_schema)):
+class VehicleLocation(get_structure_superclass(vehicle_location_template, vehicle_location_schema)):
     pass
 
 
@@ -620,7 +627,7 @@ status_template.update({
     "lane_array": LaneArray.get_template(),
     "state_cmd": StateCMD.get_template(),
     "current_pose": CurrentPose.get_template(),
-    "closest_waypoint": ClosestWaypoint.get_template(),
+    "vehicle_location": VehicleLocation.get_template(),
     "decision_maker_state": DecisionMakerState.get_template(),
     "light_color": LightColor.get_template()
 })
@@ -645,9 +652,9 @@ status_schema.update({
         "required": True,
         "nullable": True,
     },
-    "closest_waypoint": {
+    "vehicle_location": {
         "type": "dict",
-        "schema": ClosestWaypoint.get_schema(),
+        "schema": VehicleLocation.get_schema(),
         "required": True,
         "nullable": True,
     },
@@ -668,7 +675,7 @@ status_schema.update({
 
 class Status(get_structure_superclass(status_template, status_schema)):
     CurrentPose = CurrentPose
-    ClosestWaypoint = ClosestWaypoint
+    VehicleLocation = VehicleLocation
     DecisionMakerState = DecisionMakerState
     LaneArray = LaneArray
     StateCMD = StateCMD
@@ -678,7 +685,7 @@ class Status(get_structure_superclass(status_template, status_schema)):
 class ROSMessage(object):
     Header = Header
     CurrentPose = CurrentPose
-    ClosestWaypoint = ClosestWaypoint
+    VehicleLocation = VehicleLocation
     DecisionMakerState = DecisionMakerState
     LaneArray = LaneArray
     StateCMD = StateCMD

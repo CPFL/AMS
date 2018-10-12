@@ -26,11 +26,11 @@ class Hook(object):
             "status"])
 
     @classmethod
-    def get_closest_waypoint_key(cls, target):
+    def get_vehicle_location_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target),
-                Autoware.CONST.TOPIC.CLOSEST_WAYPOINT
+                Autoware.CONST.TOPIC.VEHICLE_LOCATION
             ])
 
     @classmethod
@@ -205,8 +205,8 @@ class Hook(object):
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
-    def set_closest_waypoint(cls, kvs_client, target, value):
-        key = cls.get_closest_waypoint_key(target)
+    def set_vehicle_location(cls, kvs_client, target, value):
+        key = cls.get_vehicle_location_key(target)
         return kvs_client.set(key, value)
 
     @classmethod
@@ -280,11 +280,20 @@ class Hook(object):
                cls.set_relation(kvs_client, target, "route_code_lane_array_id", route_code, str(lane_array_id))
 
     @classmethod
-    def initialize_closest_waypoint(cls, kvs_client, target):
+    def initialize_vehicle_location(cls, kvs_client, target):
         lane_array = cls.get_lane_array(kvs_client, target)
-        return cls.set_closest_waypoint(kvs_client, target, Autoware.Status.ClosestWaypoint.new_data(**{
+        nsec, sec = modf(Schedule.get_time())
+        return cls.set_vehicle_location(kvs_client, target, Autoware.Status.VehicleLocation.new_data(**{
+            "header": {
+                "seq": 0,
+                "stamp": {
+                    "secs": int(sec),
+                    "nsecs": int(nsec * (10 ** 9))
+                },
+                "frame_id": ""
+            },
             "lane_array_id": -1 if lane_array is None else lane_array.id,
-            "index": 0
+            "waypoint_index": 0
         }))
 
     @classmethod
@@ -308,20 +317,20 @@ class Hook(object):
         return False
 
     @classmethod
-    def update_closest_waypoint(cls, kvs_client, target, config, status):
-        current_closest_waypoint = Simulator.search_closest_waypoint_from_lane_array(
+    def update_vehicle_location(cls, kvs_client, target, config, status):
+        current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(
             status.current_pose, status.lane_array)
-        status.closest_waypoint.index = min(
-            current_closest_waypoint.index + config.step_size, len(status.lane_array.lanes[0].waypoints) - 1)
-        return cls.set_closest_waypoint(kvs_client, target, status.closest_waypoint)
+        status.vehicle_location.waypoint_index = min(
+            current_vehicle_location.waypoint_index + config.step_size, len(status.lane_array.lanes[0].waypoints) - 1)
+        return cls.set_vehicle_location(kvs_client, target, status.vehicle_location)
 
     @classmethod
     def update_current_pose(cls, kvs_client, target, status):
         if status.lane_array is not None:
-            if 0 <= status.closest_waypoint.index < len(status.lane_array.lanes[0].waypoints):
+            if 0 <= status.vehicle_location.waypoint_index < len(status.lane_array.lanes[0].waypoints):
                 return cls.set_current_pose(
                     kvs_client, target,
-                    status.lane_array.lanes[0].waypoints[status.closest_waypoint.index].pose)
+                    status.lane_array.lanes[0].waypoints[status.vehicle_location.waypoint_index].pose)
         return False
 
     @staticmethod
@@ -333,11 +342,11 @@ class Hook(object):
         )
 
     @classmethod
-    def get_closest_waypoint(cls, kvs_client, target):
-        key = cls.get_closest_waypoint_key(target)
+    def get_vehicle_location(cls, kvs_client, target):
+        key = cls.get_vehicle_location_key(target)
         value = kvs_client.get(key)
         if value is not None:
-            value = Autoware.Status.ClosestWaypoint.new_data(**value)
+            value = Autoware.Status.VehicleLocation.new_data(**value)
         return value
 
     @classmethod
@@ -392,7 +401,7 @@ class Hook(object):
     def get_autoware_status(cls, kvs_client, target):
         return Autoware.Status.new_data(
             current_pose=cls.get_current_pose(kvs_client, target),
-            closest_waypoint=cls.get_closest_waypoint(kvs_client, target),
+            vehicle_location=cls.get_vehicle_location(kvs_client, target),
             state_cmd=cls.get_state_cmd(kvs_client, target),
             lane_array=cls.get_lane_array(kvs_client, target),
             decision_maker_state=cls.get_decision_maker_state(kvs_client, target),
@@ -403,7 +412,7 @@ class Hook(object):
     @classmethod
     def set_autoware_status(cls, kvs_client, target, value):
         set_flag = cls.set_current_pose(kvs_client, target, value.current_pose)
-        set_flag *= cls.set_closest_waypoint(kvs_client, target, value.closest_waypoint)
+        set_flag *= cls.set_vehicle_location(kvs_client, target, value.vehicle_location)
         set_flag *= cls.set_state_cmd(kvs_client, target, value.state_cmd)
         set_flag *= cls.set_lane_array(kvs_client, target, value.lane_array)
         set_flag *= cls.set_decision_maker_state(kvs_client, target, value.decision_maker_state)
@@ -488,11 +497,11 @@ class Hook(object):
         return schedules
 
     @classmethod
-    def generate_route_point(cls, kvs_client, target, closest_waypoint):
-        route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, closest_waypoint.lane_array_id)
+    def generate_route_point(cls, kvs_client, target, vehicle_location):
+        route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, vehicle_location.lane_array_id)
         return RoutePoint.new_data(
             route_code=route_code,
-            index=closest_waypoint.index
+            index=vehicle_location.waypoint_index
         )
 
     @classmethod
@@ -530,7 +539,7 @@ class Hook(object):
                 vehicle_status.route_point is not None,
                 vehicle_status.decision_maker_state.data != Autoware.CONST.DECISION_MAKER_STATE.WAIT_ORDER
             ]):
-                # on closest_waypoint_ros_message
+                # on vehicle_location_ros_message
                 pose, location = maps_client.route.get_route_point_pose_and_location(vehicle_status.route_point)
                 if None in [pose, location]:
                     logger.warning("Current pose is out of route.")

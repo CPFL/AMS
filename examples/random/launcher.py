@@ -18,9 +18,9 @@ class Launcher(object):
         command = "python ../node_launcher/vehicle.py -KCT redis -PSCT paho -TD sim -IFP ./initials/vehicle.json -SMP ./state_machines/vehicle.json"
         self.popen_vehicle = Popen(command.split(" "))
 
-        # print("launch vehicle")
-        # command = "python ../node_launcher/vehicle.py -KCT redis -PSCT paho -TD sim -IFP ./initials/vehicle.json -SMP ./state_machines/vehicle.json"
-        # self.popen_vehicle1 = Popen(command.split(" "))
+        print("launch vehicle")
+        command = "python ../node_launcher/vehicle.py -KCT redis -PSCT paho -TD sim -IFP ./initials/vehicle.json -SMP ./state_machines/vehicle.json"
+        self.popen_vehicle1 = Popen(command.split(" "))
 
         print("launch milee autoware")
         command = "python ../node_launcher/autoware.py -PSCT paho -TD sim -IFP ./initials/autoware.json -SMP ./state_machines/autoware.json"
@@ -41,7 +41,7 @@ class Launcher(object):
     def __del__(self):
         self.popen_viewer.terminate()
         self.popen_vehicle.terminate()
-        # self.popen_vehicle1.terminate()
+        self.popen_vehicle1.terminate()
         self.popen_milee_autoware.terminate()
         self.popen_milee_autoware_interface.terminate()
         # self.popen_shutter.terminate()

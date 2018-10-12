@@ -5,6 +5,7 @@ from sys import float_info
 import math
 
 from ams import logger
+from ams.helpers import Schedule
 from ams.structures import Pose, Autoware
 from ams.helpers import Position, Vector, Route
 
@@ -12,11 +13,22 @@ from ams.helpers import Position, Vector, Route
 class Simulator(object):
 
     @staticmethod
-    def search_closest_waypoint_from_lane_array(pose_stamped, lane_array, limit_distance=3.0):
+    def search_vehicle_location_from_lane_array(pose_stamped, lane_array, limit_distance=3.0):
         distance_min = float_info.max
         i = 0
-        closest_waypoint = Autoware.ROSMessage.ClosestWaypoint.new_data(**{
-            "lane_array_id": lane_array.id, "index": -1})
+        nsec, sec = math.modf(Schedule.get_time())
+        vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**{
+            "header": {
+                "seq": 0,
+                "stamp": {
+                    "secs": int(sec),
+                    "nsecs": int(nsec * (10 ** 9))
+                },
+                "frame_id": ""
+            },
+            "lane_array_id": lane_array.id,
+            "waypoint_index": -1
+        })
         for lane in lane_array.lanes:
             for waypoint in lane.waypoints:
                 distance = math.sqrt(sum(map(
@@ -26,9 +38,9 @@ class Simulator(object):
                 if distance < distance_min:
                     distance_min = distance
                     if distance_min <= limit_distance:
-                        closest_waypoint.index = i
+                        vehicle_location.waypoint_index = i
                 i += 1
-        return closest_waypoint
+        return vehicle_location
 
     @staticmethod
     def update_pose(

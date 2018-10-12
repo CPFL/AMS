@@ -57,16 +57,16 @@ class Autoware(EventLoop):
         StateMachineHelper.attach(
             state_machine_data,
             [
-                Hook.initialize_closest_waypoint,
+                Hook.initialize_vehicle_location,
                 Hook.initialize_state_cmd,
                 Hook.initialize_lane_array,
-                Hook.update_closest_waypoint,
+                Hook.update_vehicle_location,
                 Hook.update_current_pose,
                 Condition.lane_array_exists,
-                Condition.closest_waypoint_initialized,
+                Condition.vehicle_location_initialized,
                 Condition.state_cmd_is_engage,
                 Condition.state_cmd_initialized,
-                Condition.closest_waypoint_is_end_point
+                Condition.vehicle_location_is_end_point
             ],
             self.user_data
         )
@@ -107,7 +107,7 @@ class Autoware(EventLoop):
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
                 self.user_data["target_autoware"], wait=True)
 
-            Publisher.publish_ros_closest_waypoint(
+            Publisher.publish_ros_vehicle_location(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
                 self.user_data["target_autoware"], wait=True)
 
