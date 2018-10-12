@@ -88,7 +88,7 @@ class Condition(object):
     def decision_maker_state_is_expected(cls, kvs_client, target_vehicle, expected):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            return vehicle_status.decision_maker_state.data == expected
+            return "\n"+expected in vehicle_status.decision_maker_state.data
         return False
 
     @classmethod

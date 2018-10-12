@@ -154,7 +154,7 @@ class Subscriber(object):
         # logger.info("on_state_cmd: {}".format(Schedule.get_time()))
         if state_cmd.data == Autoware.CONST.STATE_CMD.ENGAGE:
             decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
-            if decision_maker_state.data == Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY:
+            if "\n" + Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY in decision_maker_state.data:
                 Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
         else:
             Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)

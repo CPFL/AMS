@@ -8,7 +8,7 @@
   },
   "status": {
     "decision_maker_state": {
-      "data": "WaitOrder\n"
+      "data": "AnyVehicleState\nWaitOrder\nAnyDriveState\n"
     },
     "current_pose": {
       "header": {
