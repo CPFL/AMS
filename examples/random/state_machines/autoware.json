@@ -172,7 +172,7 @@
       "conditions": null
     },
     {
-      "event": "go_to_wait_order",
+      "event": "goto_wait_order",
       "from": "AnyVehicleState\nMissionAborted\nAnyDriveState\n",
       "to": "AnyVehicleState\nWaitOrder-1\nAnyDriveState\n",
       "hooks": [
@@ -184,7 +184,7 @@
       "conditions": null
     },
     {
-      "event": "go_to_wait_order",
+      "event": "goto_wait_order",
       "from": "AnyVehicleState\nMissionComplete\nAnyDriveState\n",
       "to": "AnyVehicleState\nWaitOrder-1\nAnyDriveState\n",
       "hooks": [

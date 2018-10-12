@@ -274,7 +274,7 @@ class Route(object):
         header.stamp.nsecs = int(nsec * (10 ** 9))
     
         lane_array = Autoware.ROSMessage.LaneArray.get_template()
-        lane_array.id = int(current_time * (10 ** 3))
+        lane_array.id = int(current_time)
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
     
