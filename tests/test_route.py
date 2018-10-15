@@ -76,8 +76,8 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_shortest_routes(self):
-        arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, to_arrows, from_arrows = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         cost_function = Route.get_length
         start = {
             "waypoint_id": "9910",
@@ -106,8 +106,8 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_route_point_pose_and_location(self):
-        arrows, _, _ = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         route_point = RoutePoint.new_data(**{
             "route_code": "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676",
             "index": 0
@@ -164,12 +164,11 @@ class TestRoute(unittest.TestCase):
         value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
         self.assertEqual(expected, value)
 
-
     def test_get_pose_and_velocity_set(self):
         with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
-        arrows, _, _ = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         value = Route.get_pose_and_velocity_set(
             "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", arrows, waypoints)
         self.assertEqual(expected, value)
@@ -178,8 +177,8 @@ class TestRoute(unittest.TestCase):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
             expected = json.load(f)
 
-        arrows, _, _ = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         value1 = Route.get_lane_array(
             "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
         self.assertEqual(expected, value1)
