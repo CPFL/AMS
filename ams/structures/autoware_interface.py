@@ -31,11 +31,18 @@ CONST = get_namedtuple_from_dict("CONST", const)
 
 config_template = EventLoop.Config.get_template()
 config_template.update({
+    "target_autoware": Target.get_template(),
     "target_vehicle": Target.get_template(),
 })
 
 config_schema = EventLoop.Config.get_schema()
 config_schema.update({
+    "target_autoware": {
+        "type": "dict",
+        "schema": Target.get_schema(),
+        "required": True,
+        "nullable": False,
+    },
     "target_vehicle": {
         "type": "dict",
         "schema": Target.get_schema(),
