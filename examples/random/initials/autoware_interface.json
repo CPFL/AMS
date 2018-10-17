@@ -1,6 +1,10 @@
 {
   "config": {
     "target_self": {
+      "group": "autoware_interface",
+      "id": "aif_random1"
+    },
+    "target_autoware": {
       "group": "autoware",
       "id": "a_random1"
     },

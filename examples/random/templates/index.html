@@ -425,8 +425,8 @@
                         var to = geometry.vertices[geometry.vertices.length-1];
                         var from = geometry.vertices[geometry.vertices.length-2];
                         var direction = to.clone().sub(from);
-                        const headLength = 1.0;
-                        const headWidth = 0.5;
+                        const headLength = 0.5;
+                        const headWidth = 0.25;
                         var arrowHelper = new THREE.ArrowHelper(direction.normalize(), to, headLength+0.00000001, color, headLength, headWidth);
                         arrowHelper.name = "arrowHead/"+arrow.arrowCode;
                         this.amsObjects["arrowHelper"][arrow.arrowCode] = arrowHelper;

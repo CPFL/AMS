@@ -68,5 +68,6 @@ if __name__ == '__main__':
     Topic.domain = args.topic_domain
 
     autoware_interface = AutowareInterface(initials["config"], ros_msgs)
+    autoware_interface.set_rate(args.event_loop_rate)
     autoware_interface.set_clients(kvs_client, pubsub_client, maps_client, ros_client)
     autoware_interface.start()
