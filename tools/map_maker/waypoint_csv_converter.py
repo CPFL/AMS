@@ -114,17 +114,6 @@ def abs_waypoint_speed_limit(waypoints):
         waypoints[i]["speedLimit"] = abs(waypoint["speedLimit"])
 
 
-def open_file_with_utf8(filename):
-    is_with_bom = is_utf8_file_with_bom(filename)
-    encoding = 'utf-8-sig' if is_with_bom else 'utf-8'
-    return open(filename, "r", encoding=encoding)
-
-
-def is_utf8_file_with_bom(filename):
-    line_first = open(filename, encoding='utf-8').readline()
-    return line_first[0] == '\ufeff'
-
-
 if __name__ == '__main__':
 
     parser = ArgumentParser()
@@ -136,12 +125,11 @@ if __name__ == '__main__':
     parser.add_argument("-LCF", "--loop_close_flag", type=bool, default=False, help="loop close flag.")
     args = parser.parse_args()
 
-
     if args.waypoints_csv_path == args.waypoint_json_path:
         print("same i/o paths.")
         exit()
 
-    with open_file_with_utf8(args.waypoints_csv_path) as f:
+    with open(args.waypoints_csv_path, "r") as f:
         reader = csv.reader(f)
         header = next(reader)
         waypoints_csv = []
