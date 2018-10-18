@@ -232,14 +232,12 @@ class Subscriber(object):
     @classmethod
     def on_vehicle_location_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
-        if -1 not in [
-            vehicle_location.lane_array_id,
-            vehicle_location.waypoint_index
-        ]:
+        if vehicle_location.waypoint_index == -1:
             route_point = Hook.generate_route_point(
                 user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
-            Publisher.publish_route_point(
-                user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
+            if route_point is not None:
+                Publisher.publish_route_point(
+                    user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
 
     @classmethod
     def on_decision_maker_state(cls, _client, user_data, _topic, decision_maker_state):
