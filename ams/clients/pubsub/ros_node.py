@@ -24,7 +24,7 @@ class PubSubClient(object):
     def disconnect(self):
         self.__client.signal_shutdown("ros node is disconnected")
 
-    def publish(self, topic, message, structure, qos=0, retain=False, wait=True):
+    def publish(self, topic, message, structure, qos=0, retain=False, wait=False):
         """
         publish the message to topic in ros node.
 
@@ -38,7 +38,8 @@ class PubSubClient(object):
         """
 
         if topic not in self.__publishers:
-            self.__publishers[topic] = self.__client.Publisher(topic, structure)
+            queue_size = None if wait else 2
+            self.__publishers[topic] = self.__client.Publisher(topic, structure, queue_size=queue_size)
         attr_dict = AttrDict.set_recursively(message)
         self.__publishers[topic].publish(structure(**attr_dict))
 
