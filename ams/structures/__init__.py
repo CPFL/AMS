@@ -9,14 +9,20 @@ from ams.structures.waypoint import WAYPOINT, Waypoint
 from ams.structures.arrow import ARROW, Arrow
 from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
-from ams.structures.route import ROUTE, Route, Routes, RouteDetail
+from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint
 from ams.structures.schedule import Schedule, Schedules
 from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
+from ams.structures.state_machine import StateMachineResource
 
 from ams.structures.topic import TOPIC
 from ams.structures.message_header import MessageHeader
 from ams.structures.client import CLIENT
 
-from ams.structures.autoware_message import AutowareMessage
+from ams.structures.event_loop import EventLoop
+from ams.structures.autoware import Autoware
+from ams.structures.vehicle import Vehicle
+from ams.structures.dispatcher import Dispatcher
+
+from ams.structures.autoware_interface import AutowareInterface

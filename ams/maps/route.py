@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import json
-from sys import float_info
-
 from ams import logger
-from ams.helpers import Location, Position, Vector
+from ams.helpers import Location
 from ams.helpers import Route as Helper
 from ams.structures import ROUTE, RouteDetail
-from ams.structures import Route as Structure
-from ams.structures import Routes as Structures
 
 
 class Route(object):
@@ -99,32 +94,8 @@ class Route(object):
 
         return Location.new_locations(locations)
 
-    def get_arrow_waypoint_array(self, route):
-        logger.warning(logger.deprecation_warning_message("get_locations", "get_arrow_waypoint_array"))
-        return self.get_locations(route)
-
-    def get_route_waypoint_ids(self, route):
-        logger.warning(logger.deprecation_warning_message("get_waypoint_ids", "get_route_waypoint_ids"))
-        return self.get_waypoint_ids(route)
-
-    def get_waypoint_ids(self, route):
-        arrow_codes = route.arrow_codes
-        start_waypoint_id = route.waypoint_ids[0]
-        goal_waypoint_id = route.waypoint_ids[-1]
-        waypoint_ids = []
-        for i, arrow_code in enumerate(arrow_codes):
-            arrow_waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
-            js = 0
-            if i == 0 and start_waypoint_id in arrow_waypoint_ids:
-                js = arrow_waypoint_ids.index(start_waypoint_id)
-            je = len(arrow_waypoint_ids)
-            if i == len(arrow_codes)-1 and goal_waypoint_id in arrow_waypoint_ids:
-                je = arrow_waypoint_ids.index(goal_waypoint_id) + 1
-            for j in range(js+1, je):
-                waypoint_ids.append(arrow_waypoint_ids[j - 1])
-            if arrow_code == arrow_codes[-1]:
-                waypoint_ids.append(arrow_waypoint_ids[je - 1])
-        return waypoint_ids
+    def get_waypoint_ids(self, route_code):
+        return Helper.get_waypoint_ids(route_code, self.__arrow.get_arrows())
 
     def get_route_length(self, route):
         return Helper.get_length(route, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
@@ -180,3 +151,7 @@ class Route(object):
 
     def get_lane_array(self, route_code):
         return Helper.get_lane_array(route_code, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
+
+    def get_route_point_pose_and_location(self, route_point):
+        return Helper.get_route_point_pose_and_location(
+            route_point, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())

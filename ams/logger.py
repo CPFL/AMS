@@ -4,7 +4,7 @@
 import traceback
 
 from logging import config, getLogger
-from pprint import PrettyPrinter
+from pprint import PrettyPrinter, pformat
 
 default_config = {
     "version": 1,
@@ -55,4 +55,5 @@ except:
 
 logger = getLogger("ams")
 logger.pp = PrettyPrinter(indent=2).pprint
+logger.pformat = lambda x: "\n"+pformat(x)
 logger.deprecation_warning_message = lambda new, old: "Use {} instead of {}".format(new, old)

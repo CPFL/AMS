@@ -6,8 +6,8 @@ from sys import float_info
 from math import modf
 from time import time
 
-from ams.helpers import Waypoint, Arrow
-from ams.structures import ROUTE, AutowareMessage
+from ams.helpers import Waypoint, Arrow, Location
+from ams.structures import ROUTE, Autoware
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -160,7 +160,7 @@ class Route(object):
         waypoint_ids_index = 1
         arrow_codes_index = 0
         delimiters_index = 1
-        while(delimiters_index < len(route.delimiters)):
+        while delimiters_index < len(route.delimiters):
             if ROUTE.DELIMITERS.WAYPOINT_ON_ARROW == route.delimiters[delimiters_index]:
                 routes[-1]["waypoint_ids"].append(route.waypoint_ids[waypoint_ids_index])
                 routes[-1]["delimiters"].append(route.delimiters[delimiters_index])
@@ -182,26 +182,77 @@ class Route(object):
         return Structures.new_data(routes)
 
     @classmethod
+    def __update_arrow_waypoint_ids_with_both_endpoints(cls, i, arrow_waypoint_ids, route):
+        if i == 0:
+            index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+            if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+            arrow_waypoint_ids = arrow_waypoint_ids[index:]
+
+        if i == len(route.arrow_codes) - 1:
+            index = arrow_waypoint_ids.index(route.waypoint_ids[1])
+            if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                index = arrow_waypoint_ids.index(route.waypoint_ids[0])
+            arrow_waypoint_ids = arrow_waypoint_ids[:index + 1]
+        return arrow_waypoint_ids
+
+    @classmethod
+    def get_waypoint_ids(cls, route_code, arrows):
+        routes = cls.get_routes_divided_by_action(cls.decode(route_code))
+        waypoint_ids = []
+        for route in routes:
+            for i, arrow_code in enumerate(route.arrow_codes):
+                arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+                arrow_waypoint_ids = cls.__update_arrow_waypoint_ids_with_both_endpoints(i, arrow_waypoint_ids, route)
+
+                if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                    arrow_waypoint_ids.reverse()
+
+                if 0 < len(waypoint_ids):
+                    waypoint_ids = waypoint_ids[:-1]
+
+                waypoint_ids.extend(arrow_waypoint_ids)
+
+        return waypoint_ids
+
+    @classmethod
+    def get_route_point_pose_and_location(cls, route_point, arrows, waypoints):
+        if 0 <= route_point.index:
+            routes = cls.get_routes_divided_by_action(cls.decode(route_point.route_code))
+            m = 0
+            for route in routes:
+                for i, arrow_code in enumerate(route.arrow_codes):
+                    arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+                    arrow_waypoint_ids = cls.__update_arrow_waypoint_ids_with_both_endpoints(
+                        i, arrow_waypoint_ids, route)
+
+                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                        arrow_waypoint_ids.reverse()
+
+                    m = 0 if m == 0 else m - 1
+
+                    if route_point.index < m + len(arrow_waypoint_ids):
+                        return Arrow.get_pose(arrow_code, arrow_waypoint_ids[route_point.index-m], arrows, waypoints),\
+                            Location.new_location(arrow_waypoint_ids[route_point.index-m], arrow_code)
+                    else:
+                        m += len(arrow_waypoint_ids)
+        return None, None
+
+    @classmethod
     def get_pose_and_velocity_set(cls, route_code, arrows, waypoints):
         routes = cls.get_routes_divided_by_action(cls.decode(route_code))
         pose_and_velocity_set = []
         for route in routes:
             for i, arrow_code in enumerate(route.arrow_codes):
                 arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
-                if i == 0:
-                    index = arrow_waypoint_ids.index(route.waypoint_ids[0])
-                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
-                        index = arrow_waypoint_ids.index(route.waypoint_ids[1])
-                    arrow_waypoint_ids = arrow_waypoint_ids[index:]
-
-                if i == len(route.arrow_codes) - 1:
-                    index = arrow_waypoint_ids.index(route.waypoint_ids[1])
-                    if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
-                        index = arrow_waypoint_ids.index(route.waypoint_ids[0])
-                    arrow_waypoint_ids = arrow_waypoint_ids[:index+1]
+                arrow_waypoint_ids = cls.__update_arrow_waypoint_ids_with_both_endpoints(
+                    i, arrow_waypoint_ids, route)
 
                 if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
                     arrow_waypoint_ids.reverse()
+
+                if 0 < len(pose_and_velocity_set):
+                    pose_and_velocity_set = pose_and_velocity_set[:-1]
 
                 for waypoint_id in arrow_waypoint_ids:
                     velocity = Waypoint.get_velocity(waypoint_id, waypoints)
@@ -215,19 +266,20 @@ class Route(object):
     def get_lane_array(cls, route_code, arrows, waypoints, current_time=None):
         pose_and_velocity_set = Route.get_pose_and_velocity_set(route_code, arrows, waypoints)
 
-        header = AutowareMessage.Header.get_template()
+        header = Autoware.ROSMessage.Header.get_template()
         if current_time is None:
             current_time = time()
         nsec, sec = modf(current_time)
         header.stamp.secs = int(sec)
         header.stamp.nsecs = int(nsec * (10 ** 9))
     
-        lane_array = AutowareMessage.LaneArray.get_template()
+        lane_array = Autoware.ROSMessage.LaneArray.get_template()
+        lane_array.id = int(current_time)
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
     
         for pose, velocity in pose_and_velocity_set:
-            waypoint = AutowareMessage.LaneArray.Lane.Waypoint.get_template()
+            waypoint = Autoware.ROSMessage.LaneArray.Lane.Waypoint.get_template()
             waypoint.pose.header = header
             waypoint.pose.pose.position.x = pose.position.x
             waypoint.pose.pose.position.y = pose.position.y

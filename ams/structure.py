@@ -2,7 +2,6 @@
 # coding: utf-8
 
 from copy import deepcopy
-from pprint import pformat
 from collections import namedtuple
 
 from ams import logger, AttrDict, Validator
@@ -41,12 +40,12 @@ def get_structure_superclass(template, schema):
                     element = AttrDict.set_recursively(_element)
                     data.append(element)
                 if not validator.validate({"list": data}):
-                    logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
+                    logger.error(logger.pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             else:
                 data = AttrDict.set_recursively(kwargs)
                 if not validator.validate(data):
-                    logger.error(pformat({"errors": validator.validate_errors(), "data": data}))
+                    logger.error(logger.pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             return data
 

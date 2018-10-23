@@ -1,0 +1,27 @@
+{
+  "config": {
+    "target_self": {
+      "group": "vehicle",
+      "id": "v_random1"
+    },
+    "target_autoware": {
+      "group": "autoware",
+      "id": "a_random1"
+    },
+    "target_dispatcher": {
+      "group": "dispatcher",
+      "id": "d_random1"
+    },
+    "upper_distance_from_stopline": 50.0
+  },
+  "status": {
+    "state": null,
+    "schedule_id": null,
+    "location": null,
+    "pose": null,
+    "updated_at": 0.0,
+    "current_pose": null,
+    "route_point": null,
+    "decision_maker_state": null
+  }
+}

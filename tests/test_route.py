@@ -6,6 +6,7 @@ import unittest
 import json
 
 from ams.helpers import Route, Arrow, Waypoint
+from ams.structures import RoutePoint
 
 
 class TestRoute(unittest.TestCase):
@@ -75,8 +76,8 @@ class TestRoute(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_shortest_routes(self):
-        arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, to_arrows, from_arrows = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         cost_function = Route.get_length
         start = {
             "waypoint_id": "9910",
@@ -104,11 +105,70 @@ class TestRoute(unittest.TestCase):
         }
         self.assertEqual(expected, value)
 
+    def test_get_route_point_pose_and_location(self):
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
+        route_point = RoutePoint.new_data(**{
+            "route_code": "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676",
+            "index": 0
+        })
+        expected = (
+            {
+                'position': {'x': 3753.102, 'y': -99405.981, 'z': 85.725},
+                'orientation': {
+                    'quaternion': {'w': -0.868629124833237, 'x': 0.0, 'y': 0.0, 'z': 0.4954628578323958},
+                    'rpy': {'roll': None, 'pitch': None, 'yaw': 5.246450085504264}
+                }
+            },
+            {
+                'waypoint_id': '10502', 'arrow_code': '10471_9686', 'geohash': None
+            }
+        )
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        self.assertEqual(expected, value)
+
+        expected = (
+            {
+                'position': {'x': 3754.346, 'y': -99399.875, 'z': 85.696},
+                'orientation': {
+                    'quaternion': {'w': -0.6971157998367005, 'x': 0.0, 'y': 0.0, 'z': 0.7169585494420423},
+                    'rpy': {'roll': None, 'pitch': None, 'yaw': 4.684326173951593}}},
+            {
+                'waypoint_id': '9676', 'arrow_code': '9673_9988', 'geohash': None
+            }
+        )
+        route_point.index = 20
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        self.assertEqual(expected, value)
+
+        expected = (
+            {
+                'position': {'x': 3754.353, 'y': -99408.875, 'z': 85.681},
+                'orientation': {
+                    'quaternion': {'w': -0.707283535768144, 'x': 0.0, 'y': 0.0, 'z': 0.7069299824107849},
+                    'rpy': {'roll': None, 'pitch': None, 'yaw': 4.712888980342898}
+                }
+            },
+            {
+                'waypoint_id': '9685', 'arrow_code': '9673_9686', 'geohash': None
+            }
+        )
+        route_point.route_code = "10472:10471>9686:9686:9686<9673:9673:9673>9988:10333"
+        route_point.index = 35
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        self.assertEqual(expected, value)
+
+        route_point.route_code = "9883:9875>9887>9563:9563"
+        route_point.index = 100
+        expected = (None, None)
+        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        self.assertEqual(expected, value)
+
     def test_get_pose_and_velocity_set(self):
         with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
-        arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         value = Route.get_pose_and_velocity_set(
             "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", arrows, waypoints)
         self.assertEqual(expected, value)
@@ -117,8 +177,8 @@ class TestRoute(unittest.TestCase):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
             expected = json.load(f)
 
-        arrows, to_arrows, from_arrows = Arrow.load("./res/arrow.json")
-        waypoints = Waypoint.load("./res/waypoint.json")
+        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
         value1 = Route.get_lane_array(
             "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
         self.assertEqual(expected, value1)

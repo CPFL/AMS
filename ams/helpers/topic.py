@@ -106,12 +106,12 @@ class Topic(object):
         return True
 
     @staticmethod
-    def serialize(message):
-        return json.dumps(message)
+    def serialize(message, dumps=json.dumps):
+        return dumps(message)
 
     @staticmethod
-    def unserialize(payload, structure=None):
-        message = json.loads(payload)
+    def deserialize(payload, structure=None, loads=json.loads):
+        message = loads(payload.decode("utf-8"))
         if structure is None:
             return message
         else:

@@ -1,4 +1,5 @@
 {
+ "id": 0,
  "lanes": [
   {
    "header": {
@@ -78,7 +79,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -146,7 +154,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -214,7 +229,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -282,7 +304,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -350,7 +379,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -418,7 +454,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -486,7 +529,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -554,7 +604,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -622,7 +679,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -690,7 +754,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -758,7 +829,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -826,7 +904,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -894,7 +979,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -962,7 +1054,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1030,7 +1129,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1098,7 +1204,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1166,7 +1279,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1234,7 +1354,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1302,7 +1429,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1370,7 +1504,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1438,7 +1579,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1506,7 +1654,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1574,7 +1729,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1642,7 +1804,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1710,7 +1879,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1778,7 +1954,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1846,7 +2029,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1914,7 +2104,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -1982,7 +2179,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2050,7 +2254,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2118,7 +2329,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2186,7 +2404,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2254,7 +2479,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2322,7 +2554,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2390,75 +2629,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
-    },
-    {
-     "gid": 0,
-     "lid": 0,
-     "pose": {
-      "header": {
-       "seq": 0,
-       "stamp": {
-        "secs": 0,
-        "nsecs": 0
-       },
-       "frame_id": ""
-      },
-      "pose": {
-       "position": {
-        "x": 3754.354,
-        "y": -99409.875,
-        "z": 85.677
-       },
-       "orientation": {
-        "w": -0.7617393900090137,
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.6478835556708441
-       }
-      }
      },
-     "twist": {
-      "header": {
-       "seq": 0,
-       "stamp": {
-        "secs": 0,
-        "nsecs": 0
-       },
-       "frame_id": ""
-      },
-      "twist": {
-       "linear": {
-        "x": 5.5,
-        "y": 0.0,
-        "z": 0.0
-       },
-       "angular": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-       }
-      }
-     },
-     "dtlane": {
-      "dist": 0.0,
-      "dir": 0.0,
-      "apara": 0.0,
-      "r": 0.0,
-      "slope": 0.0,
-      "cant": 0.0,
-      "lw": 0.0,
-      "rw": 0.0
-     },
-     "change_flag": 0,
-     "wpstate": {
-      "aid": 0,
-      "lanechange_state": 0,
-      "steering_state": 0,
-      "accel_state": 0,
-      "stop_state": 0,
-      "event_state": 0
-     }
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2526,7 +2704,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2594,7 +2779,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2662,7 +2854,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2730,7 +2929,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2798,7 +3004,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2866,7 +3079,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -2934,7 +3154,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3002,7 +3229,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3070,7 +3304,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3138,7 +3379,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3206,7 +3454,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3274,7 +3529,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3342,75 +3604,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
-    },
-    {
-     "gid": 0,
-     "lid": 0,
-     "pose": {
-      "header": {
-       "seq": 0,
-       "stamp": {
-        "secs": 0,
-        "nsecs": 0
-       },
-       "frame_id": ""
-      },
-      "pose": {
-       "position": {
-        "x": 3754.343,
-        "y": -99396.875,
-        "z": 85.686
-       },
-       "orientation": {
-        "w": -0.7074602460563433,
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.7067531395401778
-       }
-      }
      },
-     "twist": {
-      "header": {
-       "seq": 0,
-       "stamp": {
-        "secs": 0,
-        "nsecs": 0
-       },
-       "frame_id": ""
-      },
-      "twist": {
-       "linear": {
-        "x": -5.5,
-        "y": 0.0,
-        "z": 0.0
-       },
-       "angular": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-       }
-      }
-     },
-     "dtlane": {
-      "dist": 0.0,
-      "dir": 0.0,
-      "apara": 0.0,
-      "r": 0.0,
-      "slope": 0.0,
-      "cant": 0.0,
-      "lw": 0.0,
-      "rw": 0.0
-     },
-     "change_flag": 0,
-     "wpstate": {
-      "aid": 0,
-      "lanechange_state": 0,
-      "steering_state": 0,
-      "accel_state": 0,
-      "stop_state": 0,
-      "event_state": 0
-     }
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3478,7 +3679,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3546,7 +3754,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3614,7 +3829,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3682,7 +3904,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3750,7 +3979,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3818,7 +4054,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3886,7 +4129,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -3954,7 +4204,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4022,7 +4279,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4090,7 +4354,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4158,7 +4429,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4226,7 +4504,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4294,7 +4579,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4362,7 +4654,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4430,7 +4729,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4498,7 +4804,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4566,7 +4879,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4634,7 +4954,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4702,7 +5029,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4770,7 +5104,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4838,7 +5179,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4906,7 +5254,14 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     },
     {
      "gid": 0,
@@ -4974,9 +5329,21 @@
       "accel_state": 0,
       "stop_state": 0,
       "event_state": 0
-     }
+     },
+     "lane_id": 0,
+     "left_lane_id": 0,
+     "right_lane_id": 0,
+     "stop_line_id": 0,
+     "cost": 0.0,
+     "time_cost": 0.0,
+     "direction": 0
     }
-   ]
+   ],
+   "lane_index": 0,
+   "cost": 0.0,
+   "closest_object_distance": 0.0,
+   "closest_object_velocity": 0.0,
+   "is_blocked": false
   }
  ]
 }
