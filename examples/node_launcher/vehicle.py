@@ -42,5 +42,6 @@ if __name__ == '__main__':
     Topic.domain = args.topic_domain
 
     vehicle = Vehicle(initials["config"], initials["status"], args.state_machine_path)
+    vehicle.set_rate(args.event_loop_rate)
     vehicle.set_clients(kvs_client, pubsub_client, maps_client)
     vehicle.start()

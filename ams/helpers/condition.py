@@ -2,34 +2,52 @@
 # coding: utf-8
 
 from ams.helpers import Hook, Schedule
-from ams.structures import Autoware, Vehicle
+from ams.structures import Vehicle, Dispatcher
 
 
 class Condition(object):
 
     @classmethod
-    def lane_array_exists(cls, status):
-        return status.lane_array is not None
+    def received_lane_array_exists(cls, kvs_client, target_autoware):
+        received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
+        return received_lane_array is not None
 
     @classmethod
-    def vehicle_location_initialized(cls, status):
-        if status.vehicle_location is None:
-            return False
-        return status.vehicle_location.waypoint_index == 0
+    def lane_array_updated(cls, kvs_client, target_autoware):
+        received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
+        lane_array = Hook.get_lane_array(kvs_client, target_autoware)
+        return received_lane_array == lane_array
 
     @classmethod
-    def state_cmd_is_engage(cls, status):
-        if status.state_cmd is None:
-            return False
-        return status.state_cmd.data == Autoware.CONST.STATE_CMD.ENGAGE
+    def lane_array_initialized(cls, kvs_client, target_autoware):
+        received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
+        lane_array = Hook.get_lane_array(kvs_client, target_autoware)
+        return received_lane_array is lane_array is None
 
     @classmethod
-    def state_cmd_initialized(cls, status):
-        return status.state_cmd is None
+    def received_lane_array_initialized(cls, kvs_client, target_autoware):
+        received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
+        return received_lane_array is None
 
     @classmethod
-    def vehicle_location_is_end_point(cls, status):
-        return status.vehicle_location.waypoint_index == len(status.lane_array.lanes[0].waypoints) - 1
+    def vehicle_location_initialized(cls, kvs_client, target_autoware):
+        vehicle_location = Hook.get_vehicle_location(kvs_client, target_autoware)
+        if vehicle_location is not None:
+            return vehicle_location.waypoint_index == 0
+        return False
+
+    @classmethod
+    def state_cmd_is_expected(cls, kvs_client, target_autoware, expected):
+        state_cmd = Hook.get_state_cmd(kvs_client, target_autoware)
+        return state_cmd == expected
+
+    @classmethod
+    def vehicle_location_is_end_point(cls, kvs_client, target_autoware):
+        vehicle_location = Hook.get_vehicle_location(kvs_client, target_autoware)
+        lane_array = Hook.get_lane_array(kvs_client, target_autoware)
+        if None not in [vehicle_location, lane_array]:
+            return vehicle_location.waypoint_index == len(lane_array.lanes[0].waypoints) - 1
+        return False
 
     @classmethod
     def vehicle_located(cls, kvs_client, target_vehicle):
@@ -67,11 +85,14 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_route_code_updated(cls, kvs_client, target_vehicle):
+    def vehicle_route_point_updated(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedules]:
             vehicle_schedule = Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
+            if vehicle_schedule.event == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
+                vehicle_schedule = Schedule.get_next_schedule_by_current_schedule_id(
+                    vehicle_schedules, vehicle_status.schedule_id)
             if "route_code" in vehicle_schedule:
                 return vehicle_status.route_point.route_code == vehicle_schedule.route_code
         return False

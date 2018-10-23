@@ -146,15 +146,37 @@ class Subscriber(object):
 
     @classmethod
     def on_lane_array(cls, _client, user_data, _topic, lane_array):
-        # logger.info("on_lane_array: {}".format(Schedule.get_time()))
-        Hook.set_lane_array(user_data["kvs_client"], user_data["target_autoware"], lane_array)
+        decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
+        if decision_maker_state.data.split("\n")[1] + "\n" in [
+            Autoware.CONST.DECISION_MAKER_STATE.WAIT_ORDER,
+            Autoware.CONST.DECISION_MAKER_STATE.DRIVING_MISSION_CHANGE
+        ]:
+            Hook.set_received_lane_array(user_data["kvs_client"], user_data["target_autoware"], lane_array)
 
     @classmethod
     def on_state_cmd(cls, _client, user_data, _topic, state_cmd):
-        # logger.info("on_state_cmd: {}".format(Schedule.get_time()))
+        decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
         if state_cmd.data == Autoware.CONST.STATE_CMD.ENGAGE:
-            decision_maker_state = Hook.get_decision_maker_state(user_data["kvs_client"], user_data["target_autoware"])
-            if "\n" + Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY in decision_maker_state.data:
+            if decision_maker_state.data.split("\n")[1] + "\n" in [
+                Autoware.CONST.DECISION_MAKER_STATE.DRIVE_READY
+            ]:
+                Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
+        elif state_cmd.data == Autoware.CONST.STATE_CMD.REQUEST_MISSION_CHANGE:
+            if decision_maker_state.data.split("\n")[1] + "\n" in [
+                Autoware.CONST.DECISION_MAKER_STATE.DRIVING
+            ]:
+                Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
+
+        elif state_cmd.data == Autoware.CONST.STATE_CMD.RETURN_TO_DRIVING:
+            if decision_maker_state.data.split("\n")[1] + "\n" in [
+                Autoware.CONST.DECISION_MAKER_STATE.MISSION_CHANGE_SUCCEEDED,
+            ]:
+                Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
+        elif state_cmd.data == Autoware.CONST.STATE_CMD.GOTO_WAIT_ORDER:
+            if decision_maker_state.data.split("\n")[1] + "\n" in [
+                Autoware.CONST.DECISION_MAKER_STATE.MISSION_ABORTED,
+                Autoware.CONST.DECISION_MAKER_STATE.MISSION_COMPLETE,
+            ]:
                 Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
         else:
             Hook.set_state_cmd(user_data["kvs_client"], user_data["target_autoware"], state_cmd)
@@ -210,11 +232,12 @@ class Subscriber(object):
     @classmethod
     def on_vehicle_location_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
-        if vehicle_location.waypoint_index != -1:
+        if vehicle_location.waypoint_index == -1:
             route_point = Hook.generate_route_point(
                 user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
-            Publisher.publish_route_point(
-                user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
+            if route_point is not None:
+                Publisher.publish_route_point(
+                    user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
 
     @classmethod
     def on_decision_maker_state(cls, _client, user_data, _topic, decision_maker_state):
@@ -247,7 +270,7 @@ class Subscriber(object):
                     state_machine_data,
                     [
                         Hook.update_and_set_vehicle_pose,
-                        Hook.update_vehicle_route_code,
+                        Hook.update_vehicle_route_point,
                         Hook.update_and_set_vehicle_pose_to_route_start,
                         Hook.initialize_vehicle_status_schedule_id,
                         Publisher.publish_vehicle_config,
@@ -256,7 +279,7 @@ class Subscriber(object):
                         Condition.vehicle_located,
                         Condition.dispatcher_assigned,
                         Condition.vehicle_schedules_exists,
-                        Condition.vehicle_route_code_updated,
+                        Condition.vehicle_route_point_updated,
                         Condition.vehicle_status_schedule_id_initialized,
                         Condition.vehicle_schedules_include_any_expected_events,
                         Condition.decision_maker_state_is_expected,
@@ -271,8 +294,6 @@ class Subscriber(object):
                     schedule = Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
                     if schedule is not None:
                         event = schedule.event
-
-                # logger.info("vehicle state, event: {}, {}".format(vehicle_status.state, event))
 
                 update_flag = False
                 if event is not None:
@@ -299,8 +320,7 @@ class Subscriber(object):
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):
-        decision_maker_state = Autoware.ROSMessage.DecisionMakerState.new_data(
-            **yaml.load(str(ros_message_object)))
+        decision_maker_state = Autoware.ROSMessage.DecisionMakerState.new_data(**yaml.load(str(ros_message_object)))
         topic = Publisher.get_decision_maker_state_topic(user_data["target_autoware"], user_data["target_vehicle"])
         user_data["pubsub_client"].publish(topic, decision_maker_state)
 

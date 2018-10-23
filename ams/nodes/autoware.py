@@ -3,7 +3,6 @@
 
 from time import time, sleep
 
-from ams import logger
 from ams.helpers import Hook, Condition, Publisher, Subscriber
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.nodes.event_loop import EventLoop
@@ -49,8 +48,19 @@ class Autoware(EventLoop):
 
         self.state_machine_path = state_machine_path
 
+    @classmethod
+    def set_autoware_status(cls, kvs_client, target, value):
+        set_flag = Hook.set_current_pose(kvs_client, target, value.current_pose)
+        set_flag *= Hook.set_vehicle_location(kvs_client, target, value.vehicle_location)
+        set_flag *= Hook.set_state_cmd(kvs_client, target, value.state_cmd)
+        set_flag *= Hook.set_lane_array(kvs_client, target, value.lane_array)
+        set_flag *= Hook.set_decision_maker_state(kvs_client, target, value.decision_maker_state)
+        if not set_flag:
+            raise IOError("cannot set autoware status.")
+
     def loop(self):
-        Hook.set_autoware_status(self.user_data["kvs_client"], self.user_data["target_autoware"], self.status)
+        Hook.set_status(self.user_data["kvs_client"], self.user_data["target_autoware"], self.status)
+        self.set_autoware_status(self.user_data["kvs_client"], self.user_data["target_autoware"], self.status)
 
         resource = StateMachineHelper.load_resource(self.state_machine_path)
         state_machine_data = StateMachineHelper.create_data(resource)
@@ -60,12 +70,16 @@ class Autoware(EventLoop):
                 Hook.initialize_vehicle_location,
                 Hook.initialize_state_cmd,
                 Hook.initialize_lane_array,
+                Hook.initialize_received_lane_array,
+                Hook.update_lane_array,
                 Hook.update_vehicle_location,
                 Hook.update_current_pose,
-                Condition.lane_array_exists,
+                Condition.received_lane_array_exists,
+                Condition.lane_array_initialized,
+                Condition.received_lane_array_initialized,
+                Condition.lane_array_updated,
                 Condition.vehicle_location_initialized,
-                Condition.state_cmd_is_engage,
-                Condition.state_cmd_initialized,
+                Condition.state_cmd_is_expected,
                 Condition.vehicle_location_is_end_point
             ],
             self.user_data
@@ -73,30 +87,13 @@ class Autoware(EventLoop):
 
         while True:
             start_time = time()
-            state_machine_data["variables"]["config"] = Hook.get_config(
-                self.user_data["kvs_client"], self.user_data["target_autoware"], self.Config)
-            state_machine_data["variables"]["status"] = Hook.get_autoware_status(
-                self.user_data["kvs_client"], self.user_data["target_autoware"])
-
             state_cmd = Hook.get_state_cmd(self.user_data["kvs_client"], self.user_data["target_autoware"])
             event = state_cmd.data if state_cmd is not None else None
-            logger.info("update_state: {}, {}".format(StateMachineHelper.get_state(state_machine_data), event))
             updated_flag = False
             if event is not None:
                 updated_flag = StateMachineHelper.update_state(state_machine_data, event)
-                if updated_flag:
-                    logger.info(
-                        Hook.get_status(
-                            self.user_data["kvs_client"], self.user_data["target_autoware"], self.Status
-                        ).decision_maker_state.data
-                    )
             if not updated_flag:
-                if StateMachineHelper.update_state(state_machine_data, None):
-                    logger.info(
-                        Hook.get_status(
-                            self.user_data["kvs_client"], self.user_data["target_autoware"], self.Status
-                        ).decision_maker_state.data
-                    )
+                StateMachineHelper.update_state(state_machine_data, None)
 
             Hook.set_decision_maker_state(
                 self.user_data["kvs_client"], self.user_data["target_autoware"],

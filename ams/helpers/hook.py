@@ -41,6 +41,13 @@ class Hook(object):
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.CURRENT_POSE)
 
     @classmethod
+    def get_received_lane_array_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            cls.get_lane_array_key(target),
+            "received"
+        ])
+
+    @classmethod
     def get_lane_array_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target),
@@ -225,6 +232,11 @@ class Hook(object):
         return kvs_client.set(key, value)
 
     @classmethod
+    def set_received_lane_array(cls, kvs_client, target, value):
+        key = cls.get_received_lane_array_key(target)
+        return kvs_client.set(key, value)
+
+    @classmethod
     def set_lane_array(cls, kvs_client, target, value):
         key = cls.get_lane_array_key(target)
         return kvs_client.set(key, value)
@@ -282,19 +294,21 @@ class Hook(object):
     @classmethod
     def initialize_vehicle_location(cls, kvs_client, target):
         lane_array = cls.get_lane_array(kvs_client, target)
-        nsec, sec = modf(Schedule.get_time())
-        return cls.set_vehicle_location(kvs_client, target, Autoware.Status.VehicleLocation.new_data(**{
-            "header": {
-                "seq": 0,
-                "stamp": {
-                    "secs": int(sec),
-                    "nsecs": int(nsec * (10 ** 9))
+        if lane_array is not None:
+            nsec, sec = modf(Schedule.get_time())
+            return cls.set_vehicle_location(kvs_client, target, Autoware.Status.VehicleLocation.new_data(**{
+                "header": {
+                    "seq": 0,
+                    "stamp": {
+                        "secs": int(sec),
+                        "nsecs": int(nsec * (10 ** 9))
+                    },
+                    "frame_id": ""
                 },
-                "frame_id": ""
-            },
-            "lane_array_id": -1 if lane_array is None else lane_array.id,
-            "waypoint_index": 0
-        }))
+                "lane_array_id": lane_array.id,
+                "waypoint_index": 0
+            }))
+        return False
 
     @classmethod
     def initialize_state_cmd(cls, kvs_client, target):
@@ -302,7 +316,12 @@ class Hook(object):
 
     @classmethod
     def initialize_lane_array(cls, kvs_client, target):
-        return cls.set_lane_array(kvs_client, target, None)
+        cls.set_lane_array(kvs_client, target, None)
+        cls.initialize_received_lane_array(kvs_client, target)
+
+    @classmethod
+    def initialize_received_lane_array(cls, kvs_client, target):
+        cls.set_received_lane_array(kvs_client, target, None)
 
     @classmethod
     def initialize_vehicle_status_schedule_id(cls, kvs_client, target_vehicle):
@@ -312,25 +331,7 @@ class Hook(object):
             if vehicle_schedules is not None:
                 if vehicle_status.schedule_id is None:
                     vehicle_status.schedule_id = vehicle_schedules[0].id
-                    logger.info("VEHICLE_STATUS: {}".format(vehicle_status))
                     return cls.set_status(kvs_client, target_vehicle, vehicle_status)
-        return False
-
-    @classmethod
-    def update_vehicle_location(cls, kvs_client, target, config, status):
-        current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(
-            status.current_pose, status.lane_array)
-        status.vehicle_location.waypoint_index = min(
-            current_vehicle_location.waypoint_index + config.step_size, len(status.lane_array.lanes[0].waypoints) - 1)
-        return cls.set_vehicle_location(kvs_client, target, status.vehicle_location)
-
-    @classmethod
-    def update_current_pose(cls, kvs_client, target, status):
-        if status.lane_array is not None:
-            if 0 <= status.vehicle_location.waypoint_index < len(status.lane_array.lanes[0].waypoints):
-                return cls.set_current_pose(
-                    kvs_client, target,
-                    status.lane_array.lanes[0].waypoints[status.vehicle_location.waypoint_index].pose)
         return False
 
     @staticmethod
@@ -374,6 +375,14 @@ class Hook(object):
         return value
 
     @classmethod
+    def get_received_lane_array(cls, kvs_client, target):
+        key = cls.get_received_lane_array_key(target)
+        value = kvs_client.get(key)
+        if value is not None:
+            value = Autoware.Status.LaneArray.new_data(**value)
+        return value
+
+    @classmethod
     def get_lane_array(cls, kvs_client, target):
         key = cls.get_lane_array_key(target)
         value = kvs_client.get(key)
@@ -398,27 +407,6 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_autoware_status(cls, kvs_client, target):
-        return Autoware.Status.new_data(
-            current_pose=cls.get_current_pose(kvs_client, target),
-            vehicle_location=cls.get_vehicle_location(kvs_client, target),
-            state_cmd=cls.get_state_cmd(kvs_client, target),
-            lane_array=cls.get_lane_array(kvs_client, target),
-            decision_maker_state=cls.get_decision_maker_state(kvs_client, target),
-            light_color=cls.get_light_color(kvs_client, target),
-            updated_at=Schedule.get_time()
-        )
-
-    @classmethod
-    def set_autoware_status(cls, kvs_client, target, value):
-        set_flag = cls.set_current_pose(kvs_client, target, value.current_pose)
-        set_flag *= cls.set_vehicle_location(kvs_client, target, value.vehicle_location)
-        set_flag *= cls.set_state_cmd(kvs_client, target, value.state_cmd)
-        set_flag *= cls.set_lane_array(kvs_client, target, value.lane_array)
-        set_flag *= cls.set_decision_maker_state(kvs_client, target, value.decision_maker_state)
-        return set_flag
-
-    @classmethod
     def get_current_vehicle_schedule(cls, vehicle_status, vehicle_schedules):
         return Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
 
@@ -435,14 +423,6 @@ class Hook(object):
     @classmethod
     def get_next_vehicle_schedule_id(cls, vehicle_status, vehicle_schedules):
         return Schedule.get_next_schedule_by_current_schedule_id(vehicle_schedules, vehicle_status.schedule_id).id
-
-    @classmethod
-    def update_and_set_vehicle_status(cls, kvs_client, target, vehicle_status, new_state, vehicle_schedules=None):
-        vehicle_status.state = new_state
-        vehicle_status.updated_at = Schedule.get_time()
-        if vehicle_schedules is not None:
-            vehicle_status.schedule_id = cls.get_next_vehicle_schedule_id(vehicle_status, vehicle_schedules)
-        return cls.set_status(kvs_client, target, vehicle_status)
 
     @classmethod
     def update_next_vehicle_schedule_end_time_with_current_time_and_duration(cls, vehicle_status, vehicle_schedules):
@@ -499,17 +479,56 @@ class Hook(object):
     @classmethod
     def generate_route_point(cls, kvs_client, target, vehicle_location):
         route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, vehicle_location.lane_array_id)
-        return RoutePoint.new_data(
-            route_code=route_code,
-            index=vehicle_location.waypoint_index
-        )
+        if route_code is not None:
+            return RoutePoint.new_data(
+                route_code=route_code,
+                index=vehicle_location.waypoint_index
+            )
+        else:
+            logger.warning("cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
+        return None
 
     @classmethod
-    def update_vehicle_route_code(cls, kvs_client, target_vehicle):
+    def update_vehicle_location(cls, kvs_client, target):
+        config = cls.get_config(kvs_client, target, Autoware.Config)
+        vehicle_location = cls.get_vehicle_location(kvs_client, target)
+        current_pose = cls.get_current_pose(kvs_client, target)
+        lane_array = cls.get_lane_array(kvs_client, target)
+        if lane_array is not None:
+            current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(current_pose, lane_array)
+            vehicle_location.lane_array_id = lane_array.id
+            vehicle_location.waypoint_index = min(
+                current_vehicle_location.waypoint_index + config.step_size, len(lane_array.lanes[0].waypoints) - 1)
+            return cls.set_vehicle_location(kvs_client, target, vehicle_location)
+        return False
+
+    @classmethod
+    def update_current_pose(cls, kvs_client, target):
+        lane_array = cls.get_lane_array(kvs_client, target)
+        if lane_array is not None:
+            vehicle_location = cls.get_vehicle_location(kvs_client, target)
+            if 0 <= vehicle_location.waypoint_index < len(lane_array.lanes[0].waypoints):
+                return cls.set_current_pose(
+                    kvs_client, target, lane_array.lanes[0].waypoints[vehicle_location.waypoint_index].pose)
+        return False
+
+    @classmethod
+    def update_lane_array(cls, kvs_client, target_autoware):
+        received_lane_array = cls.get_received_lane_array(kvs_client, target_autoware)
+        if received_lane_array is not None:
+            lane_array = cls.get_lane_array(kvs_client, target_autoware)
+            if received_lane_array != lane_array:
+                cls.set_lane_array(kvs_client, target_autoware, received_lane_array)
+
+    @classmethod
+    def update_vehicle_route_point(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedules = cls.get_schedules(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedules]:
             vehicle_schedule = Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
+            if vehicle_schedule.event == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
+                vehicle_schedule = Schedule.get_next_schedule_by_current_schedule_id(
+                    vehicle_schedules, vehicle_status.schedule_id)
             if vehicle_schedule is not None:
                 if "route_code" in vehicle_schedule:
                     vehicle_status.route_point = RoutePoint.new_data(**{

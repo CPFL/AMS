@@ -26,10 +26,18 @@ const.update({
         "MISSION_CHECK": "MissionCheck\n",
         "WAIT_PERMISSION": "WaitPermission\n",
         "DRIVE_READY": "DriveReady\n",
-        "DRIVE": "Drive\n"
+        "DRIVING": "Driving\n",
+        "DRIVING_MISSION_CHANGE": "DrivingMissionChange\n",
+        "MISSION_CHANGE_SUCCEEDED": "MissionChangeSucceeded\n",
+        "MISSION_ABORTED": "MissionAborted\n",
+        "MISSION_COMPLETE": "MissionComplete\n"
+
     },
     "STATE_CMD": {
-        "ENGAGE": "engage"
+        "ENGAGE": "engage",
+        "REQUEST_MISSION_CHANGE": "request_mission_change",
+        "RETURN_TO_DRIVING": "return_to_driving",
+        "GOTO_WAIT_ORDER": "goto_wait_order"
     },
     "TRAFFIC_LIGHT": {
         "RED": 0,

@@ -4,8 +4,8 @@
     "kvs_client": {},
     "target_autoware": null,
     "target_vehicle": null,
-    "config": {},
-    "status": {}
+    "STATE_CMD_ENGAGE": {"data": "engage"},
+    "STATE_CMD_NONE": null
   },
   "transitions": [
     {
@@ -29,8 +29,8 @@
       "hooks": null,
       "conditions": [
         {
-          "function": "lane_array_exists",
-          "args": ["status"]
+          "function": "received_lane_array_exists",
+          "args": ["kvs_client", "target_autoware"]
         }
       ]
     },
@@ -42,12 +42,20 @@
         {
           "function": "initialize_vehicle_location",
           "args": ["kvs_client", "target_autoware"]
+        },
+        {
+          "function": "update_lane_array",
+          "args": ["kvs_client", "target_autoware"]
         }
       ],
       "conditions": [
         {
           "function": "vehicle_location_initialized",
-          "args": ["status"]
+          "args": ["kvs_client", "target_autoware"]
+        },
+        {
+          "function": "lane_array_updated",
+          "args": ["kvs_client", "target_autoware"]
         }
       ]
     },
@@ -58,7 +66,7 @@
       "hooks": [
         {
           "function": "update_current_pose",
-          "args": ["kvs_client", "target_autoware", "status"]
+          "args": ["kvs_client", "target_autoware"]
         }
       ],
       "conditions": null
@@ -73,19 +81,19 @@
           "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "state_cmd_is_expected",
+          "args": ["kvs_client", "target_autoware", "STATE_CMD_NONE"]
+        }
+      ]
     },
     {
       "event": null,
       "from": "AnyVehicleState\nDriving-1\nAnyDriveState\n",
       "to": "AnyVehicleState\nDriving\nAnyDriveState\n",
       "hooks": null,
-      "conditions": [
-        {
-          "function": "lane_array_exists",
-          "args": ["status"]
-        }
-      ]
+      "conditions": null
     },
     {
       "event": "mission_canceled",
@@ -101,17 +109,17 @@
       "hooks": [
         {
           "function": "update_vehicle_location",
-          "args": ["kvs_client", "target_autoware", "config", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "update_current_pose",
-          "args": ["kvs_client", "target_autoware", "status"]
+          "args": ["kvs_client", "target_autoware"]
         }
       ],
       "conditions": [
         {
           "function": "vehicle_location_is_end_point",
-          "args": ["status"]
+          "args": ["kvs_client", "target_autoware"]
         }
       ]
     },
@@ -122,18 +130,31 @@
       "hooks": [
         {
           "function": "update_vehicle_location",
-          "args": ["kvs_client", "target_autoware", "config", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "update_current_pose",
-          "args": ["kvs_client", "target_autoware", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "initialize_state_cmd",
           "args": ["kvs_client", "target_autoware"]
+        },
+        {
+          "function": "initialize_received_lane_array",
+          "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "state_cmd_is_expected",
+          "args": ["kvs_client", "target_autoware", "STATE_CMD_NONE"]
+        },
+        {
+          "function": "received_lane_array_initialized",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ]
     },
     {
       "event": null,
@@ -142,14 +163,23 @@
       "hooks": [
         {
           "function": "update_vehicle_location",
-          "args": ["kvs_client", "target_autoware", "config", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "update_current_pose",
-          "args": ["kvs_client", "target_autoware", "status"]
+          "args": ["kvs_client", "target_autoware"]
+        },
+        {
+          "function": "update_lane_array",
+          "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "lane_array_updated",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ]
     },
     {
       "event": "return_to_driving",
@@ -158,18 +188,23 @@
       "hooks": [
         {
           "function": "update_vehicle_location",
-          "args": ["kvs_client", "target_autoware", "config", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "update_current_pose",
-          "args": ["kvs_client", "target_autoware", "status"]
+          "args": ["kvs_client", "target_autoware"]
         },
         {
           "function": "initialize_state_cmd",
           "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "state_cmd_is_expected",
+          "args": ["kvs_client", "target_autoware", "STATE_CMD_NONE"]
+        }
+      ]
     },
     {
       "event": "goto_wait_order",
@@ -181,7 +216,12 @@
           "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "state_cmd_is_expected",
+          "args": ["kvs_client", "target_autoware", "STATE_CMD_NONE"]
+        }
+      ]
     },
     {
       "event": "goto_wait_order",
@@ -193,7 +233,12 @@
           "args": ["kvs_client", "target_autoware"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "state_cmd_is_expected",
+          "args": ["kvs_client", "target_autoware", "STATE_CMD_NONE"]
+        }
+      ]
     },
     {
       "event": null,
@@ -207,9 +252,8 @@
       ],
       "conditions": [
         {
-          "function": "lane_array_exists",
-          "args": ["status"],
-          "not": true
+          "function": "lane_array_initialized",
+          "args": ["kvs_client", "target_autoware"]
         }
       ]
     }

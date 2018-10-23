@@ -198,18 +198,18 @@ class Publisher(object):
         schedule_id = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status).schedule_id
         if schedule_id is not None:
             schedule = Schedule.get_schedule_by_id(Hook.get_schedules(kvs_client, target_vehicle), schedule_id)
-            route_code = schedule.route_code
-            if route_code is not None:
-                topic = cls.get_route_code_topic(target_vehicle, target_autoware)
-                message = {
-                    "header": {
-                        "id": Schedule.get_id(),
-                        "time": Schedule.get_time(),
-                        "version": VERSION
-                    },
-                    "body": route_code
-                }
-                pubsub_client.publish(topic, message)
+            if schedule.event == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
+                if schedule.route_code is not None:
+                    topic = cls.get_route_code_topic(target_vehicle, target_autoware)
+                    message = {
+                        "header": {
+                            "id": Schedule.get_id(),
+                            "time": Schedule.get_time(),
+                            "version": VERSION
+                        },
+                        "body": schedule.route_code
+                    }
+                    pubsub_client.publish(topic, message)
 
     @classmethod
     def publish_state_cmd(cls, pubsub_client, target_vehicle, target_autoware, state_cmd):

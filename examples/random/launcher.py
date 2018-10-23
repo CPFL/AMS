@@ -5,6 +5,8 @@ from subprocess import Popen
 from time import sleep
 import traceback
 
+from ams import logger
+
 
 class Launcher(object):
 
@@ -23,11 +25,11 @@ class Launcher(object):
         self.popen_vehicle1 = Popen(command.split(" "))
 
         print("launch milee autoware")
-        command = "python ../node_launcher/autoware.py -PSCT paho -TD sim -IFP ./initials/autoware.json -SMP ./state_machines/autoware.json"
+        command = "python ../node_launcher/autoware.py -KCT redis -PSCT paho -TD sim -IFP ./initials/autoware.json -SMP ./state_machines/autoware.json"
         self.popen_milee_autoware = Popen(command.split(" "))
 
         print("launch milee autoware interface")
-        command = "python ../node_launcher/autoware_interface.py -PSCT paho -TD sim -IFP ./initials/autoware_interface.json"
+        command = "python ../node_launcher/autoware_interface.py -KCT redis -PSCT paho -TD sim -IFP ./initials/autoware_interface.json"
         self.popen_milee_autoware_interface = Popen(command.split(" "))
 
         # print("launch shutter")
@@ -52,9 +54,12 @@ class Launcher(object):
 
 
 if __name__ == '__main__':
-    lanucher = Launcher()
+    launcher = Launcher()
     try:
-        lanucher.start()
+        launcher.start()
     except KeyboardInterrupt:
-        traceback.print_exc()
-        del lanucher
+        pass
+    except Exception as e:
+        logger.error(logger.pformat(e))
+    finally:
+        del launcher

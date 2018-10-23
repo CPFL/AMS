@@ -59,7 +59,7 @@ def get_keys(client, base_key):
 
 class KVSClient(ArgsSetters):
     def __init__(self):
-        super().__init__()
+        super(KVSClient, self).__init__()
         self.__connection_pool = None
         self.__client = None
         self.__key_relation = {}

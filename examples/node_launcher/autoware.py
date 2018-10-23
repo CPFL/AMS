@@ -46,5 +46,6 @@ if __name__ == '__main__':
     Topic.domain = args.topic_domain
 
     autoware = Autoware(initials["config"], initials["status"], args.state_machine_path)
+    autoware.set_rate(args.event_loop_rate)
     autoware.set_clients(kvs_client, pubsub_client, maps_client)
     autoware.start()
