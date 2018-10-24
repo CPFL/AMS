@@ -22,7 +22,7 @@ class Condition(object):
     def lane_array_initialized(cls, kvs_client, target_autoware):
         received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
         lane_array = Hook.get_lane_array(kvs_client, target_autoware)
-        return received_lane_array is lane_array is None
+        return received_lane_array is None is lane_array
 
     @classmethod
     def received_lane_array_initialized(cls, kvs_client, target_autoware):

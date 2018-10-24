@@ -334,14 +334,6 @@ class Hook(object):
                     return cls.set_status(kvs_client, target_vehicle, vehicle_status)
         return False
 
-    @staticmethod
-    def get_timestamp():
-        nsec, sec = modf(time())
-        return Autoware.Status.Header.Timestamp.new_data(
-            secs=int(sec),
-            nsecs=int(nsec*(10**9))
-        )
-
     @classmethod
     def get_vehicle_location(cls, kvs_client, target):
         key = cls.get_vehicle_location_key(target)
@@ -481,7 +473,8 @@ class Hook(object):
                 index=vehicle_location.waypoint_index
             )
         else:
-            logger.warning("cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
+            logger.warning(
+                "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
 
     @classmethod
