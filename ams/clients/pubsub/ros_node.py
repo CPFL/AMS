@@ -22,11 +22,24 @@ class PubSubClient(object):
         self.__client.init_node(name="ros_ams_node", anonymous=True)
 
     def disconnect(self):
-        pass
+        self.__client.signal_shutdown("ros node is disconnected")
 
-    def publish(self, topic, message, structure, qos=0, retaion=False):
+    def publish(self, topic, message, structure, qos=0, retain=False, wait=False):
+        """
+        publish the message to topic in ros node.
+
+        :param topic: topic name to publish
+        :param message: message to publish
+        :param structure: message format type
+        :param qos: quality of service(unused)
+        :param retain: is retained message or not(unused)
+        :param wait: is wait until publish or not(unused)
+        :return: None
+        """
+
         if topic not in self.__publishers:
-            self.__publishers[topic] = self.__client.Publisher(topic, structure)
+            queue_size = None if wait else 2
+            self.__publishers[topic] = self.__client.Publisher(topic, structure, queue_size=queue_size)
         attr_dict = AttrDict.set_recursively(message)
         self.__publishers[topic].publish(structure(**attr_dict))
 

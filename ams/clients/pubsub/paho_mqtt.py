@@ -58,9 +58,9 @@ def set_on_message_and_connect(client, args, subscribers, subscribers_lock):
                 if Topic.compare_topics(topic, message_data.topic):
                     subscriber["callback"](_client, subscriber["user_data"], message_data.topic, message_data.payload)
             except ValueError as e:
-                logger.exception("ValueError is raised in paho mqtt client. Case: %s", e.message)
+                logger.exception("ValueError is raised in paho mqtt client. Cause: %s", e.message)
             except Exception as e:
-                logger.exception("UnkownError is raised in paho mqtt client. Case: %s", e.message)
+                logger.exception("UnkownError is raised in paho mqtt client. Cause: %s", e.message)
         subscribers_lock.release()
 
     client.on_message = on_message
@@ -84,6 +84,7 @@ class PubSubClient(ArgsSetters):
         self.__loads = loads
 
     def subscribe(self, topic, callback, qos=0, user_data=None, structure=None):
+        logger.info("subscribe {} topic. qos: {}, structure: {}".format(topic, qos, structure))
         loads = self.__loads
 
         def wrapped_callback(_client, _user_data, _topic, _payload):
