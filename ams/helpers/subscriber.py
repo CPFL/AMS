@@ -136,7 +136,7 @@ class Subscriber(object):
     @classmethod
     def on_route_code_message_publish_lane_array(cls, _client, user_data, _topic, route_code_message):
         route_code = route_code_message.body
-        lane_array = user_data["maps_client"].route.get_lane_array(route_code)
+        lane_array = user_data["maps_client"].route.generate_lane_array(route_code)
         set_flag = Hook.set_route_code_lane_array_id_relation(
             user_data["kvs_client"], user_data["target_autoware"], route_code, lane_array.id)
         if set_flag:

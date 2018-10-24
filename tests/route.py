@@ -9,11 +9,11 @@ from ams.helpers import Route, Arrow, Waypoint
 from ams.structures import RoutePoint
 
 
-class TestRoute(unittest.TestCase):
+class Test(unittest.TestCase):
 
     def __init__(self, method_name):
 
-        super(TestRoute, self).__init__(method_name)
+        super(Test, self).__init__(method_name)
 
     def test_encode(self):
         expected = "1:0>2>4:3"
@@ -173,35 +173,15 @@ class TestRoute(unittest.TestCase):
             "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", arrows, waypoints)
         self.assertEqual(expected, value)
 
-    def test_get_lane_array(self):
+    def test_generate_lane_array(self):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
             expected = json.load(f)
 
         arrows, _, _ = Arrow.load("./res/maps/arrow.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
-        value1 = Route.get_lane_array(
+        value1 = Route.generate_lane_array(
             "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
         self.assertEqual(expected, value1)
-        value2 = Route.get_lane_array(
+        value2 = Route.generate_lane_array(
             "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
         self.assertEqual(expected, value2)
-
-
-def test_route(test_loader, suite):
-    test_names = test_loader.getTestCaseNames(TestRoute)
-
-    for test_name in test_names:
-        suite.addTest(TestRoute(test_name))
-
-    return suite
-
-
-if __name__ == "__main__":
-
-    test_loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-
-    test_route(test_loader, suite)
-
-    result = unittest.TextTestRunner().run(suite)
-    sys.exit(not result.wasSuccessful())

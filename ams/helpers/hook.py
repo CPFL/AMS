@@ -435,7 +435,7 @@ class Hook(object):
 
     @classmethod
     def generate_lane_array_from_route_code(cls, maps_client, route_code):
-        return maps_client.route.get_lane_array(route_code)
+        return maps_client.route.generate_lane_array(route_code)
 
     @classmethod
     def generate_pose_from_current_pose(cls, current_pose):

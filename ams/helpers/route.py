@@ -263,7 +263,7 @@ class Route(object):
         return pose_and_velocity_set
 
     @classmethod
-    def get_lane_array(cls, route_code, arrows, waypoints, current_time=None):
+    def generate_lane_array(cls, route_code, arrows, waypoints, current_time=None):
         pose_and_velocity_set = Route.get_pose_and_velocity_set(route_code, arrows, waypoints)
 
         header = Autoware.ROSMessage.Header.get_template()
