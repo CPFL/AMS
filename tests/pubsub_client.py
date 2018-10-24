@@ -1,4 +1,4 @@
-ls#!/usr/bin/env python
+#!/usr/bin/env python
 # coding: utf-8
 
 import unittest
@@ -28,7 +28,7 @@ def generate_paho_client(host, port):
         print(e)
 
 
-def generate_aws_iot_client(host, port, path_ca, path_private_key, path_cert):
+def generate_aws_iot_client(path_ca, path_private_key, path_cert):
     try:
         import AWSIoTPythonSDK.MQTTLib
         if not os.path.exists(path_ca):
@@ -43,7 +43,7 @@ def generate_aws_iot_client(host, port, path_ca, path_private_key, path_cert):
         PUBSUBClient = get_pubsub_client_class(AWSIoTPythonSDK.MQTTLib)
         pubsub_client = PUBSUBClient(num_of_clients=6)
         pubsub_client.set_args_of_AWSIoTMQTTClient(str(uuid()))
-        pubsub_client.set_args_of_configureEndpoint(host, port)
+        pubsub_client.set_args_of_configureEndpoint(env["AWS_IOT_ENDPOINT"], 8883)
         pubsub_client.set_args_of_configureCredentials(
             CAFilePath=path_ca, KeyPath=path_private_key, CertificatePath=path_cert)
         pubsub_client.set_args_of_configureMQTTOperationTimeout(30)
@@ -85,7 +85,6 @@ class Test(unittest.TestCase):
         self.message = None
         self.paho_client = generate_paho_client("localhost", 1883)
         self.aws_iot_client = generate_aws_iot_client(
-            env["AWS_IOT_ENDPOINT"], 8883,
             "./tests/config/aws_iot_keys/root-CA.crt",
             "./tests/config/aws_iot_keys/private.key",
             "./tests/config/aws_iot_keys/cert.pem"
