@@ -3,7 +3,6 @@
 
 import csv
 import json
-import sys
 import math
 from copy import deepcopy
 from argparse import ArgumentParser
@@ -11,16 +10,13 @@ from pprint import PrettyPrinter
 
 from pyproj import Proj, transform
 
-from ams import logger
-
 pp = PrettyPrinter(indent=2).pprint
 ARROW_DELIMITER = "_"
 
 
-def translate(x, y):
-    # in_proj = Proj(init="EPSG:2449")  # http://blog.godo-tys.jp/2012/11/21/999/
-    in_proj = Proj(init="EPSG:2451")  # http://blog.godo-tys.jp/2012/11/21/999/
-    out_proj = Proj(init='EPSG:4612')
+def translate(x, y, in_init):
+    in_proj = Proj(init=in_init)
+    out_proj = Proj(init="EPSG:4612")
     return transform(in_proj, out_proj, x, y)
 
 
@@ -32,7 +28,7 @@ def get_degree_from_dmmss(dmmss):
     return degree
 
 
-def get_waypoints_from_pyproj(waypoints_csv, offset):
+def get_waypoints_from_pyproj(waypoints_csv, offset, epsg):
     waypoints = []
     for waypoint_index, waypoint_csv in enumerate(waypoints_csv):
         waypoint_id = str(offset+waypoint_index)
@@ -43,7 +39,7 @@ def get_waypoints_from_pyproj(waypoints_csv, offset):
         while 2.0*math.pi < yaw:
             yaw -= 2.0*math.pi
 
-        lng, lat = translate(float(waypoint_csv["x"]), float(waypoint_csv["y"]))
+        lng, lat = translate(float(waypoint_csv["x"]), float(waypoint_csv["y"]), epsg)
 
         waypoints.append({
             "waypointID": waypoint_id,
@@ -69,7 +65,7 @@ def get_waypoints_set(waypoints):
             i == len(waypoints)-2
         ]):
             waypoints_set.append(waypoints[prev_i:i+1])
-            if (waypoints[i]["speedLimit"] < 0.0 and 0.0 <= waypoints[i + 1]["speedLimit"]) or \
+            if (waypoints[i]["speedLimit"] < 0.0 <= waypoints[i + 1]["speedLimit"]) or \
                     (waypoints[i]["speedLimit"] < 0.0 and i == len(waypoints)-2):
                 print(waypoints[i]["speedLimit"], waypoints[i + 1]["speedLimit"])
                 waypoints_set[-1].reverse()
@@ -122,6 +118,7 @@ if __name__ == '__main__':
     parser.add_argument("-AJP", "--arrow_json_path", type=str, required=True, help="arrow.json file path")
     parser.add_argument("-WCO", "--waypoints_csv_offset", type=int, default=0, help="waypoints.csv offset")
     parser.add_argument("-NIC", "--node_id_csv", type=str, default=None, help="node id csv")
+    parser.add_argument("-EPSG", "--in_epsg", type=str, default="EPSG:2451", help="epsg code. http://blog.godo-tys.jp/2012/11/21/999/")
     parser.add_argument("-LCF", "--loop_close_flag", type=bool, default=False, help="loop close flag.")
     args = parser.parse_args()
 
@@ -136,12 +133,11 @@ if __name__ == '__main__':
         for row in reader:
             waypoints_csv.append(dict(zip(header, deepcopy(row))))
 
-    waypoints = get_waypoints_from_pyproj(waypoints_csv, args.waypoints_csv_offset)
+    waypoints = get_waypoints_from_pyproj(waypoints_csv, args.waypoints_csv_offset, args.in_epsg)
 
     waypoints_set = get_waypoints_set(waypoints)
     if args.loop_close_flag:
         waypoints_set[-1].append(waypoints_set[0][0])
-    logger.info(logger.pformat((list(map(lambda x: (x[0]["waypointID"], x[-1]["waypointID"]), waypoints_set)))))
 
     node_ids = get_node_ids(args.waypoints_csv_offset, waypoints_set, args.node_id_csv)
 
