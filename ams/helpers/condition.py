@@ -46,7 +46,7 @@ class Condition(object):
         vehicle_location = Hook.get_vehicle_location(kvs_client, target_autoware)
         lane_array = Hook.get_lane_array(kvs_client, target_autoware)
         if None not in [vehicle_location, lane_array]:
-            return vehicle_location.waypoint_index == len(lane_array.lanes[0].waypoints) - 1
+            return vehicle_location.waypoint_index == len(lane_array["lanes"][0]["waypoints"]) - 1
         return False
 
     @classmethod
