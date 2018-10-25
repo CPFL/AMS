@@ -239,6 +239,28 @@ class Route(object):
         return None, None
 
     @classmethod
+    def generate_arrow_code_waypoint_id_relations(cls, route_code, arrows):
+        routes = cls.get_routes_divided_by_action(cls.decode(route_code))
+        arrow_code_waypoint_id_relations = []
+        for route in routes:
+            for i, arrow_code in enumerate(route.arrow_codes):
+                arrow_waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+                arrow_waypoint_ids = cls.__update_arrow_waypoint_ids_with_both_endpoints(
+                    i, arrow_waypoint_ids, route)
+
+                direction = ROUTE.DELIMITERS.FOREWARD
+                if ROUTE.DELIMITERS.BACKWARD in route.delimiters:
+                    arrow_waypoint_ids.reverse()
+                    direction = ROUTE.DELIMITERS.BACKWARD
+
+                arrow_code_waypoint_id_relations.append({
+                    "arrow_code": arrow_code,
+                    "waypoint_ids": arrow_waypoint_ids,
+                    "direction": direction
+                })
+        return arrow_code_waypoint_id_relations
+
+    @classmethod
     def get_pose_and_velocity_set(cls, route_code, arrows, waypoints):
         routes = cls.get_routes_divided_by_action(cls.decode(route_code))
         pose_and_velocity_set = []
@@ -263,7 +285,7 @@ class Route(object):
         return pose_and_velocity_set
 
     @classmethod
-    def get_lane_array(cls, route_code, arrows, waypoints, current_time=None):
+    def generate_lane_array(cls, route_code, arrows, waypoints, current_time=None):
         pose_and_velocity_set = Route.get_pose_and_velocity_set(route_code, arrows, waypoints)
 
         header = Autoware.ROSMessage.Header.get_template()

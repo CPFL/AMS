@@ -47,6 +47,11 @@ class ArgsSetters(object):
         self.args.configure_mqtt_operation_timeout = copy(locals())
         self.args.configure_mqtt_operation_timeout.pop("self")
 
+    def set_args_of_configureAutoReconnectBackoffTime(
+            self, baseReconnectQuietTimeSecond, maxReconnectQuietTimeSecond, stableConnectionTimeSecond):
+        self.args.configure_auto_reconnect_back_off_time = copy(locals())
+        self.args.configure_auto_reconnect_back_off_time.pop("self")
+
     def set_args_of_connect(self, keepAliveIntervalSecond=600):
         self.args.connect = copy(locals())
         self.args.connect.pop("self")
@@ -136,6 +141,8 @@ class PubSubClient(ArgsSetters):
                 client["instance"].configureLastWill(**self.args.configure_last_will)
             if "configure_mqtt_operation_timeout" in self.args.keys():
                 client["instance"].configureMQTTOperationTimeout(**self.args.configure_mqtt_operation_timeout)
+            if "configure_auto_reconnect_back_off_time" in self.args.keys():
+                client["instance"].configureAutoReconnectBackoffTime(**self.args.configure_auto_reconnect_back_off_time)
 
         for topic, subscriber in self.__subscribers.items():
             set_on_message(self.__client_pool, self.__subscribers[topic], self.__subscribers_lock)

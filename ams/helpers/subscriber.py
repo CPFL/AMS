@@ -136,7 +136,7 @@ class Subscriber(object):
     @classmethod
     def on_route_code_message_publish_lane_array(cls, _client, user_data, _topic, route_code_message):
         route_code = route_code_message.body
-        lane_array = user_data["maps_client"].route.get_lane_array(route_code)
+        lane_array = user_data["maps_client"].route.generate_lane_array(route_code)
         set_flag = Hook.set_route_code_lane_array_id_relation(
             user_data["kvs_client"], user_data["target_autoware"], route_code, lane_array.id)
         if set_flag:
@@ -232,7 +232,7 @@ class Subscriber(object):
     @classmethod
     def on_vehicle_location_publish_route_point(cls, _client, user_data, _topic, ros_message_object):
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
-        if vehicle_location.waypoint_index == -1:
+        if vehicle_location.waypoint_index != -1:
             route_point = Hook.generate_route_point(
                 user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
             if route_point is not None:
@@ -317,6 +317,10 @@ class Subscriber(object):
                         if vehicle_status.state == new_vehicle_status.state:
                             new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                             Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+
+            Publisher.publish_vehicle_status(
+                user_data["pubsub_client"], user_data["target_vehicle"], user_data["target_dispatcher"],
+                vehicle_status)
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):

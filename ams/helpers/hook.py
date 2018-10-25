@@ -305,7 +305,7 @@ class Hook(object):
                     },
                     "frame_id": ""
                 },
-                "lane_array_id": lane_array.id,
+                "lane_array_id": lane_array["id"],
                 "waypoint_index": 0
             }))
         return False
@@ -333,14 +333,6 @@ class Hook(object):
                     vehicle_status.schedule_id = vehicle_schedules[0].id
                     return cls.set_status(kvs_client, target_vehicle, vehicle_status)
         return False
-
-    @staticmethod
-    def get_timestamp():
-        nsec, sec = modf(time())
-        return Autoware.Status.Header.Timestamp.new_data(
-            secs=int(sec),
-            nsecs=int(nsec*(10**9))
-        )
 
     @classmethod
     def get_vehicle_location(cls, kvs_client, target):
@@ -378,16 +370,12 @@ class Hook(object):
     def get_received_lane_array(cls, kvs_client, target):
         key = cls.get_received_lane_array_key(target)
         value = kvs_client.get(key)
-        if value is not None:
-            value = Autoware.Status.LaneArray.new_data(**value)
         return value
 
     @classmethod
     def get_lane_array(cls, kvs_client, target):
         key = cls.get_lane_array_key(target)
         value = kvs_client.get(key)
-        if value is not None:
-            value = Autoware.Status.LaneArray.new_data(**value)
         return value
 
     @classmethod
@@ -435,7 +423,7 @@ class Hook(object):
 
     @classmethod
     def generate_lane_array_from_route_code(cls, maps_client, route_code):
-        return maps_client.route.get_lane_array(route_code)
+        return maps_client.route.generate_lane_array(route_code)
 
     @classmethod
     def generate_pose_from_current_pose(cls, current_pose):
@@ -485,7 +473,8 @@ class Hook(object):
                 index=vehicle_location.waypoint_index
             )
         else:
-            logger.warning("cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
+            logger.warning(
+                "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
 
     @classmethod
@@ -496,9 +485,10 @@ class Hook(object):
         lane_array = cls.get_lane_array(kvs_client, target)
         if lane_array is not None:
             current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(current_pose, lane_array)
-            vehicle_location.lane_array_id = lane_array.id
+            vehicle_location.lane_array_id = lane_array["id"]
             vehicle_location.waypoint_index = min(
-                current_vehicle_location.waypoint_index + config.step_size, len(lane_array.lanes[0].waypoints) - 1)
+                current_vehicle_location.waypoint_index + config.step_size,
+                len(lane_array["lanes"][0]["waypoints"]) - 1)
             return cls.set_vehicle_location(kvs_client, target, vehicle_location)
         return False
 
@@ -507,9 +497,9 @@ class Hook(object):
         lane_array = cls.get_lane_array(kvs_client, target)
         if lane_array is not None:
             vehicle_location = cls.get_vehicle_location(kvs_client, target)
-            if 0 <= vehicle_location.waypoint_index < len(lane_array.lanes[0].waypoints):
+            if 0 <= vehicle_location.waypoint_index < len(lane_array["lanes"][0]["waypoints"]):
                 return cls.set_current_pose(
-                    kvs_client, target, lane_array.lanes[0].waypoints[vehicle_location.waypoint_index].pose)
+                    kvs_client, target, lane_array["lanes"][0]["waypoints"][vehicle_location.waypoint_index]["pose"])
         return False
 
     @classmethod

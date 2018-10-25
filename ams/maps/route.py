@@ -149,9 +149,12 @@ class Route(object):
         speed_limits = list(map(self.__waypoint.get_speed_limit, waypoint_ids))
         return speed_limits
 
-    def get_lane_array(self, route_code):
-        return Helper.get_lane_array(route_code, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
+    def generate_lane_array(self, route_code):
+        return Helper.generate_lane_array(route_code, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
 
     def get_route_point_pose_and_location(self, route_point):
         return Helper.get_route_point_pose_and_location(
             route_point, self.__arrow.get_arrows(), self.__waypoint.get_waypoints())
+
+    def generate_arrow_code_waypoint_id_relations(self, route_code):
+        return Helper.generate_arrow_code_waypoint_id_relations(route_code, self.__arrow.get_arrows())

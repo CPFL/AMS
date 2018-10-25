@@ -26,13 +26,13 @@ class Simulator(object):
                 },
                 "frame_id": ""
             },
-            "lane_array_id": lane_array.id,
+            "lane_array_id": lane_array["id"],
             "waypoint_index": -1
         })
-        for lane in lane_array.lanes:
-            for waypoint in lane.waypoints:
+        for lane in lane_array["lanes"]:
+            for waypoint in lane["waypoints"]:
                 distance = math.sqrt(sum(map(
-                    lambda x: math.pow(pose_stamped.pose.position[x] - waypoint.pose.pose.position[x], 2.0),
+                    lambda x: math.pow(pose_stamped.pose.position[x] - waypoint["pose"]["pose"]["position"][x], 2.0),
                     ["x", "y", "z"]
                 )))
                 if distance < distance_min:
