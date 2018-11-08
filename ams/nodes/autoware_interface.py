@@ -52,7 +52,8 @@ class AutowareInterface(EventLoop):
             "topic": topic,
             "callback": Subscriber.on_current_pose_publish,
             "structure": ros_msgs["PoseStamped"],
-            "user_data": self.user_data
+            "user_data": self.user_data,
+            "rate": 1.0
         }
 
         topic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
@@ -60,7 +61,8 @@ class AutowareInterface(EventLoop):
             "topic": topic,
             "callback": Subscriber.on_vehicle_location_publish_route_point,
             "structure": ros_msgs["VehicleLocation"],
-            "user_data": self.user_data
+            "user_data": self.user_data,
+            "rate": 1.0
         }
 
         topic = Autoware.CONST.TOPIC.DECISION_MAKER_STATE
@@ -68,5 +70,6 @@ class AutowareInterface(EventLoop):
             "topic": topic,
             "callback": Subscriber.on_decision_maker_state_publish,
             "structure": ros_msgs["String"],
-            "user_data": self.user_data
+            "user_data": self.user_data,
+            "rate": 1.0
         }
