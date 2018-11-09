@@ -343,7 +343,7 @@
                     xhttpPCDs.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
                             that.amsObjects["maps"] = JSON.parse(this.responseText);
-                            that.drawArrows();
+                            that.drawLanes();
                         }
                     };
                     xhttpPCDs.open("GET", "http://"+location.host+"/get/ams/maps", true);
@@ -393,12 +393,12 @@
                     }
                 }
 
-                drawArrows() {
+                drawLanes() {
                     const color = new THREE.Color(0xFF0000);
                     var material = new THREE.LineBasicMaterial({ color: color, linewidth: 5 });
-                    for(const arrow of Object.values(this.amsObjects.maps.arrows)) {
+                    for(const lane of Object.values(this.amsObjects.maps.lanes)) {
                         var geometry = new THREE.Geometry();
-                        for(const waypointID of Object.values(arrow.waypointIDs)) {
+                        for(const waypointID of Object.values(lane.waypointIDs)) {
                             const point = this.amsObjects.maps.waypoints[waypointID];
                             geometry.vertices.push(new THREE.Vector3(point.position.x, point.position.y, point.position.z));
 
@@ -409,7 +409,7 @@
                             waypoint.position.set(point.position.x, point.position.y, point.position.z);
                             waypoint.userData = {
                                 waypointID: waypointID,
-                                arrowCode: arrow.arrowCode
+                                laneCode: lane.laneCode
                             };
                             this.amsObjects["waypoint"][waypointID] = waypoint;
                             this.scene.add( this.amsObjects["waypoint"][waypointID] );
@@ -418,9 +418,9 @@
                         geometry.computeBoundingSphere();
 
                         const line = new THREE.Line( geometry, material );
-                        line.name = arrow.arrowCode;
-                        this.amsObjects["line"][arrow.arrowCode] = line;
-                        this.scene.add( this.amsObjects["line"][arrow.arrowCode] );
+                        line.name = lane.laneCode;
+                        this.amsObjects["line"][lane.laneCode] = line;
+                        this.scene.add( this.amsObjects["line"][lane.laneCode] );
 
                         var to = geometry.vertices[geometry.vertices.length-1];
                         var from = geometry.vertices[geometry.vertices.length-2];
@@ -428,9 +428,9 @@
                         const headLength = 0.5;
                         const headWidth = 0.25;
                         var arrowHelper = new THREE.ArrowHelper(direction.normalize(), to, headLength+0.00000001, color, headLength, headWidth);
-                        arrowHelper.name = "arrowHead/"+arrow.arrowCode;
-                        this.amsObjects["arrowHelper"][arrow.arrowCode] = arrowHelper;
-                        this.scene.add( this.amsObjects["arrowHelper"][arrow.arrowCode] );
+                        arrowHelper.name = "laneHead/"+lane.laneCode;
+                        this.amsObjects["arrowHelper"][lane.laneCode] = arrowHelper;
+                        this.scene.add( this.amsObjects["arrowHelper"][lane.laneCode] );
 
                     }
                 }

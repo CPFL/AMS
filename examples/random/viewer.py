@@ -12,7 +12,7 @@ app = Flask(__name__)
 with app.app_context():
     app.maps_client = MapsClient()
     app.maps_client.load_waypoint_json_file("./static/maps/waypoint.json")
-    app.maps_client.load_arrow_json_file("./static/maps/arrow.json")
+    app.maps_client.load_lane_json_file("./static/maps/lane.json")
 
 
 def api_response(code=200, message={}):
@@ -50,7 +50,7 @@ def get_view_target_pose():
 def get_ams_maps():
     ams_maps = {
         "waypoints": app.maps_client.waypoint.get_waypoints(),
-        "arrows": app.maps_client.arrow.get_arrows()
+        "lanes": app.maps_client.lane.get_lanes()
     }
     return api_response(code=200, message=ams_maps)
 

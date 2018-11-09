@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     maps_client = MapsClient()
     maps_client.load_waypoint_json_file(args.waypoint_json_path)
-    maps_client.load_arrow_json_file(args.arrow_json_path)
+    maps_client.load_lane_json_file(args.lane_json_path)
 
     with open(args.initials_file_path, "r") as f:
         initials = json.load(f)

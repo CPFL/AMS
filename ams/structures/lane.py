@@ -4,7 +4,7 @@
 from ams import get_structure_superclass, get_namedtuple_from_dict
 
 
-ARROW = get_namedtuple_from_dict("CONST", {
+LANE = get_namedtuple_from_dict("CONST", {
     "DELIMITER": "_"
 })
 
@@ -14,22 +14,22 @@ template = {
 }
 
 '''
-arrow_code = "[start_waypoint_id]_[goal_waypoint_id]"
-arrows = {
-    arrow_code: arrow,
+lane_code = "[start_waypoint_id]_[goal_waypoint_id]"
+lanes = {
+    lane_code: lane,
 }
 
-arrow_codes = [arrow_code]
-from_arrow_code = arrow_code
-to_arrow_codes = arrow_codes
-to_arrows = {
-    from_arrow_code: to_arrow_codes
+lane_codes = [lane_code]
+from_lane_code = lane_code
+to_lane_codes = lane_codes
+to_lanes = {
+    from_lane_code: to_lane_codes
 }
 
-to_arrow_code = arrow_code
-from_arrow_codes = arrow_codes
-from_arrows = {
-    to_arrow_code: from_arrow_codes
+to_lane_code = lane_code
+from_lane_codes = lane_codes
+from_lanes = {
+    to_lane_code: from_lane_codes
 }
 '''
 
@@ -48,5 +48,5 @@ schema = {
 }
 
 
-class Arrow(get_structure_superclass(template, schema)):
+class Lane(get_structure_superclass(template, schema)):
     pass

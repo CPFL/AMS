@@ -8,14 +8,14 @@ from ams.helpers import Location
 class MapMatch(object):
     def __init__(self):
         self.__waypoint = None
-        self.__arrow = None
+        self.__lane = None
         self.__route = None
 
     def set_waypoint(self, waypoint):
         self.__waypoint = waypoint
 
-    def set_arrow(self, arrow):
-        self.__arrow = arrow
+    def set_lane(self, lane):
+        self.__lane = lane
 
     def set_route(self, route):
         self.__route = route
@@ -53,25 +53,25 @@ class MapMatch(object):
                 similarity_max = similarity
         return matched_location
 
-    def get_matched_location_on_arrows(self, pose, arrow_codes=None):
-        if arrow_codes is None:
-            arrow_codes = self.__arrow.get_arrow_codes()
+    def get_matched_location_on_lanes(self, pose, lane_codes=None):
+        if lane_codes is None:
+            lane_codes = self.__lane.get_lane_codes()
 
         similarity_max = 0.0
         matched_location = None
-        for arrow_code in arrow_codes:
+        for lane_code in lane_codes:
 
             # easy filter
-            waypoint_ids = self.__arrow.get_waypoint_ids(arrow_code)
+            waypoint_ids = self.__lane.get_waypoint_ids(lane_code)
             pose_on_route = self.__waypoint.get_pose(waypoint_ids[0])
             similarity_head = MapMatch.get_similarity_between_poses(pose, pose_on_route)
             if -15.0 < similarity_head:
 
-                for waypoint_id in self.__arrow.get_waypoint_ids(arrow_code):
+                for waypoint_id in self.__lane.get_waypoint_ids(lane_code):
                     pose_on_route = self.__waypoint.get_pose(waypoint_id)
                     similarity = MapMatch.get_similarity_between_poses(pose, pose_on_route)
                     if matched_location is None or similarity_max < similarity:
-                        matched_location = Location.new_location(waypoint_id, arrow_code)
+                        matched_location = Location.new_location(waypoint_id, lane_code)
                         similarity_max = similarity
 
         return matched_location

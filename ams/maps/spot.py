@@ -22,7 +22,7 @@ class Spot(object):
             lambda x: (x["ID"], Spot.new_spot(
                 Target.new_targets(x["targets"]),
                 Location.new_location(
-                    x["contact"]["waypointID"], x["contact"]["arrowCode"],  x["contact"]["geohash"]
+                    x["contact"]["waypointID"], x["contact"]["laneCode"],  x["contact"]["geohash"]
                 ),
                 None, None
             )),

@@ -443,7 +443,7 @@ class Hook(object):
 
     @classmethod
     def generate_pose_from_location(cls, maps_client, location):
-        return maps_client.arrow.get_pose(location.arrow_code, location.waypoint_id)
+        return maps_client.lane.get_pose(location.lane_code, location.waypoint_id)
 
     @classmethod
     def generate_state_cmd_from_data(cls, data):
@@ -560,7 +560,7 @@ class Hook(object):
             else:
                 # on current_pose_ros_message
                 if vehicle_status.location is None and vehicle_status.current_pose is not None:
-                    vehicle_status.location = maps_client.map_match.get_matched_location_on_arrows(
+                    vehicle_status.location = maps_client.map_match.get_matched_location_on_lanes(
                         cls.generate_pose_from_current_pose(vehicle_status.current_pose))
 
                     if vehicle_status.location is not None:

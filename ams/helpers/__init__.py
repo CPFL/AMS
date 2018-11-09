@@ -10,7 +10,7 @@ from ams.helpers.target import Target
 from ams.helpers.topic import Topic
 from ams.helpers.kvs import Kvs
 from ams.helpers.waypoint import Waypoint
-from ams.helpers.arrow import Arrow
+from ams.helpers.lane import Lane
 from ams.helpers.route import Route
 from ams.helpers.relation import Relation
 from ams.helpers.state_machine import StateMachine

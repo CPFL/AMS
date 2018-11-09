@@ -9,7 +9,7 @@ from ams.structures import Pose
 
 ROUTE = get_namedtuple_from_dict("CONST", {
     "DELIMITERS": {
-        "WAYPOINT_ON_ARROW": ":",
+        "WAYPOINT_ON_LANE": ":",
         "FOREWARD": ">",
         "BACKWARD": "<",
     },
@@ -18,12 +18,12 @@ ROUTE = get_namedtuple_from_dict("CONST", {
 
 route_template = {
     "waypoint_ids": ["0", "1"],
-    "arrow_codes": ["0_1"],
+    "lane_codes": ["0_1"],
     "delimiters": [":", ">", ":"]
 }
 
 '''
-route_code = "[start_waypoint_id]:[joined_arrow_codes]:[goal_waypoint_id]"
+route_code = "[start_waypoint_id]:[joined_lane_codes]:[goal_waypoint_id]"
 routes = {
     route_code: route,
 }
@@ -40,7 +40,7 @@ route_schema = {
         "nullable": True,
         "minlength": 2
     },
-    "arrow_codes": {
+    "lane_codes": {
         "type": "list",
         "schema": {
             "type": "string",
@@ -88,7 +88,7 @@ class Routes(get_structure_superclass(routes_template, routes_schema)):
 route_detail_template = [
     {
         "waypoint_id": "0",
-        "arrow_code": "0_1",
+        "lane_code": "0_1",
         "pose": Pose.get_template(),
         "geohash": "123456789012345",
         "speed_limit": 5.5
@@ -105,7 +105,7 @@ route_detail_schema = {
                 "required": True,
                 "nullable": False,
             },
-            "arrow_code": {
+            "lane_code": {
                 "type": "string",
                 "required": True,
                 "nullable": False,

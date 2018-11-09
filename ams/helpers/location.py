@@ -8,10 +8,10 @@ from ams.structures import Locations as Structures
 class Location(object):
 
     @staticmethod
-    def new_location(waypoint_id, arrow_code, geohash=None):
+    def new_location(waypoint_id, lane_code, geohash=None):
         return Structure.new_data(
             waypoint_id=waypoint_id,
-            arrow_code=arrow_code,
+            lane_code=lane_code,
             geohash=geohash
         )
 

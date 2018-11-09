@@ -11,7 +11,7 @@ from pprint import PrettyPrinter
 from pyproj import Proj, transform
 
 pp = PrettyPrinter(indent=2).pprint
-ARROW_DELIMITER = "_"
+LANE_DELIMITER = "_"
 
 
 def translate(x, y, in_init):
@@ -86,23 +86,23 @@ def get_node_ids(offset, waypoints_set, node_id_csv=None):
     return list(map(str, node_ids_int))
 
 
-def get_arrows(waypoints_set, node_ids):
-    arrows = {}
+def get_lanes(waypoints_set, node_ids):
+    lanes = {}
     for waypoints in waypoints_set:
         prev_i = None
         for i, waypoint in enumerate(waypoints):
             if waypoint["waypointID"] in node_ids:
                 if prev_i is not None:
                     print(waypoint["waypointID"], node_ids)
-                    arrow_code = waypoints[prev_i]["waypointID"] + "_" + waypoint["waypointID"]
+                    lane_code = waypoints[prev_i]["waypointID"] + "_" + waypoint["waypointID"]
                     waypoint_ids = list(map(lambda x: waypoints[x]["waypointID"], range(prev_i, i+1)))
-                    arrows[arrow_code] = {
-                        "arrowCode": arrow_code,
+                    lanes[lane_code] = {
+                        "laneCode": lane_code,
                         "waypointIDs": waypoint_ids,
                         "length": 12.3
                     }
                 prev_i = i
-    return arrows
+    return lanes
 
 
 def abs_waypoint_speed_limit(waypoints):
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-WCP", "--waypoints_csv_path", type=str, required=True, help="waypoints.csv file path")
     parser.add_argument("-WJP", "--waypoint_json_path", type=str, required=True, help="waypoint.json file path")
-    parser.add_argument("-AJP", "--arrow_json_path", type=str, required=True, help="arrow.json file path")
+    parser.add_argument("-LJP", "--lane_json_path", type=str, required=True, help="lane.json file path")
     parser.add_argument("-WCO", "--waypoints_csv_offset", type=int, default=0, help="waypoints.csv offset")
     parser.add_argument("-NIC", "--node_id_csv", type=str, default=None, help="node id csv")
     parser.add_argument("-EPSG", "--in_epsg", type=str, default="EPSG:2451", help="epsg code. http://blog.godo-tys.jp/2012/11/21/999/")
@@ -141,20 +141,20 @@ if __name__ == '__main__':
 
     node_ids = get_node_ids(args.waypoints_csv_offset, waypoints_set, args.node_id_csv)
 
-    arrows = get_arrows(waypoints_set, node_ids)
-    print(list(map(lambda x: (x["arrowCode"], x["waypointIDs"][0], x["waypointIDs"][-1]), arrows.values())))
+    lanes = get_lanes(waypoints_set, node_ids)
+    print(list(map(lambda x: (x["laneCode"], x["waypointIDs"][0], x["waypointIDs"][-1]), lanes.values())))
 
-    to_arrows = {}
-    from_arrows = {}
-    for arrow_code in arrows:
-        waypoint_id1, waypoint_id2 = arrow_code.split(ARROW_DELIMITER)
-        arrow_codes = list(arrows.keys())
-        to_arrows[arrow_code] = list(filter(
-            lambda x: waypoint_id2 == x.split(ARROW_DELIMITER)[0] and waypoint_id1 != x.split(ARROW_DELIMITER)[1],
-            arrow_codes))
-        from_arrows[arrow_code] = list(filter(
-            lambda x: waypoint_id1 == x.split(ARROW_DELIMITER)[1] and waypoint_id2 != x.split(ARROW_DELIMITER)[0],
-            arrow_codes))
+    to_lanes = {}
+    from_lanes = {}
+    for lane_code in lanes:
+        waypoint_id1, waypoint_id2 = lane_code.split(LANE_DELIMITER)
+        lane_codes = list(lanes.keys())
+        to_lanes[lane_code] = list(filter(
+            lambda x: waypoint_id2 == x.split(LANE_DELIMITER)[0] and waypoint_id1 != x.split(LANE_DELIMITER)[1],
+            lane_codes))
+        from_lanes[lane_code] = list(filter(
+            lambda x: waypoint_id1 == x.split(LANE_DELIMITER)[1] and waypoint_id2 != x.split(LANE_DELIMITER)[0],
+            lane_codes))
 
     abs_waypoint_speed_limit(waypoints)
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     with open(args.waypoint_json_path, "w") as f:
         json.dump(waypoint_json, f, indent="  ")
 
-    with open(args.arrow_json_path, "w") as f:
-        json.dump({"arrows": arrows, "toArrows": to_arrows, "fromArrows": from_arrows}, f, indent="  ")
+    with open(args.lane_json_path, "w") as f:
+        json.dump({"lanes": lanes, "toLanes": to_lanes, "fromLanes": from_lanes}, f, indent="  ")
 
     print("last waypoint id:", node_ids[-1])
