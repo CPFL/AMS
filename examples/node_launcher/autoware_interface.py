@@ -4,6 +4,7 @@
 import json
 import yaml
 
+from ams import logger
 from ams.helpers import Topic
 from ams.clients import MapsClient
 from ams.nodes import AutowareInterface
@@ -70,4 +71,16 @@ if __name__ == '__main__':
     autoware_interface = AutowareInterface(initials["config"], ros_msgs)
     autoware_interface.set_rate(args.event_loop_rate)
     autoware_interface.set_clients(kvs_client, pubsub_client, maps_client, ros_client)
-    autoware_interface.start()
+    try:
+        autoware_interface.start()
+    except KeyboardInterrupt:
+        logger.info("autoware_interface node: KeyboardInterrupt")
+    except Exception as e:
+        logger.error(logger.pformat(e))
+    finally:
+        del kvs_client
+        del pubsub_client
+        del maps_client
+        del ros_client
+        del autoware_interface
+
