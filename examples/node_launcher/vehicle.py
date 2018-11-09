@@ -3,6 +3,7 @@
 
 import json
 
+from ams import logger
 from ams.helpers import Topic
 from ams.clients import MapsClient
 from ams.nodes import Vehicle
@@ -44,4 +45,15 @@ if __name__ == '__main__':
     vehicle = Vehicle(initials["config"], initials["status"], args.state_machine_path)
     vehicle.set_rate(args.event_loop_rate)
     vehicle.set_clients(kvs_client, pubsub_client, maps_client)
-    vehicle.start()
+    try:
+        vehicle.start()
+    except KeyboardInterrupt:
+        logger.info("vehicle node: KeyboardInterrupt")
+    except Exception as e:
+        logger.error(logger.pformat(e))
+    finally:
+        del kvs_client
+        del pubsub_client
+        del maps_client
+        del vehicle
+
