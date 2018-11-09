@@ -16,7 +16,6 @@ class EventLoop(object):
 
     def __init__(self, config, status=None):
         self.dt = 1.0
-        logger.info("self.config.schema: {}".format(logger.pformat(self.Config.get_schema())))
         self.config = self.Config.new_data(**config)
         self.status = self.Status.new_data(**status) if status is not None else None
         self.user_data = {
