@@ -38,6 +38,10 @@ class PubSubClient(object):
         self.__subscribers = {}
         self.__publishers = {}
 
+    def __delete__(self):
+        self.disconnect()
+        self.__manager.shutdown()
+
     def connect(self):
         self.__client.init_node(name="ros_ams_node", anonymous=True)
         for subscriber in self.__subscribers.values():

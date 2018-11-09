@@ -77,6 +77,10 @@ class PubSubClient(ArgsSetters):
         self.__dumps = json.dumps
         self.__loads = json.loads
 
+    def __delete__(self):
+        self.disconnect()
+        self.__manager.shutdown()
+
     def set_dumps(self, dumps):
         self.__dumps = dumps
 
@@ -151,3 +155,4 @@ class PubSubClient(ArgsSetters):
 
     def disconnect(self):
         self.__client.disconnect()
+
