@@ -109,3 +109,8 @@ class PubSubClient(object):
 
     def unsubscribe(self):
         pass
+
+    def loop(self, sleep_time):
+        while not rospy.is_shutdown():
+            sleep(sleep_time)
+

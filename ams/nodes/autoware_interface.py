@@ -73,3 +73,7 @@ class AutowareInterface(EventLoop):
             "user_data": self.user_data,
             "rate": 1.0
         }
+
+    def loop(self):
+        self.user_data["ros_client"].loop(self.dt)
+
