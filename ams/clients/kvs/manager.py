@@ -34,14 +34,12 @@ class KVSClient(object):
     CONST = CLIENT.KVS.BASE_CLIENTS.MULTIPROCESSING
 
     def __init__(self):
+        self.__key_relation = {}
+
+    def connect(self):
         self.__manager = Manager()
         self.__d = self.__manager.dict()
         self.__d_lock = self.__manager.Lock()
-        self.__key_relation = {}
-
-    @staticmethod
-    def connect():
-        logger.warning("Not supported this method.")
 
     def get(self, key):
 
@@ -107,7 +105,6 @@ class KVSClient(object):
     def keys(self, pattern="*"):
         return list(filter(lambda x: compare_keys(x, pattern), self.__d.keys()))
 
-    @staticmethod
-    def disconnect():
-        logger.warning("Not supported this method.")
+    def disconnect(self):
+        self.__manager.shutdown()
 
