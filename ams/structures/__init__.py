@@ -6,7 +6,7 @@ from ams.structures.pose import Pose
 from ams.structures.location import Location, Locations
 from ams.structures.polygon import Polygon
 from ams.structures.waypoint import WAYPOINT, Waypoint
-from ams.structures.arrow import ARROW, Arrow
+from ams.structures.lane import LANE, Lane
 from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint

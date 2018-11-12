@@ -6,38 +6,38 @@ import math
 from copy import copy, deepcopy
 
 from ams.helpers import Position, Vector, Rpy, Location, Waypoint
-from ams.structures import ARROW, Orientation, Pose
+from ams.structures import LANE, Orientation, Pose
 
 
-class Arrow(object):
+class Lane(object):
 
-    CONST = ARROW
+    CONST = LANE
 
     @classmethod
     def load(cls, path):
         with open(path, "r") as f:
             data = json.load(f)
-        return data["arrows"], data["toArrows"], data["fromArrows"]
+        return data["lanes"], data["toLanes"], data["fromLanes"]
 
     @classmethod
-    def get_arrow_codes(cls, arrows):
-        return tuple(arrows.keys())
+    def get_lane_codes(cls, lanes):
+        return tuple(lanes.keys())
 
     @classmethod
-    def get_arrow(cls, arrow_code, arrows):
-        return deepcopy(arrows[arrow_code])
+    def get_lane(cls, lane_code, lanes):
+        return deepcopy(lanes[lane_code])
 
     @classmethod
-    def get_waypoint_ids(cls, arrow_code, arrows):
-        return copy(arrows[arrow_code]["waypointIDs"])
+    def get_waypoint_ids(cls, lane_code, lanes):
+        return copy(lanes[lane_code]["waypointIDs"])
 
     @classmethod
-    def get_length(cls, arrow_code, arrows):
-        return arrows[arrow_code]["length"]
+    def get_length(cls, lane_code, lanes):
+        return lanes[lane_code]["length"]
 
     @classmethod
-    def get_yaw(cls, arrow_code, waypoint_id, arrows, waypoints):
-        waypoint_ids = Arrow.get_waypoint_ids(arrow_code, arrows)
+    def get_yaw(cls, lane_code, waypoint_id, lanes, waypoints):
+        waypoint_ids = Lane.get_waypoint_ids(lane_code, lanes)
         index = waypoint_ids.index(waypoint_id)
         sub_vector = Vector.get_sub_vector(*map(
             Position.get_vector,
@@ -50,28 +50,28 @@ class Arrow(object):
         return atan2 if 0 < atan2 else 2.0 * math.pi + atan2
 
     @classmethod
-    def get_orientation(cls, arrow_code, waypoint_id, arrows, waypoints):
+    def get_orientation(cls, lane_code, waypoint_id, lanes, waypoints):
         return Orientation.new_data(
             quaternion=dict(zip(
                 ["w", "x", "y", "z"],
-                Rpy.to_quaternion([0, 0, 1], Arrow.get_yaw(arrow_code, waypoint_id, arrows, waypoints)))),
+                Rpy.to_quaternion([0, 0, 1], Lane.get_yaw(lane_code, waypoint_id, lanes, waypoints)))),
             rpy=Rpy.Structure.new_data(
                 roll=None,
                 pitch=None,
-                yaw=Arrow.get_yaw(arrow_code, waypoint_id, arrows, waypoints)
+                yaw=Lane.get_yaw(lane_code, waypoint_id, lanes, waypoints)
             )
         )
 
     @classmethod
-    def get_pose(cls, arrow_code, waypoint_id, arrows, waypoints):
+    def get_pose(cls, lane_code, waypoint_id, lanes, waypoints):
         return Pose.new_data(
             position=Waypoint.get_position(waypoint_id, waypoints),
-            orientation=Arrow.get_orientation(arrow_code, waypoint_id, arrows, waypoints)
+            orientation=Lane.get_orientation(lane_code, waypoint_id, lanes, waypoints)
         )
 
     @classmethod
-    def get_heading(cls, arrow_code, waypoint_id, arrows, waypoints):
-        return math.degrees(cls.get_yaw(arrow_code, waypoint_id, arrows, waypoints))
+    def get_heading(cls, lane_code, waypoint_id, lanes, waypoints):
+        return math.degrees(cls.get_yaw(lane_code, waypoint_id, lanes, waypoints))
 
     @classmethod
     def get_distance(cls, position1, position2):
@@ -119,63 +119,63 @@ class Arrow(object):
             most_matched_waypoint["distance"]
 
     @classmethod
-    def get_point_to_arrow(cls, position, arrow_code, arrows, waypoints):
-        return cls.get_point_to_waypoints(position, cls.get_waypoint_ids(arrow_code, arrows), waypoints)
+    def get_point_to_lane(cls, position, lane_code, lanes, waypoints):
+        return cls.get_point_to_waypoints(position, cls.get_waypoint_ids(lane_code, lanes), waypoints)
 
     @classmethod
-    def get_point_to_arrows(cls, position, arrows, waypoints, arrow_codes=None):
+    def get_point_to_lanes(cls, position, lanes, waypoints, lane_codes=None):
         matched_waypoints = {}
-        if arrow_codes is None:
-            arrow_codes = cls.get_arrow_codes(arrows)
-        for arrow_code in arrow_codes:
-            waypoint_id, position, distance = cls.get_point_to_arrow(position, arrow_code, arrows, waypoints)
+        if lane_codes is None:
+            lane_codes = cls.get_lane_codes(lanes)
+        for lane_code in lane_codes:
+            waypoint_id, position, distance = cls.get_point_to_lane(position, lane_code, lanes, waypoints)
             matched_waypoints[waypoint_id] = {
-                "arrow_code": arrow_code,
+                "lane_code": lane_code,
                 "waypoint_id": waypoint_id,
                 "position": position,
                 "distance": distance
             }
 
         most_matched_waypoint = min(matched_waypoints.values(), key=lambda x: x["distance"])
-        return most_matched_waypoint["arrow_code"],\
+        return most_matched_waypoint["lane_code"],\
             most_matched_waypoint["waypoint_id"],\
             most_matched_waypoint["position"], \
             most_matched_waypoint["distance"]
 
     @classmethod
-    def filter_by_arrow_code(cls, arrows, arrow_codes):
-        filtered_arrows = {}
-        filtered_to_arrows = {}
-        filtered_from_arrows = {}
-        for arrow_code in arrow_codes:
-            filtered_arrows[arrow_code] = cls.get_arrow(arrow_code, arrows)
+    def filter_by_lane_code(cls, lanes, lane_codes):
+        filtered_lanes = {}
+        filtered_to_lanes = {}
+        filtered_from_lanes = {}
+        for lane_code in lane_codes:
+            filtered_lanes[lane_code] = cls.get_lane(lane_code, lanes)
 
-        for i in range(1, len(arrow_codes)):
-            filtered_to_arrows[arrow_codes[i - 1]] = [arrow_codes[i]]
-            filtered_from_arrows[arrow_codes[i]] = [arrow_codes[i - 1]]
+        for i in range(1, len(lane_codes)):
+            filtered_to_lanes[lane_codes[i - 1]] = [lane_codes[i]]
+            filtered_from_lanes[lane_codes[i]] = [lane_codes[i - 1]]
 
-        return filtered_arrows, filtered_to_arrows, filtered_from_arrows
-
-    @classmethod
-    def get_arrow_codes_by_waypoint_id(cls, waypoint_id, arrows):
-        return list(map(lambda x: x[0], filter(lambda x: waypoint_id in x[1]["waypointIDs"], arrows.items())))
+        return filtered_lanes, filtered_to_lanes, filtered_from_lanes
 
     @classmethod
-    def get_arrow_codes_set_by_waypoint_ids(cls, waypoint_ids, arrows):
-        arrow_codes_set = [[]]
+    def get_lane_codes_by_waypoint_id(cls, waypoint_id, lanes):
+        return list(map(lambda x: x[0], filter(lambda x: waypoint_id in x[1]["waypointIDs"], lanes.items())))
+
+    @classmethod
+    def get_lane_codes_set_by_waypoint_ids(cls, waypoint_ids, lanes):
+        lane_codes_set = [[]]
         for waypoint_id in waypoint_ids:
-            arrow_codes = cls.get_arrow_codes_by_waypoint_id(waypoint_id, arrows)
-            for arrow_code in arrow_codes:
-                if cls.get_waypoint_ids(arrow_code, arrows)[-1] in waypoint_ids:
-                    for i in range(len(arrow_codes_set)):
-                        arrow_codes_set[i].append(arrow_code)
-        return arrow_codes_set
+            lane_codes = cls.get_lane_codes_by_waypoint_id(waypoint_id, lanes)
+            for lane_code in lane_codes:
+                if cls.get_waypoint_ids(lane_code, lanes)[-1] in waypoint_ids:
+                    for i in range(len(lane_codes_set)):
+                        lane_codes_set[i].append(lane_code)
+        return lane_codes_set
 
     @classmethod
-    def get_locations(cls, waypoint_id, arrows):
-        arrow_codes = cls.get_arrow_codes_by_waypoint_id(waypoint_id, arrows)
-        return list(map(lambda x: Location.new_location(waypoint_id, x), arrow_codes))
+    def get_locations(cls, waypoint_id, lanes):
+        lane_codes = cls.get_lane_codes_by_waypoint_id(waypoint_id, lanes)
+        return list(map(lambda x: Location.new_location(waypoint_id, x), lane_codes))
 
     @classmethod
-    def split_arrow_code(cls, arrow_code):
-        return arrow_code.split(ARROW.DELIMITER)
+    def split_lane_code(cls, lane_code):
+        return lane_code.split(LANE.DELIMITER)

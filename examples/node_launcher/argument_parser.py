@@ -30,4 +30,4 @@ parser.add_argument(
 parser.add_argument(
     "-WJP", "--waypoint_json_path", type=str, default="./static/maps/waypoint.json", help="waypoint.json file path")
 parser.add_argument(
-    "-AJP", "--arrow_json_path", type=str, default="./static/maps/arrow.json", help="arrow.json file path")
+    "-LJP", "--lane_json_path", type=str, default="./static/maps/lane.json", help="lane.json file path")

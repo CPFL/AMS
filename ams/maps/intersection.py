@@ -35,9 +35,9 @@ class Intersection(object):
     def get_entry_exit_route_ids(self, intersection_id):
         return list(self.__intersections[intersection_id]["entryExitRoutes"].keys())
 
-    def get_border_point(self, intersection_id, arrow_code):
+    def get_border_point(self, intersection_id, lane_code):
         return list(filter(
-            lambda x: x["arrow_code"] == arrow_code,
+            lambda x: x["lane_code"] == lane_code,
             self.__intersections[intersection_id]["borderPoints"]))[0]
 
     def get_to_in_border_waypoint_ids(self, intersection_id):
@@ -45,28 +45,28 @@ class Intersection(object):
             lambda x: x["prevWaypointID"],
             filter(lambda x: x["toIn"], self.__intersections[intersection_id]["borderPoints"])))
 
-    def get_to_in_arrow_codes(self, intersection_id):
+    def get_to_in_lane_codes(self, intersection_id):
         return list(map(
-            lambda x: x["arrow_code"],
+            lambda x: x["lane_code"],
             filter(lambda x: x["toIn"], self.__intersections[intersection_id]["borderPoints"])))
 
-    def get_entry_exit_route_arrow_codes_set(self, intersection_id):
+    def get_entry_exit_route_lane_codes_set(self, intersection_id):
         return list(map(
-            lambda x: (x[0], x[1]["arrow_codes"]),
+            lambda x: (x[0], x[1]["lane_codes"]),
             self.__intersections[intersection_id]["entryExitRoutes"].items()))
 
-    def get_entry_exit_route_ids_in_arrow_codes(self, intersection_id, arrow_codes):
+    def get_entry_exit_route_ids_in_lane_codes(self, intersection_id, lane_codes):
         entry_exit_route_ids = []
-        to_in_arrow_codes = self.get_to_in_arrow_codes(intersection_id)
-        for i, arrow_code in enumerate(arrow_codes):
-            if arrow_code in to_in_arrow_codes:
+        to_in_lane_codes = self.get_to_in_lane_codes(intersection_id)
+        for i, lane_code in enumerate(lane_codes):
+            if lane_code in to_in_lane_codes:
                 for entry_exit_route_id, entryExitRoute in \
                         self.__intersections[intersection_id]["entryExitRoutes"].items():
-                    entry_exit_route_arrow_codes = entryExitRoute["arrow_codes"]
-                    length = len(entry_exit_route_arrow_codes)
-                    if arrow_codes[i:i+length] == entry_exit_route_arrow_codes:
+                    entry_exit_route_lane_codes = entryExitRoute["lane_codes"]
+                    length = len(entry_exit_route_lane_codes)
+                    if lane_codes[i:i+length] == entry_exit_route_lane_codes:
                         entry_exit_route_ids.append(entry_exit_route_id)
         return entry_exit_route_ids
 
-    def get_arrow_codes_of_entry_exit_route(self, intersection_id, entry_exit_route_id):
-        return self.__intersections[intersection_id]["entryExitRoutes"][entry_exit_route_id]["arrow_codes"]
+    def get_lane_codes_of_entry_exit_route(self, intersection_id, entry_exit_route_id):
+        return self.__intersections[intersection_id]["entryExitRoutes"][entry_exit_route_id]["lane_codes"]

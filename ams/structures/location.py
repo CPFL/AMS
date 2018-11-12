@@ -7,7 +7,7 @@ from ams import get_structure_superclass
 location_template = {
     "geohash": "123456789012345",
     "waypoint_id": "0",
-    "arrow_code": "0_1",
+    "lane_code": "0_1",
 }
 
 location_schema = {
@@ -22,7 +22,7 @@ location_schema = {
         "required": True,
         "nullable": True,
     },
-    "arrow_code": {
+    "lane_code": {
         "type": "string",
         "required": True,
         "nullable": True,

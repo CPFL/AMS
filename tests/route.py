@@ -5,7 +5,7 @@ import sys
 import unittest
 import json
 
-from ams.helpers import Route, Arrow, Waypoint
+from ams.helpers import Route, Lane, Waypoint
 from ams.structures import RoutePoint
 
 
@@ -19,14 +19,14 @@ class Test(unittest.TestCase):
         expected = "1:0>2>4:3"
         value = Route.encode(Route.new_route(
             waypoint_ids=["1", "3"],
-            arrow_codes=["0_2", "2_4"]
+            lane_codes=["0_2", "2_4"]
         ))
         self.assertEqual(expected, value)
 
         expected = "1:0>2:2:2<0:1:0>2>4:3"
         value = Route.encode(Route.new_route(
             waypoint_ids=["1", "2", "1", "3"],
-            arrow_codes=["0_2", "0_2", "0_2", "2_4"],
+            lane_codes=["0_2", "0_2", "0_2", "2_4"],
             delimiters=[":", ">", ":", ":", "<", ":", ":", ">", ">", ":"]
         ))
         self.assertEqual(expected, value)
@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
     def test_decode(self):
         expected = Route.new_route(
             waypoint_ids=["1", "2", "1", "3"],
-            arrow_codes=["0_2", "0_2", "0_2", "2_4"],
+            lane_codes=["0_2", "0_2", "0_2", "2_4"],
             delimiters=[":", ">", ":", ":", "<", ":", ":", ">", ">", ":"]
         )
         value = Route.decode("1:0>2:2:2<0:1:0>2>4:3")
@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
 
         expected = Route.new_route(
             waypoint_ids=["1942", "2078"],
-            arrow_codes=["2078_1942"],
+            lane_codes=["2078_1942"],
             delimiters=[":", "<", ":"]
         )
         value = Route.decode("1942:1942<2078:2078")
@@ -52,50 +52,50 @@ class Test(unittest.TestCase):
         expected = [
             Route.new_route(
                 waypoint_ids=["1", "2"],
-                arrow_codes=["0_2"],
+                lane_codes=["0_2"],
                 delimiters=[":", ">", ":"]
             ),
             Route.new_route(
                 waypoint_ids=["2", "1"],
-                arrow_codes=["0_2"],
+                lane_codes=["0_2"],
                 delimiters=[":", "<", ":"]
             ),
             Route.new_route(
                 waypoint_ids=["1", "3"],
-                arrow_codes=["0_2", "2_4"],
+                lane_codes=["0_2", "2_4"],
                 delimiters=[":", ">", ">", ":"]
             )
         ]
         value = Route.get_routes_divided_by_action(
             Route.new_route(
                 waypoint_ids=["1", "2", "1", "3"],
-                arrow_codes=["0_2", "0_2", "0_2", "2_4"],
+                lane_codes=["0_2", "0_2", "0_2", "2_4"],
                 delimiters=[":", ">", ":", ":", "<", ":", ":", ">", ">", ":"]
             )
         )
         self.assertEqual(expected, value)
 
     def test_get_shortest_routes(self):
-        arrows, to_arrows, from_arrows = Arrow.load("./res/maps/arrow.json")
+        lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         cost_function = Route.get_length
         start = {
             "waypoint_id": "9910",
-            "arrow_code": "9908_9930"
+            "lane_code": "9908_9930"
         }
         goals = [
             {
                 "goal_id": "test1",
                 "waypoint_id": "10125",
-                "arrow_code": "10121_8973"
+                "lane_code": "10121_8973"
             }
         ]
         value = Route.get_shortest_routes(
-            start, goals, arrows, to_arrows, from_arrows, waypoints, cost_function)
+            start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function)
         expected = {
             'test1': {
                 'waypoint_ids': ['9910', '10125'],
-                'arrow_codes': [
+                'lane_codes': [
                     '9908_9930', '9930_9935', '9935_9054', '9054_9059', '9059_10067', '10067_10106', '10106_10121',
                     '10121_8973'
                 ],
@@ -106,7 +106,7 @@ class Test(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_route_point_pose_and_location(self):
-        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         route_point = RoutePoint.new_data(**{
             "route_code": "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676",
@@ -121,10 +121,10 @@ class Test(unittest.TestCase):
                 }
             },
             {
-                'waypoint_id': '10502', 'arrow_code': '10471_9686', 'geohash': None
+                'waypoint_id': '10502', 'lane_code': '10471_9686', 'geohash': None
             }
         )
-        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, lanes, waypoints)
         self.assertEqual(expected, value)
 
         expected = (
@@ -134,11 +134,11 @@ class Test(unittest.TestCase):
                     'quaternion': {'w': -0.6971157998367005, 'x': 0.0, 'y': 0.0, 'z': 0.7169585494420423},
                     'rpy': {'roll': None, 'pitch': None, 'yaw': 4.684326173951593}}},
             {
-                'waypoint_id': '9676', 'arrow_code': '9673_9988', 'geohash': None
+                'waypoint_id': '9676', 'lane_code': '9673_9988', 'geohash': None
             }
         )
         route_point.index = 20
-        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, lanes, waypoints)
         self.assertEqual(expected, value)
 
         expected = (
@@ -150,38 +150,38 @@ class Test(unittest.TestCase):
                 }
             },
             {
-                'waypoint_id': '9685', 'arrow_code': '9673_9686', 'geohash': None
+                'waypoint_id': '9685', 'lane_code': '9673_9686', 'geohash': None
             }
         )
         route_point.route_code = "10472:10471>9686:9686:9686<9673:9673:9673>9988:10333"
         route_point.index = 35
-        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, lanes, waypoints)
         self.assertEqual(expected, value)
 
         route_point.route_code = "9883:9875>9887>9563:9563"
         route_point.index = 100
         expected = (None, None)
-        value = Route.get_route_point_pose_and_location(route_point, arrows, waypoints)
+        value = Route.get_route_point_pose_and_location(route_point, lanes, waypoints)
         self.assertEqual(expected, value)
 
     def test_get_pose_and_velocity_set(self):
         with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
-        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         value = Route.get_pose_and_velocity_set(
-            "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", arrows, waypoints)
+            "10502:10471>9686:9686:9686<9673:9673:9673>9988:9676", lanes, waypoints)
         self.assertEqual(expected, value)
 
     def test_generate_lane_array(self):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
             expected = json.load(f)
 
-        arrows, _, _ = Arrow.load("./res/maps/arrow.json")
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         value1 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
         self.assertEqual(expected, value1)
         value2 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", arrows, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
         self.assertEqual(expected, value2)

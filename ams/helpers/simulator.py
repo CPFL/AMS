@@ -178,7 +178,7 @@ class Simulator(object):
 
         next_pose = Pose.new_data(
             position=next_position,
-            orientation=maps_client.arrow.get_orientation(next_location.arrow_code, next_location.waypoint_id)
+            orientation=maps_client.lane.get_orientation(next_location.lane_code, next_location.waypoint_id)
         )
         next_location.geohash = maps_client.waypoint.get_geohash(next_location.waypoint_id)
 

@@ -3,7 +3,7 @@
 
 import sys
 import unittest
-from ams.helpers import Arrow, Position
+from ams.helpers import Lane, Position
 
 
 class Test(unittest.TestCase):
@@ -15,12 +15,12 @@ class Test(unittest.TestCase):
     def test_get_distance(self):
         position1 = Position.new_position(1.0, 2.0, 3.0)
         position2 = Position.new_position(4.0, 2.0, -1.0)
-        value = Arrow.get_distance(position1, position2)
+        value = Lane.get_distance(position1, position2)
         expected = 5.0
         self.assertEqual(expected, value)
 
-    def test_split_arrow_code(self):
-        arrow_code = "0_1"
-        value = Arrow.split_arrow_code(arrow_code)
+    def test_split_lane_code(self):
+        lane_code = "0_1"
+        value = Lane.split_lane_code(lane_code)
         expected = ["0", "1"]
         self.assertEqual(expected, value)

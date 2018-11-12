@@ -1,7 +1,7 @@
 {
- "arrows": {
+ "lanes": {
   "0_21": {
-   "arrowCode": "0_21",
+   "laneCode": "0_21",
    "waypointIDs": [
     "0",
     "1",
@@ -29,7 +29,7 @@
    "length": 12.3
   },
   "21_32": {
-   "arrowCode": "21_32",
+   "laneCode": "21_32",
    "waypointIDs": [
     "21",
     "22",
@@ -47,7 +47,7 @@
    "length": 12.3
   },
   "32_41": {
-   "arrowCode": "32_41",
+   "laneCode": "32_41",
    "waypointIDs": [
     "32",
     "33",
@@ -63,7 +63,7 @@
    "length": 12.3
   },
   "41_0": {
-   "arrowCode": "41_0",
+   "laneCode": "41_0",
    "waypointIDs": [
     "41",
     "42",
@@ -113,7 +113,7 @@
    "length": 12.3
   },
   "21_90": {
-   "arrowCode": "21_90",
+   "laneCode": "21_90",
    "waypointIDs": [
     "21",
     "85",
@@ -126,7 +126,7 @@
    "length": 12.3
   },
   "90_97": {
-   "arrowCode": "90_97",
+   "laneCode": "90_97",
    "waypointIDs": [
     "90",
     "91",
@@ -140,7 +140,7 @@
    "length": 12.3
   },
   "97_0": {
-   "arrowCode": "97_0",
+   "laneCode": "97_0",
    "waypointIDs": [
     "97",
     "98",
@@ -155,7 +155,7 @@
    "length": 12.3
   },
   "21_137": {
-   "arrowCode": "21_137",
+   "laneCode": "21_137",
    "waypointIDs": [
     "21",
     "128",
@@ -172,7 +172,7 @@
    "length": 12.3
   },
   "137_41": {
-   "arrowCode": "137_41",
+   "laneCode": "137_41",
    "waypointIDs": [
     "137",
     "138",
@@ -190,7 +190,7 @@
    "length": 12.3
   },
   "90_172": {
-   "arrowCode": "90_172",
+   "laneCode": "90_172",
    "waypointIDs": [
     "90",
     "152",
@@ -218,7 +218,7 @@
    "length": 12.3
   },
   "183_172": {
-   "arrowCode": "183_172",
+   "laneCode": "183_172",
    "waypointIDs": [
     "183",
     "182",
@@ -236,7 +236,7 @@
    "length": 12.3
   },
   "183_97": {
-   "arrowCode": "183_97",
+   "laneCode": "183_97",
    "waypointIDs": [
     "183",
     "184",
@@ -262,14 +262,14 @@
    "length": 12.3
   },
   "137_32": {
-   "arrowCode": "137_32",
+   "laneCode": "137_32",
    "waypointIDs": [
     "137",
     "32"
    ]
   }
  },
- "toArrows": {
+ "toLanes": {
   "0_21": [
    "21_32",
    "21_90",
@@ -310,7 +310,7 @@
    "32_41"
   ]
  },
- "fromArrows": {
+ "fromLanes": {
   "0_21": [
    "41_0",
    "97_0"
