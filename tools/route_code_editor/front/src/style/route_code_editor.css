@@ -1,0 +1,14 @@
+.file_reader {
+    display: inline-block;
+    padding: 5px 10px;
+    text-decoration: none;
+    color: #000000;
+    border-radius: 3px;
+    transition: .4s;
+    margin: 0 0 0 10px;
+}
+
+.file_reader:hover {
+    background: #e5dcdd;
+    color: #000000;
+}

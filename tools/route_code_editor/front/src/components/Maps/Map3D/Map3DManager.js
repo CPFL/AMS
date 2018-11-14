@@ -5,7 +5,6 @@ import 'three/ColladaLoader';
 import 'three/OrbitControls';
 import 'three/PCDLoader';
 import 'three/TDSLoader';
-//import Detector from "threejs/Detector";
 
 import Detector from "../../../lib/threejs/Detector";
 
@@ -23,16 +22,9 @@ import PCD from './ModelManager/PCD';
 import Vehicle from './ModelManager/Vehicle';
 import WaypointsModelManager from './ModelManager/Waypoints';
 
-import VehicleStatusUpdater from "../DataUpdater/VehicleStatusUpdater";
-import ShutterStatusUpdater from "../DataUpdater/ShutterStatusUpdater";
-
 import WaypointsUpdater from "../DataUpdater/WaypointsUpdater";
 import PCDUpdater from "../DataUpdater/PCDUpdater";
 import ADASMapUpdater from "../DataUpdater/ADASMapUpdater";
-
-import CenterVehicleIdUpdater from "../DataUpdater/CenterVehicleIdUpdater";
-import MapParameterUpdater from "../DataUpdater/MapParameterUpdater";
-import PatoLampStatusUpdater from "../DataUpdater/PatoLampStatusUpdater";
 
 
 class Map3DManager extends React.Component {
@@ -117,20 +109,6 @@ class Map3DManager extends React.Component {
     this.object3DManager = null;
 
     window.onresize = null;
-  }
-
-  CenterVehicleIdUpdate(vehicleId) {
-    this.centerVehicleId = vehicleId;
-    if (this.vehicleModelManager !== null) {
-      this.vehicleModelManager.updateCenterVehicleId(vehicleId);
-    }
-  }
-
-  updateMapParameter(param) {
-    this.mapParameter = param;
-    if (this.vehicleModelManager !== null) {
-      this.vehicleModelManager.setIsFollowingCenterVehicle(param.getIsFollowingCenterVehicle());
-    }
   }
 
   setMapSize(width, height) {
@@ -347,23 +325,6 @@ class Map3DManager extends React.Component {
   render() {
     return (
       <div id="map_canvas">
-        <MapParameterUpdater
-          updateMapParameter={this.updateMapParameter.bind(this)}
-        />
-        <VehicleStatusUpdater
-          updateVehicleLocation={this.updateVehicleLocation.bind(this)}
-        />
-        <CenterVehicleIdUpdater
-          CenterVehicleIdUpdate={this.CenterVehicleIdUpdate.bind(this)}
-        />
-        <PatoLampStatusUpdater
-          initPatoLamps={this.initPatoLamps.bind(this)}
-          updatePatoLampStatus={this.updatePatoLampStatus.bind(this)}
-        />
-        <ShutterStatusUpdater
-          initShutters={this.initShutters.bind(this)}
-          updateShutterStatus={this.updateShutterStatus.bind(this)}
-        />
         <WaypointsUpdater
           setWaypoints={this.setWaypoints.bind(this)}
         />

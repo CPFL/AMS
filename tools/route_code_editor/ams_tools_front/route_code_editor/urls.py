@@ -5,5 +5,5 @@ from . import views
 app_name = "route_code_editor"
 
 urlpatterns = [
-    re_path(r'.*', views.app, name='app'),
+    re_path(r'.*', views.index, name='index'),
 ]

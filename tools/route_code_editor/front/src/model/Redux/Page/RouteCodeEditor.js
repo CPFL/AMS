@@ -1,59 +1,97 @@
 import {Record} from 'immutable';
+import React from "react";
 
-const MapPageRecord = new Record({
-  isShow2DMap: true,
-  height: 0,
-  width: 0,
-  isShowVehicleListModal: false,
-  searchKeyOfVehicleList: ""
+
+export const steps = {
+  advanceOrBack: {
+    id: "advanceOrBack",
+    name: "Advance or Back",
+    nextTab: "selectStartPoint"
+  },
+  selectStartPoint: {
+    id: "selectStartPoint",
+    name: "Select Start Point",
+    nextTab: "selectLane"
+  },
+  selectLane: {
+    id: "selectLane",
+    name: "Select Lane",
+    nextTab: "selectEndPoint"
+  },
+  selectEndPoint: {
+    id: "selectEndPoint",
+    name: "Select End Point",
+    nextTab: "result"
+  },
+  result: {
+    id: "result",
+    name: "Result",
+    nextTab: ""
+  },
+};
+
+const RouteCodeEditorRecord = new Record({
+  mapHeight: 0,
+  mapWidth: 0,
+  activeStep: "advanceOrBack",
+  backFlag: false,
+  startPointTemp: "",
+  laneListTemp: [],
+  endPointTemp: "",
+  startPoint: "",
+  laneList: [],
+  endPoint: "",
+
 });
 
-export default class MapPage extends MapPageRecord {
+export class RouteCodeEditor extends RouteCodeEditorRecord {
 
   constructor() {
     super({
-      isShow2DMap: false,
-      height: 1000,
-      width: 1000,
-      isShowVehicleListModal: false,
-      searchKeyOfVehicleList: ""
+      mapHeight: 500,
+      mapWidth: 500,
+      activeStep: "advanceOrBack",
+      isBack: false,
+      route_code_temp: {
+        startPoint: "",
+        laneList: [],
+        endPoint: ""
+      },
+      route_code_confirm: {
+        startPoint: "",
+        laneList: [],
+        endPoint: ""
+      }
     });
   }
 
-  setIsShow2DMap(isShow2DMap) {
-    return this.set('isShow2DMap', isShow2DMap)
-  }
-
   setHeightAndWidth(height, width) {
-    return this.set('height', height).set('width', width)
+    return this.set('mapHeight', height).set('mapWidth', width)
   }
 
-  setIsShowVehicleListModal(isShowVehicleListModal) {
-    return this.set('isShowVehicleListModal', isShowVehicleListModal)
+  setActiveStep(activeStep) {
+    return this.set('activeStep', activeStep)
   }
 
-  setSearchKeyOfVehicleList(searchKeyOfVehicleList) {
-    return this.set('searchKeyOfVehicleList', searchKeyOfVehicleList)
-  }
-
-  getIsShow2DMap() {
-    return this.get('isShow2DMap')
+  setIsBack(isBack) {
+    return this.set('isBack', isBack)
   }
 
   getHeight() {
-    return this.get('height')
+    return this.get('mapHeight')
   }
 
   getWidth() {
-    return this.get('width')
+    return this.get('mapWidth')
   }
 
-  getIsShowVehicleListModal() {
-    return this.get('isShowVehicleListModal')
+  getActiveStep() {
+    return this.get('activeStep')
   }
 
-  getSearchKeyOfVehicleList() {
-    return this.get('searchKeyOfVehicleList')
+  getIsBack() {
+    return this.get('isBack')
   }
+
 
 }
