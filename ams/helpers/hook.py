@@ -132,18 +132,18 @@ class Hook(object):
                 CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_owner), relation_name, "*"]))
 
     @classmethod
-    def get_config(cls, kvs_client, target, structure):
+    def get_config(cls, kvs_client, target, structure=None):
         key = cls.get_config_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "dict":
+        if structure is not None and value.__class__.__name__ == "dict":
             value = structure.new_data(**value)
         return value
 
     @classmethod
-    def get_status(cls, kvs_client, target, structure):
+    def get_status(cls, kvs_client, target, structure=None):
         key = cls.get_status_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "dict":
+        if structure is not None and value.__class__.__name__ == "dict":
             value = structure.new_data(**value)
         return value
 
@@ -196,7 +196,7 @@ class Hook(object):
                 "version": VERSION,
                 "request_id": request_message.header.id
             }),
-            "body": cls.get_config(kvs_client, target, EventLoop.Config)
+            "body": cls.get_config(kvs_client, target)
         }
 
     @classmethod
@@ -208,7 +208,7 @@ class Hook(object):
                 "version": VERSION,
                 "request_id": request_message.header.id
             }),
-            "body": cls.get_status(kvs_client, target, EventLoop)
+            "body": cls.get_status(kvs_client, target)
         }
 
     @classmethod
