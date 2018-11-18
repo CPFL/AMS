@@ -15,6 +15,7 @@ module.exports = {
       'three/ColladaLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/ColladaLoader.js'),
       'three/TDSLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/TDSLoader.js'),
       'three/PCDLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/PCDLoader.js'),
+      'three/LineMaterial': path.join(__dirname, 'node_modules/three/examples/js/lines/LineMaterial.js'),
     }
   },
 

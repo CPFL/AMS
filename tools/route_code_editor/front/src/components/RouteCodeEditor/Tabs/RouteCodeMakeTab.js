@@ -17,27 +17,45 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+
 import {connect} from "react-redux";
-import * as RouteCodeEditorActions from "../../redux/Actions/RouteCodeEditorActions";
+import * as RouteCodeEditorActions from "../../../redux/Actions/RouteCodeEditorActions";
 import {bindActionCreators} from "redux";
 
-import {steps} from '../../model/Redux/Page/RouteCodeEditor'
+import {steps} from '../../../model/Redux/Page/RouteCodeEditor'
 
 class AdvanceOrBackComponent extends React.Component {
 
-  confirm(){
-    this.props.routeCodeEditorActions.setActiveStep("selectStartPoint")
+  confirm() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.advanceOrBack.nextStep)
   }
+
+  setIsBack(event) {
+    console.log(event);
+    this.props.routeCodeEditorActions.setIsBack(event.target.value === "back");
+  };
 
   render() {
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px", marginTop: "10px"}}>
+            style={{width: "100%", minHeight: "100px"}}>
         <CardTitle>
           Select Advance or Back
         </CardTitle>
         <CardActions border>
-          <Switch ripple>Back</Switch>
+          <RadioGroup
+            name="AdvanceOrBack"
+            value={this.props.isBack ? "back" : "advance"}
+            onChange={this.setIsBack.bind(this)}
+          >
+            <FormControlLabel value="advance" control={<Radio/>} label="Advance"/>
+            <FormControlLabel value="back" control={<Radio/>} label="Back"/>
+          </RadioGroup>
           <div style={{float: "right"}}>
             <Button onClick={this.confirm.bind(this)}>Confirm</Button>
           </div>
@@ -48,7 +66,8 @@ class AdvanceOrBackComponent extends React.Component {
 }
 
 const mapStateAdvanceOrBack = (state) => ({
-  activeStep: state.routeCodeEditor.getActiveStep()
+  activeStep: state.routeCodeEditor.getActiveStep(),
+  isBack: state.routeCodeEditor.getIsBack()
 });
 
 const mapDispatchAdvanceOrBack = (dispatch) => ({
@@ -60,20 +79,25 @@ let AdvanceOrBack = connect(mapStateAdvanceOrBack, mapDispatchAdvanceOrBack)(Adv
 
 class SelectStartPointComponent extends React.Component {
 
-  confirm(){
-    this.props.routeCodeEditorActions.setActiveStep("selectLane")
+  confirm() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectStartPoint.nextStep)
+  }
+
+  back() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectStartPoint.previousStep)
   }
 
   render() {
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px", marginTop: "10px"}}>
+            style={{width: "100%", minHeight: "100px"}}>
         <CardTitle>
           Select Start Point
         </CardTitle>
-        <CardText><strong>Selected Point ID: </strong></CardText>
+        <CardText><strong>Selected Point ID: {this.props.startPoint}</strong></CardText>
         <CardActions border>
           <div style={{float: "right"}}>
+            <Button onClick={this.back.bind(this)}>Back</Button>
             <Button onClick={this.confirm.bind(this)}>Confirm</Button>
           </div>
         </CardActions>
@@ -84,7 +108,8 @@ class SelectStartPointComponent extends React.Component {
 }
 
 const mapStateSelectStartPoint = (state) => ({
-  activeStep: state.routeCodeEditor.getActiveStep()
+  activeStep: state.routeCodeEditor.getActiveStep(),
+  startPoint: state.routeCodeEditor.getStartPoint()
 });
 const mapDispatchSelectStartPoint = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
@@ -94,54 +119,52 @@ let SelectStartPoint = connect(mapStateSelectStartPoint, mapDispatchSelectStartP
 
 class SelectLaneComponent extends React.Component {
 
-  confirm(){
-    this.props.routeCodeEditorActions.setActiveStep("selectEndPoint")
+  confirm() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectLane.nextStep)
   }
 
-  getLaneList() {
+  back() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectLane.previousStep)
+  }
+
+  getLaneList(laneList) {
 
     let resList = [];
-    let laneList = this.props.LaneList;
-    laneList = {
-      a: 1,
-      b: 2
-    };
+    let key = 0;
 
-    for (let key in laneList) {
-
+    for (let lane of laneList) {
       if (laneList.hasOwnProperty(key)) {
         resList.push((
-          <ListItem key={key} twoLine>
+          <ListItem key={key}>
             <ListItemContent icon="navigation" key={key}>
               <strong>
-                Start Points ID: 1
-              </strong>
-              <br/>
-              <strong>
-                End Points ID: 3
+                Lane ID: {lane}
               </strong>
             </ListItemContent>
           </ListItem>
         ));
+        key += 1;
       }
     }
     return resList
   };
 
   render() {
+
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px", marginTop: "10px"}}>
+            style={{width: "100%", minHeight: "100px"}}>
         <CardTitle>
           Select Lane
         </CardTitle>
         <CardText>
           <List>
-            {this.getLaneList()}
+            {this.getLaneList(this.props.laneList)}
           </List>
         </CardText>
         <CardActions border>
           <div style={{float: "right"}}>
+            <Button onClick={this.back.bind(this)}>Back</Button>
             <Button onClick={this.confirm.bind(this)}>Confirm</Button>
           </div>
         </CardActions>
@@ -149,8 +172,10 @@ class SelectLaneComponent extends React.Component {
     )
   }
 }
+
 const mapStateSelectLane = (state) => ({
-  activeStep: state.routeCodeEditor.getActiveStep()
+  activeStep: state.routeCodeEditor.getActiveStep(),
+  laneList: state.routeCodeEditor.getLaneList()
 });
 const mapDispatchSelectLane = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
@@ -160,20 +185,25 @@ let SelectLane = connect(mapStateSelectLane, mapDispatchSelectLane)(SelectLaneCo
 
 class SelectEndPointComponent extends React.Component {
 
-  confirm(){
-    this.props.routeCodeEditorActions.setActiveStep("result")
+  confirm() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectEndPoint.nextStep)
+  }
+
+  back() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.selectEndPoint.previousStep)
   }
 
   render() {
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px", marginTop: "10px"}}>
+            style={{width: "100%", minHeight: "100px"}}>
         <CardTitle>
           Select End Point
         </CardTitle>
-        <CardText><strong>Selected Point ID: </strong></CardText>
+        <CardText><strong>Selected Point ID: {this.props.endPoint}</strong></CardText>
         <CardActions border>
           <div style={{float: "right"}}>
+            <Button onClick={this.back.bind(this)}>Back</Button>
             <Button onClick={this.confirm.bind(this)}>Confirm</Button>
           </div>
         </CardActions>
@@ -181,8 +211,10 @@ class SelectEndPointComponent extends React.Component {
     )
   }
 }
+
 const mapStateSelectEndPoint = (state) => ({
-  activeStep: state.routeCodeEditor.getActiveStep()
+  activeStep: state.routeCodeEditor.getActiveStep(),
+  endPoint: state.routeCodeEditor.getEndPoint()
 });
 const mapDispatchSelectEndPoint = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
@@ -191,17 +223,44 @@ let SelectEndPoint = connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(
 
 
 class ResultComponent extends React.Component {
+
+  reselect() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.result.nextStep)
+  }
+
+  back() {
+    this.props.routeCodeEditorActions.setActiveStep(steps.result.previousStep)
+  }
+
+  getResult(startPoint, laneList, endPoint) {
+
+    let lastPoint = "";
+    let laneString = "";
+    for (const lane of laneList) {
+      const points = lane.split('_');
+
+      const arrow = this.props.isBack ? "<" : ">";
+
+      laneString += points[0] + arrow;
+      lastPoint = points[1];
+    }
+    laneString += lastPoint;
+
+    return startPoint + ":" + laneString + ":" + endPoint
+  }
+
   render() {
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px", marginTop: "10px"}}>
+            style={{width: "100%", minHeight: "100px"}}>
         <CardTitle>
           Result
         </CardTitle>
-        <CardText><strong>Result: </strong></CardText>
+        <CardText><strong>Result: {this.getResult(this.props.startPoint, this.props.laneList, this.props.endPoint)}</strong></CardText>
         <CardActions border>
           <div style={{float: "right"}}>
-            <Button>Reselect</Button>
+            <Button onClick={this.back.bind(this)}>Back</Button>
+            <Button onClick={this.reselect.bind(this)}>Reselect</Button>
           </div>
         </CardActions>
       </Card>
@@ -209,8 +268,13 @@ class ResultComponent extends React.Component {
     )
   }
 }
+
 const mapStateResult = (state) => ({
-  activeStep: state.routeCodeEditor.getActiveStep()
+  activeStep: state.routeCodeEditor.getActiveStep(),
+  isBack: state.routeCodeEditor.getIsBack(),
+  startPoint: state.routeCodeEditor.getStartPoint(),
+  laneList: state.routeCodeEditor.getLaneList(),
+  endPoint: state.routeCodeEditor.getEndPoint()
 });
 const mapDispatchResult = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
@@ -218,9 +282,7 @@ const mapDispatchResult = (dispatch) => ({
 let Result = connect(mapStateResult, mapDispatchResult)(ResultComponent);
 
 
-
-
-class RouteCodeEditor extends React.Component {
+class RouteCodeMakeTabs extends React.Component {
 
   constructor(props) {
     super(props);
@@ -240,12 +302,8 @@ class RouteCodeEditor extends React.Component {
       },
       result: {
         component: (<Result/>),
-      },
+      }
     };
-  }
-
-  setActiveTab(event, value) {
-    //this.props.routeCodeEditorActions.setActiveStep(value)
   }
 
   getShowTab() {
@@ -253,9 +311,9 @@ class RouteCodeEditor extends React.Component {
   }
 
   render() {
-
     return (
       <div>
+        {/*
         <AppBar position="static" color="default">
           <Tabs value={this.props.activeStep} onChange={this.setActiveTab.bind(this)} scrollable>
             <Tab value={steps.advanceOrBack.id} label={steps.advanceOrBack.name}/>
@@ -265,8 +323,8 @@ class RouteCodeEditor extends React.Component {
             <Tab value={steps.result.id} label={steps.result.name}/>
           </Tabs>
         </AppBar>
+        */}
         {this.getShowTab()}
-
       </div>
 
     );
@@ -281,4 +339,4 @@ const mapDispatch = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
 });
 
-export default connect(mapState, mapDispatch)(RouteCodeEditor);
+export default connect(mapState, mapDispatch)(RouteCodeMakeTabs);

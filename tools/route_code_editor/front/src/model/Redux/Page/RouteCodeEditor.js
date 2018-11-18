@@ -1,4 +1,4 @@
-import {Record} from 'immutable';
+import {Record, List} from 'immutable';
 import React from "react";
 
 
@@ -6,42 +6,46 @@ export const steps = {
   advanceOrBack: {
     id: "advanceOrBack",
     name: "Advance or Back",
-    nextTab: "selectStartPoint"
+    previousStep: "",
+    nextStep: "selectStartPoint"
   },
   selectStartPoint: {
     id: "selectStartPoint",
     name: "Select Start Point",
-    nextTab: "selectLane"
+    previousStep: "advanceOrBack",
+    nextStep: "selectLane"
   },
   selectLane: {
     id: "selectLane",
     name: "Select Lane",
-    nextTab: "selectEndPoint"
+    previousStep: "selectStartPoint",
+    nextStep: "selectEndPoint"
   },
   selectEndPoint: {
     id: "selectEndPoint",
     name: "Select End Point",
-    nextTab: "result"
+    previousStep: "selectLane",
+    nextStep: "result"
   },
   result: {
     id: "result",
     name: "Result",
-    nextTab: ""
-  },
+    previousStep: "selectEndPoint",
+    nextStep: "advanceOrBack"
+  }
 };
 
 const RouteCodeEditorRecord = new Record({
   mapHeight: 0,
   mapWidth: 0,
   activeStep: "advanceOrBack",
-  backFlag: false,
-  startPointTemp: "",
-  laneListTemp: [],
-  endPointTemp: "",
+  isBack: false,
   startPoint: "",
   laneList: [],
   endPoint: "",
-
+  pcd: {},
+  waypoint: {},
+  lane: {}
 });
 
 export class RouteCodeEditor extends RouteCodeEditorRecord {
@@ -52,16 +56,12 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
       mapWidth: 500,
       activeStep: "advanceOrBack",
       isBack: false,
-      route_code_temp: {
-        startPoint: "",
-        laneList: [],
-        endPoint: ""
-      },
-      route_code_confirm: {
-        startPoint: "",
-        laneList: [],
-        endPoint: ""
-      }
+      startPoint: "",
+      laneList: [],
+      endPoint: "",
+      pcd: {},
+      waypoint: {},
+      lane: {}
     });
   }
 
@@ -75,6 +75,26 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
 
   setIsBack(isBack) {
     return this.set('isBack', isBack)
+  }
+
+  setStartPoint(startPoint){
+    return this.set('startPoint', startPoint)
+  }
+
+  setLaneList(laneList){
+    return this.set('laneList', List(laneList))
+  }
+
+  setEndPoint(endPoint){
+    return this.set('endPoint', endPoint)
+  }
+
+  setMapData(pcd, waypoint, lane){
+    return this.set('pcd', pcd).set('waypoint', waypoint).set('lane', lane)
+  }
+
+  clearRouteCodeData(){
+    return this.set('startPoint', "").set('laneList', List()).set('endPoint', "").set('isBack', false)
   }
 
   getHeight() {
@@ -93,5 +113,25 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
     return this.get('isBack')
   }
 
+  getStartPoint(){
+    return this.get('startPoint')
+  }
+
+  getLaneList(){
+    return this.get('laneList').toJS()
+  }
+
+  getEndPoint(){
+    return this.get('endPoint')
+  }
+
+
+  getMapData() {
+    return {
+      pcd: this.get('pcd'),
+      waypoint: this.get('waypoint'),
+      lane: this.get('lane')
+    }
+  }
 
 }

@@ -84,8 +84,8 @@ else {
 
   let wrapper = {
     position: 'absolute',
-    marginTop: '64px',
-    top: 0,
+    //marginTop: '64px',
+    top: '64px',
     right: 0,
     bottom: 0,
     left: 0

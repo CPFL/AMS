@@ -6,29 +6,26 @@ import 'three/OrbitControls';
 import 'three/PCDLoader';
 import 'three/TDSLoader';
 
-import Detector from "../../../lib/threejs/Detector";
-
-import {connect} from "react-redux";
-import {bindActionCreators} from "redux";
-import * as SettingsActions from "../../../redux/Actions/SettingsActions";
-
-import {OBJECT} from "../../../constants/Constant";
+import Detector from "../../../../lib/threejs/Detector";
 
 import ADASMapManager from './ModelManager/ADASMapManager';
-import ADASMapLoader from '../../../io/ADASMap/ADASMapLoader';
+import ADASMapLoader from '../../../../io/ADASMap/ADASMapLoader';
 
-import Object3D from './ModelManager/Object3D';
 import PCD from './ModelManager/PCD';
-import Vehicle from './ModelManager/Vehicle';
-import WaypointsModelManager from './ModelManager/Waypoints';
+import Waypoint from './ModelManager/Waypoint';
 
-import WaypointsUpdater from "../DataUpdater/WaypointsUpdater";
-import PCDUpdater from "../DataUpdater/PCDUpdater";
-import ADASMapUpdater from "../DataUpdater/ADASMapUpdater";
+import MapDataUpdater from '../DataUpdater/MapDataUpdater'
+import WidthAndHeightUpdater from "../DataUpdater/WidthAndHeightUpdater";
+import ActiveStepUpdater from "../DataUpdater/ActiveStepUpdater";
+
+import {steps} from '../../../../model/Redux/Page/RouteCodeEditor'
+
+import connect from "react-redux/es/connect/connect";
+import {bindActionCreators} from "redux";
+import * as RouteCodeEditorActions from "../../../../redux/Actions/RouteCodeEditorActions";
 
 
 class Map3DManager extends React.Component {
-
 
   constructor(props) {
     super(props);
@@ -40,42 +37,24 @@ class Map3DManager extends React.Component {
     this.renderer = null;
     this.controls = null;
     this.stats = null;
+    this.mouse = new THREE.Vector2();
 
-    this.sceneData = {
-      pointsMap: {},
-      vehicleColladaList: {},
-      waypointsList: {},
+    this.initialCameraPosition = {x: 3810.814, y: -99443.275, z: 0};
 
-      loadData: {
-        loadWaypoints: {}
-      }
-    };
-
-    this.pcdFileNames = null;
-    this.initialCameraPosition = {x: -3215, y: -37394, z: 0};
-
-    this.centerVehicleId = null;
-    this.mapParameter = null;
-
-    this.PCDManager = null;
-    this.ADASMapManager = null;
-    this.vehicleModelManager = null;
-    this.waypointsModelManager = null;
-    this.object3DManager = null;
-
-    this.patolamps = null;
-    this.shutters = null;
+    this.PCDManager = new PCD();
+    this.ADASMapManager = new ADASMapManager();
+    this.waypointsModelManager = new Waypoint();
 
   }
 
   componentDidMount() {
     this.setMapSize(this.props.width, this.props.height);
     this.prepare();
+    document.getElementById("map_canvas").addEventListener('click', this.onClickCanvas.bind(this), false);
   }
 
   componentDidUpdate() {
     this.resize()
-
   }
 
   componentWillUnmount() {
@@ -87,12 +66,11 @@ class Map3DManager extends React.Component {
     delete this.controls;
     delete this.scene;
     delete this.sceneData;
-    delete this.pcdFileNames;
     delete this.PCDManager;
     delete this.ADASMapManager;
     delete this.vehicleModelManager;
     delete this.waypointsModelManager;
-    delete this.object3DManager;
+    delete this.raycaster;
 
     this.container = null;
     this.camera = null;
@@ -101,14 +79,12 @@ class Map3DManager extends React.Component {
     this.controls = null;
     this.stats = null;
     this.sceneData = {};
-    this.pcdFileNames = null;
     this.PCDManager = null;
     this.ADASMapManager = null;
     this.vehicleModelManager = null;
     this.waypointsModelManager = null;
-    this.object3DManager = null;
+    this.raycaster = null;
 
-    window.onresize = null;
   }
 
   setMapSize(width, height) {
@@ -117,33 +93,18 @@ class Map3DManager extends React.Component {
     if (this.width > document.getElementById("map_canvas").clientWidth) this.width = document.getElementById("map_canvas").clientWidth;
   }
 
-  reset() {
-    delete this.stats;
-    delete this.camera;
-    delete this.renderer;
-    delete this.controls;
-    delete this.scene;
-    delete this.sceneData;
-    delete this.pcdFileNames;
-    delete this.PCDManager;
-    delete this.ADASMapManager;
-    delete this.vehicleModelManager;
-    delete this.waypointsModelManager;
-    delete this.object3DManager;
+  onClickCanvas(event) {
+    const element = event.currentTarget;
+    const elementPosition = element.getBoundingClientRect();
 
-    this.container = null;
-    this.camera = null;
-    this.scene = new THREE.Scene();
-    this.renderer = null;
-    this.controls = null;
-    this.stats = null;
-    this.sceneData = {};
-    this.pcdFileNames = null;
-    this.PCDManager = null;
-    this.ADASMapManager = null;
-    this.vehicleModelManager = null;
-    this.waypointsModelManager = null;
-    this.object3DManager = null;
+    const x = event.clientX - elementPosition.left;
+    const y = event.clientY - elementPosition.top;
+    const w = elementPosition.width;
+    const h = elementPosition.height;
+    this.mouse.x = (x / w) * 2 - 1;
+    this.mouse.y = -(y / h) * 2 + 1;
+
+    this.waypointsModelManager.selectObject(this.mouse);
 
   }
 
@@ -222,6 +183,7 @@ class Map3DManager extends React.Component {
   }
 
   renderMap() {
+
     this.renderer.render(this.scene, this.camera);
     this.camera.lookAt(this.controls.target);
 
@@ -229,24 +191,21 @@ class Map3DManager extends React.Component {
 
   initModels() {
 
-    this.PCDManager = new PCD(this.camera, this.controls);
+    this.PCDManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.PCDManager);
 
     this.ADASMapManager = new ADASMapManager();
     this.scene.add(this.ADASMapManager);
 
-    this.vehicleModelManager = new Vehicle(
-      this.camera,
-      this.controls,
-      this.centerVehicleId,
-      this.mapParameter.getIsFollowingCenterVehicle());
-    this.scene.add(this.vehicleModelManager);
-
-    this.waypointsModelManager = new WaypointsModelManager(this.camera, this.controls);
+    this.waypointsModelManager.set3DParameter(this.camera, this.controls);
+    this.waypointsModelManager.setCallback(
+      this.props.routeCodeEditorActions.setStartPoint,
+      this.props.routeCodeEditorActions.setLaneList,
+      this.props.routeCodeEditorActions.setEndPoint,
+      this.props.routeCodeEditorActions.clearRouteCodeData
+    );
     this.scene.add(this.waypointsModelManager);
 
-    this.object3DManager = new Object3D();
-    this.scene.add(this.object3DManager);
   }
 
   initValue() {
@@ -272,82 +231,65 @@ class Map3DManager extends React.Component {
     ];
     this.setPCDFromFile(pcdFileNames);
     */
-    this.setObject(OBJECT.OBJECT_LIST);
 
+    /*
     this.adasMapLoader = new ADASMapLoader();
     this.adasMapLoader.fetchADASMap().then(
       adasmap => {
         this.props.SettingsActions.setADASMapFromLocalFile(adasmap);
       });
-  }
-
-  updateVehicleLocation(vehicleId, vehicleInfo) {
-    this.vehicleModelManager.updateVehicleLocation(vehicleId, vehicleInfo);
-    //this.waypointsModelManager.emphasisLine(vehicleId, vehicleInfo)
-  }
-
-  setWaypoints(waypoints) {
-    this.waypointsModelManager.setWaypointsList(waypoints);
-  }
-
-  setPCDFromBinary(pcdList) {
-    this.PCDManager.setPCDMapFromBinary(pcdList);
+      */
   }
 
   setADASMap(adasmap) {
     this.ADASMapManager.loadADASMap(adasmap);
   }
 
-  setObject(objectData) {
-    this.object3DManager.loadObjects(objectData);
-    this.object3DManager.loadPatolamps(this.patolamps);
-    this.object3DManager.loadObjects(this.shutters);
+  setMapData(mapData) {
 
+    this.PCDManager.setPCDMapFromBinary(mapData.pcd);
+
+    if (Object.keys(mapData.waypoint).length > 0 && Object.keys(mapData.lane).length > 0) {
+      this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
+    } else {
+      this.waypointsModelManager.clear();
+    }
   }
 
-  initPatoLamps(patolamps) {
-    this.patolamps = patolamps;
+  setWidthAndHeight(width, height) {
+    this.setMapSize(width, height);
+    this.camera.aspect = this.width / this.height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(this.width, this.height);
   }
 
-  updatePatoLampStatus(patolampData) {
-    this.object3DManager.updatePatolampStatus(patolampData.id, patolampData.status);
+  setActiveStep(activeStep) {
+    this.waypointsModelManager.setActiveStep(activeStep);
   }
-
-  initShutters(shutters) {
-    this.shutters = shutters;
-  }
-
-  updateShutterStatus(shutterData) {
-    this.object3DManager.updateShutterStatus(shutterData.id, shutterData.status, shutterData.openPercentage);
-  }
-
 
   render() {
     return (
       <div id="map_canvas">
-        <WaypointsUpdater
-          setWaypoints={this.setWaypoints.bind(this)}
+        <MapDataUpdater
+          setMapData={this.setMapData.bind(this)}
         />
-        <PCDUpdater
-          setPCD={this.setPCDFromBinary.bind(this)}
+        <WidthAndHeightUpdater
+          setWidthAndHeight={this.setWidthAndHeight.bind(this)}
         />
-        <ADASMapUpdater
-          setADASMap={this.setADASMap.bind(this)}
+        <ActiveStepUpdater
+          setActiveStep={this.setActiveStep.bind(this)}
         />
       </div>
-
     )
   }
 }
 
+const mapState = () => ({});
 
-const mapState = (state) => ({
-  height: state.routeCodeEditor.getHeight(),
-  width: state.routeCodeEditor.getWidth(),
-});
 
 const mapDispatch = (dispatch) => ({
-  SettingsActions: bindActionCreators(SettingsActions, dispatch)
-});
+  routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
 
+});
 export default connect(mapState, mapDispatch)(Map3DManager);

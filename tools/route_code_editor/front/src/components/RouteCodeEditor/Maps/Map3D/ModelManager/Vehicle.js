@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import 'three/PCDLoader';
-import {MAP_3D} from "../../../../constants/Constant";
+import {MAP_3D} from "../../../../../constants/Constant";
 
 /**
  * ADASMapLoader

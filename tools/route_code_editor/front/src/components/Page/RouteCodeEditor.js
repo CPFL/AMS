@@ -3,16 +3,17 @@ import {
   Card,
   CardTitle,
   CardActions,
-  Button,
   Grid,
   Cell
 } from 'react-mdl';
 import {connect} from "react-redux";
-
-import Map3DManager from "../Maps/Map3D/Map3DManager";
-import * as RouteCodeEditorActions from "../../redux/Actions/RouteCodeEditorActions";
 import {bindActionCreators} from "redux";
-import RouteCodeMakeTabs from "../Tabs/RouteCodeMakeTab";
+
+import Map3DManager from "../RouteCodeEditor/Maps/Map3D/Map3DManager";
+import RouteCodeMakeTabs from "../RouteCodeEditor/Tabs/RouteCodeMakeTab";
+import ImportFile from '../RouteCodeEditor/ImportFile/ImportFile';
+import * as RouteCodeEditorActions from "../../redux/Actions/RouteCodeEditorActions";
+
 
 class RouteCodeEditor extends React.Component {
 
@@ -21,14 +22,11 @@ class RouteCodeEditor extends React.Component {
   }
 
   componentDidMount() {
-
     this.props.routeCodeEditorActions.setHeightAndWidth(
       (document.getElementById("card").clientHeight - document.getElementById("cardTitle").clientHeight) * 0.95,
       document.getElementById("cardAction").clientWidth
     );
-
     window.onresize = this.resize.bind(this);
-
   }
 
   resize() {
@@ -58,38 +56,20 @@ class RouteCodeEditor extends React.Component {
       height: '100%',
     };
 
-    let label_input = {
-      display: "none"
-    };
-
     return (
       <div style={wrapper}>
         <Grid style={{height: '95%'}}>
-          <Cell col={6} style={cellStyle}>
+          <Cell col={7} style={cellStyle}>
             <Card shadow={0} style={mapWrapper} id="card">
               <CardTitle id="cardTitle">
-                <label htmlFor="pcd_reader" className="file_reader">
-                  Select PCD
-                  <input type="file" style={label_input} id="pcd_reader"/>
-                </label>
-                <label htmlFor="waypoints_reader" className="file_reader">
-                  Select Waypoints
-                  <input type="file" style={label_input} id="waypoints_reader"/>
-                </label>
-                <label htmlFor="lane_reader" className="file_reader">
-                  Select Lane
-                  <input type="file" style={label_input} id="lane_reader"/>
-                </label>
-                <br />
-                <Button style={{marginLeft: "20px"}}>Import Select Data</Button>
-                <Button>Clear</Button>
+                <ImportFile/>
               </CardTitle>
               <CardActions border id="cardAction">
                 <Map3DManager/>
               </CardActions>
             </Card>
           </Cell>
-          <Cell col={6}>
+          <Cell col={5}>
             <RouteCodeMakeTabs />
           </Cell>
         </Grid>

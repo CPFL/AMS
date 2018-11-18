@@ -5,14 +5,17 @@ import * as THREE from "three";
  */
 export default class PCD extends THREE.Group {
 
-    constructor(camera, controls) {
+    constructor() {
         super();
         this.pcdList ={};
-        this.camera = camera;
-        this.controls = controls;
+        this.camera = null;
+        this.controls = null;
 
-        this.initialCameraPosition = {x: -3215, y: -37394, z: 0};
+    }
 
+  set3DParameter(camera, controls){
+      this.camera = camera;
+      this.controls = controls;
     }
 
     updateCameraPositionBasedMap(pointsMapViewPosition) {
@@ -39,41 +42,6 @@ export default class PCD extends THREE.Group {
         }
         delete this.pcdList;
         this.pcdList = {};
-    }
-
-    setPCDFromFile(FileList) {
-        this.deletePCD();
-        this.loadPCDFromFile(FileList);
-    }
-
-    addPCDFromFile(FileList) {
-        this.loadPCDFromFile(FileList);
-    }
-
-    loadPCDFromFile(FileList) {
-        let updateCameraPositionFlag = true;
-        const setCameraPosition = (args) => {
-            if (updateCameraPositionFlag) {
-                let pointsMapViewPosition = {
-                    x: args.geometry.attributes.position.array[0],
-                    y: args.geometry.attributes.position.array[1],
-                    z: args.geometry.attributes.position.array[2]
-                };
-                this.updateCameraPositionBasedMap(pointsMapViewPosition);
-
-                updateCameraPositionFlag = false;
-            }
-        };
-
-        let loader = new THREE.PCDLoader();
-        for (let pcdFileName of FileList) {
-            loader.load("/static/data/maps/shimz/points/" + pcdFileName,
-                (mesh) => {
-                    this.addPCD(mesh, pcdFileName);
-                    setCameraPosition(mesh);
-                }
-            );
-        }
     }
 
     setPCDMapFromBinary(binaryPCDList){
@@ -106,7 +74,7 @@ export default class PCD extends THREE.Group {
             if (binaryPCDList.hasOwnProperty(id)) {
                 let mesh = loader.parse(binaryPCDList[id], "load_pcd");
                 this.addPCD(mesh, id);
-                setCameraPosition(mesh);
+                //setCameraPosition(mesh);
             }
         }
 
