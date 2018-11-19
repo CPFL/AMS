@@ -9,7 +9,6 @@ import 'three/TDSLoader';
 import Detector from "../../../../lib/threejs/Detector";
 
 import ADASMapManager from './ModelManager/ADASMapManager';
-import ADASMapLoader from '../../../../io/ADASMap/ADASMapLoader';
 
 import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
@@ -17,8 +16,8 @@ import Waypoint from './ModelManager/Waypoint';
 import MapDataUpdater from '../DataUpdater/MapDataUpdater'
 import WidthAndHeightUpdater from "../DataUpdater/WidthAndHeightUpdater";
 import ActiveStepUpdater from "../DataUpdater/ActiveStepUpdater";
+import IsBackUpdater from "../DataUpdater/IsBackUpdater";
 
-import {steps} from '../../../../model/Redux/Page/RouteCodeEditor'
 
 import connect from "react-redux/es/connect/connect";
 import {bindActionCreators} from "redux";
@@ -268,6 +267,10 @@ class Map3DManager extends React.Component {
     this.waypointsModelManager.setActiveStep(activeStep);
   }
 
+  setIsBack(isBack) {
+    this.waypointsModelManager.setIsBack(isBack);
+  }
+
   render() {
     return (
       <div id="map_canvas">
@@ -279,6 +282,9 @@ class Map3DManager extends React.Component {
         />
         <ActiveStepUpdater
           setActiveStep={this.setActiveStep.bind(this)}
+        />
+        <IsBackUpdater
+          setIsBack={this.setIsBack.bind(this)}
         />
       </div>
     )

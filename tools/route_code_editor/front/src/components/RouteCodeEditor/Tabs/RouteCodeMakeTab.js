@@ -7,7 +7,6 @@ import {
   CardText,
   CardActions,
   Button,
-  Switch,
   List,
   ListItem,
   ListItemContent,
@@ -20,8 +19,6 @@ import Tab from '@material-ui/core/Tab';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
 
 import {connect} from "react-redux";
 import * as RouteCodeEditorActions from "../../../redux/Actions/RouteCodeEditorActions";
@@ -64,27 +61,28 @@ class AdvanceOrBackComponent extends React.Component {
     )
   }
 }
-
 const mapStateAdvanceOrBack = (state) => ({
   activeStep: state.routeCodeEditor.getActiveStep(),
   isBack: state.routeCodeEditor.getIsBack()
 });
-
 const mapDispatchAdvanceOrBack = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),
 });
-
 let AdvanceOrBack = connect(mapStateAdvanceOrBack, mapDispatchAdvanceOrBack)(AdvanceOrBackComponent);
 
 
 class SelectStartPointComponent extends React.Component {
 
   confirm() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.selectStartPoint.nextStep)
+    if(this.props.startPoint !== "") {
+      this.props.routeCodeEditorActions.setActiveStep(steps.selectStartPoint.nextStep)
+    }else{
+      alert("Start point is not selected!");
+    }
   }
 
   back() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.selectStartPoint.previousStep)
+    this.props.routeCodeEditorActions.resetRouteCode()
   }
 
   render() {
@@ -106,7 +104,6 @@ class SelectStartPointComponent extends React.Component {
     )
   }
 }
-
 const mapStateSelectStartPoint = (state) => ({
   activeStep: state.routeCodeEditor.getActiveStep(),
   startPoint: state.routeCodeEditor.getStartPoint()
@@ -172,7 +169,6 @@ class SelectLaneComponent extends React.Component {
     )
   }
 }
-
 const mapStateSelectLane = (state) => ({
   activeStep: state.routeCodeEditor.getActiveStep(),
   laneList: state.routeCodeEditor.getLaneList()
@@ -186,7 +182,11 @@ let SelectLane = connect(mapStateSelectLane, mapDispatchSelectLane)(SelectLaneCo
 class SelectEndPointComponent extends React.Component {
 
   confirm() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.selectEndPoint.nextStep)
+    if(this.props.endPoint !== "") {
+      this.props.routeCodeEditorActions.setActiveStep(steps.selectEndPoint.nextStep)
+    }else{
+      alert("End point is not selected!");
+    }
   }
 
   back() {
@@ -211,7 +211,6 @@ class SelectEndPointComponent extends React.Component {
     )
   }
 }
-
 const mapStateSelectEndPoint = (state) => ({
   activeStep: state.routeCodeEditor.getActiveStep(),
   endPoint: state.routeCodeEditor.getEndPoint()
@@ -225,7 +224,7 @@ let SelectEndPoint = connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(
 class ResultComponent extends React.Component {
 
   reselect() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.result.nextStep)
+    this.props.routeCodeEditorActions.resetRouteCode()
   }
 
   back() {
@@ -239,10 +238,10 @@ class ResultComponent extends React.Component {
     for (const lane of laneList) {
       const points = lane.split('_');
 
-      const arrow = this.props.isBack ? "<" : ">";
+      const [arrow, startIndex, endIndex] = this.props.isBack ? ["<", 1, 0] : [">", 0, 1];
 
-      laneString += points[0] + arrow;
-      lastPoint = points[1];
+      laneString += points[startIndex] + arrow;
+      lastPoint = points[endIndex];
     }
     laneString += lastPoint;
 
@@ -256,7 +255,11 @@ class ResultComponent extends React.Component {
         <CardTitle>
           Result
         </CardTitle>
-        <CardText><strong>Result: {this.getResult(this.props.startPoint, this.props.laneList, this.props.endPoint)}</strong></CardText>
+        <CardText>
+          <div style={{wordWrap: "break-word"}}>
+            <strong>Result: {this.getResult(this.props.startPoint, this.props.laneList, this.props.endPoint)}</strong>
+          </div>
+        </CardText>
         <CardActions border>
           <div style={{float: "right"}}>
             <Button onClick={this.back.bind(this)}>Back</Button>
@@ -268,7 +271,6 @@ class ResultComponent extends React.Component {
     )
   }
 }
-
 const mapStateResult = (state) => ({
   activeStep: state.routeCodeEditor.getActiveStep(),
   isBack: state.routeCodeEditor.getIsBack(),

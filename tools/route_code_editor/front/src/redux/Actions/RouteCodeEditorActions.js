@@ -52,6 +52,12 @@ export function setEndPoint(endPoint) {
   }
 }
 
+export function resetRouteCode() {
+  return {
+    type: REDUX.ACTION_TYPE.RESET_ROUTE_CODE_ROUTE_CODE_EDITOR
+  }
+}
+
 export function clearRouteCodeData() {
   return {
     type: REDUX.ACTION_TYPE.CLEAR_ROUTE_CODE_DATA_ROUTE_CODE_EDITOR

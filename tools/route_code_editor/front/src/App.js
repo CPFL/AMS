@@ -6,7 +6,6 @@ import {createStore, combineReducers, applyMiddleware} from 'redux'
 import {Provider} from 'react-redux'
 import {routerReducer, routerMiddleware} from 'react-router-redux'
 
-import {settingsReducer, operatingMapFromLocalReducer} from './redux/Reducers/SettingsReducer';
 import {routeCodeEditorReducer} from './redux/Reducers/RouteCodeEditorReducer';
 
 
@@ -15,8 +14,6 @@ import Routes from './Routes';
 
 const store = createStore(
   combineReducers({
-    settings: settingsReducer,
-    operatingMapFromLocal: operatingMapFromLocalReducer,
     routeCodeEditor: routeCodeEditorReducer,
     routing: routerReducer
   })

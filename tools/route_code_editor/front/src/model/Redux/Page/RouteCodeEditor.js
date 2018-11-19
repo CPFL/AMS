@@ -73,27 +73,48 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
     return this.set('activeStep', activeStep)
   }
 
+  backStep(activeStep) {
+    let laneList = [];
+    let endPoint = "";
+
+    if(activeStep === steps.selectStartPoint) {
+      laneList = this.get('laneList').toJS()[0];
+      endPoint = "";
+      return this.set('activeStep', activeStep).set('laneList', laneList).set('endPoint', endPoint);
+    }else if(activeStep === steps.selectLane) {
+      endPoint = "";
+      return this.set('activeStep', activeStep).set('endPoint', endPoint);
+    }
+    return this.set('activeStep', activeStep)
+  }
+
   setIsBack(isBack) {
     return this.set('isBack', isBack)
   }
 
-  setStartPoint(startPoint){
+  setStartPoint(startPoint) {
     return this.set('startPoint', startPoint)
   }
 
-  setLaneList(laneList){
+  setLaneList(laneList) {
     return this.set('laneList', List(laneList))
   }
 
-  setEndPoint(endPoint){
+  setEndPoint(endPoint) {
     return this.set('endPoint', endPoint)
   }
 
-  setMapData(pcd, waypoint, lane){
+  setMapData(pcd, waypoint, lane) {
     return this.set('pcd', pcd).set('waypoint', waypoint).set('lane', lane)
   }
 
-  clearRouteCodeData(){
+  resetRouteCode() {
+    return this.set('startPoint', "").set('laneList', List())
+      .set('endPoint', "").set('isBack', false)
+      .set('activeStep', steps.advanceOrBack.id)
+  }
+
+  clearRouteCodeData() {
     return this.set('startPoint', "").set('laneList', List()).set('endPoint', "").set('isBack', false)
   }
 
@@ -113,15 +134,15 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
     return this.get('isBack')
   }
 
-  getStartPoint(){
+  getStartPoint() {
     return this.get('startPoint')
   }
 
-  getLaneList(){
+  getLaneList() {
     return this.get('laneList').toJS()
   }
 
-  getEndPoint(){
+  getEndPoint() {
     return this.get('endPoint')
   }
 
