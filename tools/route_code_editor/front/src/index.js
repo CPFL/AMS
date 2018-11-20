@@ -12,26 +12,3 @@ render(
     </AppContainer>,
     rootEl
 );
-
-/*
-if (module.hot) {
-  module.hot.accept('./App', () => {
-    const NextApp = require('./App').default;
-
-    render(
-      <AppContainer>
-         <NextApp />
-      </AppContainer>,
-      rootEl
-    );
-  });
-}
-*/
-
-/*
-import {install, applyUpdate} from 'offline-plugin/runtime';
-
-install({
-    onUpdateReady: () => applyUpdate()
-});
-*/

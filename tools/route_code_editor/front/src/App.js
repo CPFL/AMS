@@ -1,10 +1,9 @@
 import React from 'react';
-import {BrowserRouter, Router} from 'react-router-dom';
-import {createHistory} from 'history'
+import {BrowserRouter} from 'react-router-dom';
 
-import {createStore, combineReducers, applyMiddleware} from 'redux'
+import {createStore, combineReducers} from 'redux'
 import {Provider} from 'react-redux'
-import {routerReducer, routerMiddleware} from 'react-router-redux'
+import {routerReducer} from 'react-router-redux'
 
 import {routeCodeEditorReducer} from './redux/Reducers/RouteCodeEditorReducer';
 

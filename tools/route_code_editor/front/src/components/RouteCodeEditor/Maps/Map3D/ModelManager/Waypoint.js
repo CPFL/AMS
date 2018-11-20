@@ -37,7 +37,6 @@ export default class Waypoint extends THREE.Group {
     this.setStartPoint = null;
     this.setLaneList = null;
     this.setEndPoint = null;
-    this.clearRouteCodeData = null;
 
     this.nextLanes = [];
     this.endPointCandidate = [];
@@ -73,7 +72,7 @@ export default class Waypoint extends THREE.Group {
 
       for (const waypointID in waypoints) {
         if (waypoints.hasOwnProperty(waypointID)) {
-          const sphere = new THREE.SphereBufferGeometry(0.1, 16, 8);
+          const sphere = new THREE.SphereBufferGeometry(0.2, 16, 8);
           const waypoint = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
             color: color
           }));
