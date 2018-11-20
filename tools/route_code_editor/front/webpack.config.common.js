@@ -33,11 +33,6 @@ module.exports = {
       template: 'public/index.html'
     }),
     new CopyWebpackPlugin([{from: 'public/'}]),
-    new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'manifest'],
-      minChunks: Infinity,
-      filename: '[name].[chunkhash:8].js'
-    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
@@ -49,16 +44,28 @@ module.exports = {
       'THREE': 'three',
     })
   ],
+  optimization: {
+    splitChunks: {
+      name: 'vendor',
+      minChunks: Infinity,
+      filename: '[name].[chunkhash:8].js'
+    },
+    splitChunks: {
+      name: 'manifest',
+      minChunks: Infinity,
+      filename: '[name].[chunkhash:8].js'
+    }
+  },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loaders: 'babel-loader',
+        use: 'babel-loader',
         include: path.join(__dirname, 'src'),
       },
       {
         test: /\.css/,
-        loaders: ["style-loader", "css-loader"]
+        use: ["style-loader", "css-loader"]
       },
       {
         test: /\.es6$/,
@@ -68,8 +75,6 @@ module.exports = {
           presets: ['es2015']
         }
       }
-
-
     ]
   }
 };

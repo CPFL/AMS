@@ -1,6 +1,11 @@
 {
   "presets": [
-    ["es2015", {"modules": false}],
+    ["env", {
+      "modules": false,
+      "targets": {
+        "node": "current",
+      }
+    }],
     "react"
   ],
   "plugins": ["transform-object-rest-spread"],
