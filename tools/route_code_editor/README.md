@@ -26,8 +26,8 @@ $ npm run build
 
 ### TEST
 ```
-#Server 
 $ cd ./ams_tools_front/
+$ python manage.py migrate
 $ python manage.py runserver
-#Access localhost:8000
+#Access localhost:8000/route_code_editor
 ```
