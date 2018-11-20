@@ -36,7 +36,7 @@ class Map3DManager extends React.Component {
     this.stats = null;
     this.mouse = new THREE.Vector2();
 
-    this.initialCameraPosition = {x: 3810.814, y: -99443.275, z: 0};
+    this.initialCameraPosition = {x: 0, y: 0, z: 0};
 
     this.PCDManager = new PCD();
     this.waypointsModelManager = new Waypoint();
@@ -191,11 +191,9 @@ class Map3DManager extends React.Component {
     this.waypointsModelManager.setCallback(
       this.props.routeCodeEditorActions.setStartPoint,
       this.props.routeCodeEditorActions.setLaneList,
-      this.props.routeCodeEditorActions.setEndPoint,
-      this.props.routeCodeEditorActions.clearRouteCodeData
+      this.props.routeCodeEditorActions.setEndPoint
     );
     this.scene.add(this.waypointsModelManager);
-
   }
 
   setMapData(mapData) {

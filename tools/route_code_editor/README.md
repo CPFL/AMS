@@ -27,6 +27,10 @@ $ npm run build
 ### TEST
 ```
 $ cd ./ams_tools_front/
+$ cd templates
+$ ln -s ../../front/static/route_code_editor route_code_editor
+$ cd ../static
+$ ln -s ../../front/static/route_code_editor route_code_editor
 $ python manage.py migrate
 $ python manage.py runserver
 #Access localhost:8000/route_code_editor
