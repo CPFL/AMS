@@ -8,8 +8,6 @@ import 'three/TDSLoader';
 
 import Detector from "../../../../lib/threejs/Detector";
 
-import ADASMapManager from './ModelManager/ADASMapManager';
-
 import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
 
@@ -41,7 +39,6 @@ class Map3DManager extends React.Component {
     this.initialCameraPosition = {x: 3810.814, y: -99443.275, z: 0};
 
     this.PCDManager = new PCD();
-    this.ADASMapManager = new ADASMapManager();
     this.waypointsModelManager = new Waypoint();
 
   }
@@ -66,7 +63,6 @@ class Map3DManager extends React.Component {
     delete this.scene;
     delete this.sceneData;
     delete this.PCDManager;
-    delete this.ADASMapManager;
     delete this.vehicleModelManager;
     delete this.waypointsModelManager;
     delete this.raycaster;
@@ -79,7 +75,6 @@ class Map3DManager extends React.Component {
     this.stats = null;
     this.sceneData = {};
     this.PCDManager = null;
-    this.ADASMapManager = null;
     this.vehicleModelManager = null;
     this.waypointsModelManager = null;
     this.raycaster = null;
@@ -177,7 +172,6 @@ class Map3DManager extends React.Component {
     }
 
     this.initModels();
-    this.initValue();
 
   }
 
@@ -193,9 +187,6 @@ class Map3DManager extends React.Component {
     this.PCDManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.PCDManager);
 
-    this.ADASMapManager = new ADASMapManager();
-    this.scene.add(this.ADASMapManager);
-
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
     this.waypointsModelManager.setCallback(
       this.props.routeCodeEditorActions.setStartPoint,
@@ -205,43 +196,6 @@ class Map3DManager extends React.Component {
     );
     this.scene.add(this.waypointsModelManager);
 
-  }
-
-  initValue() {
-
-    /*
-    let pcdFileNames = [
-        "0.20_Laser-00031_-00375.pcd",
-        "0.20_Laser-00032_-00373.pcd",
-        "0.20_Laser-00032_-00374.pcd",
-        "0.20_Laser-00032_-00375.pcd",
-        "0.20_Laser-00032_-00376.pcd",
-        "0.20_Laser-00033_-00373.pcd",
-        "0.20_Laser-00033_-00374.pcd",
-        "0.20_Laser-00033_-00375.pcd",
-        "0.20_Laser-00033_-00376.pcd",
-        "0.20_Laser-00033_-00377.pcd",
-        "0.20_Laser-00034_-00373.pcd",
-        "0.20_Laser-00034_-00374.pcd",
-        "0.20_Laser-00034_-00375.pcd",
-        "0.20_Laser-00034_-00376.pcd",
-        "0.20_Laser-00035_-00375.pcd",
-        "0.20_Laser-00035_-00376.pcd"
-    ];
-    this.setPCDFromFile(pcdFileNames);
-    */
-
-    /*
-    this.adasMapLoader = new ADASMapLoader();
-    this.adasMapLoader.fetchADASMap().then(
-      adasmap => {
-        this.props.SettingsActions.setADASMapFromLocalFile(adasmap);
-      });
-      */
-  }
-
-  setADASMap(adasmap) {
-    this.ADASMapManager.loadADASMap(adasmap);
   }
 
   setMapData(mapData) {

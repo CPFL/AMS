@@ -96,13 +96,14 @@ else {
       <div style={styles.root}>
         <AppBar position="static">
           <Toolbar>
+            {/*
             <IconButton style={styles.menuButton} color="inherit" aria-label="Menu">
               <MenuIcon/>
             </IconButton>
+            */}
             <Typography variant="h6" color="inherit" style={styles.grow}>
               Route Code Editor
             </Typography>
-            {/*<Button color="inherit">Login</Button>*/}
           </Toolbar>
         </AppBar>
       </div>
@@ -112,26 +113,6 @@ else {
     </div>
   )
 
-
-  /*
-  return (
-    <Layout fixedHeader>
-      <Header title="Route Code Editor" style={{backgroundColor: "#002041"}}/>
-      <Drawer title="Route Code Editor">
-        <Navigation>
-          <Link to="/">Home</Link>
-          <Link to="/route-code-editor">Route Code Editor</Link>
-          <Link to="/settings">Settings</Link>
-        </Navigation>
-      </Drawer>
-      <Content>
-        <RouteHideDrawer exact path="/" component={RouteCodeEditor}/>
-        <RouteHideDrawer path="/route-code-editor" component={RouteCodeEditor}/>
-        <RouteHideDrawer path="/settings" component={Settings}/>
-      </Content>
-    </Layout>
-  )
-  */
 };
 
 

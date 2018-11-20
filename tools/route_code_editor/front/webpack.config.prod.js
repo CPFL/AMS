@@ -2,6 +2,7 @@ let path = require('path');
 let webpack = require('webpack');
 let webpackMerge = require('webpack-merge');
 let commonConfig = require('./webpack.config.common.js');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const pkg = require('./package.json');
 
@@ -19,7 +20,8 @@ module.exports = webpackMerge(commonConfig,{
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-    new webpack.optimize.UglifyJsPlugin()
+    //new webpack.optimize.UglifyJsPlugin()
+    new UglifyJsPlugin()
   ],
 
 });
