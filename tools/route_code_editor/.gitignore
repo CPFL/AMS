@@ -104,7 +104,8 @@ venv.bak/
 .mypy_cache/
 
 
-/front/node_module/
+/front/node_modules/
+/front/public/data/
 /front/static/
 /front-mdl/
 /ams_tools_front/static/

@@ -12,18 +12,22 @@
 $ apt-get install vim git python-pip
 
 # Install requiremtns
-$ pip install django
+$ pip install django (version=2.0.8 recommend)
 
 # Install npm package
+$ cd ./front
 $ npm install
 
 # build(development)
-$ npm run build
+$ npm run develop
 # build(production)
-$ npm run build:prod
+$ npm run build
 ```
 
 ### TEST
 ```
-$ npm run test
+#Server 
+$ cd ./ams_tools_front/
+$ python manage.py runserver
+#Access localhost:8000
 ```
