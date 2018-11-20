@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -106,3 +106,6 @@ venv.bak/
 
 /front/node_module/
 /front/static/
+/front-mdl/
+/ams_tools_front/static/
+/ams_tools_front/templates/
