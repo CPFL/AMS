@@ -57,7 +57,7 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
       activeStep: "advanceOrBack",
       isBack: false,
       startPoint: "",
-      laneList: [],
+      laneList: List(),
       endPoint: "",
       pcd: {},
       waypoint: {},
@@ -102,6 +102,10 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
 
   setEndPoint(endPoint) {
     return this.set('endPoint', endPoint)
+  }
+
+  setStartPointAndLaneList(startPoint, laneList) {
+    return this.set('startPoint', startPoint).set('laneList', List(laneList))
   }
 
   setMapData(pcd, waypoint, lane) {

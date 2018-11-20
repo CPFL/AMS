@@ -15,6 +15,7 @@ import MapDataUpdater from '../DataUpdater/MapDataUpdater'
 import WidthAndHeightUpdater from "../DataUpdater/WidthAndHeightUpdater";
 import ActiveStepUpdater from "../DataUpdater/ActiveStepUpdater";
 import IsBackUpdater from "../DataUpdater/IsBackUpdater";
+import RouteCodeUpdater from "../DataUpdater/RouteCodeUpdater";
 
 
 import connect from "react-redux/es/connect/connect";
@@ -189,7 +190,7 @@ class Map3DManager extends React.Component {
 
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
     this.waypointsModelManager.setCallback(
-      this.props.routeCodeEditorActions.setStartPoint,
+      this.props.routeCodeEditorActions.setStartPointAndLaneList,
       this.props.routeCodeEditorActions.setLaneList,
       this.props.routeCodeEditorActions.setEndPoint
     );
@@ -223,6 +224,11 @@ class Map3DManager extends React.Component {
     this.waypointsModelManager.setIsBack(isBack);
   }
 
+  updateRouteCode(startPoint, lanes, endPoint){
+    this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+
+  }
+
   render() {
     return (
       <div id="map_canvas">
@@ -237,6 +243,9 @@ class Map3DManager extends React.Component {
         />
         <IsBackUpdater
           setIsBack={this.setIsBack.bind(this)}
+        />
+        <RouteCodeUpdater
+          updateRouteCode={this.updateRouteCode.bind(this)}
         />
       </div>
     )
