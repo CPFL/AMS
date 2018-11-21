@@ -17,7 +17,7 @@ export function setActiveStep(activeStep) {
 
 export function backStep(activeStep) {
   return {
-    type: REDUX.ACTION_TYPE.SET_ACTIVE_STEP_ROUTE_CODE_EDITOR,
+    type: REDUX.ACTION_TYPE.BACK_STEP_ROUTE_CODE_EDITOR,
     activeStep: activeStep
   }
 }
