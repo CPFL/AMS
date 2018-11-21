@@ -45,16 +45,18 @@ module.exports = {
     })
   ],
   optimization: {
-    splitChunks: {
-      name: 'vendor',
-      minChunks: Infinity,
-      filename: '[name].[chunkhash:8].js'
-    },
+    // splitChunks: {
+    //   name: 'vendor',
+    //   minChunks: Infinity,
+    //   filename: '[name].[chunkhash:8].js',
+    //   chunks: 'initial'
+    // },
     splitChunks: {
       name: 'manifest',
       minChunks: Infinity,
-      filename: '[name].[chunkhash:8].js'
-    }
+      filename: '[name].[chunkhash:8].js',
+      chunks: 'initial'
+    } // TODO: これ、うまく使えているかかなり怪しい気配を感じる
   },
   module: {
     rules: [
