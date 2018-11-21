@@ -5,6 +5,7 @@ export const REDUX = {
     //RouteCodeEditor
     SET_HEIGHT_AND_WIDTH_ROUTE_CODE_EDITOR: "setHeightAndWidthRouteCodeEditor",
     SET_ACTIVE_STEP_ROUTE_CODE_EDITOR: "setActiveStepRouteCodeEditor",
+    BACK_STEP_ROUTE_CODE_EDITOR: "backStepRouteCodeEditor",
     SET_IS_BACK_ROUTE_CODE_EDITOR: "setIsBackRouteCodeEditor",
     SET_WAYPOINT_ROUTE_CODE_EDITOR: "setWaypointRouteCodeEditor",
     SET_LANE_ROUTE_CODE_EDITOR: "setLaneRouteCodeEditor",

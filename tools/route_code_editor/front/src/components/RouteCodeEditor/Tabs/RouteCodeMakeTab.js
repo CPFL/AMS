@@ -78,7 +78,7 @@ class SelectStartPointComponent extends React.Component {
   }
 
   back() {
-    this.props.routeCodeEditorActions.resetRouteCode()
+    this.props.routeCodeEditorActions.backStep(steps.selectStartPoint.previousStep)
   }
 
   render() {
@@ -117,7 +117,7 @@ class SelectLaneComponent extends React.Component {
   }
 
   back() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.selectLane.previousStep)
+    this.props.routeCodeEditorActions.backStep(steps.selectLane.previousStep)
   }
 
   getLaneList(laneList) {
@@ -186,7 +186,7 @@ class SelectEndPointComponent extends React.Component {
   }
 
   back() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.selectEndPoint.previousStep)
+    this.props.routeCodeEditorActions.backStep(steps.selectEndPoint.previousStep)
   }
 
   render() {
@@ -224,7 +224,7 @@ class ResultComponent extends React.Component {
   }
 
   back() {
-    this.props.routeCodeEditorActions.setActiveStep(steps.result.previousStep)
+    this.props.routeCodeEditorActions.backStep(steps.result.previousStep)
   }
 
   getResult(startPoint, laneList, endPoint) {
@@ -244,6 +244,67 @@ class ResultComponent extends React.Component {
     return startPoint + ":" + laneString + ":" + endPoint
   }
 
+  validateResult(){
+
+    const waypoints = this.props.mapData.waypoint.waypoints;
+    const lane = this.props.mapData.lane;
+    const startPoint = this.props.startPoint;
+    const laneList = this.props.laneList;
+    const endPoint = this.props.endPoint;
+    let errorMessages = [];
+    let isValidate = true;
+
+    if(!waypoints.hasOwnProperty(startPoint)){
+      isValidate = false;
+      errorMessages.push("Waypoints does not have this Start Point");
+    }
+    for(const laneID of laneList){
+      if(!lane.lanes.hasOwnProperty(laneID)){
+        isValidate = false;
+        errorMessages.push("Lanes do not has LaneID:" + laneID);
+      }
+      const index = laneList.indexOf(laneID);
+      if(index === 0){
+        if(lane.lanes[laneID].waypointIDs.indexOf(startPoint) === -1){
+          isValidate = false;
+          errorMessages.push("Start Point does not exist on the first lane");
+        }
+      }else{
+        if(!this.props.isBack) {
+          if(lane.toLanes[laneList[index - 1]].indexOf(laneList[index]) === -1){
+            isValidate = false;
+            errorMessages.push("This Lane does not exist in toLanes of previous Lane: LaneID is " + laneID);
+          }
+        }else{
+          if(lane.fromLanes[laneList[index - 1]].indexOf(laneList[index]) === -1){
+            isValidate = false;
+            errorMessages.push("This Lane does not exist in fromLanes of previous Lane");
+          }
+        }
+      }
+    }
+
+    if(lane.lanes[laneList[laneList.length - 1]].waypointIDs.indexOf(endPoint) === -1){
+      isValidate = false;
+      errorMessages.push("End Point does not exist on the last lane");
+    }
+
+    if(isValidate){
+      let res = [];
+      res.push((<br/>));
+      res.push((<p style={{color: "blue"}}>Validation is OK!</p>));
+      return res
+    }else{
+      let errorList = [];
+      errorList.push((<br/>));
+      errorList.push((<p style={{color: "red"}}>Validation is Fail!</p>));
+      for(const errorMessage of errorMessages){
+        errorList.push((<p style={{color: "red"}}>{errorMessage}</p>))
+      }
+      return errorList
+    }
+  }
+
   render() {
     return (
       <Card shadow={0}
@@ -254,6 +315,8 @@ class ResultComponent extends React.Component {
         <CardText>
           <div style={{wordWrap: "break-word"}}>
             <strong>Result: {this.getResult(this.props.startPoint, this.props.laneList, this.props.endPoint)}</strong>
+            <br/>
+            {this.validateResult()}
           </div>
         </CardText>
         <CardActions border>
@@ -263,7 +326,6 @@ class ResultComponent extends React.Component {
           </div>
         </CardActions>
       </Card>
-
     )
   }
 }
@@ -272,7 +334,8 @@ const mapStateResult = (state) => ({
   isBack: state.routeCodeEditor.getIsBack(),
   startPoint: state.routeCodeEditor.getStartPoint(),
   laneList: state.routeCodeEditor.getLaneList(),
-  endPoint: state.routeCodeEditor.getEndPoint()
+  endPoint: state.routeCodeEditor.getEndPoint(),
+  mapData: state.routeCodeEditor.getMapData()
 });
 const mapDispatchResult = (dispatch) => ({
   routeCodeEditorActions: bindActionCreators(RouteCodeEditorActions, dispatch),

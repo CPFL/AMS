@@ -1,10 +1,8 @@
 import React from 'react';
 
 import * as THREE from 'three';
-import 'three/ColladaLoader';
 import 'three/OrbitControls';
 import 'three/PCDLoader';
-import 'three/TDSLoader';
 
 import Detector from "../../../../lib/threejs/Detector";
 

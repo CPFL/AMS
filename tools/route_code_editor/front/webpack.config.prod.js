@@ -21,7 +21,7 @@ module.exports = webpackMerge(commonConfig,{
       'process.env.NODE_ENV': '"production"'
     }),
     //new webpack.optimize.UglifyJsPlugin()
-    new UglifyJsPlugin()
+    //new UglifyJsPlugin()
   ],
 
 });

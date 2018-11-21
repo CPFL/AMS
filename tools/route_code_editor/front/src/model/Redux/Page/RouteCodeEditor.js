@@ -74,16 +74,14 @@ export class RouteCodeEditor extends RouteCodeEditorRecord {
   }
 
   backStep(activeStep) {
-    let laneList = [];
-    let endPoint = "";
-
-    if(activeStep === steps.selectStartPoint) {
-      laneList = this.get('laneList').toJS()[0];
-      endPoint = "";
-      return this.set('activeStep', activeStep).set('laneList', laneList).set('endPoint', endPoint);
-    }else if(activeStep === steps.selectLane) {
-      endPoint = "";
-      return this.set('activeStep', activeStep).set('endPoint', endPoint);
+    console.log(activeStep);
+    if(activeStep === steps.advanceOrBack.id){
+      return this.set('startPoint', "").set('laneList', List())
+        .set('endPoint', "").set('isBack', false)
+        .set('activeStep', activeStep)
+    } else if(activeStep === steps.selectLane.id) {
+      console.log(activeStep);
+      return this.set('activeStep', activeStep).set('endPoint', "")
     }
     return this.set('activeStep', activeStep)
   }

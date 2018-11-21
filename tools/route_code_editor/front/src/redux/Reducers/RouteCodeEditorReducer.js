@@ -6,6 +6,8 @@ export function routeCodeEditorReducer(state = new RouteCodeEditor(), action) {
     return state.setHeightAndWidth(action.height, action.width)
   } else if (action.type === REDUX.ACTION_TYPE.SET_ACTIVE_STEP_ROUTE_CODE_EDITOR) {
     return state.setActiveStep(action.activeStep)
+  } else if (action.type === REDUX.ACTION_TYPE.BACK_STEP_ROUTE_CODE_EDITOR) {
+    return state.backStep(action.activeStep)
   } else if (action.type === REDUX.ACTION_TYPE.SET_IS_BACK_ROUTE_CODE_EDITOR) {
     return state.setIsBack(action.isBack)
   } else if (action.type === REDUX.ACTION_TYPE.REFLECT_MAP_DATA_ROUTE_CODE_EDITOR) {
