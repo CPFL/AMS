@@ -56,7 +56,7 @@ module.exports = {
       minChunks: Infinity,
       filename: '[name].[chunkhash:8].js',
       chunks: 'initial'
-    } // TODO: これ、うまく使えているかかなり怪しい気配を感じる
+    } // TODO: confirm ussage of this file
   },
   module: {
     rules: [
