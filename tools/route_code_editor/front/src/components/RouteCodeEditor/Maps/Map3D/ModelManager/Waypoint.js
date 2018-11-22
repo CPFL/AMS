@@ -83,66 +83,41 @@ export default class Waypoint extends THREE.Group {
       for (const laneID in lanes) {
         if (lanes.hasOwnProperty(laneID)) {
 
-          let material = new THREE.LineBasicMaterial({color: color, linewidth: 5});
-          let geometry = new THREE.Geometry();
+          let positions = [];
           const waypointIDs = lanes[laneID].waypointIDs;
+
           for (const waypointID of waypointIDs) {
-            geometry.vertices.push(new THREE.Vector3(
+            positions.push(new THREE.Vector3(
               waypoints[waypointID].x,
               waypoints[waypointID].y,
               waypoints[waypointID].z));
             this.waypointsList[waypointID].userData.laneCode = laneID;
           }
-          geometry.computeBoundingSphere();
-          const line = new THREE.Line(geometry, material);
+
+          let path = new THREE.CatmullRomCurve3(positions);
+          let geometry = new THREE.TubeBufferGeometry( path, 64, 0.1, 8, false );
+          let material = new THREE.MeshBasicMaterial( { color: this.color.default } );
+          let line = new THREE.Mesh( geometry, material );
           line.name = laneID;
           this.laneList[laneID] = line;
+
           this.add(this.laneList[laneID]);
 
-          let to = geometry.vertices[geometry.vertices.length - 1];
-          let from = geometry.vertices[geometry.vertices.length - 2];
+          let to = new THREE.Vector3(
+            waypoints[waypointIDs[waypointIDs.length - 1]].x,
+            waypoints[waypointIDs[waypointIDs.length - 1]].y,
+            waypoints[waypointIDs[waypointIDs.length - 1]].z);
+          let from =  new THREE.Vector3(
+            waypoints[waypointIDs[waypointIDs.length - 2]].x,
+            waypoints[waypointIDs[waypointIDs.length - 2]].y,
+            waypoints[waypointIDs[waypointIDs.length - 2]].z);
           let direction = to.clone().sub(from);
-          const headLength = 0.5;
-          const headWidth = 0.25;
+          const headLength = 0.8;
+          const headWidth = 0.8;
           let arrowHelper = new THREE.ArrowHelper(direction.normalize(), to, headLength + 0.00000001, color, headLength, headWidth);
           arrowHelper.name = "laneHead/" + laneID;
           this.arrowHelper[laneID] = arrowHelper;
           this.add(this.arrowHelper[laneID]);
-
-          /*
-          let matLine = new THREE.LineMaterial({
-            color: 0xffffff,
-            linewidth: 5,
-            vertexColors: THREE.VertexColors,
-            dashed: false
-          });
-          let geometry = new THREE.LineGeometry();
-          const waypointIDs = lanes[laneID].waypointIDs;
-
-          let positions = [];
-          let colors = [];
-          let lineColor = new THREE.Color();
-
-          for (const waypointID of waypointIDs) {
-            positions.push(
-              waypoints[waypointID].x,
-              waypoints[waypointID].y,
-              waypoints[waypointID].z);
-            lineColor.setHSL( waypointID / Math.max(waypointIDs), 1.0, 0.5 );
-            colors.push( lineColor.r, lineColor.g, lineColor.b );
-            this.waypointsList[waypointID].userData.laneCode = laneID;
-          }
-          geometry.setPositions(positions);
-          //geometry.setColors( colors );
-          const line = new THREE.Line2(geometry, matLine);
-          line.computeLineDistances();
-          line.scale.set( 1, 1, 1 );
-
-          line.name = laneID;
-          this.laneList[laneID] = line;
-          this.add(this.laneList[laneID]);
-          */
-
 
         }
       }
