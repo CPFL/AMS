@@ -11,13 +11,7 @@ module.exports = {
     alias: {
       'three/OrbitControls': path.join(__dirname, 'node_modules/three/examples/js/controls/OrbitControls.js'),
       'three/utils/Detector': path.join(__dirname, 'node_modules/three/examples/js/Detector.js'),
-      'three/utils/Stats': path.join(__dirname, 'node_modules/three/examples/js/libs/stats.min.js'),
-      'three/ColladaLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/ColladaLoader.js'),
-      'three/TDSLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/TDSLoader.js'),
       'three/PCDLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/PCDLoader.js'),
-      'three/Line2': path.join(__dirname, 'node_modules/three/examples/js/lines/Line2.js'),
-      'three/LineMaterial': path.join(__dirname, 'node_modules/three/examples/js/lines/LineMaterial.js'),
-      'three/LineGeometry': path.join(__dirname, 'node_modules/three/examples/js/lines/LineGeometry.js'),
 
     }
   },

@@ -261,32 +261,48 @@ class ResultComponent extends React.Component {
     for(const laneID of laneList){
       if(!lane.lanes.hasOwnProperty(laneID)){
         isValidate = false;
-        errorMessages.push("Lanes do not has LaneID:" + laneID);
-      }
-      const index = laneList.indexOf(laneID);
-      if(index === 0){
-        if(lane.lanes[laneID].waypointIDs.indexOf(startPoint) === -1){
-          isValidate = false;
-          errorMessages.push("Start Point does not exist on the first lane");
-        }
-      }else{
-        if(!this.props.isBack) {
-          if(lane.toLanes[laneList[index - 1]].indexOf(laneList[index]) === -1){
+        errorMessages.push("Lanes does not have this LaneID:" + laneID);
+      }else {
+        const index = laneList.indexOf(laneID);
+        if (index === 0) {
+          if (lane.lanes[laneID].waypointIDs.indexOf(startPoint) === -1) {
             isValidate = false;
-            errorMessages.push("This Lane does not exist in toLanes of previous Lane: LaneID is " + laneID);
+            errorMessages.push("Start Point does not exist on the first lane");
           }
-        }else{
-          if(lane.fromLanes[laneList[index - 1]].indexOf(laneList[index]) === -1){
-            isValidate = false;
-            errorMessages.push("This Lane does not exist in fromLanes of previous Lane");
+        } else {
+          if (!this.props.isBack) {
+            if (lane.toLanes[laneList[index - 1]].indexOf(laneList[index]) === -1) {
+              isValidate = false;
+              errorMessages.push("This Lane does not exist in toLanes of previous lane: LaneID is " + laneID);
+            }
+          } else {
+            if (lane.fromLanes[laneList[index - 1]].indexOf(laneList[index]) === -1) {
+              isValidate = false;
+              errorMessages.push("This Lane does not exist in fromLanes of previous lane: LaneID is " + laneID);
+            }
           }
         }
       }
     }
 
-    if(lane.lanes[laneList[laneList.length - 1]].waypointIDs.indexOf(endPoint) === -1){
-      isValidate = false;
-      errorMessages.push("End Point does not exist on the last lane");
+    if(lane.lanes.hasOwnProperty(laneList[laneList.length - 1])) {
+      if (lane.lanes[laneList[laneList.length - 1]].waypointIDs.indexOf(endPoint) === -1) {
+        isValidate = false;
+        errorMessages.push("End Point does not exist on the last lane");
+      }
+    }
+
+    if(laneList.length === 1 && lane.lanes.hasOwnProperty(laneList[0])) {
+      const startIndex = lane.lanes[laneList[0]].waypointIDs.indexOf(startPoint);
+      const endIndex = lane.lanes[laneList[0]].waypointIDs.indexOf(endPoint);
+
+      if (!this.props.isBack && startIndex > endIndex) {
+        isValidate = false;
+        errorMessages.push("Start Point is behind End Point");
+      }else if (this.props.isBack && startIndex < endIndex) {
+        isValidate = false;
+        errorMessages.push("Start Point is behind End Point");
+      }
     }
 
     if(isValidate){

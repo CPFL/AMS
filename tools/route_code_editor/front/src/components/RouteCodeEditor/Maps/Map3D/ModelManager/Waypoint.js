@@ -1,11 +1,5 @@
 import * as THREE from "three";
 
-import '../../../../../lib/lines/LineSegments2.js';
-import '../../../../../lib/lines/Line2';
-import '../../../../../lib/lines/LineMaterial';
-import '../../../../../lib/lines/LineSegmentsGeometry';
-import '../../../../../lib/lines/LineGeometry';
-
 import {steps} from "../../../../../model/Redux/Page/RouteCodeEditor";
 
 
@@ -230,9 +224,20 @@ export default class Waypoint extends THREE.Group {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
-        for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
-          this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
-          this.selectCandidateObject.push(this.waypointsList[waypointID]);
+        if(this.lanes.length === 1) {
+          const index = this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.indexOf(this.startPoint);
+          let selectCandidateWaypointIDs = !this.isBack ?
+              this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(index + 1) :
+              this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(0, index - 1);
+          for (const waypointID of selectCandidateWaypointIDs) {
+            this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
+            this.selectCandidateObject.push(this.waypointsList[waypointID]);
+          }
+        }else{
+          for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
+            this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
+            this.selectCandidateObject.push(this.waypointsList[waypointID]);
+          }
         }
         for (let laneID of this.lanes) {
           this.laneList[laneID].material.color.set(this.color.selected);
@@ -293,9 +298,21 @@ export default class Waypoint extends THREE.Group {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
-        for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
-          this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
-          this.selectCandidateObject.push(this.waypointsList[waypointID]);
+
+        if(this.lanes.length === 1) {
+          const index = this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.indexOf(this.startPoint);
+          let selectCandidateWaypointIDs = !this.isBack ?
+            this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(index + 1) :
+            this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(0, index - 1);
+          for (const waypointID of selectCandidateWaypointIDs) {
+            this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
+            this.selectCandidateObject.push(this.waypointsList[waypointID]);
+          }
+        }else {
+          for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
+            this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
+            this.selectCandidateObject.push(this.waypointsList[waypointID]);
+          }
         }
         for (let laneID of this.lanes) {
           this.laneList[laneID].material.color.set(this.color.selected);
