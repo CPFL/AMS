@@ -6,6 +6,7 @@ from pprint import pformat
 import json
 from multiprocessing import Manager
 from _ssl import PROTOCOL_TLSv1_2
+from time import sleep
 
 from paho.mqtt.client import Client
 
@@ -87,7 +88,7 @@ class PubSubClient(ArgsSetters):
     def set_loads(self, loads):
         self.__loads = loads
 
-    def subscribe(self, topic, callback, qos=0, user_data=None, structure=None):
+    def subscribe(self, topic, callback, qos=0, user_data=None, structure=None, rate=None):
         logger.info("subscribe {} topic. qos: {}, structure: {}".format(topic, qos, structure))
         loads = self.__loads
 
@@ -153,6 +154,10 @@ class PubSubClient(ArgsSetters):
         self.__subscribers.pop(topic)
         self.__subscribers_lock.release()
 
+    @staticmethod
+    def loop(sleep_time):
+        while True:
+            sleep(sleep_time)
+
     def disconnect(self):
         self.__client.disconnect()
-
