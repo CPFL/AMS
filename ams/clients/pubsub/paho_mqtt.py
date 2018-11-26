@@ -161,4 +161,3 @@ class PubSubClient(ArgsSetters):
 
     def disconnect(self):
         self.__client.disconnect()
-
