@@ -10,8 +10,8 @@ from ams.structures.lane import LANE, Lane
 from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint
-from ams.structures.schedule import Schedule, Schedules
-from ams.structures.schedule_branch import ScheduleBranch, ScheduleBranches
+from ams.structures.event import Event, Events
+from ams.structures.event_branch import EventBranch, EventBranches
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
 from ams.structures.state_machine import StateMachineResource

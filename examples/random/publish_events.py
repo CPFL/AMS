@@ -25,21 +25,21 @@ if __name__ == '__main__':
     with open(args.dispatcher_initials_file_path, "r") as f:
         transportation_config = Dispatcher.TransportationConfig.new_data(**json.load(f)["transportation_config"])
 
-    schedules = Hook.generate_vehicle_schedules(transportation_config)
+    events = Hook.generate_vehicle_events(transportation_config)
 
     Topic.domain = Topic.get_domain(args.mqtt_topic)
-    # logger.pp(schedules)
+    # logger.pp(events)
 
     PubSubClient = get_pubsub_client_class(paho.mqtt.client)
     pubsub_client = PubSubClient()
     pubsub_client.set_args_of_Client()
     pubsub_client.set_args_of_connect(host=args.mqtt_host, port=args.mqtt_port)
     pubsub_client.connect()
-    Publisher.publish_schedules_message(
+    Publisher.publish_events_message(
         pubsub_client,
         Topic.get_from_target(args.mqtt_topic),
         Topic.get_to_target(args.mqtt_topic),
-        schedules
+        events
     )
 
 

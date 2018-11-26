@@ -5,21 +5,21 @@ from ams import get_structure_superclass
 from ams.structures import Targets, Period, Route
 
 
-schedule_template = {
+event_template = {
     "id": "uuid",
-    "event": "default",
+    "name": "default",
     "period": Period.get_template(),
     "route_code": "0:0>1:1",
     "targets": Targets.get_template(),
 }
 
-schedule_schema = {
+event_schema = {
     "id": {
         "type": "string",
         "required": True,
         "nullable": False,
     },
-    "event": {
+    "name": {
         "type": "string",
         "required": True,
         "nullable": True,
@@ -39,17 +39,17 @@ schedule_schema = {
 }
 
 
-class Schedule(get_structure_superclass(schedule_template, schedule_schema)):
+class Event(get_structure_superclass(event_template, event_schema)):
     pass
 
 
-schedules_template = [Schedule.get_template()]
+events_template = [Event.get_template()]
 
-schedules_schema = {
+events_schema = {
     "type": "list",
     "schema": {
         "type": "dict",
-        "schema": Schedule.get_schema(),
+        "schema": Event.get_schema(),
         "required": True,
         "nullable": False,
     },
@@ -58,5 +58,5 @@ schedules_schema = {
 }
 
 
-class Schedules(get_structure_superclass(schedules_template, schedules_schema)):
+class Events(get_structure_superclass(events_template, events_schema)):
     pass

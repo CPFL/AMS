@@ -30,16 +30,16 @@ class Spot(object):
         ))
 
     @staticmethod
-    def new_spot(targets, contact, polygon, schedules):
+    def new_spot(targets, contact, polygon, events):
         return Structure.new_data(
             targets=targets,
             contact=contact,
             polygon=polygon,
-            schedules=schedules
+            events=events
         )
 
-    def update_spot_schedules(self, spot_id, schedules):
-        self.__spots[spot_id].schedules = schedules
+    def update_spot_events(self, spot_id, events):
+        self.__spots[spot_id].events = events
 
     validate_spot = Structure.validate_data
     get_errors = Structure.get_errors
@@ -59,5 +59,5 @@ class Spot(object):
     def get_polygon(self, spot_id):
         return self.__spots[spot_id].polygon
 
-    def get_schedules(self, spot_id):
-        return self.__spots[spot_id].schedules
+    def get_events(self, spot_id):
+        return self.__spots[spot_id].events

@@ -2,20 +2,20 @@
 # coding: utf-8
 
 from ams import get_structure_superclass
-from ams.structures import Schedules
+from ams.structures import Events
 
 
-schedule_branch_template = {
+event_branch_template = {
     "key": {
         "type": "common",
         "index": 0
     },
-    "common": Schedules.get_template(),
-    "main": Schedules.get_template(),
-    "sub": Schedules.get_template(),
+    "common": Events.get_template(),
+    "main": Events.get_template(),
+    "sub": Events.get_template(),
 }
 
-schedule_branch_schema = {
+event_branch_schema = {
     "key": {
         "type": "dict",
         "schema": {
@@ -31,23 +31,23 @@ schedule_branch_schema = {
             }
         }
     },
-    "common": Schedules.get_schema(),
-    "main": Schedules.get_schema(),
-    "sub": Schedules.get_schema(),
+    "common": Events.get_schema(),
+    "main": Events.get_schema(),
+    "sub": Events.get_schema(),
 }
 
 
-class ScheduleBranch(get_structure_superclass(schedule_branch_template, schedule_branch_schema)):
+class EventBranch(get_structure_superclass(event_branch_template, event_branch_schema)):
     pass
 
 
-schedule_branches_template = [ScheduleBranch.get_template()]
+event_branches_template = [EventBranch.get_template()]
 
-schedule_branches_schema = {
+event_branches_schema = {
     "type": "list",
     "schema": {
         "type": "dict",
-        "schema": ScheduleBranch.get_schema(),
+        "schema": EventBranch.get_schema(),
         "required": True,
         "nullable": False,
     },
@@ -55,5 +55,5 @@ schedule_branches_schema = {
 }
 
 
-class ScheduleBranches(get_structure_superclass(schedule_branches_template, schedule_branches_schema)):
+class EventBranches(get_structure_superclass(event_branches_template, event_branches_schema)):
     pass

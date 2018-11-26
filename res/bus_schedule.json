@@ -2,7 +2,7 @@
   "busSchedules": [
     {
       "ID": "0",
-      "scheduleBranches": [
+      "eventBranches": [
         {
           "common": [
             {

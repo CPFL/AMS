@@ -16,7 +16,7 @@
   },
   "status": {
     "state": null,
-    "schedule_id": null,
+    "event_id": null,
     "location": null,
     "pose": null,
     "updated_at": 0.0,

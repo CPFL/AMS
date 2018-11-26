@@ -21,11 +21,11 @@ class Vehicle(EventLoop):
         self.user_data["target_autoware"] = self.config.target_autoware
         self.user_data["target_dispatcher"] = self.config.target_dispatcher
 
-        topic = Subscriber.get_vehicle_schedules_topic(self.config.target_dispatcher, self.config.target_self)
+        topic = Subscriber.get_vehicle_events_topic(self.config.target_dispatcher, self.config.target_self)
         self.subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_vehicle_schedules_message,
-            "structure": Dispatcher.Message.Schedules,
+            "callback": Subscriber.on_vehicle_events_message,
+            "structure": Dispatcher.Message.Events,
             "user_data": self.user_data
         }
 
