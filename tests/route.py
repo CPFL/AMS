@@ -165,7 +165,7 @@ class Test(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_pose_and_velocity_set(self):
-        with open("./res/get_pose_and_velocity_set_expected1.json", "r") as f:
+        with open("./tests/res/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.helpers import Hook, Schedule
+from ams.helpers import Hook, Event
 from ams.structures import Vehicle, Dispatcher
 
 
@@ -67,42 +67,42 @@ class Condition(object):
     def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            return timeout < Schedule.get_time() - vehicle_status.updated_at
+            return timeout < Event.get_time() - vehicle_status.updated_at
         return False
 
     @classmethod
-    def vehicle_schedules_exists(cls, kvs_client, target_vehicle):
-        vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
-        if vehicle_schedules is None:
+    def vehicle_events_exists(cls, kvs_client, target_vehicle):
+        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
+        if vehicle_events is None:
             return False
-        return 0 < len(vehicle_schedules)
+        return 0 < len(vehicle_events)
 
     @classmethod
-    def vehicle_status_schedule_id_initialized(cls, kvs_client, target_vehicle):
+    def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            return vehicle_status.schedule_id is not None
+            return vehicle_status.event_id is not None
         return False
 
     @classmethod
     def vehicle_route_point_updated(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
-        if None not in [vehicle_status, vehicle_schedules]:
-            vehicle_schedule = Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
-            if vehicle_schedule.event == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
-                vehicle_schedule = Schedule.get_next_schedule_by_current_schedule_id(
-                    vehicle_schedules, vehicle_status.schedule_id)
-            if "route_code" in vehicle_schedule:
-                return vehicle_status.route_point.route_code == vehicle_schedule.route_code
+        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_events]:
+            vehicle_event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+            if vehicle_event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
+                vehicle_event = Event.get_next_event_by_current_event_id(
+                    vehicle_events, vehicle_status.event_id)
+            if "route_code" in vehicle_event:
+                return vehicle_status.route_point.route_code == vehicle_event.route_code
         return False
 
     @classmethod
-    def vehicle_schedules_include_any_expected_events(cls, kvs_client, target_vehicle, expected_events):
-        vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
-        if vehicle_schedules is not None:
-            schedule_events = Hook.get_vehicle_schedule_events(vehicle_schedules)
-            return 0 < len(list(set(expected_events) & set(schedule_events)))
+    def vehicle_events_include_any_expected_events(cls, kvs_client, target_vehicle, expected_events):
+        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
+        if vehicle_events is not None:
+            event_names = Hook.get_vehicle_event_names(vehicle_events)
+            return 0 < len(list(set(expected_events) & set(event_names)))
         return False
 
     @classmethod
@@ -115,11 +115,11 @@ class Condition(object):
     @classmethod
     def vehicle_location_is_on_event_route(cls, kvs_client, maps_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_schedules = Hook.get_schedules(kvs_client, target_vehicle)
-        if None not in [vehicle_status, vehicle_schedules]:
-            current_schedule = Schedule.get_schedule_by_id(vehicle_schedules, vehicle_status.schedule_id)
-            if current_schedule is not None:
-                route_waypoint_ids = maps_client.route.get_waypoint_ids(current_schedule.route_code)
+        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_events]:
+            current_event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+            if current_event is not None:
+                route_waypoint_ids = maps_client.route.get_waypoint_ids(current_event.route_code)
                 if vehicle_status.location.waypoint_id in route_waypoint_ids:
                     return True
         return False

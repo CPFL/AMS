@@ -54,13 +54,13 @@
           "args": ["kvs_client", "maps_client", "target_vehicle"]
         },
         {
-          "function": "initialize_vehicle_status_schedule_id",
+          "function": "initialize_vehicle_status_event_id",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_status_schedule_id_initialized",
+          "function": "vehicle_status_event_id_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]

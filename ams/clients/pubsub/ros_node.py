@@ -15,9 +15,10 @@ def subscribe_loop(subscribers_lock, subscriber):
     rospy_rate = rospy.Rate(hz=subscriber["rate"], reset=False)
     while not rospy.is_shutdown():
         try:
-            message_data = rospy.wait_for_message(topic=subscriber["topic"], topic_type=subscriber["structure"], timeout=None)
+            message_data = rospy.wait_for_message(
+                topic=subscriber["topic"], topic_type=subscriber["structure"], timeout=None)
             subscribers_lock.acquire()
-            ret = subscriber["callback"](rospy, subscriber["user_data"], subscriber["topic"], message_data)
+            subscriber["callback"](rospy, subscriber["user_data"], subscriber["topic"], message_data)
             subscribers_lock.release()
             rospy_rate.sleep()
         except rospy.ROSException:
@@ -116,7 +117,7 @@ class PubSubClient(object):
     def unsubscribe(self):
         pass
 
-    def loop(self, sleep_time):
+    @staticmethod
+    def loop(sleep_time):
         while not rospy.is_shutdown():
             sleep(sleep_time)
-
