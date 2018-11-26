@@ -2,14 +2,14 @@
 # coding: utf-8
 
 from ams import get_structure_superclass
-from ams.structures import Location, Polygon, Schedules, Targets
+from ams.structures import Location, Polygon, Events, Targets
 
 
 template = {
     "targets": Targets.get_template(),
     "contact": Location.get_template(),
     "polygon": Polygon.get_template(),
-    "schedules": Schedules.get_template(),
+    "events": Events.get_template(),
 }
 
 schema = {
@@ -24,7 +24,7 @@ schema = {
         "required": True,
         "nullable": True,
     },
-    "schedules": Schedules.get_schema()
+    "events": Events.get_schema()
 }
 
 

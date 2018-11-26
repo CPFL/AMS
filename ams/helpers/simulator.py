@@ -5,7 +5,7 @@ from sys import float_info
 import math
 
 from ams import logger
-from ams.helpers import Schedule
+from ams.helpers import Event
 from ams.structures import Pose, Autoware
 from ams.helpers import Position, Vector, Route
 
@@ -16,7 +16,7 @@ class Simulator(object):
     def search_vehicle_location_from_lane_array(pose_stamped, lane_array, limit_distance=3.0):
         distance_min = float_info.max
         i = 0
-        nsec, sec = math.modf(Schedule.get_time())
+        nsec, sec = math.modf(Event.get_time())
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**{
             "header": {
                 "seq": 0,
