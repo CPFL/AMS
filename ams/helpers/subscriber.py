@@ -3,7 +3,7 @@
 
 import yaml
 
-from ams import AttrDict
+from ams import AttrDict, logger
 from ams.helpers import Topic, Event, Hook, Condition, Publisher
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.structures import EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface
@@ -274,6 +274,7 @@ class Subscriber(object):
                         Hook.update_and_set_vehicle_pose_to_route_start,
                         Hook.initialize_vehicle_status_event_id,
                         Publisher.publish_vehicle_config,
+                        Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
                         Publisher.publish_state_cmd,
                         Condition.vehicle_located,
@@ -306,6 +307,7 @@ class Subscriber(object):
                             if next_event is not None:
                                 new_vehicle_status.event_id = next_event.id
                             Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                            logger.info("Vehicle Event: {}, State: {} -> {}".format(None if event is None else event.name, vehicle_status.state, new_vehicle_status.state))
 
                 if not update_flag:
                     update_flag = StateMachineHelper.update_state(state_machine_data, None)
@@ -315,10 +317,7 @@ class Subscriber(object):
                         if vehicle_status.state == new_vehicle_status.state:
                             new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                             Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-
-            Publisher.publish_vehicle_status(
-                user_data["pubsub_client"], user_data["target_vehicle"], user_data["target_dispatcher"],
-                vehicle_status)
+                            logger.info("Vehicle Event: {}, State: {} -> {}".format(None if event is None else event.name, vehicle_status.state, new_vehicle_status.state))
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):

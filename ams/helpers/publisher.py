@@ -176,7 +176,8 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
-    def publish_vehicle_status(cls, pubsub_client, target_vehicle, target_dispatcher, vehicle_status):
+    def publish_vehicle_status(cls, pubsub_client, kvs_client, target_vehicle, target_dispatcher):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         topic = cls.get_vehicle_status_topic(target_vehicle, target_dispatcher)
         message = Vehicle.Message.Status.new_data(**{
             "header": {
@@ -184,7 +185,7 @@ class Publisher(object):
                 "time": Event.get_time(),
                 "version": VERSION
             },
-            "body": vehicle_status
+            "body": status
         })
         pubsub_client.publish(topic, message)
 
