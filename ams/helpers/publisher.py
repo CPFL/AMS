@@ -178,16 +178,17 @@ class Publisher(object):
     @classmethod
     def publish_vehicle_status(cls, pubsub_client, kvs_client, target_vehicle, target_dispatcher):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        topic = cls.get_vehicle_status_topic(target_vehicle, target_dispatcher)
-        message = Vehicle.Message.Status.new_data(**{
-            "header": {
-                "id": Event.get_id(),
-                "time": Event.get_time(),
-                "version": VERSION
-            },
-            "body": status
-        })
-        pubsub_client.publish(topic, message)
+        if status is not None:
+            topic = cls.get_vehicle_status_topic(target_vehicle, target_dispatcher)
+            message = Vehicle.Message.Status.new_data(**{
+                "header": {
+                    "id": Event.get_id(),
+                    "time": Event.get_time(),
+                    "version": VERSION
+                },
+                "body": status
+            })
+            pubsub_client.publish(topic, message)
 
     @classmethod
     def publish_vehicle_geotopic(cls, pubsub_client, target_vehicle, vehicle_status):
