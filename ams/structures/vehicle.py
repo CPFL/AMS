@@ -27,6 +27,9 @@ const.update({
     "NODE_NAME": "vehicle",
     "ROLE_NAME": "vehicle",
     "TOPIC": topic,
+    "STATE": {
+        "WAIT_SCHEDULE": "WaitSchedule"
+    },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
     "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0

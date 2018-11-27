@@ -78,10 +78,15 @@ class Condition(object):
         return 0 < len(vehicle_events)
 
     @classmethod
+    def vehicle_events_initialized(cls, kvs_client, target_vehicle):
+        return Hook.get_events(kvs_client, target_vehicle) is None
+
+    @classmethod
     def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
         if vehicle_status is not None:
-            return vehicle_status.event_id is not None
+            return vehicle_status.event_id in map(lambda x: x.id, vehicle_events)
         return False
 
     @classmethod

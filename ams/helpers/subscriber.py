@@ -212,8 +212,14 @@ class Subscriber(object):
 
     @classmethod
     def on_vehicle_events_message(cls, _client, user_data, _topic, events_message):
-        if events_message.body.target == user_data["target_vehicle"]:
-            Hook.set_events(user_data["kvs_client"], user_data["target_vehicle"], events_message.body.events)
+        if events_message.body.target != user_data["target_vehicle"]:
+            return
+
+        status = Hook.get_status(user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+        if status is not None and status.state in [
+            Vehicle.CONST.STATE.WAIT_SCHEDULE
+        ]:
+            Hook.set_received_events(user_data["kvs_client"], user_data["target_vehicle"], events_message.body.events)
 
     @classmethod
     def on_current_pose(cls, _client, user_data, _topic, current_pose):
@@ -272,6 +278,7 @@ class Subscriber(object):
                         Hook.update_and_set_vehicle_pose,
                         Hook.update_vehicle_route_point,
                         Hook.update_and_set_vehicle_pose_to_route_start,
+                        Hook.initialize_vehicle_events,
                         Hook.initialize_vehicle_status_event_id,
                         Publisher.publish_vehicle_config,
                         Publisher.publish_vehicle_status,
@@ -279,6 +286,7 @@ class Subscriber(object):
                         Publisher.publish_state_cmd,
                         Condition.vehicle_located,
                         Condition.dispatcher_assigned,
+                        Condition.vehicle_events_initialized,
                         Condition.vehicle_events_exists,
                         Condition.vehicle_route_point_updated,
                         Condition.vehicle_status_event_id_initialized,
@@ -304,7 +312,9 @@ class Subscriber(object):
                             new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                             next_event = Event.get_next_event_by_current_event_id(
                                 vehicle_events, new_vehicle_status.event_id)
-                            if next_event is not None:
+                            if next_event is None:
+                                new_vehicle_status.event_id = None
+                            else:
                                 new_vehicle_status.event_id = next_event.id
                             Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
                             logger.info("Vehicle Event: {}, State: {} -> {}".format(None if event is None else event.name, vehicle_status.state, new_vehicle_status.state))
@@ -317,7 +327,7 @@ class Subscriber(object):
                         if vehicle_status.state == new_vehicle_status.state:
                             new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                             Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                            logger.info("Vehicle Event: {}, State: {} -> {}".format(None if event is None else event.name, vehicle_status.state, new_vehicle_status.state))
+                            logger.info("Vehicle Event: {}, State: {} -> {}".format(None, vehicle_status.state, new_vehicle_status.state))
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):

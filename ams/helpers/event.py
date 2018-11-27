@@ -11,6 +11,9 @@ from ams.structures import Period
 
 class Event(object):
 
+    Structure = Structure
+    Structures = Structures
+
     @staticmethod
     def new_event(targets, name, _id=None, start_time=None, end_time=None, route_code=None):
         event = Structure.new_data(

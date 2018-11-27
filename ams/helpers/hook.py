@@ -89,6 +89,13 @@ class Hook(object):
             "events"])
 
     @classmethod
+    def get_received_events_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            cls.get_events_key(target),
+            "received"
+        ])
+
+    @classmethod
     def get_transportation_config_key(cls, target_dispatcher, target_vehicle):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
@@ -138,6 +145,14 @@ class Hook(object):
     @classmethod
     def get_events(cls, kvs_client, target):
         key = cls.get_events_key(target)
+        value = kvs_client.get(key)
+        if value.__class__.__name__ == "list":
+            value = Event.new_events(value)
+        return value
+
+    @classmethod
+    def get_received_events(cls, kvs_client, target):
+        key = cls.get_received_events_key(target)
         value = kvs_client.get(key)
         if value.__class__.__name__ == "list":
             value = Event.new_events(value)
@@ -209,6 +224,11 @@ class Hook(object):
     @classmethod
     def set_events(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
         key = cls.get_events_key(target)
+        return kvs_client.set(key, value, get_key, timestamp_string)
+
+    @classmethod
+    def set_received_events(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
+        key = cls.get_received_events_key(target)
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
@@ -324,14 +344,20 @@ class Hook(object):
         cls.set_received_lane_array(kvs_client, target, None)
 
     @classmethod
+    def initialize_vehicle_events(cls, kvs_client, target_vehicle):
+        cls.set_events(kvs_client, target_vehicle, None)
+        cls.set_received_events(kvs_client, target_vehicle, None)
+
+    @classmethod
     def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            vehicle_events = cls.get_events(kvs_client, target_vehicle)
-            if vehicle_events is not None:
+            received_events = cls.get_received_events(kvs_client, target_vehicle)
+            if received_events is not None:
                 if vehicle_status.event_id is None:
-                    vehicle_status.event_id = vehicle_events[0].id
-                    return cls.set_status(kvs_client, target_vehicle, vehicle_status)
+                    vehicle_status.event_id = received_events[0].id
+                    if cls.set_events(kvs_client, target_vehicle, received_events):
+                        return cls.set_status(kvs_client, target_vehicle, vehicle_status)
         return False
 
     @classmethod

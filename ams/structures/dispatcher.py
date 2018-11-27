@@ -53,7 +53,7 @@ class Config(get_structure_superclass(config_template, config_schema)):
 transportation_config_template = {
     "targets": Targets.get_template(),
     "events": [{
-        "name": "start_mission",
+        "name": "start_schedule",
         "duration": 1,
         "route_code": "0:0>1:1"
     }]
