@@ -63,11 +63,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_vehicle_events_topic(cls, target_dispatcher, target_vehicle):
+    def get_vehicle_schedule_topic(cls, target_dispatcher, target_vehicle):
         return Topic.get_topic(
             from_target=target_dispatcher,
             to_target=target_vehicle,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENTS,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE,
             use_wild_card=True
         )
 
@@ -220,8 +220,8 @@ class Subscriber(object):
                     user_data["target_dispatcher"], vehicle_config)
 
     @classmethod
-    def on_vehicle_events_message(cls, _client, user_data, _topic, events_message):
-        if events_message.body.target != user_data["target_vehicle"]:
+    def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):
+        if schedule_message.body.target != user_data["target_vehicle"]:
             return
 
         status = Hook.get_status(user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
@@ -229,7 +229,8 @@ class Subscriber(object):
             Vehicle.CONST.STATE.WAIT_SCHEDULE,
             Vehicle.CONST.STATE.SCHEDULE_CHECK
         ]:
-            Hook.set_received_events(user_data["kvs_client"], user_data["target_vehicle"], events_message.body.events)
+            Hook.set_received_schedule(
+                user_data["kvs_client"], user_data["target_vehicle"], schedule_message.body.schedule)
 
     @classmethod
     def on_vehicle_event_message(cls, _client, user_data, _topic, event_message):
@@ -309,10 +310,11 @@ class Subscriber(object):
                     state_machine_data,
                     [
                         Hook.update_and_set_vehicle_pose,
+                        Hook.update_vehicle_schedule,
                         Hook.update_vehicle_route_point,
                         Hook.update_and_set_vehicle_pose_to_route_start,
-                        Hook.initialize_vehicle_events,
-                        Hook.initialize_vehicle_received_events,
+                        Hook.initialize_vehicle_schedule,
+                        Hook.initialize_vehicle_received_schedule,
                         Hook.change_vehicle_schedule,
                         Hook.initialize_vehicle_status_event_id,
                         Publisher.publish_vehicle_config,
@@ -321,13 +323,14 @@ class Subscriber(object):
                         Publisher.publish_state_cmd,
                         Condition.vehicle_located,
                         Condition.dispatcher_assigned,
-                        Condition.vehicle_events_initialized,
-                        Condition.vehicle_received_events_initialized,
-                        Condition.vehicle_events_exists,
-                        Condition.vehicle_received_events_exists,
+                        Condition.vehicle_schedule_initialized,
+                        Condition.vehicle_received_schedule_initialized,
+                        Condition.vehicle_schedule_exists,
+                        Condition.vehicle_received_schedule_exists,
                         Condition.vehicle_route_point_updated,
+                        Condition.vehicle_schedule_updated,
                         Condition.vehicle_status_event_id_initialized,
-                        Condition.vehicle_events_include_any_expected_events,
+                        Condition.vehicle_schedule_include_any_expected_events,
                         Condition.vehicle_schedule_replaceable,
                         Condition.decision_maker_state_is_expected,
                         Condition.vehicle_location_is_on_event_route,
@@ -356,9 +359,9 @@ class Subscriber(object):
                     Vehicle.CONST.STATE.SCHEDULE_CHANGE
                 ]:
                     event = None
-                    vehicle_events = Hook.get_events(user_data["kvs_client"], user_data["target_vehicle"])
-                    if vehicle_events is not None:
-                        event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+                    vehicle_schedule = Hook.get_schedule(user_data["kvs_client"], user_data["target_vehicle"])
+                    if vehicle_schedule is not None:
+                        event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
                     if event is not None:
                         if StateMachineHelper.update_state(state_machine_data, event.name):
                             new_vehicle_status = Hook.get_status(
@@ -366,7 +369,7 @@ class Subscriber(object):
                             if vehicle_status.state == new_vehicle_status.state:
                                 new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                                 next_event = Event.get_next_event_by_current_event_id(
-                                    vehicle_events, new_vehicle_status.event_id)
+                                    vehicle_schedule.events, new_vehicle_status.event_id)
                                 if next_event is None:
                                     new_vehicle_status.event_id = None
                                 else:

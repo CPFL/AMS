@@ -13,7 +13,7 @@ topic["CATEGORIES"].update(event_loop_const["TOPIC"]["CATEGORIES"])
 topic["CATEGORIES"].update({
     "CONFIG": ["config"],
     "STATUS": ["status"],
-    "EVENTS": ["events"],
+    "SCHEDULE": ["schedule"],
     "EVENT": ["event"],
     "TRANSPORTATION_CONFIG": ["transportation", "config"],
     "TRANSPORTATION_STATUS": ["transportation", "status"]
@@ -167,6 +167,25 @@ class Status(get_structure_superclass(status_template, status_schema)):
     TransportationStatuses = TransportationStatuses
 
 
+schedule_template = {
+    "id": "0",
+    "events": Events.get_template()
+}
+
+schedule_schema = {
+    "id": {
+        "type": "string",
+        "required": True,
+        "nullable": False
+    },
+    "events": Events.get_schema()
+}
+
+
+class Schedule(get_structure_superclass(schedule_template, schedule_schema)):
+    pass
+
+
 config_message_template = {
     "header": MessageHeader.get_template(),
     "body": Config.get_template()
@@ -243,15 +262,15 @@ class TransportationStatusMessage(
     pass
 
 
-events_message_template = {
+schedule_message_template = {
     "header": MessageHeader.get_template(),
     "body": {
         "target": Target.get_template(),
-        "events": Events.get_template()
+        "schedule": Schedule.get_template()
     }
 }
 
-events_message_schema = {
+schedule_message_schema = {
     "header": {
         "type": "dict",
         "schema": MessageHeader.get_schema(),
@@ -267,7 +286,12 @@ events_message_schema = {
                 "required": True,
                 "nullable": False
             },
-            "events": Events.get_schema()
+            "schedule": {
+                "type": "dict",
+                "schema": Schedule.get_schema(),
+                "required": True,
+                "nullable": False
+            }
         },
         "required": True,
         "nullable": False
@@ -275,8 +299,8 @@ events_message_schema = {
 }
 
 
-class EventsMessage(
-        get_structure_superclass(events_message_template, events_message_schema)):
+class ScheduleMessage(
+        get_structure_superclass(schedule_message_template, schedule_message_schema)):
     pass
 
 
@@ -326,7 +350,7 @@ class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     TransportationStatus = TransportationStatusMessage
-    Events = EventsMessage
+    Schedule = ScheduleMessage
     Event = EventMessage
 
 
@@ -337,4 +361,5 @@ class Dispatcher(EventLoop):
     Status = Status
     TransportationStatus = TransportationStatus
     TransportationStatuses = TransportationStatuses
+    Schedule = Schedule
     Message = Message

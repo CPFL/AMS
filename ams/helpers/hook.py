@@ -82,10 +82,10 @@ class Hook(object):
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.ROUTE_POINT)
 
     @classmethod
-    def get_events_key(cls, target):
+    def get_schedule_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.get_code(target),
-            "events"])
+            "schedule"])
 
     @classmethod
     def get_event_key(cls, target):
@@ -94,9 +94,9 @@ class Hook(object):
             "event"])
 
     @classmethod
-    def get_received_events_key(cls, target):
+    def get_received_schedule_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            cls.get_events_key(target),
+            cls.get_schedule_key(target),
             "received"
         ])
 
@@ -148,11 +148,11 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_events(cls, kvs_client, target):
-        key = cls.get_events_key(target)
+    def get_schedule(cls, kvs_client, target):
+        key = cls.get_schedule_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "list":
-            value = Event.new_events(value)
+        if value.__class__.__name__ == "dict":
+            value = Dispatcher.Schedule.new_data(**value)
         return value
 
     @classmethod
@@ -164,11 +164,11 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_received_events(cls, kvs_client, target):
-        key = cls.get_received_events_key(target)
+    def get_received_schedule(cls, kvs_client, target):
+        key = cls.get_received_schedule_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "list":
-            value = Event.new_events(value)
+        if value.__class__.__name__ == "dict":
+            value = Dispatcher.Schedule.new_data(**value)
         return value
 
     @classmethod
@@ -235,8 +235,8 @@ class Hook(object):
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
-    def set_events(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
-        key = cls.get_events_key(target)
+    def set_schedule(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
+        key = cls.get_schedule_key(target)
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
@@ -245,8 +245,8 @@ class Hook(object):
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
-    def set_received_events(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
-        key = cls.get_received_events_key(target)
+    def set_received_schedule(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
+        key = cls.get_received_schedule_key(target)
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
@@ -363,12 +363,12 @@ class Hook(object):
         return cls.set_received_lane_array(kvs_client, target, None)
 
     @classmethod
-    def initialize_vehicle_events(cls, kvs_client, target_vehicle):
-        return cls.set_events(kvs_client, target_vehicle, None)
+    def initialize_vehicle_schedule(cls, kvs_client, target_vehicle):
+        return cls.set_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
-    def initialize_vehicle_received_events(cls, kvs_client, target_vehicle):
-        return cls.set_received_events(kvs_client, target_vehicle, None)
+    def initialize_vehicle_received_schedule(cls, kvs_client, target_vehicle):
+        return cls.set_received_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
     def initialize_vehicle_event(cls, kvs_client, target_vehicle):
@@ -378,11 +378,11 @@ class Hook(object):
     def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
-            received_events = cls.get_received_events(kvs_client, target_vehicle)
-            if received_events is not None:
+            received_schedule = cls.get_received_schedule(kvs_client, target_vehicle)
+            if received_schedule is not None:
                 if vehicle_status.event_id is None:
-                    vehicle_status.event_id = received_events[0].id
-                    if cls.set_events(kvs_client, target_vehicle, received_events):
+                    vehicle_status.event_id = received_schedule.events[0].id
+                    if cls.set_schedule(kvs_client, target_vehicle, received_schedule):
                         return cls.set_status(kvs_client, target_vehicle, vehicle_status)
         return False
 
@@ -447,31 +447,31 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_current_vehicle_event(cls, vehicle_status, vehicle_events):
-        return Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+    def get_current_vehicle_event(cls, vehicle_status, vehicle_schedule):
+        return Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
 
     @classmethod
-    def get_vehicle_event_names(cls, vehicle_events):
-        return list(map(lambda x: x.name, vehicle_events))
+    def get_vehicle_event_names(cls, vehicle_schedule):
+        return list(map(lambda x: x.name, vehicle_schedule.events))
 
     @classmethod
-    def get_next_vehicle_event_index(cls, vehicle_status, vehicle_events):
+    def get_next_vehicle_event_index(cls, vehicle_status, vehicle_schedule):
         next_vehicle_event = Event.get_next_event_by_current_event_id(
-            vehicle_events, vehicle_status.event_id)
-        return vehicle_events.index(next_vehicle_event)
+            vehicle_schedule.events, vehicle_status.event_id)
+        return vehicle_schedule.events.index(next_vehicle_event)
 
     @classmethod
-    def get_next_vehicle_event_id(cls, vehicle_status, vehicle_events):
-        return Event.get_next_event_by_current_event_id(vehicle_events, vehicle_status.event_id).id
+    def get_next_vehicle_event_id(cls, vehicle_status, vehicle_schedule):
+        return Event.get_next_event_by_current_event_id(vehicle_schedule.events, vehicle_status.event_id).id
 
     @classmethod
-    def update_next_vehicle_event_end_time_with_current_time_and_duration(cls, vehicle_status, vehicle_events):
+    def update_next_vehicle_event_end_time_with_current_time_and_duration(cls, vehicle_status, vehicle_schedule):
         current_time = Event.get_time()
-        next_vehicle_event_index = cls.get_next_vehicle_event_index(vehicle_status, vehicle_events)
-        duration = vehicle_events[next_vehicle_event_index].period.end - \
-            vehicle_events[next_vehicle_event_index].period.start
-        vehicle_events[next_vehicle_event_index].period.start = current_time
-        vehicle_events[next_vehicle_event_index].period.end = current_time + duration
+        next_vehicle_event_index = cls.get_next_vehicle_event_index(vehicle_status, vehicle_schedule)
+        duration = vehicle_schedule.events[next_vehicle_event_index].period.end - \
+            vehicle_schedule.events[next_vehicle_event_index].period.start
+        vehicle_schedule.events[next_vehicle_event_index].period.start = current_time
+        vehicle_schedule.events[next_vehicle_event_index].period.end = current_time + duration
 
     @classmethod
     def generate_lane_array_from_route_code(cls, maps_client, route_code):
@@ -502,7 +502,7 @@ class Hook(object):
         return Autoware.Status.StateCMD.new_data(data=data)
 
     @classmethod
-    def generate_vehicle_events(cls, transportation_config):
+    def generate_vehicle_schedule(cls, transportation_config):
         events = []
         start_time = Event.get_time()
         for event in transportation_config.events:
@@ -515,7 +515,10 @@ class Hook(object):
                 route_code=event.route_code if "route_code" in event else None
             ))
             start_time += event.duration if "duration" in event else 0
-        return events
+        return Dispatcher.Schedule.new_data(**{
+            "id": Event.get_id(),
+            "events": events
+        })
 
     @classmethod
     def generate_route_point(cls, kvs_client, target, vehicle_location):
@@ -532,10 +535,10 @@ class Hook(object):
 
     @classmethod
     def change_vehicle_schedule(cls, kvs_client, target):
-        received_events = cls.get_received_events(kvs_client, target)
-        if received_events is not None:
-            if cls.set_events(kvs_client, target, received_events):
-                return cls.initialize_vehicle_received_events(kvs_client, target)
+        received_schedule = cls.get_received_schedule(kvs_client, target)
+        if received_schedule is not None:
+            if cls.set_schedule(kvs_client, target, received_schedule):
+                return cls.initialize_vehicle_received_schedule(kvs_client, target)
         return False
 
     @classmethod
@@ -572,14 +575,31 @@ class Hook(object):
                 cls.set_lane_array(kvs_client, target_autoware, received_lane_array)
 
     @classmethod
+    def update_vehicle_schedule(cls, kvs_client, target):
+        received_schedule = cls.get_received_schedule(kvs_client, target)
+        if received_schedule is None:
+            return False
+
+        if not cls.set_schedule(kvs_client, target, received_schedule):
+            return False
+
+        status = cls.get_status(kvs_client, target, Vehicle.Status)
+        if received_schedule.id == status.schedule_id:
+            return False
+
+        status.schedule_id = received_schedule.id
+
+        return cls.set_status(kvs_client, target, status)
+
+    @classmethod
     def update_vehicle_route_point(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_events = cls.get_events(kvs_client, target_vehicle)
-        if None not in [vehicle_status, vehicle_events]:
-            vehicle_event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+        vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_schedule]:
+            vehicle_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
             if vehicle_event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
                 vehicle_event = Event.get_next_event_by_current_event_id(
-                    vehicle_events, vehicle_status.event_id)
+                    vehicle_schedule.events, vehicle_status.event_id)
             if vehicle_event is not None:
                 if "route_code" in vehicle_event:
                     vehicle_status.route_point = RoutePoint.new_data(**{

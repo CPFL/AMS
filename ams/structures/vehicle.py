@@ -78,7 +78,8 @@ class Config(get_structure_superclass(config_template, config_schema)):
 
 status_template = EventLoop.Status.get_template()
 status_template.update({
-    "event_id": "s0",
+    "schedule_id": "s0",
+    "event_id": "e0",
     "location": Location.get_template(),
     "pose": Pose.get_template(),
     "current_pose": Autoware.Status.CurrentPose.get_template(),
@@ -88,6 +89,11 @@ status_template.update({
 
 status_schema = EventLoop.Status.get_schema()
 status_schema.update({
+    "schedule_id": {
+        "type": "string",
+        "required": True,
+        "nullable": True,
+    },
     "event_id": {
         "type": "string",
         "required": True,

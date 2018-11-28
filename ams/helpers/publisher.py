@@ -91,11 +91,11 @@ class Publisher(object):
         )
 
     @classmethod
-    def get_events_message_topic(cls, from_target, to_target):
+    def get_schedule_message_topic(cls, from_target, to_target):
         return Topic.get_topic(
             from_target=from_target,
             to_target=to_target,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENTS
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE
         )
 
     @classmethod
@@ -199,7 +199,7 @@ class Publisher(object):
     def publish_route_code(cls, pubsub_client, kvs_client, target_vehicle, target_autoware):
         event_id = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status).event_id
         if event_id is not None:
-            event = Event.get_event_by_id(Hook.get_events(kvs_client, target_vehicle), event_id)
+            event = Event.get_event_by_id(Hook.get_schedule(kvs_client, target_vehicle).events, event_id)
             if event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
                 if event.route_code is not None:
                     topic = cls.get_route_code_topic(target_vehicle, target_autoware)
@@ -233,19 +233,19 @@ class Publisher(object):
         pubsub_client.publish(topic, transportation_status_message)
 
     @classmethod
-    def publish_events_message(cls, pubsub_client, from_target, to_target, events, events_target=None):
-        if events_target is None:
-            events_target = to_target
-        topic = cls.get_events_message_topic(from_target, to_target)
-        events_message = Dispatcher.Message.Events.new_data(**{
+    def publish_schedule_message(cls, pubsub_client, from_target, to_target, schedule, schedule_target=None):
+        if schedule_target is None:
+            schedule_target = to_target
+        topic = cls.get_schedule_message_topic(from_target, to_target)
+        schedule_message = Dispatcher.Message.Schedule.new_data(**{
             "header": {
                 "id": Event.get_id(),
                 "time": Event.get_time(),
                 "version": VERSION,
             },
             "body": {
-                "target": events_target,
-                "events": events
+                "target": schedule_target,
+                "schedule": schedule
             }
         })
-        pubsub_client.publish(topic, events_message)
+        pubsub_client.publish(topic, schedule_message)

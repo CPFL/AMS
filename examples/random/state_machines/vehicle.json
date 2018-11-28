@@ -62,13 +62,13 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_events",
+          "function": "initialize_vehicle_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_events_initialized",
+          "function": "vehicle_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
@@ -76,8 +76,12 @@
     {
       "event": null,
       "from": "WaitSchedule",
-      "to": "WaitSchedule",
+      "to": "VehicleScheduleUpdated",
       "hooks": [
+        {
+          "function": "update_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "publish_vehicle_status",
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
@@ -87,11 +91,16 @@
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
-      "conditions": null
+      "conditions": [
+        {
+          "function": "vehicle_schedule_updated",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
     },
     {
       "event": "start_schedule",
-      "from": "WaitSchedule",
+      "from": "VehicleScheduleUpdated",
       "to": "AutowareWaitOrder",
       "hooks": [
         {
@@ -103,7 +112,7 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_received_events",
+          "function": "initialize_vehicle_received_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
@@ -113,7 +122,7 @@
           "args": ["kvs_client", "target_vehicle"]
         },
         {
-          "function": "vehicle_received_events_initialized",
+          "function": "vehicle_received_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         },
         {
@@ -125,7 +134,7 @@
     {
       "event": null,
       "from": "AutowareWaitOrder",
-      "to": "VehicleStatusUpdated",
+      "to": "VehicleRoutePointUpdated",
       "hooks": [
         {
           "function": "update_vehicle_route_point",
@@ -145,7 +154,7 @@
     },
     {
       "event": "send_lane_array",
-      "from": "VehicleStatusUpdated",
+      "from": "VehicleRoutePointUpdated",
       "to": "AutowareMissionCheck",
       "hooks": [
         {
@@ -471,7 +480,7 @@
       ],
       "conditions": [
         {
-          "function": "vehicle_received_events_exists",
+          "function": "vehicle_received_schedule_exists",
           "args": ["kvs_client", "target_vehicle"]
         },
         {
@@ -496,7 +505,7 @@
       ],
       "conditions": [
         {
-          "function": "vehicle_received_events_exists",
+          "function": "vehicle_received_schedule_exists",
           "args": ["kvs_client", "target_vehicle"]
         },
         {
@@ -628,13 +637,13 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_received_events",
+          "function": "initialize_vehicle_received_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_received_events_initialized",
+          "function": "vehicle_received_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
@@ -653,13 +662,13 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_received_events",
+          "function": "initialize_vehicle_received_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_received_events_initialized",
+          "function": "vehicle_received_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         },
         {
@@ -703,13 +712,13 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_events",
+          "function": "initialize_vehicle_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_events_initialized",
+          "function": "vehicle_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
@@ -724,13 +733,13 @@
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_events",
+          "function": "initialize_vehicle_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_events_initialized",
+          "function": "vehicle_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
