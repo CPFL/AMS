@@ -335,12 +335,13 @@ class Hook(object):
 
     @classmethod
     def initialize_lane_array(cls, kvs_client, target):
-        cls.set_lane_array(kvs_client, target, None)
-        cls.initialize_received_lane_array(kvs_client, target)
+        if cls.set_lane_array(kvs_client, target, None):
+            return cls.initialize_received_lane_array(kvs_client, target)
+        return False
 
     @classmethod
     def initialize_received_lane_array(cls, kvs_client, target):
-        cls.set_received_lane_array(kvs_client, target, None)
+        return cls.set_received_lane_array(kvs_client, target, None)
 
     @classmethod
     def initialize_vehicle_events(cls, kvs_client, target_vehicle):
@@ -481,6 +482,7 @@ class Hook(object):
         for event in transportation_config.events:
             events.append(Event.new_event(
                 targets=transportation_config.targets,
+                _id=event.id if "id" in event else None,
                 name=event.name,
                 start_time=start_time,
                 end_time=start_time + event.duration if "duration" in event else 0,

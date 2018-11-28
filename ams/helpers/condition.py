@@ -64,7 +64,7 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout):
+    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout=5):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
             return timeout < Event.get_time() - vehicle_status.updated_at
