@@ -88,6 +88,12 @@ class Hook(object):
             "events"])
 
     @classmethod
+    def get_event_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            Target.get_code(target),
+            "event"])
+
+    @classmethod
     def get_received_events_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             cls.get_events_key(target),
@@ -147,6 +153,14 @@ class Hook(object):
         value = kvs_client.get(key)
         if value.__class__.__name__ == "list":
             value = Event.new_events(value)
+        return value
+
+    @classmethod
+    def get_event(cls, kvs_client, target):
+        key = cls.get_event_key(target)
+        value = kvs_client.get(key)
+        if value.__class__.__name__ == "dict":
+            value = Event.Structure.new_data(**value)
         return value
 
     @classmethod
@@ -223,6 +237,11 @@ class Hook(object):
     @classmethod
     def set_events(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
         key = cls.get_events_key(target)
+        return kvs_client.set(key, value, get_key, timestamp_string)
+
+    @classmethod
+    def set_event(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
+        key = cls.get_event_key(target)
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
@@ -345,8 +364,15 @@ class Hook(object):
 
     @classmethod
     def initialize_vehicle_events(cls, kvs_client, target_vehicle):
-        cls.set_events(kvs_client, target_vehicle, None)
-        cls.set_received_events(kvs_client, target_vehicle, None)
+        return cls.set_events(kvs_client, target_vehicle, None)
+
+    @classmethod
+    def initialize_vehicle_received_events(cls, kvs_client, target_vehicle):
+        return cls.set_received_events(kvs_client, target_vehicle, None)
+
+    @classmethod
+    def initialize_vehicle_event(cls, kvs_client, target_vehicle):
+        return cls.set_event(kvs_client, target_vehicle, None)
 
     @classmethod
     def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
@@ -503,6 +529,14 @@ class Hook(object):
             logger.info(
                 "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
+
+    @classmethod
+    def change_vehicle_schedule(cls, kvs_client, target):
+        received_events = cls.get_received_events(kvs_client, target)
+        if received_events is not None:
+            if cls.set_events(kvs_client, target, received_events):
+                return cls.initialize_vehicle_received_events(kvs_client, target)
+        return False
 
     @classmethod
     def update_vehicle_location(cls, kvs_client, target):

@@ -3,7 +3,7 @@
 
 from ams import get_namedtuple_from_dict, get_structure_superclass
 from ams.structures.event_loop import const as event_loop_const
-from ams.structures import Target, Targets, Events, MessageHeader, EventLoop
+from ams.structures import Target, Targets, Events, Event, MessageHeader, EventLoop
 
 
 topic = {
@@ -14,6 +14,7 @@ topic["CATEGORIES"].update({
     "CONFIG": ["config"],
     "STATUS": ["status"],
     "EVENTS": ["events"],
+    "EVENT": ["event"],
     "TRANSPORTATION_CONFIG": ["transportation", "config"],
     "TRANSPORTATION_STATUS": ["transportation", "status"]
 })
@@ -24,6 +25,11 @@ const.update({
     "NODE_NAME": "dispatcher",
     "ROLE_NAME": "dispatcher",
     "TOPIC": topic,
+    "EVENT": {
+        "END_NODE": "end_node",
+        "CHANGE_SCHEDULE": "change_schedule",
+        "RETURN_TO_AUTOWARE_DRIVING": "return_to_autoware_driving"
+    },
     "TRANSPORTATION": {
         "EVENT": {
             "CHANGE_ROUTE": "change_route",
@@ -77,6 +83,11 @@ transportation_config_schema = {
                     "nullable": False
                 },
                 "route_code": {
+                    "type": "string",
+                    "required": False,
+                    "nullable": False
+                },
+                "id": {
                     "type": "string",
                     "required": False,
                     "nullable": False
@@ -269,11 +280,54 @@ class EventsMessage(
     pass
 
 
+event_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": {
+        "target": Target.get_template(),
+        "event": Event.get_template()
+    }
+}
+
+event_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": {
+            "target": {
+                "type": "dict",
+                "schema": Target.get_schema(),
+                "required": True,
+                "nullable": False
+            },
+            "event": {
+                "type": "dict",
+                "schema": Event.get_schema(),
+                "required": True,
+                "nullable": False
+            }
+        },
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class EventMessage(
+        get_structure_superclass(event_message_template, event_message_schema)):
+    pass
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     TransportationStatus = TransportationStatusMessage
     Events = EventsMessage
+    Event = EventMessage
 
 
 class Dispatcher(EventLoop):

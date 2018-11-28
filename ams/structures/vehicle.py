@@ -28,7 +28,12 @@ const.update({
     "ROLE_NAME": "vehicle",
     "TOPIC": topic,
     "STATE": {
-        "WAIT_SCHEDULE": "WaitSchedule"
+        "WAIT_SCHEDULE": "WaitSchedule",
+        "AUTOWARE_DRIVING": "AutowareDriving",
+        "SCHEDULE_CHECK": "ScheduleCheck",
+        "SCHEDULE_CHANGE": "ScheduleChange",
+        "SCHEDULE_CHANGE_SUCCEEDED": "ScheduleChangeSucceeded",
+        "SCHEDULE_CHANGE_FAILED": "ScheduleChangeFailed"
     },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,

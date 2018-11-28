@@ -78,8 +78,19 @@ class Condition(object):
         return 0 < len(vehicle_events)
 
     @classmethod
+    def vehicle_received_events_exists(cls, kvs_client, target_vehicle):
+        vehicle_received_events = Hook.get_received_events(kvs_client, target_vehicle)
+        if vehicle_received_events is None:
+            return False
+        return 0 < len(vehicle_received_events)
+
+    @classmethod
     def vehicle_events_initialized(cls, kvs_client, target_vehicle):
         return Hook.get_events(kvs_client, target_vehicle) is None
+
+    @classmethod
+    def vehicle_received_events_initialized(cls, kvs_client, target_vehicle):
+        return Hook.get_received_events(kvs_client, target_vehicle) is None
 
     @classmethod
     def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
@@ -140,3 +151,21 @@ class Condition(object):
     def vehicle_config_exists(cls, kvs_client, target_vehicle):
         vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
         return vehicle_config is not None
+
+    @classmethod
+    def vehicle_schedule_replaceable(cls, kvs_client, target_vehicle):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        received_events = Hook.get_received_events(kvs_client, target_vehicle)
+        if received_events is None:
+            return False
+
+        if status.event_id not in map(lambda x: x.id, received_events):
+            return False
+
+        # todo: check location and time
+
+        return True
+
+    @classmethod
+    def vehicle_schedule_changed(cls, kvs_client, target_vehicle):
+        return cls.vehicle_received_events_initialized(kvs_client, target_vehicle)
