@@ -30,7 +30,7 @@ if __name__ == '__main__':
     pubsub_client.connect()
     pubsub_client.publish(
         args.mqtt_topic,
-        Dispatcher.Message.Events.new_data(**{
+        Dispatcher.Message.Event.new_data(**{
             "header": {
                 "id": Event.get_id(),
                 "time": Event.get_time(),
@@ -38,12 +38,12 @@ if __name__ == '__main__':
             },
             "body": {
                 "target": Topic.get_to_target(args.mqtt_topic),
-                "events": [Event.new_event(
+                "event": Event.new_event(
                     targets=[Topic.get_to_target(args.mqtt_topic)],
                     name=args.event_name,
                     route_code=args.route_code
-                )]
+                )
             }
         }),
-        Dispatcher.Message.Events
+        Dispatcher.Message.Event
     )
