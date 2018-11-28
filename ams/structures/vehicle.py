@@ -27,6 +27,14 @@ const.update({
     "NODE_NAME": "vehicle",
     "ROLE_NAME": "vehicle",
     "TOPIC": topic,
+    "STATE": {
+        "WAIT_SCHEDULE": "WaitSchedule",
+        "AUTOWARE_DRIVING": "AutowareDriving",
+        "SCHEDULE_CHECK": "ScheduleCheck",
+        "SCHEDULE_CHANGE": "ScheduleChange",
+        "SCHEDULE_CHANGE_SUCCEEDED": "ScheduleChangeSucceeded",
+        "SCHEDULE_CHANGE_FAILED": "ScheduleChangeFailed"
+    },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
     "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0
@@ -70,7 +78,8 @@ class Config(get_structure_superclass(config_template, config_schema)):
 
 status_template = EventLoop.Status.get_template()
 status_template.update({
-    "event_id": "s0",
+    "schedule_id": "s0",
+    "event_id": "e0",
     "location": Location.get_template(),
     "pose": Pose.get_template(),
     "current_pose": Autoware.Status.CurrentPose.get_template(),
@@ -80,6 +89,11 @@ status_template.update({
 
 status_schema = EventLoop.Status.get_schema()
 status_schema.update({
+    "schedule_id": {
+        "type": "string",
+        "required": True,
+        "nullable": True,
+    },
     "event_id": {
         "type": "string",
         "required": True,

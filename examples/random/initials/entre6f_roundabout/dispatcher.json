@@ -20,7 +20,7 @@
     ],
     "events": [
       {
-        "name": "start_mission"
+        "name": "start_schedule"
       },
       {
         "name": "send_lane_array",
@@ -67,7 +67,7 @@
         "name": "send_engage"
       },
       {
-        "name": "end_mission"
+        "name": "end_schedule"
       }
     ]
   },

@@ -64,44 +64,73 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout):
+    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout=5):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
             return timeout < Event.get_time() - vehicle_status.updated_at
         return False
 
     @classmethod
-    def vehicle_events_exists(cls, kvs_client, target_vehicle):
-        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
-        if vehicle_events is None:
+    def vehicle_schedule_exists(cls, kvs_client, target_vehicle):
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if vehicle_schedule is None:
             return False
-        return 0 < len(vehicle_events)
+        return 0 < len(vehicle_schedule.events)
+
+    @classmethod
+    def vehicle_received_schedule_exists(cls, kvs_client, target_vehicle):
+        vehicle_received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
+        if vehicle_received_schedule is None:
+            return False
+        return 0 < len(vehicle_received_schedule)
+
+    @classmethod
+    def vehicle_schedule_initialized(cls, kvs_client, target_vehicle):
+        return Hook.get_schedule(kvs_client, target_vehicle) is None
+
+    @classmethod
+    def vehicle_received_schedule_initialized(cls, kvs_client, target_vehicle):
+        return Hook.get_received_schedule(kvs_client, target_vehicle) is None
 
     @classmethod
     def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
         if vehicle_status is not None:
-            return vehicle_status.event_id is not None
+            return vehicle_status.event_id in map(lambda x: x.id, vehicle_schedule.events)
         return False
+
+    @classmethod
+    def vehicle_schedule_updated(cls, kvs_client, target):
+        received_schedule = Hook.get_received_schedule(kvs_client, target)
+        if received_schedule is None:
+            return False
+
+        schedule = Hook.get_schedule(kvs_client, target)
+        if schedule is None:
+            return False
+
+        status = Hook.get_status(kvs_client, target, Vehicle.Status)
+        return received_schedule.id == schedule.id == status.schedule_id
 
     @classmethod
     def vehicle_route_point_updated(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
-        if None not in [vehicle_status, vehicle_events]:
-            vehicle_event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_schedule]:
+            vehicle_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
             if vehicle_event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
                 vehicle_event = Event.get_next_event_by_current_event_id(
-                    vehicle_events, vehicle_status.event_id)
+                    vehicle_schedule.events, vehicle_status.event_id)
             if "route_code" in vehicle_event:
                 return vehicle_status.route_point.route_code == vehicle_event.route_code
         return False
 
     @classmethod
-    def vehicle_events_include_any_expected_events(cls, kvs_client, target_vehicle, expected_events):
-        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
-        if vehicle_events is not None:
-            event_names = Hook.get_vehicle_event_names(vehicle_events)
+    def vehicle_schedule_include_any_expected_events(cls, kvs_client, target_vehicle, expected_events):
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if vehicle_schedule is not None:
+            event_names = Hook.get_vehicle_event_names(vehicle_schedule.events)
             return 0 < len(list(set(expected_events) & set(event_names)))
         return False
 
@@ -115,9 +144,9 @@ class Condition(object):
     @classmethod
     def vehicle_location_is_on_event_route(cls, kvs_client, maps_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_events = Hook.get_events(kvs_client, target_vehicle)
-        if None not in [vehicle_status, vehicle_events]:
-            current_event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_schedule]:
+            current_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
             if current_event is not None:
                 route_waypoint_ids = maps_client.route.get_waypoint_ids(current_event.route_code)
                 if vehicle_status.location.waypoint_id in route_waypoint_ids:
@@ -135,3 +164,21 @@ class Condition(object):
     def vehicle_config_exists(cls, kvs_client, target_vehicle):
         vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
         return vehicle_config is not None
+
+    @classmethod
+    def vehicle_schedule_replaceable(cls, kvs_client, target_vehicle):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
+        if received_schedule is None:
+            return False
+
+        if status.event_id not in map(lambda x: x.id, received_schedule.events):
+            return False
+
+        # todo: check location and time
+
+        return True
+
+    @classmethod
+    def vehicle_schedule_changed(cls, kvs_client, target_vehicle):
+        return cls.vehicle_received_schedule_initialized(kvs_client, target_vehicle)
