@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from time import time
 from math import modf
 
 from ams import VERSION, logger
