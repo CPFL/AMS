@@ -6,8 +6,8 @@ from math import modf
 from ams import VERSION, logger
 from ams.helpers import Target, Event, Route, Simulator
 from ams.structures import (
-    CLIENT, MessageHeader, Pose, RoutePoint,
-    EventLoop, Autoware, AutowareInterface, Vehicle, Dispatcher)
+    CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
+    EventLoop, Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
 
 
 class Hook(object):
@@ -132,18 +132,18 @@ class Hook(object):
                 CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_owner), relation_name, "*"]))
 
     @classmethod
-    def get_config(cls, kvs_client, target, structure):
+    def get_config(cls, kvs_client, target, structure=None):
         key = cls.get_config_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "dict":
+        if structure is not None and value.__class__.__name__ == "dict":
             value = structure.new_data(**value)
         return value
 
     @classmethod
-    def get_status(cls, kvs_client, target, structure):
+    def get_status(cls, kvs_client, target, structure=None):
         key = cls.get_status_key(target)
         value = kvs_client.get(key)
-        if value.__class__.__name__ == "dict":
+        if structure is not None and value.__class__.__name__ == "dict":
             value = structure.new_data(**value)
         return value
 
@@ -196,7 +196,7 @@ class Hook(object):
                 "version": VERSION,
                 "request_id": request_message.header.id
             }),
-            "body": cls.get_config(kvs_client, target, EventLoop.Config)
+            "body": cls.get_config(kvs_client, target)
         }
 
     @classmethod
@@ -208,7 +208,7 @@ class Hook(object):
                 "version": VERSION,
                 "request_id": request_message.header.id
             }),
-            "body": cls.get_status(kvs_client, target, EventLoop)
+            "body": cls.get_status(kvs_client, target)
         }
 
     @classmethod
@@ -367,12 +367,20 @@ class Hook(object):
         return cls.set_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
-    def initialize_vehicle_received_schedule(cls, kvs_client, target_vehicle):
+    def initialize_received_schedule(cls, kvs_client, target_vehicle):
         return cls.set_received_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
+    def initialize_vehicle_received_schedule(cls, kvs_client, target_vehicle):
+        return cls.initialize_received_schedule(kvs_client, target_vehicle)
+
+    @classmethod
+    def initialize_event(cls, kvs_client, target):
+        return cls.set_event(kvs_client, target, None)
+
+    @classmethod
     def initialize_vehicle_event(cls, kvs_client, target_vehicle):
-        return cls.set_event(kvs_client, target_vehicle, None)
+        return cls.initialize_event(kvs_client, target_vehicle)
 
     @classmethod
     def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
@@ -515,7 +523,7 @@ class Hook(object):
                 route_code=event.route_code if "route_code" in event else None
             ))
             start_time += event.duration if "duration" in event else 0
-        return Dispatcher.Schedule.new_data(**{
+        return Schedule.new_data(**{
             "id": Event.get_id(),
             "events": events
         })
@@ -534,12 +542,43 @@ class Hook(object):
         return None
 
     @classmethod
-    def change_vehicle_schedule(cls, kvs_client, target):
+    def remove_old_traffic_signal_event_from_schedule(cls, kvs_client, target):
+        schedule = cls.get_schedule(kvs_client, target)
+        if schedule is None:
+            return
+        current_time = Event.get_time()
+        schedule.events = list(filter(
+            lambda x: current_time < x.period.end,
+            schedule.events
+        ))[:]
+        cls.set_schedule(kvs_client, target, schedule)
+
+    @classmethod
+    def append_traffic_signal_event_to_schedule_from_cycle(cls, kvs_client, target):
+        config = cls.get_config(kvs_client, target, TrafficSignal.Config)
+        schedule = cls.get_schedule(kvs_client, target)
+        if schedule is None or len(schedule.events) == 0:
+            event = Event.get_event_from_cycle([target], config.cycle, Event.get_time())
+            schedule = Schedule.new_data(**{
+                "id": Event.get_id(),
+                "events": [event]
+            })
+        else:
+            event = Event.get_event_from_cycle([target], config.cycle, schedule.events[-1].period.end)
+            schedule.events.append(event)
+        cls.set_schedule(kvs_client, target, schedule)
+
+    @classmethod
+    def replace_schedule(cls, kvs_client, target):
         received_schedule = cls.get_received_schedule(kvs_client, target)
         if received_schedule is not None:
             if cls.set_schedule(kvs_client, target, received_schedule):
-                return cls.initialize_vehicle_received_schedule(kvs_client, target)
+                return cls.initialize_received_schedule(kvs_client, target)
         return False
+
+    @classmethod
+    def change_vehicle_schedule(cls, kvs_client, target):
+        return cls.replace_schedule(kvs_client, target)
 
     @classmethod
     def update_vehicle_location(cls, kvs_client, target):
@@ -658,6 +697,28 @@ class Hook(object):
         transportation_status.updated_at = Event.get_time()
         return cls.set_transportation_status(
             kvs_client, target_dispatcher, target_vehicle, transportation_status, get_key)
+
+    @classmethod
+    def update_traffic_signal_light_color(cls, kvs_client, target):
+        status = Hook.get_status(kvs_client, target, TrafficSignal.Status)
+        schedule = Hook.get_schedule(kvs_client, target)
+        if schedule is not None:
+            event = Event.get_event_by_specified_time(schedule.events, Event.get_time())
+            if status.light_color != event.name:
+                status.light_color = event.name
+                status.next_light_color = None
+                status.next_update_time = None
+                Hook.set_status(kvs_client, target, status)
+
+    @classmethod
+    def update_traffic_signal_next_light_color(cls, kvs_client, target_traffic_signal):
+        status = Hook.get_status(kvs_client, target_traffic_signal, TrafficSignal.Status)
+        schedule = Hook.get_schedule(kvs_client, target_traffic_signal)
+        next_event = Event.get_next_event_by_specified_time(schedule.events, Event.get_time())
+        if next_event is not None:
+            status.next_light_color = next_event.name
+            status.next_update_time = next_event.period.start
+            Hook.set_status(kvs_client, target_traffic_signal, status)
 
     @classmethod
     def delete_config(cls, kvs_client, target):

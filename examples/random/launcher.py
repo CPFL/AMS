@@ -32,6 +32,10 @@ class Launcher(object):
         command = "python ../node_launcher/autoware_interface.py -KCT redis -PSCT paho -TD sim -IFP ./initials/autoware_interface.json"
         self.popen_milee_autoware_interface = Popen(command.split(" "))
 
+        print("launch traffic_signal")
+        command = "python ../node_launcher/traffic_signal.py -KCT redis -PSCT paho -TD sim -IFP ./initials/traffic_signal.json -SMP ./state_machines/traffic_signal.json"
+        self.popen_traffic_signal = Popen(command.split(" "))
+
         # print("launch shutter")
         # command = "python ../node_launcher/shutter.py -PSCT paho -TD sim -IFP ./initials/shutter.json"
         # self.popen_shutter = Popen(command.split(" "))
@@ -46,6 +50,7 @@ class Launcher(object):
         self.popen_vehicle1.terminate()
         self.popen_milee_autoware.terminate()
         self.popen_milee_autoware_interface.terminate()
+        self.popen_traffic_signal.terminate()
         # self.popen_shutter.terminate()
         # self.popen_light.terminate()
 

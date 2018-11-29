@@ -3,7 +3,7 @@
 
 from ams import get_namedtuple_from_dict, get_structure_superclass
 from ams.structures.event_loop import const as event_loop_const
-from ams.structures import Target, Targets, Events, Event, MessageHeader, EventLoop
+from ams.structures import Target, Targets, Schedule, Events, Event, MessageHeader, EventLoop
 
 
 topic = {
@@ -165,25 +165,6 @@ status_schema.update({
 
 class Status(get_structure_superclass(status_template, status_schema)):
     TransportationStatuses = TransportationStatuses
-
-
-schedule_template = {
-    "id": "0",
-    "events": Events.get_template()
-}
-
-schedule_schema = {
-    "id": {
-        "type": "string",
-        "required": True,
-        "nullable": False
-    },
-    "events": Events.get_schema()
-}
-
-
-class Schedule(get_structure_superclass(schedule_template, schedule_schema)):
-    pass
 
 
 config_message_template = {

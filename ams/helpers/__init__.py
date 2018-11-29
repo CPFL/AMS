@@ -12,6 +12,7 @@ from ams.helpers.kvs import Kvs
 from ams.helpers.waypoint import Waypoint
 from ams.helpers.lane import Lane
 from ams.helpers.route import Route
+from ams.helpers.traffic_signal import TrafficSignal
 from ams.helpers.relation import Relation
 from ams.helpers.state_machine import StateMachine
 from ams.helpers.simulator import Simulator

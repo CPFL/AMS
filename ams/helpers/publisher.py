@@ -6,7 +6,7 @@ import yaml
 from ams import VERSION, AttrDict
 from ams.helpers import Topic, Hook, Event
 from ams.structures import (
-    Autoware, AutowareInterface, Vehicle, Dispatcher)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
 
 
 class Publisher(object):
@@ -73,6 +73,14 @@ class Publisher(object):
             from_target=target_vehicle,
             to_target=target_dispatcher,
             categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS
+        )
+
+    @classmethod
+    def get_status_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=["status"]
         )
 
     @classmethod
@@ -249,3 +257,21 @@ class Publisher(object):
             }
         })
         pubsub_client.publish(topic, schedule_message)
+
+    @classmethod
+    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure):
+        status = Hook.get_status(kvs_client, from_target, structure.Status)
+        topic = cls.get_status_topic(from_target, to_target)
+        status_message = structure.Message.Status.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION
+            },
+            "body": status
+        })
+        pubsub_client.publish(topic, status_message)
+
+    @classmethod
+    def publish_traffic_signal_status(cls, pubsub_client, kvs_client, from_target, to_target):
+        cls.publish_status(pubsub_client, kvs_client, from_target, to_target, TrafficSignal)

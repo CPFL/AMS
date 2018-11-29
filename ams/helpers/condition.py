@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from ams.helpers import Hook, Event
-from ams.structures import Vehicle, Dispatcher
+from ams.structures import Vehicle, Dispatcher, TrafficSignal
 
 
 class Condition(object):
@@ -64,33 +64,60 @@ class Condition(object):
         return False
 
     @classmethod
-    def vehicle_state_timeout(cls, kvs_client, target_vehicle, timeout=5):
-        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        if vehicle_status is not None:
-            return timeout < Event.get_time() - vehicle_status.updated_at
-        return False
+    def node_state_timeout(cls, kvs_client, target, structure, timeout):
+        status = Hook.get_status(kvs_client, target, structure)
+        if status is None:
+            return False
+        return timeout < Event.get_time() - status.updated_at
+
+    @classmethod
+    def vehicle_state_timeout(cls, kvs_client, target, timeout=5):
+        return cls.node_state_timeout(kvs_client, target, Vehicle.Status, timeout)
+
+    @classmethod
+    def traffic_signal_state_timeout(cls, kvs_client, target, timeout=5):
+        return cls.node_state_timeout(kvs_client, target, TrafficSignal.Status, timeout)
+
+    @classmethod
+    def schedule_exists(cls, kvs_client, target):
+        schedule = Hook.get_schedule(kvs_client, target)
+        if schedule is None:
+            return False
+        return 0 < len(schedule.events)
 
     @classmethod
     def vehicle_schedule_exists(cls, kvs_client, target_vehicle):
-        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
-        if vehicle_schedule is None:
+        return cls.schedule_exists(kvs_client, target_vehicle)
+
+    @classmethod
+    def received_schedule_exists(cls, kvs_client, target):
+        received_schedule = Hook.get_received_schedule(kvs_client, target)
+        if received_schedule is None:
             return False
-        return 0 < len(vehicle_schedule.events)
+        return 0 < len(received_schedule.events)
 
     @classmethod
     def vehicle_received_schedule_exists(cls, kvs_client, target_vehicle):
-        vehicle_received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
-        if vehicle_received_schedule is None:
+        return cls.received_schedule_exists(kvs_client, target_vehicle)
+
+    @classmethod
+    def traffic_signal_cycle_exists(cls, kvs_client, target):
+        config = Hook.get_config(kvs_client, target, TrafficSignal.Config)
+        if config is None:
             return False
-        return 0 < len(vehicle_received_schedule)
+        return config.cycle is not None
 
     @classmethod
     def vehicle_schedule_initialized(cls, kvs_client, target_vehicle):
         return Hook.get_schedule(kvs_client, target_vehicle) is None
 
     @classmethod
+    def received_schedule_initialized(cls, kvs_client, target):
+        return Hook.get_received_schedule(kvs_client, target) is None
+
+    @classmethod
     def vehicle_received_schedule_initialized(cls, kvs_client, target_vehicle):
-        return Hook.get_received_schedule(kvs_client, target_vehicle) is None
+        return cls.received_schedule_initialized(kvs_client, target_vehicle)
 
     @classmethod
     def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
@@ -180,5 +207,55 @@ class Condition(object):
         return True
 
     @classmethod
+    def traffic_signal_schedule_replaceable(cls, kvs_client, target_traffic_signal):
+        status = Hook.get_status(kvs_client, target_traffic_signal, TrafficSignal.Status)
+        received_schedule = Hook.get_received_schedule(kvs_client, target_traffic_signal)
+        if received_schedule is None:
+            return False
+
+        if status.event_id not in map(lambda x: x.id, received_schedule.events):
+            return False
+
+        # todo: check color and time
+
+        return True
+
+    @classmethod
+    def event_close_to_the_end(cls, kvs_client, target, margin=5.0):
+        schedule = Hook.get_schedule(kvs_client, target)
+        if schedule is None:
+            return False
+        event = Event.get_event_by_specified_time(schedule.events, Event.get_time())
+        if event is None:
+            return False
+        return event.period.end < Event.get_time() + margin
+
+    @classmethod
+    def schedule_close_to_the_end(cls, kvs_client, target, margin=5.0):
+        schedule = Hook.get_schedule(kvs_client, target)
+        if schedule is None:
+            return True
+        current_time = Event.get_time()
+        if len(list(filter(lambda x: current_time < x.period.end, schedule.events))) < 3:
+            return True
+        return schedule.events[-1].period.end < current_time + margin
+
+    @classmethod
+    def schedule_replaced(cls, kvs_client, target):
+        return cls.received_schedule_initialized(kvs_client, target)
+
+    @classmethod
     def vehicle_schedule_changed(cls, kvs_client, target_vehicle):
-        return cls.vehicle_received_schedule_initialized(kvs_client, target_vehicle)
+        return cls.schedule_replaced(kvs_client, target_vehicle)
+
+    @classmethod
+    def traffic_signal_light_color_updated(cls, kvs_client, target):
+        status = Hook.get_status(kvs_client, target, TrafficSignal.Status)
+        schedule = Hook.get_schedule(kvs_client, target)
+        event = Event.get_event_by_specified_time(schedule.events, Event.get_time())
+        return status.light_color == event.name and status.next_light_color is None is status.next_update_time
+
+    @classmethod
+    def traffic_signal_next_light_color_updated(cls, kvs_client, target):
+        status = Hook.get_status(kvs_client, target, TrafficSignal.Status)
+        return None not in [status.next_light_color, status.next_update_time]
