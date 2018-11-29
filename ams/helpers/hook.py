@@ -367,12 +367,20 @@ class Hook(object):
         return cls.set_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
-    def initialize_vehicle_received_schedule(cls, kvs_client, target_vehicle):
+    def initialize_received_schedule(cls, kvs_client, target_vehicle):
         return cls.set_received_schedule(kvs_client, target_vehicle, None)
 
     @classmethod
+    def initialize_vehicle_received_schedule(cls, kvs_client, target_vehicle):
+        return cls.initialize_received_schedule(kvs_client, target_vehicle)
+
+    @classmethod
+    def initialize_event(cls, kvs_client, target):
+        return cls.set_event(kvs_client, target, None)
+
+    @classmethod
     def initialize_vehicle_event(cls, kvs_client, target_vehicle):
-        return cls.set_event(kvs_client, target_vehicle, None)
+        return cls.initialize_event(kvs_client, target_vehicle)
 
     @classmethod
     def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
@@ -534,12 +542,16 @@ class Hook(object):
         return None
 
     @classmethod
-    def change_vehicle_schedule(cls, kvs_client, target):
+    def replace_schedule(cls, kvs_client, target):
         received_schedule = cls.get_received_schedule(kvs_client, target)
         if received_schedule is not None:
             if cls.set_schedule(kvs_client, target, received_schedule):
-                return cls.initialize_vehicle_received_schedule(kvs_client, target)
+                return cls.initialize_received_schedule(kvs_client, target)
         return False
+
+    @classmethod
+    def change_vehicle_schedule(cls, kvs_client, target):
+        return cls.replace_schedule(kvs_client, target)
 
     @classmethod
     def update_vehicle_location(cls, kvs_client, target):
