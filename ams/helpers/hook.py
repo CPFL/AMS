@@ -6,7 +6,7 @@ from math import modf
 from ams import VERSION, logger
 from ams.helpers import Target, Event, Route, Simulator
 from ams.structures import (
-    CLIENT, MessageHeader, Pose, RoutePoint,
+    CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
     EventLoop, Autoware, AutowareInterface, Vehicle, Dispatcher)
 
 
@@ -515,7 +515,7 @@ class Hook(object):
                 route_code=event.route_code if "route_code" in event else None
             ))
             start_time += event.duration if "duration" in event else 0
-        return Dispatcher.Schedule.new_data(**{
+        return Schedule.new_data(**{
             "id": Event.get_id(),
             "events": events
         })

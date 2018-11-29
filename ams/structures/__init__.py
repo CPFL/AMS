@@ -12,6 +12,7 @@ from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint
 from ams.structures.event import Event, Events
 from ams.structures.event_branch import EventBranch, EventBranches
+from ams.structures.schedule import Schedule
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
 from ams.structures.state_machine import StateMachineResource
