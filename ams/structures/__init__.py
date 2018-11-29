@@ -22,6 +22,10 @@ from ams.structures.message_header import MessageHeader
 from ams.structures.client import CLIENT
 
 from ams.structures.event_loop import EventLoop
+
+from ams.structures.traffic_signal import TrafficSignal
+from ams.structures.traffic_signal_controller import TrafficSignalController
+
 from ams.structures.autoware import Autoware
 from ams.structures.vehicle import Vehicle
 from ams.structures.dispatcher import Dispatcher
