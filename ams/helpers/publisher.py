@@ -52,6 +52,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_light_color_topic(cls, target_vehicle, target_autoware):
+        return Topic.get_topic(
+            from_target=target_vehicle,
+            to_target=target_autoware,
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.LIGHT_COLOR
+        )
+
+    @classmethod
     def get_route_code_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
@@ -225,6 +233,11 @@ class Publisher(object):
     def publish_state_cmd(cls, pubsub_client, target_vehicle, target_autoware, state_cmd):
         topic = cls.get_state_cmd_topic(target_vehicle, target_autoware)
         pubsub_client.publish(topic, state_cmd)
+
+    @classmethod
+    def publish_light_color(cls, pubsub_client, target_vehicle, target_autoware, light_color):
+        topic = cls.get_light_color_topic(target_vehicle, target_autoware)
+        pubsub_client.publish(topic, light_color)
 
     @classmethod
     def publish_transportation_status_message(
