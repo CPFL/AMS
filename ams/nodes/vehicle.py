@@ -37,14 +37,6 @@ class Vehicle(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = Subscriber.get_transportation_status_topic(self.config.target_dispatcher, self.config.target_self)
-        self.subscribers[topic] = {
-            "topic": topic,
-            "callback": Subscriber.on_transportation_status_message,
-            "structure": Dispatcher.Message.TransportationStatus,
-            "user_data": self.user_data
-        }
-
         topic = Subscriber.get_route_point_topic(self.config.target_autoware, self.config.target_self)
         self.subscribers[topic] = {
             "topic": topic,

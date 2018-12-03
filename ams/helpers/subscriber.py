@@ -56,15 +56,6 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_transportation_status_topic(cls, target_dispatcher, target_vehicle):
-        return Topic.get_topic(
-            from_target=target_dispatcher,
-            to_target=target_vehicle,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.TRANSPORTATION_STATUS,
-            use_wild_card=True
-        )
-
-    @classmethod
     def get_vehicle_schedule_topic(cls, target_dispatcher, target_vehicle):
         return Topic.get_topic(
             from_target=target_dispatcher,
@@ -230,20 +221,6 @@ class Subscriber(object):
     def on_light_color_publish(cls, _client, user_data, _topic, light_color):
         user_data["ros_client"].publish(
             AutowareInterface.CONST.TOPIC.LIGHT_COLOR, light_color, user_data["light_color_structure"])
-
-    @classmethod
-    def on_transportation_status_message(cls, _client, user_data, topic, transportation_status_message):
-        if transportation_status_message.status.state == Dispatcher.CONST.TRANSPORTATION.STATE.HANDSHAKE:
-            vehicle_config = Hook.get_config(
-                user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Config)
-            vehicle_config["target_dispatcher"] = Topic.get_from_target(topic)
-
-            set_flag = Hook.set_config(
-                user_data["kvs_client"], user_data["target_vehicle"], vehicle_config)
-            if set_flag:
-                Publisher.publish_vehicle_config(
-                    user_data["kvs_client"], user_data["target_vehicle"],
-                    user_data["target_dispatcher"], vehicle_config)
 
     @classmethod
     def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):
