@@ -7,7 +7,7 @@ from ams import VERSION, logger
 from ams.helpers import Target, Event, Route, Simulator
 from ams.structures import (
     CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
-    EventLoop, Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
 
 
 class Hook(object):
@@ -383,18 +383,6 @@ class Hook(object):
         return cls.initialize_event(kvs_client, target_vehicle)
 
     @classmethod
-    def initialize_vehicle_status_event_id(cls, kvs_client, target_vehicle):
-        vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        if vehicle_status is not None:
-            received_schedule = cls.get_received_schedule(kvs_client, target_vehicle)
-            if received_schedule is not None:
-                if vehicle_status.event_id is None:
-                    vehicle_status.event_id = received_schedule.events[0].id
-                    if cls.set_schedule(kvs_client, target_vehicle, received_schedule):
-                        return cls.set_status(kvs_client, target_vehicle, vehicle_status)
-        return False
-
-    @classmethod
     def get_vehicle_location(cls, kvs_client, target):
         key = cls.get_vehicle_location_key(target)
         value = kvs_client.get(key)
@@ -577,8 +565,64 @@ class Hook(object):
         return False
 
     @classmethod
-    def change_vehicle_schedule(cls, kvs_client, target):
-        return cls.replace_schedule(kvs_client, target)
+    def start_vehicle_schedule(cls, kvs_client, target_vehicle):
+        vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
+        if vehicle_schedule is None:
+            logger.warning("No vehicle schedule")
+            return False
+        if vehicle_status.schedule_id is not None:
+            logger.warning("vehicle schedule id is not initialized")
+            return False
+        if vehicle_status.event_id is not None:
+            logger.warning("vehicle event id is not initialized")
+            return False
+        vehicle_status.schedule_id = vehicle_schedule.id
+        vehicle_status.event_id = vehicle_schedule.events[0].id
+        return cls.set_status(kvs_client, target_vehicle, vehicle_status)
+
+    @classmethod
+    def restart_vehicle_schedule(cls, kvs_client, target_vehicle):
+        vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
+        if vehicle_schedule is None:
+            logger.warning("No vehicle schedule")
+            return False
+        vehicle_status.schedule_id = vehicle_schedule.id
+        return cls.set_status(kvs_client, target_vehicle, vehicle_status)
+
+    @classmethod
+    def start_vehicle_event(cls, kvs_client, target_vehicle):
+        status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if status is None:
+            return
+        status.on_event = True
+        cls.set_status(kvs_client, target_vehicle, status)
+
+    @classmethod
+    def suspend_vehicle_event(cls, kvs_client, target_vehicle):
+        status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if status is None:
+            return
+        if status.on_event:
+            status.on_event = False
+            cls.set_status(kvs_client, target_vehicle, status)
+
+    @classmethod
+    def end_vehicle_event(cls, kvs_client, target_vehicle):
+        status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if status is None:
+            return
+        if status.on_event:
+            status.on_event = False
+            schedule = cls.get_schedule(kvs_client, target_vehicle)
+            next_event = Event.get_next_event_by_current_event_id(schedule.events, status.event_id)
+            if next_event is None:
+                status.schedule_id = None
+                status.event_id = None
+            else:
+                status.event_id = next_event.id
+            cls.set_status(kvs_client, target_vehicle, status)
 
     @classmethod
     def update_vehicle_location(cls, kvs_client, target):
@@ -614,31 +658,11 @@ class Hook(object):
                 cls.set_lane_array(kvs_client, target_autoware, received_lane_array)
 
     @classmethod
-    def update_vehicle_schedule(cls, kvs_client, target):
-        received_schedule = cls.get_received_schedule(kvs_client, target)
-        if received_schedule is None:
-            return False
-
-        if not cls.set_schedule(kvs_client, target, received_schedule):
-            return False
-
-        status = cls.get_status(kvs_client, target, Vehicle.Status)
-        if received_schedule.id == status.schedule_id:
-            return False
-
-        status.schedule_id = received_schedule.id
-
-        return cls.set_status(kvs_client, target, status)
-
-    @classmethod
     def update_vehicle_route_point(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedule]:
             vehicle_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
-            if vehicle_event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
-                vehicle_event = Event.get_next_event_by_current_event_id(
-                    vehicle_schedule.events, vehicle_status.event_id)
             if vehicle_event is not None:
                 if "route_code" in vehicle_event:
                     vehicle_status.route_point = RoutePoint.new_data(**{
@@ -646,17 +670,6 @@ class Hook(object):
                         "index": 0
                     })
                     return cls.set_status(kvs_client, target_vehicle, vehicle_status)
-        return False
-
-    @classmethod
-    def update_and_set_vehicle_pose_to_route_start(cls, kvs_client, maps_client, target_vehicle):
-        vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        if vehicle_status.route_point is not None and \
-                vehicle_status.decision_maker_state != Autoware.CONST.DECISION_MAKER_STATE.WAIT_ORDER:
-            pose, location = maps_client.route.get_route_point_pose_and_location(vehicle_status.route_point)
-            vehicle_status.location = location
-            vehicle_status.pose = pose
-            return cls.set_status(kvs_client, target_vehicle, vehicle_status)
         return False
 
     @classmethod
@@ -671,7 +684,7 @@ class Hook(object):
                 # on vehicle_location_ros_message
                 pose, location = maps_client.route.get_route_point_pose_and_location(vehicle_status.route_point)
                 if None in [pose, location]:
-                    logger.warning("Current pose is out of route.")
+                    logger.warning("Vehicle location is out of route.")
                 else:
                     vehicle_status.location = location
                     vehicle_status.pose = pose
