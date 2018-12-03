@@ -207,6 +207,22 @@
       ]
     },
     {
+      "event": null,
+      "from": "AnyVehicleState\nMissionChangeSucceeded\nAnyDriveState\n",
+      "to": "AnyVehicleState\nMissionChangeSucceeded\nAnyDriveState\n",
+      "hooks": [
+        {
+          "function": "update_vehicle_location",
+          "args": ["kvs_client", "target_autoware"]
+        },
+        {
+          "function": "update_current_pose",
+          "args": ["kvs_client", "target_autoware"]
+        }
+      ],
+      "conditions": null
+    },
+    {
       "event": "goto_wait_order",
       "from": "AnyVehicleState\nMissionAborted\nAnyDriveState\n",
       "to": "AnyVehicleState\nWaitOrder-1\nAnyDriveState\n",

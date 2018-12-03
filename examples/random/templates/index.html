@@ -95,6 +95,10 @@
                     return [this.get_from_name(topic), this.get_from_id(topic)].join("/")
                 }
 
+                static get_to_target_code(topic) {
+                    return [this.get_to_name(topic), this.get_to_id(topic)].join("/")
+                }
+
                 static compare_topics(subscribe_topic, incoming_topic) {
                     if (subscribe_topic === incoming_topic) return true;
                     else {
@@ -212,6 +216,7 @@
                     this.pubSubClient = new PubSubClient();
                     this.pubSubClient.setOnMessageCallback('/+/+/+/+/+/current_pose', this.onCurrentPoseMessage.bind(this));
                     this.pubSubClient.setOnMessageCallback('/+/+/+/+/+/decision_maker/state', this.onDecisionMakerStateMessage.bind(this));
+                    this.pubSubClient.setOnMessageCallback('/+/vehicle/+/+/+/status', this.onVehicleStatusMessage.bind(this));
                     this.pubSubClient.setOnMessageCallback('/+/shutter/+/+/+/response/get_config', this.onShutterConfigMessage.bind(this));
                     this.pubSubClient.setOnMessageCallback('/+/shutter/+/+/+/status', this.onShutterStatusMessage.bind(this));
                     this.pubSubClient.setOnMessageCallback('/+/light/+/+/+/response/get_config', this.onLightConfigMessage.bind(this));
@@ -437,7 +442,7 @@
 
                 onCurrentPoseMessage(topic, message) {
                     const currentPose = message;
-                    const sceneObjectName = Topic.get_from_target_code(topic);
+                    const sceneObjectName = Topic.get_to_target_code(topic);
                     const to_name = Topic.get_to_name(topic);
                     let daeFileName = "milee_proto_reduced_nolight.dae";
                     if( to_name.includes("milee") ) {
@@ -452,7 +457,7 @@
                     const sceneObject = this.amsObjects.vehicle[sceneObjectName];
                     const that = this;
                     if(typeof sceneObject === "undefined") {
-                        this.amsObjects.vehicle[sceneObjectName] = {"collada": null, "text": null};
+                        this.amsObjects.vehicle[sceneObjectName] = {"collada": null, "text": null, "state": {"decisionMaker": null, "amsVehicle": null}};
                         this.colladaLoader.load(
                             "http://"+location.host+"/static/dae/"+daeFileName,
                             function ( collada ) {
@@ -471,30 +476,41 @@
 
                 onDecisionMakerStateMessage(topic, message) {
                     const decisionMakerState = message.data;
+                    const vehicleName = Topic.get_to_target_code(topic);
+                    const sceneObject = this.amsObjects.vehicle[vehicleName];
+                    sceneObject.state.decisionMaker = decisionMakerState;
+                    this.drawState(vehicleName);
+                }
+
+                onVehicleStatusMessage(topic, message) {
                     const vehicleName = Topic.get_from_target_code(topic);
+                    const sceneObject = this.amsObjects.vehicle[vehicleName];
+                    if( typeof sceneObject === "undefined" ) return;
+                    if( sceneObject.collada === null ) return;
+                    this.amsObjects.vehicle[vehicleName].state.amsVehicle = message.body.state;
+                    this.drawState(vehicleName);
+                }
+
+                drawState(vehicleName){
+                    const sceneObject = this.amsObjects.vehicle[vehicleName];
                     const that = this;
                     this.fontLoader.load("http://"+location.host+'/static/json/helvetiker_regular.typeface.json', function(font) {
-                        const sceneObject = that.amsObjects.vehicle[vehicleName];
                         if( typeof sceneObject === "undefined" ) return;
                         if( sceneObject.collada === null ) return;
 
                         let stateSceneObject = that.amsObjects.vehicle[vehicleName].text;
                         if(stateSceneObject !== null) {
-                            if( stateSceneObject.geometry.parameters.text === decisionMakerState ) {
-                                stateSceneObject.lookAt( that.camera.position );
-                                return;
-                            }
-                            else that.scene.remove(stateSceneObject);
+                            that.scene.remove(stateSceneObject);
                         }
 
                         let color = null;
-                        if(decisionMakerState.includes("\nWaitOrder\n")){
+                        if(sceneObject.state.decisionMaker.includes("\nWaitOrder\n")){
                             color = new THREE.Color(0xFF0000);
                         }
-                        else if(decisionMakerState.includes("\nDriveReady\n")){
+                        else if(sceneObject.state.decisionMaker.includes("\nDriveReady\n")){
                             color = new THREE.Color(0x11CCFF);
                         }
-                        else if(decisionMakerState.includes("\nDriving\n")){
+                        else if(sceneObject.state.decisionMaker.includes("\nDriving\n")){
                             color = new THREE.Color(0x22FF00);
                         }
                         else {
@@ -502,7 +518,7 @@
                         }
                         const textMaterial = new THREE.MeshBasicMaterial({color: color, overdraw: 0.2});
                         const textGeometry = new THREE.TextGeometry(
-                            decisionMakerState,
+                            sceneObject.state.decisionMaker + "\n" + sceneObject.state.amsVehicle,
                             {
                                 font: font,
                                 size: 0.2,

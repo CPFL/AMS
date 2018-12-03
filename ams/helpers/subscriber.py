@@ -3,10 +3,12 @@
 
 import yaml
 
-from ams import AttrDict
+from ams import AttrDict, logger
 from ams.helpers import Topic, Event, Hook, Condition, Publisher
 from ams.helpers import StateMachine as StateMachineHelper
-from ams.structures import EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface
+from ams.structures import (
+    EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface, TrafficSignal, TrafficSignalController
+)
 
 
 class Subscriber(object):
@@ -63,11 +65,20 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_vehicle_events_topic(cls, target_dispatcher, target_vehicle):
+    def get_vehicle_schedule_topic(cls, target_dispatcher, target_vehicle):
         return Topic.get_topic(
             from_target=target_dispatcher,
             to_target=target_vehicle,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENTS,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE,
+            use_wild_card=True
+        )
+
+    @classmethod
+    def get_vehicle_event_topic(cls, target_dispatcher, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_dispatcher,
+            to_target=target_vehicle,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
             use_wild_card=True
         )
 
@@ -117,6 +128,30 @@ class Subscriber(object):
             from_target=target_vehicle,
             categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
             use_wild_card=True
+        )
+
+    @classmethod
+    def get_traffic_signal_event_topic(cls, target_traffic_signal_controller, target_traffic_signal):
+        return Topic.get_topic(
+            from_target=target_traffic_signal_controller,
+            to_target=target_traffic_signal,
+            categories=TrafficSignalController.CONST.TOPIC.CATEGORIES.EVENT,
+        )
+
+    @classmethod
+    def get_traffic_signal_cycle_topic(cls, target_traffic_signal_controller, target_traffic_signal):
+        return Topic.get_topic(
+            from_target=target_traffic_signal_controller,
+            to_target=target_traffic_signal,
+            categories=TrafficSignalController.CONST.TOPIC.CATEGORIES.CYCLE,
+        )
+
+    @classmethod
+    def get_traffic_signal_schedule_topic(cls, target_traffic_signal_controller, target_traffic_signal):
+        return Topic.get_topic(
+            from_target=target_traffic_signal_controller,
+            to_target=target_traffic_signal,
+            categories=TrafficSignalController.CONST.TOPIC.CATEGORIES.SCHEDULE,
         )
 
     @classmethod
@@ -211,9 +246,40 @@ class Subscriber(object):
                     user_data["target_dispatcher"], vehicle_config)
 
     @classmethod
-    def on_vehicle_events_message(cls, _client, user_data, _topic, events_message):
-        if events_message.body.target == user_data["target_vehicle"]:
-            Hook.set_events(user_data["kvs_client"], user_data["target_vehicle"], events_message.body.events)
+    def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):
+        if schedule_message.body.target != user_data["target_vehicle"]:
+            return
+
+        status = Hook.get_status(user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+        if status is not None and status.state in [
+            Vehicle.CONST.STATE.WAIT_SCHEDULE,
+            Vehicle.CONST.STATE.SCHEDULE_CHECK
+        ]:
+            Hook.set_received_schedule(
+                user_data["kvs_client"], user_data["target_vehicle"], schedule_message.body.schedule)
+
+    @classmethod
+    def on_vehicle_event_message(cls, _client, user_data, _topic, event_message):
+        if event_message.body.target != user_data["target_vehicle"]:
+            return
+        status = Hook.get_status(user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+        event = event_message.body.event
+        if event.name == Dispatcher.CONST.EVENT.END_NODE:
+            if status is not None and status.state in [
+                Vehicle.CONST.STATE.WAIT_SCHEDULE,
+            ]:
+                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
+        elif event.name == Dispatcher.CONST.EVENT.CHANGE_SCHEDULE:
+            if status is not None and status.state in [
+                Vehicle.CONST.STATE.AUTOWARE_DRIVING
+            ]:
+                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
+        elif event.name == Dispatcher.CONST.EVENT.RETURN_TO_AUTOWARE_DRIVING:
+            if status is not None and status.state in [
+                Vehicle.CONST.STATE.SCHEDULE_CHANGE_SUCCEEDED,
+                Vehicle.CONST.STATE.SCHEDULE_CHANGE_FAILED
+            ]:
+                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
 
     @classmethod
     def on_current_pose(cls, _client, user_data, _topic, current_pose):
@@ -270,55 +336,87 @@ class Subscriber(object):
                     state_machine_data,
                     [
                         Hook.update_and_set_vehicle_pose,
+                        Hook.update_vehicle_schedule,
                         Hook.update_vehicle_route_point,
                         Hook.update_and_set_vehicle_pose_to_route_start,
+                        Hook.initialize_vehicle_schedule,
+                        Hook.initialize_vehicle_received_schedule,
+                        Hook.change_vehicle_schedule,
                         Hook.initialize_vehicle_status_event_id,
                         Publisher.publish_vehicle_config,
+                        Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
                         Publisher.publish_state_cmd,
                         Condition.vehicle_located,
                         Condition.dispatcher_assigned,
-                        Condition.vehicle_events_exists,
+                        Condition.vehicle_schedule_initialized,
+                        Condition.vehicle_received_schedule_initialized,
+                        Condition.vehicle_schedule_exists,
+                        Condition.vehicle_received_schedule_exists,
                         Condition.vehicle_route_point_updated,
+                        Condition.vehicle_schedule_updated,
                         Condition.vehicle_status_event_id_initialized,
-                        Condition.vehicle_events_include_any_expected_events,
+                        Condition.vehicle_schedule_include_any_expected_events,
+                        Condition.vehicle_schedule_replaceable,
                         Condition.decision_maker_state_is_expected,
-                        Condition.vehicle_location_is_on_event_route
+                        Condition.vehicle_location_is_on_event_route,
+                        Condition.vehicle_state_timeout,
+                        Condition.vehicle_schedule_changed
                     ],
                     variables
                 )
 
-                event = None
-                vehicle_events = Hook.get_events(user_data["kvs_client"], user_data["target_vehicle"])
-                if vehicle_events is not None:
-                    event = Event.get_event_by_id(vehicle_events, vehicle_status.event_id)
-
-                update_flag = False
+                event = Hook.get_event(user_data["kvs_client"], user_data["target_vehicle"])
                 if event is not None:
-                    update_flag = StateMachineHelper.update_state(state_machine_data, event.name)
-                    if vehicle_status.state is None or update_flag:
-                        new_vehicle_status = Hook.get_status(
-                            user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-                        if vehicle_status.state == new_vehicle_status.state:
-                            new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
-                            next_event = Event.get_next_event_by_current_event_id(
-                                vehicle_events, new_vehicle_status.event_id)
-                            if next_event is not None:
-                                new_vehicle_status.event_id = next_event.id
-                            Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                    if Hook.initialize_vehicle_event(user_data["kvs_client"], user_data["target_vehicle"]):
+                        if StateMachineHelper.update_state(state_machine_data, event.name):
+                            new_vehicle_status = Hook.get_status(
+                                user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+                            if vehicle_status.state == new_vehicle_status.state:
+                                new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
+                                new_vehicle_status.updated_at = Event.get_time()
+                                Hook.set_status(
+                                    user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                                logger.info("Vehicle Event: {}, State: {} -> {}".format(
+                                    event.name, vehicle_status.state, new_vehicle_status.state))
+                                return
 
-                if not update_flag:
-                    update_flag = StateMachineHelper.update_state(state_machine_data, None)
-                    if vehicle_status.state is None or update_flag:
-                        new_vehicle_status = Hook.get_status(
-                            user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-                        if vehicle_status.state == new_vehicle_status.state:
-                            new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
-                            Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                if vehicle_status.state not in [
+                    Vehicle.CONST.STATE.SCHEDULE_CHANGE
+                ]:
+                    event = None
+                    vehicle_schedule = Hook.get_schedule(user_data["kvs_client"], user_data["target_vehicle"])
+                    if vehicle_schedule is not None:
+                        event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
+                    if event is not None:
+                        if StateMachineHelper.update_state(state_machine_data, event.name):
+                            new_vehicle_status = Hook.get_status(
+                                user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+                            if vehicle_status.state == new_vehicle_status.state:
+                                new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
+                                next_event = Event.get_next_event_by_current_event_id(
+                                    vehicle_schedule.events, new_vehicle_status.event_id)
+                                if next_event is None:
+                                    new_vehicle_status.event_id = None
+                                else:
+                                    new_vehicle_status.event_id = next_event.id
+                                new_vehicle_status.updated_at = Event.get_time()
+                                Hook.set_status(
+                                    user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                                logger.info("Vehicle Event: {}, State: {} -> {}".format(
+                                    event.name, vehicle_status.state, new_vehicle_status.state))
+                                return
 
-            Publisher.publish_vehicle_status(
-                user_data["pubsub_client"], user_data["target_vehicle"], user_data["target_dispatcher"],
-                vehicle_status)
+                update_flag = StateMachineHelper.update_state(state_machine_data, None)
+                if vehicle_status.state is None or update_flag:
+                    new_vehicle_status = Hook.get_status(
+                        user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
+                    if vehicle_status.state == new_vehicle_status.state:
+                        new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
+                        new_vehicle_status.updated_at = Event.get_time()
+                        Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                        logger.info("Vehicle Event: {}, State: {} -> {}".format(
+                            None, vehicle_status.state, new_vehicle_status.state))
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):
@@ -340,3 +438,26 @@ class Subscriber(object):
     def on_vehicle_status_message(cls, _client, user_data, topic, vehicle_status_message):
         user_data["target_vehicle"] = Topic.get_from_target(topic)
         Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], vehicle_status_message.body)
+
+    @classmethod
+    def on_traffic_signal_event_message(cls, _client, user_data, _topic, event_message):
+        if event_message.body.target != user_data["target_traffic_signal"]:
+            return
+        status = Hook.get_status(user_data["kvs_client"], user_data["target_traffic_signal"], TrafficSignal.Status)
+        event = event_message.body.event
+        if event.name == TrafficSignalController.CONST.EVENT.END_NODE:
+            if status is not None and status.state in [
+                TrafficSignal.CONST.STATE.WAITING_EVENT,
+            ]:
+                Hook.set_event(user_data["kvs_client"], user_data["target_traffic_signal"], event)
+
+    @classmethod
+    def on_traffic_signal_cycle_message(cls, _client, user_data, _topic, cycle_message):
+        config = Hook.get_config(user_data["kvs_client"], user_data["target_traffic_signal"], TrafficSignal.Config)
+        config.cycle = cycle_message.body.cycle
+        Hook.set_config(user_data["kvs_client"], user_data["target_traffic_signal"], config)
+
+    @classmethod
+    def on_traffic_signal_schedule_message(cls, _client, user_data, _topic, schedule_message):
+        Hook.set_received_schedule(
+            user_data["kvs_client"], user_data["target_traffic_signal"], schedule_message.body.schedule)

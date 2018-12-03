@@ -4,3 +4,5 @@ from ams.nodes.autoware_interface import AutowareInterface
 from ams.nodes.vehicle import Vehicle
 
 from ams.nodes.dispatcher import Dispatcher
+
+from ams.nodes.traffic_signal import TrafficSignal

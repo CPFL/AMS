@@ -12,6 +12,7 @@ from ams.structures.period import Period
 from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint
 from ams.structures.event import Event, Events
 from ams.structures.event_branch import EventBranch, EventBranches
+from ams.structures.schedule import Schedule
 from ams.structures.cycle import Cycle
 from ams.structures.spot import Spot
 from ams.structures.state_machine import StateMachineResource
@@ -21,6 +22,10 @@ from ams.structures.message_header import MessageHeader
 from ams.structures.client import CLIENT
 
 from ams.structures.event_loop import EventLoop
+
+from ams.structures.traffic_signal import TrafficSignal
+from ams.structures.traffic_signal_controller import TrafficSignalController
+
 from ams.structures.autoware import Autoware
 from ams.structures.vehicle import Vehicle
 from ams.structures.dispatcher import Dispatcher

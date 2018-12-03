@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from sys import float_info
-
 from ams import get_namedtuple_from_dict, get_structure_superclass
 from ams.structures.event_loop import const as event_loop_const
-from ams.structures import Pose, Location, Target, RoutePoint, MessageHeader, EventLoop, Autoware
+from ams.structures import Pose, Cycle, Target, MessageHeader, EventLoop
 
 
 topic = {
@@ -14,30 +12,26 @@ topic = {
 topic["CATEGORIES"].update(event_loop_const["TOPIC"]["CATEGORIES"])
 topic["CATEGORIES"].update({
     "CONFIG": ["config"],
-    "STATUS": ["status"],
-    "GEOTOPIC": ["geotopic"],
-    "STATE_CMD": ["state_cmd"],
-    "ROUTE_CODE": ["route_code"],
-    "LIGHT_COLOR": ["light_color"]
+    "STATUS": ["status"]
 })
 
 const = {}
 const.update(event_loop_const)
 const.update({
-    "NODE_NAME": "vehicle",
-    "ROLE_NAME": "vehicle",
+    "NODE_NAME": "traffic_signal",
+    "ROLE_NAME": "infra",
     "TOPIC": topic,
     "STATE": {
-        "WAIT_SCHEDULE": "WaitSchedule",
-        "AUTOWARE_DRIVING": "AutowareDriving",
-        "SCHEDULE_CHECK": "ScheduleCheck",
-        "SCHEDULE_CHANGE": "ScheduleChange",
-        "SCHEDULE_CHANGE_SUCCEEDED": "ScheduleChangeSucceeded",
-        "SCHEDULE_CHANGE_FAILED": "ScheduleChangeFailed"
+        "WAITING_EVENT": "WaitingEvent",
+        "END": "End"
     },
-    "ACTIVATION_REQUEST_TIMEOUT": 10.0,
-    "FLOAT_MAX": float_info.max,
-    "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0
+    "LIGHT_COLOR": {
+        "RED": "red",
+        "YELLOW": "yellow",
+        "GREEN": "green",
+        "UNKNOWN": "unknown"
+    }
+
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)
@@ -45,96 +39,87 @@ CONST = get_namedtuple_from_dict("CONST", const)
 
 config_template = EventLoop.Config.get_template()
 config_template.update({
-    "target_autoware": Target.get_template(),
-    "target_dispatcher": Target.get_template(),
-    "upper_distance_from_stopline": 50.0
+    "target_traffic_signal_controller": Target.get_template(),
+    "cycle": Cycle.get_template(),
+    "route_code": "0:0>1:1",
+    "pose": Pose.get_template()
 })
 
 config_schema = EventLoop.Config.get_schema()
 config_schema.update({
-    "target_autoware": {
+    "target_traffic_signal_controller": {
         "type": "dict",
         "schema": Target.get_schema(),
         "required": True,
         "nullable": False,
     },
-    "target_dispatcher": {
+    "cycle": {
         "type": "dict",
-        "schema": Target.get_schema(),
+        "schema": Cycle.get_schema(),
         "required": True,
         "nullable": True
     },
-    "upper_distance_from_stopline": {
-        "type": "number",
+    "route_code": {
+        "type": "string",
         "required": True,
         "nullable": False
+    },
+    "pose": {
+        "type": "dict",
+        "schema": Pose.get_schema(),
+        "required": True,
+        "nullable": True
     }
 })
 
 
 class Config(get_structure_superclass(config_template, config_schema)):
     Target = Target
+    Cycle = Cycle
+    Pose = Pose
 
 
 status_template = EventLoop.Status.get_template()
 status_template.update({
-    "schedule_id": "s0",
-    "event_id": "e0",
-    "location": Location.get_template(),
-    "pose": Pose.get_template(),
-    "current_pose": Autoware.Status.CurrentPose.get_template(),
-    "route_point": RoutePoint.get_template(),
-    "decision_maker_state": Autoware.Status.DecisionMakerState.get_template()
+    "event": "e0",
+    "light_color": "red",
+    "light_color_schedule_id": "s0",
+    "next_light_color": "green",
+    "next_update_time": 0.0
 })
 
 status_schema = EventLoop.Status.get_schema()
 status_schema.update({
-    "schedule_id": {
+    "event": {
         "type": "string",
-        "required": True,
-        "nullable": True,
-    },
-    "event_id": {
-        "type": "string",
-        "required": True,
-        "nullable": True,
-    },
-    "location": {
-        "type": "dict",
-        "schema": Location.get_schema(),
-        "required": True,
-        "nullable": True,
-    },
-    "pose": {
-        "type": "dict",
-        "schema": Pose.get_schema(),
-        "required": True,
-        "nullable": True,
-    },
-    "current_pose": {
-        "type": "dict",
-        "schema": Autoware.Status.CurrentPose.get_schema(),
-        "required": True,
-        "nullable": True,
-    },
-    "route_point": {
-        "type": "dict",
-        "schema": RoutePoint.get_schema(),
-        "required": True,
-        "nullable": True,
-    },
-    "decision_maker_state": {
-        "type": "dict",
-        "schema": Autoware.Status.DecisionMakerState.get_schema(),
         "required": True,
         "nullable": True
+    },
+    "light_color": {
+        "type": "string",
+        "required": True,
+        "nullable": True,
+    },
+    "light_color_schedule_id": {
+        "type": "string",
+        "required": True,
+        "nullable": True,
+    },
+    "next_light_color": {
+        "type": "string",
+        "required": True,
+        "nullable": True,
+    },
+    "next_update_time": {
+        "type": "number",
+        "required": True,
+        "nullable": True,
     }
 })
 
 
 class Status(get_structure_superclass(status_template, status_schema)):
-    Location = Location
-    Pose = Pose
+    pass
 
 
 config_message_template = {
@@ -164,7 +149,10 @@ class ConfigMessage(get_structure_superclass(config_message_template, config_mes
 
 status_message_template = {
     "header": MessageHeader.get_template(),
-    "body": Status.get_template()
+    "body": {
+        "target": Target.get_template(),
+        "status": Status.get_template()
+    }
 }
 
 status_message_schema = {
@@ -187,37 +175,12 @@ class StatusMessage(get_structure_superclass(status_message_template, status_mes
     pass
 
 
-route_code_message_template = {
-    "header": MessageHeader.get_template(),
-    "body":  "0:0>1:1"
-}
-
-route_code_message_schema = {
-    "header": {
-        "type": "dict",
-        "schema": MessageHeader.get_schema(),
-        "required": True,
-        "nullable": False
-    },
-    "body": {
-        "type": "string",
-        "required": True,
-        "nullable": False
-    }
-}
-
-
-class RouteCodeMessage(get_structure_superclass(route_code_message_template, route_code_message_schema)):
-    Header = MessageHeader
-
-
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
-    RouteCode = RouteCodeMessage
 
 
-class Vehicle(EventLoop):
+class TrafficSignal(EventLoop):
     CONST = CONST
     Config = Config
     Status = Status

@@ -11,6 +11,9 @@ from ams.structures import Period
 
 class Event(object):
 
+    Structure = Structure
+    Structures = Structures
+
     @staticmethod
     def new_event(targets, name, _id=None, start_time=None, end_time=None, route_code=None):
         event = Structure.new_data(
@@ -68,7 +71,7 @@ class Event(object):
             end_time = start_time + (elapse_time - phase_time)
             if phase_time < elapse_time:
                 break
-        return Event.new_event(targets, state, start_time, end_time)
+        return Event.new_event(targets, state, start_time=start_time, end_time=end_time)
 
     @staticmethod
     def get_event_by_id(events, event_id):
@@ -82,8 +85,24 @@ class Event(object):
         return list(map(lambda x: x.id, events)).index(event_id)
 
     @staticmethod
+    def get_event_index_by_specified_time(events, specified_time):
+        return list(map(lambda x: x.period.start <= specified_time < x.period.end, events)).index(True)
+
+    @staticmethod
+    def get_event_by_specified_time(events, specified_time):
+        event_index = Event.get_event_index_by_specified_time(events, specified_time)
+        return events[event_index]
+
+    @staticmethod
     def get_next_event_by_current_event_id(events, current_event_id):
         next_event_index = Event.get_event_index_by_event_id(events, current_event_id) + 1
+        if next_event_index < len(events):
+            return events[next_event_index]
+        return None
+
+    @staticmethod
+    def get_next_event_by_specified_time(events, specified_time):
+        next_event_index = Event.get_event_index_by_specified_time(events, specified_time) + 1
         if next_event_index < len(events):
             return events[next_event_index]
         return None

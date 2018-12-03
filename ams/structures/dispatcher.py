@@ -3,7 +3,7 @@
 
 from ams import get_namedtuple_from_dict, get_structure_superclass
 from ams.structures.event_loop import const as event_loop_const
-from ams.structures import Target, Targets, Events, MessageHeader, EventLoop
+from ams.structures import Target, Targets, Schedule, Events, Event, MessageHeader, EventLoop
 
 
 topic = {
@@ -13,7 +13,8 @@ topic["CATEGORIES"].update(event_loop_const["TOPIC"]["CATEGORIES"])
 topic["CATEGORIES"].update({
     "CONFIG": ["config"],
     "STATUS": ["status"],
-    "EVENTS": ["events"],
+    "SCHEDULE": ["schedule"],
+    "EVENT": ["event"],
     "TRANSPORTATION_CONFIG": ["transportation", "config"],
     "TRANSPORTATION_STATUS": ["transportation", "status"]
 })
@@ -24,6 +25,11 @@ const.update({
     "NODE_NAME": "dispatcher",
     "ROLE_NAME": "dispatcher",
     "TOPIC": topic,
+    "EVENT": {
+        "END_NODE": "end_node",
+        "CHANGE_SCHEDULE": "change_schedule",
+        "RETURN_TO_AUTOWARE_DRIVING": "return_to_autoware_driving"
+    },
     "TRANSPORTATION": {
         "EVENT": {
             "CHANGE_ROUTE": "change_route",
@@ -53,7 +59,7 @@ class Config(get_structure_superclass(config_template, config_schema)):
 transportation_config_template = {
     "targets": Targets.get_template(),
     "events": [{
-        "name": "start_mission",
+        "name": "start_schedule",
         "duration": 1,
         "route_code": "0:0>1:1"
     }]
@@ -77,6 +83,11 @@ transportation_config_schema = {
                     "nullable": False
                 },
                 "route_code": {
+                    "type": "string",
+                    "required": False,
+                    "nullable": False
+                },
+                "id": {
                     "type": "string",
                     "required": False,
                     "nullable": False
@@ -232,15 +243,15 @@ class TransportationStatusMessage(
     pass
 
 
-events_message_template = {
+schedule_message_template = {
     "header": MessageHeader.get_template(),
     "body": {
         "target": Target.get_template(),
-        "events": Events.get_template()
+        "schedule": Schedule.get_template()
     }
 }
 
-events_message_schema = {
+schedule_message_schema = {
     "header": {
         "type": "dict",
         "schema": MessageHeader.get_schema(),
@@ -256,7 +267,12 @@ events_message_schema = {
                 "required": True,
                 "nullable": False
             },
-            "events": Events.get_schema()
+            "schedule": {
+                "type": "dict",
+                "schema": Schedule.get_schema(),
+                "required": True,
+                "nullable": False
+            }
         },
         "required": True,
         "nullable": False
@@ -264,8 +280,50 @@ events_message_schema = {
 }
 
 
-class EventsMessage(
-        get_structure_superclass(events_message_template, events_message_schema)):
+class ScheduleMessage(
+        get_structure_superclass(schedule_message_template, schedule_message_schema)):
+    pass
+
+
+event_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": {
+        "target": Target.get_template(),
+        "event": Event.get_template()
+    }
+}
+
+event_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": {
+            "target": {
+                "type": "dict",
+                "schema": Target.get_schema(),
+                "required": True,
+                "nullable": False
+            },
+            "event": {
+                "type": "dict",
+                "schema": Event.get_schema(),
+                "required": True,
+                "nullable": False
+            }
+        },
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class EventMessage(
+        get_structure_superclass(event_message_template, event_message_schema)):
     pass
 
 
@@ -273,7 +331,8 @@ class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     TransportationStatus = TransportationStatusMessage
-    Events = EventsMessage
+    Schedule = ScheduleMessage
+    Event = EventMessage
 
 
 class Dispatcher(EventLoop):
@@ -283,4 +342,5 @@ class Dispatcher(EventLoop):
     Status = Status
     TransportationStatus = TransportationStatus
     TransportationStatuses = TransportationStatuses
+    Schedule = Schedule
     Message = Message
