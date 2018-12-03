@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import json
+import uuid
 from sys import float_info
 from math import modf
 from time import time
@@ -296,7 +297,7 @@ class Route(object):
         header.stamp.nsecs = int(nsec * (10 ** 9))
     
         lane_array = Autoware.ROSMessage.LaneArray.get_template()
-        lane_array.id = int(current_time)
+        lane_array.id = int(uuid.uuid4().int & (1 << 31)-1)
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
     
