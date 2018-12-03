@@ -84,6 +84,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_config_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=["config"]
+        )
+
+    @classmethod
     def get_status_topic(cls, from_target, to_target):
         return Topic.get_topic(
             from_target=from_target,
@@ -179,32 +187,44 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
-    def publish_vehicle_config(cls, pubsub_client, target_vehicle, target_dispatcher, vehicle_config):
-        topic = cls.get_vehicle_config_topic(target_vehicle, target_dispatcher)
+    def publish_config(cls, pubsub_client, kvs_client, from_target, to_target, structure):
+        config = Hook.get_config(kvs_client, from_target, structure.Config)
+        if config is None:
+            return
+        topic = cls.get_config_topic(from_target, to_target)
         message = Vehicle.Message.Config.new_data(**{
             "header": {
                 "id": Event.get_id(),
                 "time": Event.get_time(),
                 "version": VERSION
             },
-            "body": vehicle_config
+            "body": config
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
+    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure):
+        status = Hook.get_status(kvs_client, from_target, structure.Status)
+        if status is None:
+            return
+        topic = cls.get_status_topic(from_target, to_target)
+        message = structure.Message.Status.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION
+            },
+            "body": status
         })
         pubsub_client.publish(topic, message)
 
     @classmethod
     def publish_vehicle_status(cls, pubsub_client, kvs_client, target_vehicle, target_dispatcher):
-        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        if status is not None:
-            topic = cls.get_vehicle_status_topic(target_vehicle, target_dispatcher)
-            message = Vehicle.Message.Status.new_data(**{
-                "header": {
-                    "id": Event.get_id(),
-                    "time": Event.get_time(),
-                    "version": VERSION
-                },
-                "body": status
-            })
-            pubsub_client.publish(topic, message)
+        cls.publish_status(pubsub_client, kvs_client, target_vehicle, target_dispatcher, Vehicle)
+
+    @classmethod
+    def publish_traffic_signal_status(cls, pubsub_client, kvs_client, from_target, to_target):
+        cls.publish_status(pubsub_client, kvs_client, from_target, to_target, TrafficSignal)
 
     @classmethod
     def publish_vehicle_geotopic(cls, pubsub_client, target_vehicle, vehicle_status):
@@ -270,21 +290,3 @@ class Publisher(object):
             }
         })
         pubsub_client.publish(topic, schedule_message)
-
-    @classmethod
-    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure):
-        status = Hook.get_status(kvs_client, from_target, structure.Status)
-        topic = cls.get_status_topic(from_target, to_target)
-        status_message = structure.Message.Status.new_data(**{
-            "header": {
-                "id": Event.get_id(),
-                "time": Event.get_time(),
-                "version": VERSION
-            },
-            "body": status
-        })
-        pubsub_client.publish(topic, status_message)
-
-    @classmethod
-    def publish_traffic_signal_status(cls, pubsub_client, kvs_client, from_target, to_target):
-        cls.publish_status(pubsub_client, kvs_client, from_target, to_target, TrafficSignal)

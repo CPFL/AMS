@@ -43,7 +43,8 @@ class StateMachine(object):
 
             if transition["hooks"] is not None:
                 for hook in transition["hooks"]:
-                    data["callbacks"][hook["function"]](*list(map(lambda x: data["variables"][x], hook["args"])))
+                    data["callbacks"][hook["function"]](
+                        *list(map(lambda x: data["variables"][x] if isinstance(x, str) else x, hook["args"])))
 
             if transition["conditions"] is None:
                 conditions_result = True
@@ -53,7 +54,8 @@ class StateMachine(object):
                     map(
                         lambda y: (
                             y["not"] if "not" in y else False,
-                            data["callbacks"][y["function"]](*list(map(lambda z: data["variables"][z], y["args"])))),
+                            data["callbacks"][y["function"]](
+                                *list(map(lambda z: data["variables"][z] if isinstance(z, str) else z, y["args"])))),
                         transition["conditions"])
                 ))
 
