@@ -36,7 +36,7 @@ template = {
 }
 
 arg_schema = {
-    "type": "string",
+    "anyof_type": ["number", "string"],
     "nullable": False
 }
 
