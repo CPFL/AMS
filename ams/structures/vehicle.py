@@ -29,11 +29,12 @@ const.update({
     "TOPIC": topic,
     "STATE": {
         "WAIT_SCHEDULE": "WaitSchedule",
-        "AUTOWARE_DRIVING": "AutowareDriving",
-        "SCHEDULE_CHECK": "ScheduleCheck",
-        "SCHEDULE_CHANGE": "ScheduleChange",
-        "SCHEDULE_CHANGE_SUCCEEDED": "ScheduleChangeSucceeded",
-        "SCHEDULE_CHANGE_FAILED": "ScheduleChangeFailed"
+        "WAITING_EVENT": "WaitingEvent",
+        "WAITING_SCHEDULE": "WaitingSchedule",
+        "REPLACING_SCHEDULE": "ReplacingSchedule",
+        "REPLACING_SCHEDULE_SUCCEEDED": "ReplacingScheduleSucceeded",
+        "REPLACING_SCHEDULE_FAILED": "ReplacingScheduleFailed",
+        "END": "End"
     },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
@@ -80,6 +81,7 @@ status_template = EventLoop.Status.get_template()
 status_template.update({
     "schedule_id": "s0",
     "event_id": "e0",
+    "on_event": False,
     "location": Location.get_template(),
     "pose": Pose.get_template(),
     "current_pose": Autoware.Status.CurrentPose.get_template(),
@@ -98,6 +100,11 @@ status_schema.update({
         "type": "string",
         "required": True,
         "nullable": True,
+    },
+    "on_event": {
+        "type": "boolean",
+        "required": True,
+        "nullable": False
     },
     "location": {
         "type": "dict",

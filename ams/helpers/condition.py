@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams.helpers import Hook, Event
-from ams.structures import Vehicle, Dispatcher, TrafficSignal
+from ams import logger
+from ams.helpers import Hook, Event, Target
+from ams.structures import Vehicle, TrafficSignal
 
 
 class Condition(object):
@@ -57,18 +58,14 @@ class Condition(object):
         return False
 
     @classmethod
-    def dispatcher_assigned(cls, kvs_client, target_vehicle):
-        vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
-        if vehicle_config is not None:
-            return vehicle_config.target_dispatcher is not None
-        return False
-
-    @classmethod
     def node_state_timeout(cls, kvs_client, target, structure, timeout):
         status = Hook.get_status(kvs_client, target, structure)
         if status is None:
             return False
-        return timeout < Event.get_time() - status.updated_at
+        timeout_flag = timeout < Event.get_time() - status.updated_at
+        if timeout_flag:
+            logger.warning("Node({}) state({}) timeout".format(Target.get_code(target), status.state))
+        return timeout_flag
 
     @classmethod
     def vehicle_state_timeout(cls, kvs_client, target, timeout=5):
@@ -86,19 +83,11 @@ class Condition(object):
         return 0 < len(schedule.events)
 
     @classmethod
-    def vehicle_schedule_exists(cls, kvs_client, target_vehicle):
-        return cls.schedule_exists(kvs_client, target_vehicle)
-
-    @classmethod
     def received_schedule_exists(cls, kvs_client, target):
         received_schedule = Hook.get_received_schedule(kvs_client, target)
         if received_schedule is None:
             return False
         return 0 < len(received_schedule.events)
-
-    @classmethod
-    def vehicle_received_schedule_exists(cls, kvs_client, target_vehicle):
-        return cls.received_schedule_exists(kvs_client, target_vehicle)
 
     @classmethod
     def traffic_signal_cycle_exists(cls, kvs_client, target):
@@ -120,45 +109,13 @@ class Condition(object):
         return cls.received_schedule_initialized(kvs_client, target_vehicle)
 
     @classmethod
-    def vehicle_status_event_id_initialized(cls, kvs_client, target_vehicle):
-        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
-        if vehicle_status is not None:
-            return vehicle_status.event_id in map(lambda x: x.id, vehicle_schedule.events)
-        return False
-
-    @classmethod
-    def vehicle_schedule_updated(cls, kvs_client, target):
-        received_schedule = Hook.get_received_schedule(kvs_client, target)
-        if received_schedule is None:
-            return False
-
-        schedule = Hook.get_schedule(kvs_client, target)
-        if schedule is None:
-            return False
-
-        status = Hook.get_status(kvs_client, target, Vehicle.Status)
-        return received_schedule.id == schedule.id == status.schedule_id
-
-    @classmethod
     def vehicle_route_point_updated(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedule]:
             vehicle_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
-            if vehicle_event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.CHANGE_ROUTE:
-                vehicle_event = Event.get_next_event_by_current_event_id(
-                    vehicle_schedule.events, vehicle_status.event_id)
-            if "route_code" in vehicle_event:
+            if "route_code" in vehicle_event and vehicle_status.route_point is not None:
                 return vehicle_status.route_point.route_code == vehicle_event.route_code
-        return False
-
-    @classmethod
-    def vehicle_schedule_include_any_expected_events(cls, kvs_client, target_vehicle, expected_events):
-        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
-        if vehicle_schedule is not None:
-            event_names = Hook.get_vehicle_event_names(vehicle_schedule.events)
-            return 0 < len(list(set(expected_events) & set(event_names)))
         return False
 
     @classmethod
@@ -166,6 +123,13 @@ class Condition(object):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
             return "\n"+expected in vehicle_status.decision_maker_state.data
+        return False
+
+    @classmethod
+    def decision_maker_state_is_in_expected_states(cls, kvs_client, target_vehicle, expected_states):
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is not None:
+            return any(map(lambda x: "\n"+x in vehicle_status.decision_maker_state.data, expected_states))
         return False
 
     @classmethod
@@ -193,13 +157,34 @@ class Condition(object):
         return vehicle_config is not None
 
     @classmethod
+    def on_vehicle_schedule(cls, kvs_client, target_vehicle):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if schedule is None:
+            return False
+
+        event_ids = list(map(lambda x: x.id, schedule.events))
+        return all([
+            status.schedule_id == schedule.id,
+            status.event_id in event_ids
+        ])
+
+    @classmethod
+    def on_vehicle_event(cls, kvs_client, target_vehicle):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        return status.on_event
+
+    @classmethod
     def vehicle_schedule_replaceable(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
         if received_schedule is None:
             return False
 
-        if status.event_id not in map(lambda x: x.id, received_schedule.events):
+        received_schedule_event_ids = list(map(lambda x: x.id, received_schedule.events))
+        if status.event_id not in received_schedule_event_ids:
+            logger.warning("No event id:{} in received schedule event ids:{}.".format(
+                    status.event_id, received_schedule_event_ids))
             return False
 
         # todo: check location and time

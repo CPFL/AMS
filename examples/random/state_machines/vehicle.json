@@ -1,5 +1,5 @@
 {
-  "initial_state": "StartProcessing",
+  "initial_state": "Start",
   "variables": {
     "kvs_client": null,
     "pubsub_client": null,
@@ -24,13 +24,70 @@
     "ENGAGE": {"data": "engage"},
     "GOTO_WAIT_ORDER": {"data": "goto_wait_order"},
     "REQUEST_MISSION_CHANGE": {"data": "request_mission_change"},
-    "RETURN_TO_DRIVING": {"data": "return_to_driving"}
+    "RETURN_TO_DRIVING": {"data": "return_to_driving"},
+    "LANE_ARRAY_RECEIVABLE_STATES": ["WaitOrder\n", "DrivingMissionChange\n"]
   },
   "transitions": [
     {
       "event": null,
+      "from": "Start",
+      "to": "StartProcessing",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
       "from": "StartProcessing",
-      "to": "Located",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "initialize_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "initialize_vehicle_received_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "vehicle_received_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+
+
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "MapMatching",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_located",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "MapMatching",
+      "to": "WaitingEvent",
       "hooks": [
         {
           "function": "update_and_set_vehicle_pose",
@@ -48,11 +105,17 @@
         }
       ]
     },
+
+
     {
-      "event": null,
-      "from": "Located",
-      "to": "WaitSchedule",
+      "event": "send_lane_array",
+      "from": "WaitingEvent",
+      "to": "SendingRoute",
       "hooks": [
+        {
+          "function": "start_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "update_and_set_vehicle_pose",
           "args": ["kvs_client", "maps_client", "target_vehicle"]
@@ -60,82 +123,32 @@
         {
           "function": "publish_vehicle_status",
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        },
-        {
-          "function": "initialize_vehicle_schedule",
-          "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_schedule_initialized",
+          "function": "on_vehicle_event",
           "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "decision_maker_state_is_in_expected_states",
+          "args": ["kvs_client", "target_vehicle", "LANE_ARRAY_RECEIVABLE_STATES"]
         }
       ]
     },
     {
       "event": null,
-      "from": "WaitSchedule",
-      "to": "VehicleScheduleUpdated",
-      "hooks": [
-        {
-          "function": "update_vehicle_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        },
-        {
-          "function": "initialize_vehicle_status_event_id",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_schedule_updated",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": "start_schedule",
-      "from": "VehicleScheduleUpdated",
-      "to": "AutowareWaitOrder",
-      "hooks": [
-        {
-          "function": "initialize_vehicle_status_event_id",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        },
-        {
-          "function": "initialize_vehicle_received_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_status_event_id_initialized",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "vehicle_received_schedule_initialized",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "WAIT_ORDER"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "AutowareWaitOrder",
+      "from": "SendingRoute",
       "to": "VehicleRoutePointUpdated",
       "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_route_code",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_autoware"]
+        },
         {
           "function": "update_vehicle_route_point",
           "args": ["kvs_client", "target_vehicle"]
@@ -147,23 +160,32 @@
       ],
       "conditions": [
         {
+          "function": "vehicle_located",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "decision_maker_state_is_in_expected_states",
+          "args": ["kvs_client", "target_vehicle", "LANE_ARRAY_RECEIVABLE_STATES"],
+          "not": true
+        },
+        {
           "function": "vehicle_route_point_updated",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
     },
     {
-      "event": "send_lane_array",
+      "event": null,
       "from": "VehicleRoutePointUpdated",
-      "to": "AutowareMissionCheck",
+      "to": "WaitingEvent",
       "hooks": [
+        {
+          "function": "end_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "update_and_set_vehicle_pose",
           "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_route_code",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_autoware"]
         },
         {
           "function": "publish_vehicle_status",
@@ -172,17 +194,27 @@
       ],
       "conditions": [
         {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "WAIT_ORDER"],
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
           "not": true
+        },
+        {
+          "function": "vehicle_located",
+          "args": ["kvs_client", "target_vehicle"]
         }
       ]
     },
+
+
     {
-      "event": null,
-      "from": "AutowareMissionCheck",
-      "to": "AutowareDriveReady",
+      "event": "send_engage",
+      "from": "WaitingEvent",
+      "to": "SendingEngage",
       "hooks": [
+        {
+          "function": "start_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "update_and_set_vehicle_pose",
           "args": ["kvs_client", "maps_client", "target_vehicle"]
@@ -193,6 +225,10 @@
         }
       ],
       "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "decision_maker_state_is_expected",
           "args": ["kvs_client", "target_vehicle", "DRIVE_READY"]
@@ -200,10 +236,14 @@
       ]
     },
     {
-      "event": "send_engage",
-      "from": "AutowareDriveReady",
-      "to": "AutowareDriving",
+      "event": null,
+      "from": "SendingEngage",
+      "to": "WaitingEvent",
       "hooks": [
+        {
+          "function": "end_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
         {
           "function": "update_and_set_vehicle_pose",
           "args": ["kvs_client", "maps_client", "target_vehicle"]
@@ -219,27 +259,10 @@
       ],
       "conditions": [
         {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "DRIVE_READY"],
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
           "not": true
-        }
-      ]
-    },
-    {
-      "event": "check_engaged",
-      "from": "AutowareDriveReady",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
         },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
         {
           "function": "decision_maker_state_is_expected",
           "args": ["kvs_client", "target_vehicle", "DRIVE_READY"],
@@ -247,169 +270,12 @@
         }
       ]
     },
-    {
-      "event": "change_route",
-      "from": "AutowareDriving",
-      "to": "AutowareDrivingMissionChange-1",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "DRIVING"]
-        },
-        {
-          "function": "vehicle_location_is_on_event_route",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        }
-      ]
-    },
+
+
     {
       "event": null,
-      "from": "AutowareDrivingMissionChange-1",
-      "to": "AutowareDrivingMissionChange",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_state_cmd",
-          "args": ["pubsub_client", "target_vehicle", "target_autoware", "REQUEST_MISSION_CHANGE"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "DRIVING"],
-          "not": true
-        }
-      ]
-    },
-    {
-      "event": "send_lane_array",
-      "from": "AutowareDrivingMissionChange",
-      "to": "AutowareMissionChangeSucceeded",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_route_code",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_autoware"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "MISSION_CHANGE_SUCCEEDED"]
-        }
-      ]
-    },
-    {
-      "event": "send_lane_array",
-      "from": "AutowareDrivingMissionChange",
-      "to": "AutowareMissionChangeFailed",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_route_code",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_autoware"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "MISSION_CHANGE_FAILED"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "AutowareMissionChangeSucceeded",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_state_cmd",
-          "args": ["pubsub_client", "target_vehicle", "target_autoware", "RETURN_TO_DRIVING"]
-        },
-        {
-          "function": "update_vehicle_route_point",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_route_point_updated",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "DRIVING"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "AutowareMissionChangeFailed",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_state_cmd",
-          "args": ["pubsub_client", "target_vehicle", "target_autoware", "RETURN_TO_DRIVING"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "DRIVING"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "AutowareDriving",
-      "to": "AutowareMissionComplete",
+      "from": "WaitingEvent",
+      "to": "SendingGotoWaitOrder",
       "hooks": [
         {
           "function": "update_and_set_vehicle_pose",
@@ -429,258 +295,8 @@
     },
     {
       "event": null,
-      "from": "AutowareDriving",
-      "to": "AutowareMissionAborted",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "decision_maker_state_is_expected",
-          "args": ["kvs_client", "target_vehicle", "MISSION_ABORTED"]
-        }
-      ]
-    },
-    {
-      "event": "change_schedule",
-      "from": "AutowareDriving",
-      "to": "ScheduleCheck",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": null
-    },
-    {
-      "event": null,
-      "from": "ScheduleCheck",
-      "to": "ScheduleChange",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_received_schedule_exists",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "vehicle_schedule_replaceable",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "ScheduleCheck",
-      "to": "ScheduleChangeFailed",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_received_schedule_exists",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "vehicle_schedule_replaceable",
-          "args": ["kvs_client", "target_vehicle"],
-          "not": true
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "ScheduleCheck",
-      "to": "ScheduleChangeFailed",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_state_timeout",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "ScheduleChange",
-      "to": "ScheduleChangeSucceeded",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "change_vehicle_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_schedule_changed",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "ScheduleChange",
-      "to": "ScheduleChangeFailed",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "change_vehicle_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_state_timeout",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": "return_to_autoware_driving",
-      "from": "ScheduleChangeSucceeded",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": null
-    },
-    {
-      "event": null,
-      "from": "ScheduleChangeSucceeded",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_state_timeout",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": "return_to_autoware_driving",
-      "from": "ScheduleChangeFailed",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        },
-        {
-          "function": "initialize_vehicle_received_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_received_schedule_initialized",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "ScheduleChangeFailed",
-      "to": "AutowareDriving",
-      "hooks": [
-        {
-          "function": "update_and_set_vehicle_pose",
-          "args": ["kvs_client", "maps_client", "target_vehicle"]
-        },
-        {
-          "function": "publish_vehicle_status",
-          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
-        },
-        {
-          "function": "initialize_vehicle_received_schedule",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ],
-      "conditions": [
-        {
-          "function": "vehicle_received_schedule_initialized",
-          "args": ["kvs_client", "target_vehicle"]
-        },
-        {
-          "function": "vehicle_state_timeout",
-          "args": ["kvs_client", "target_vehicle"]
-        }
-      ]
-    },
-    {
-      "event": null,
-      "from": "AutowareMissionComplete",
-      "to": "AutowareWaitOrder",
+      "from": "SendingGotoWaitOrder",
+      "to": "WaitingEvent",
       "hooks": [
         {
           "function": "update_and_set_vehicle_pose",
@@ -702,51 +318,472 @@
         }
       ]
     },
+
+
     {
-      "event": "end_schedule",
-      "from": "AutowareWaitOrder",
-      "to": "WaitSchedule",
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "SendingReturnToDriving",
       "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "MISSION_CHANGE_SUCCEEDED"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SendingReturnToDriving",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_state_cmd",
+          "args": ["pubsub_client", "target_vehicle", "target_autoware", "RETURN_TO_DRIVING"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "MISSION_CHANGE_SUCCEEDED"],
+          "not": true
+        }
+      ]
+    },
+
+
+    {
+      "event": "change_route",
+      "from": "WaitingEvent",
+      "to": "RequestingMissionChange",
+      "hooks": [
+        {
+          "function": "start_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "DRIVING"]
+        },
+        {
+          "function": "vehicle_location_is_on_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RequestingMissionChange",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "end_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_state_cmd",
+          "args": ["pubsub_client", "target_vehicle", "target_autoware", "REQUEST_MISSION_CHANGE"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "DRIVING_MISSION_CHANGE"]
+        }
+      ]
+    },
+
+
+    {
+      "event": "publish_light_color",
+      "from": "WaitingEvent",
+      "to": "CheckingLightColor",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "CheckingLightColor",
+      "to": "PublishingLightColor",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "CheckingLightColor",
+      "to": "WaitingEvent",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "PublishingLightColor",
+      "to": "WaitingEvent",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": "change_schedule",
+      "from": "WaitingEvent",
+      "to": "WaitingSchedule",
+      "hooks": [
+        {
+          "function": "suspend_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
         {
           "function": "publish_vehicle_status",
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         },
         {
-          "function": "initialize_vehicle_schedule",
+          "function": "initialize_vehicle_received_schedule",
           "args": ["kvs_client", "target_vehicle"]
         }
       ],
       "conditions": [
         {
-          "function": "vehicle_schedule_initialized",
+          "function": "vehicle_located",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "vehicle_received_schedule_initialized",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
     },
     {
-      "event": "end_schedule",
-      "from": "AutowareMissionAborted",
-      "to": "WaitSchedule",
+      "event": null,
+      "from": "WaitingSchedule",
+      "to": "SettingSchedule",
       "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
         {
           "function": "publish_vehicle_status",
           "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_received_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
         },
         {
-          "function": "initialize_vehicle_schedule",
+          "function": "on_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SettingSchedule",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "replace_schedule",
           "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "start_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+
+    {
+      "event": null,
+      "from": "WaitingSchedule",
+      "to": "ReplacingSchedule",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
         }
       ],
       "conditions": [
         {
           "function": "vehicle_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "vehicle_schedule_replaceable",
           "args": ["kvs_client", "target_vehicle"]
         }
       ]
     },
+    {
+      "event": null,
+      "from": "WaitingSchedule",
+      "to": "ReplacingScheduleFailed",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_received_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "vehicle_schedule_replaceable",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "WaitingSchedule",
+      "to": "ReplacingScheduleFailed",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_state_timeout",
+          "args": ["kvs_client", "target_vehicle", 10]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "ReplacingSchedule",
+      "to": "ReplacingScheduleSucceeded",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "replace_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "restart_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_schedule_changed",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "on_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "ReplacingSchedule",
+      "to": "ReplacingScheduleFailed",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_state_timeout",
+          "args": ["kvs_client", "target_vehicle", 5]
+        }
+      ]
+    },
+    {
+      "event": "return_to_waiting_event",
+      "from": "ReplacingScheduleSucceeded",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "ReplacingScheduleSucceeded",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_state_timeout",
+          "args": ["kvs_client", "target_vehicle", 5]
+        }
+      ]
+    },
+    {
+      "event": "return_to_waiting_event",
+      "from": "ReplacingScheduleFailed",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        },
+        {
+          "function": "initialize_vehicle_received_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_received_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "ReplacingScheduleFailed",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        },
+        {
+          "function": "initialize_vehicle_received_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_received_schedule_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "vehicle_state_timeout",
+          "args": ["kvs_client", "target_vehicle", 5]
+        }
+      ]
+    },
+
     {
       "event": "end_node",
-      "from": "WaitSchedule",
+      "from": "WaitingEvent",
       "to": "EndProcessing",
       "hooks": null,
       "conditions": null
@@ -764,7 +801,7 @@
       "conditions": [
         {
           "function": "vehicle_state_timeout",
-          "args": ["kvs_client", "target_vehicle"]
+          "args": ["kvs_client", "target_vehicle", 10]
         }
       ]
     }
