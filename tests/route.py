@@ -175,13 +175,13 @@ class Test(unittest.TestCase):
 
     def test_generate_lane_array(self):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
-            expected = json.load(f)
+            expected = json.load(f)["lanes"]
 
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         value1 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0).lanes
         self.assertEqual(expected, value1)
         value2 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0).lanes
         self.assertEqual(expected, value2)
