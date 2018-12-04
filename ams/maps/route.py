@@ -158,3 +158,7 @@ class Route(object):
 
     def generate_lane_code_waypoint_id_relations(self, route_code):
         return Helper.generate_lane_code_waypoint_id_relations(route_code, self.__lane.get_lanes())
+
+    def calculate_distance_from_route_point_to_inner_route(self, route_point, inner_route_code):
+        return Helper.calculate_distance_from_route_point_to_inner_route(
+            route_point, inner_route_code, self.__lane.get_lanes(), self.__waypoint.get_waypoints())
