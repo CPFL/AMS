@@ -29,7 +29,8 @@ setup(
     install_requires=[
         "python-geohash==0.8.5",
         "Cerberus==1.1",
-        "PyYAML==3.13"
+        "PyYAML==3.13",
+        "polyline==1.3.2"
     ],
     test_suite="tests"
 )
