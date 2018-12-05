@@ -5,7 +5,6 @@ import json
 import uuid
 from sys import float_info
 from math import modf, hypot
-from copy import deepcopy
 from time import time
 
 from collections import Counter
@@ -514,7 +513,7 @@ class Route(object):
                         ))),
                 lanes.keys()
             )))
-        lane_costs = dict(map(lambda i: (i[0], 1.0/i[1]), Counter(reduce(lambda x,y: x+y, lane_codes)).items()))
+        lane_costs = dict(map(lambda i: (i[0], 1.0/i[1]), Counter(reduce(lambda x, y: x+y, lane_codes)).items()))
         filtered_lanes, filtered_to_lanes, filtered_from_lanes = cls.generate_filtered_network(
             lane_costs.keys(), lanes, to_lanes, from_lanes)
 
