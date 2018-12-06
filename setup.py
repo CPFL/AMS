@@ -14,22 +14,23 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 with open(path.join(here, 'LICENSE'), encoding='utf-8') as f:
-    license = f.read()
+    _license = f.read()
 
 setup(
     name='ams',
     version=version,
     description='Autoware Management System',
     long_description=long_description,
-    url='https://github.com/CPFL/Autoware-Management-System',
+    url='https://github.com/CPFL/AMS',
     author='hiro-ya-iv',
     author_email='hiro.ya.iv@gmail.com',
-    license=license,
+    license=_license,
     packages=find_packages(exclude=["config", "res", 'tools', 'docs', 'tests', "examples"]),
     install_requires=[
         "python-geohash==0.8.5",
         "Cerberus==1.1",
-        "PyYAML==3.13"
+        "PyYAML==3.13",
+        "polyline==1.3.2"
     ],
     test_suite="tests"
 )

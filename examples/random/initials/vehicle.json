@@ -18,6 +18,7 @@
     "state": null,
     "schedule_id": null,
     "event_id": null,
+    "on_event": false,
     "location": null,
     "pose": null,
     "updated_at": 0.0,

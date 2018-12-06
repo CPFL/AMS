@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
 import unittest
 import json
 
@@ -75,35 +74,13 @@ class Test(unittest.TestCase):
         )
         self.assertEqual(expected, value)
 
-    def test_get_shortest_routes(self):
-        lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
-        waypoints = Waypoint.load("./res/maps/waypoint.json")
-        cost_function = Route.get_length
-        start = {
-            "waypoint_id": "9910",
-            "lane_code": "9908_9930"
-        }
-        goals = [
-            {
-                "goal_id": "test1",
-                "waypoint_id": "10125",
-                "lane_code": "10121_8973"
-            }
-        ]
-        value = Route.get_shortest_routes(
-            start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function)
-        expected = {
-            'test1': {
-                'waypoint_ids': ['9910', '10125'],
-                'lane_codes': [
-                    '9908_9930', '9930_9935', '9935_9054', '9054_9059', '9059_10067', '10067_10106', '10106_10121',
-                    '10121_8973'
-                ],
-                'goal_id': 'test1',
-                'cost': 139.6795663094191
-            }
-        }
-        self.assertEqual(expected, value)
+    def test_get_waypoint_ids(self):
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
+        with open("./tests/res/test_get_waypoint_ids.json", "r") as f:
+            resources = json.load(f)
+        for resource in resources:
+            value = Route.get_waypoint_ids(resource["route_code"], lanes)
+            self.assertEqual(resource["expected"], value)
 
     def test_get_route_point_pose_and_location(self):
         lanes, _, _ = Lane.load("./res/maps/lane.json")
@@ -175,13 +152,56 @@ class Test(unittest.TestCase):
 
     def test_generate_lane_array(self):
         with open("./tests/res/lane_array_expected1.json", "r") as f:
-            expected = json.load(f)
+            expected = json.load(f)["lanes"]
 
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
         value1 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0).lanes
         self.assertEqual(expected, value1)
         value2 = Route.generate_lane_array(
-            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0)
+            "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988", lanes, waypoints, 0).lanes
         self.assertEqual(expected, value2)
+
+    def test_get_shortest_routes(self):
+        lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
+        cost_function = Route.get_length
+        start = {
+            "waypoint_id": "9910",
+            "lane_code": "9908_9930"
+        }
+        goals = [
+            {
+                "goal_id": "test1",
+                "waypoint_id": "10125",
+                "lane_code": "10121_8973"
+            }
+        ]
+        value = Route.get_shortest_routes(
+            start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function)
+        expected = {
+            'test1': {
+                'waypoint_ids': ['9910', '10125'],
+                'lane_codes': [
+                    '9908_9930', '9930_9935', '9935_9054', '9054_9059', '9059_10067', '10067_10106', '10106_10121',
+                    '10121_8973'
+                ],
+                'goal_id': 'test1',
+                'cost': 139.6795663094191
+            }
+        }
+        self.assertEqual(expected, value)
+
+    def test_generate_route_code_from_polyline(self):
+        lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
+        with open("./tests/res/test_generate_route_code_from_polyline.json", "r") as f:
+            resources = json.load(f)
+        for resource in resources:
+            value = Route.generate_route_code_from_polyline(
+                resource["polyline_code"], lanes, waypoints, to_lanes, from_lanes,
+                start_waypoint_id=None if "start_waypoint_id" not in resource else resource["start_waypoint_id"],
+                goal_waypoint_id=None if "goal_waypoint_id" not in resource else resource["goal_waypoint_id"]
+            )
+            self.assertEqual(resource["expected"], value)

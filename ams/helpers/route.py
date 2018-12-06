@@ -2,9 +2,14 @@
 # coding: utf-8
 
 import json
+import uuid
 from sys import float_info
-from math import modf
+from math import modf, hypot
 from time import time
+
+from collections import Counter
+from functools import reduce
+import polyline
 
 from ams.helpers import Waypoint, Lane, Location
 from ams.structures import ROUTE, Autoware
@@ -296,7 +301,7 @@ class Route(object):
         header.stamp.nsecs = int(nsec * (10 ** 9))
     
         lane_array = Autoware.ROSMessage.LaneArray.get_template()
-        lane_array.id = int(current_time)
+        lane_array.id = int(uuid.uuid4().int & (1 << 31)-1)
         lane_array.lanes[0].header = header
         lane_array.lanes[0].waypoints = []
     
@@ -472,3 +477,122 @@ class Route(object):
                 shortest_routes[route_id]["lane_codes"].reverse()
 
         return shortest_routes
+
+    @classmethod
+    def generate_filtered_network(cls, lane_codes, lanes, to_lanes, from_lanes):
+        filtered_lanes = dict(filter(lambda x: x[0] in lane_codes, lanes.items()))
+
+        filtered_to_lanes = dict(filter(lambda x: x[0] in lane_codes, to_lanes.items()))
+        filtered_to_lanes = dict(map(
+            lambda x: (x[0], list(filter(lambda y: y in lane_codes, x[1]))),
+            filtered_to_lanes.items()))
+
+        filtered_from_lanes = dict(filter(lambda x: x[0] in lane_codes, from_lanes.items()))
+        filtered_from_lanes = dict(map(
+            lambda x: (x[0], list(filter(lambda y: y in lane_codes, x[1]))),
+            filtered_from_lanes.items()))
+
+        return filtered_lanes, filtered_to_lanes, filtered_from_lanes
+
+    @classmethod
+    def generate_route_code_from_polyline(
+            cls, polyline_code, lanes, waypoints, to_lanes,
+            from_lanes, start_waypoint_id=None, goal_waypoint_id=None, bl_dif_threshold=0.0001):
+        latlngs = polyline.decode(polyline_code, precision=5)
+
+        # filtering lane network with polyline latlngs.
+        lane_codes = []
+        for lat, lng in latlngs:
+            lane_codes.append(list(filter(
+                lambda x: 0 < len(list(filter(
+                            lambda y: hypot(
+                                Waypoint.get_latlng(y, waypoints)[0] - lat,
+                                Waypoint.get_latlng(y, waypoints)[1] - lng
+                            ) < bl_dif_threshold,
+                            Lane.get_waypoint_ids(x, lanes)
+                        ))),
+                lanes.keys()
+            )))
+        lane_costs = dict(map(lambda i: (i[0], 1.0/i[1]), Counter(reduce(lambda x, y: x+y, lane_codes)).items()))
+        filtered_lanes, filtered_to_lanes, filtered_from_lanes = cls.generate_filtered_network(
+            lane_costs.keys(), lanes, to_lanes, from_lanes)
+
+        # route search on filtered lane network.
+        if start_waypoint_id is None:
+            starts = list(map(lambda x: {
+                "waypoint_id": min(map(
+                    lambda z: (
+                        z,
+                        hypot(
+                            Waypoint.get_latlng(z, waypoints)[0] - latlngs[0][0],
+                            Waypoint.get_latlng(z, waypoints)[1] - latlngs[0][1]
+                        )
+                    ),
+                    Lane.get_waypoint_ids(x, filtered_lanes)
+                ), key=lambda y: y[1])[0],
+                "lane_code": x
+            }, lane_codes[0]))
+        else:
+            starts = list(map(
+                lambda x: {
+                    "waypoint_id": start_waypoint_id,
+                    "lane_code": x
+                },
+                Lane.get_lane_codes_by_waypoint_id(start_waypoint_id, filtered_lanes)
+            ))
+
+        if goal_waypoint_id is None:
+            goals = list(map(lambda x: {
+                "goal_id": x[0],
+                "waypoint_id": min(map(
+                    lambda z: (
+                        z,
+                        hypot(
+                            Waypoint.get_latlng(z, waypoints)[0] - latlngs[-1][0],
+                            Waypoint.get_latlng(z, waypoints)[1] - latlngs[-1][1]
+                        )
+                    ),
+                    Lane.get_waypoint_ids(x[1], filtered_lanes)
+                ), key=lambda y: y[1])[0],
+                "lane_code": x[1]
+            }, enumerate(lane_codes[-1])))
+        else:
+            goals = list(map(
+                lambda x: {
+                    "goal_id": x[0],
+                    "waypoint_id": goal_waypoint_id,
+                    "lane_code": x[1]
+                },
+                enumerate(Lane.get_lane_codes_by_waypoint_id(goal_waypoint_id, filtered_lanes))
+            ))
+
+        def lane_cost_function(route, _lanes, _waypoints):
+            return sum(map(lambda x: lane_costs[x], route.lane_codes))
+
+        def route_cost_function(route, _lanes, _waypoints):
+            waypoint_latlngs = list(map(
+                lambda x: Waypoint.get_latlng(x, _waypoints),
+                Route.get_waypoint_ids(Route.encode(route), _lanes)
+            ))
+            return sum(map(
+                lambda x: min(map(
+                    lambda y: hypot(x[0]-y[0], x[1]-y[1]),
+                    waypoint_latlngs
+                )),
+                latlngs
+            )) + sum(map(
+                lambda x: min(map(
+                    lambda y: hypot(x[0]-y[0], x[1]-y[1]),
+                    latlngs
+                )),
+                waypoint_latlngs
+            ))
+
+        routes = []
+        for start in starts:
+            routes.extend(cls.get_shortest_routes(
+                start, goals, filtered_lanes, filtered_to_lanes, filtered_from_lanes, waypoints, lane_cost_function
+            ).values())
+
+        route_code = Route.encode(min(routes, key=lambda x: route_cost_function(x, filtered_lanes, waypoints)))
+        return route_code
