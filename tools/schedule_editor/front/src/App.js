@@ -7,9 +7,11 @@ import {routerReducer} from 'react-router-redux'
 
 import Routes from './Routes';
 
+import {scheduleEditorReducer} from './redux/Reducers/ScheduleEditorReducer';
 
 const store = createStore(
   combineReducers({
+    scheduleEditor: scheduleEditorReducer,
     routing: routerReducer
   })
 );
