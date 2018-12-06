@@ -6,6 +6,7 @@ import Grid from '@material-ui/core/Grid';
 
 import Map3DManager from './Maps/Map3D/Map3DManager'
 import RouteList from './RouteList/RouteListBox';
+import ScheduleBox from './Schedules/ScheduleBox';
 
 import * as ScheduleEditorActions from "../../redux/Actions/ScheduleEditorActions";
 
@@ -49,7 +50,7 @@ class ScheduleEditor extends React.Component {
             </Grid>
             <Grid container style={{height: '50%'}}>
               <Grid item xs style={{position: 'relative'}}>
-                <RouteList/>
+                <ScheduleBox/>
               </Grid>
             </Grid>
           </Grid>

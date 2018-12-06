@@ -2,8 +2,8 @@ import React from 'react';
 import {connect} from "react-redux";
 import Grid from '@material-ui/core/Grid';
 
-import Map3DManager from "./Maps/Map3D/Map3DManager";
-import CreateRouteCodeTabs from "../RouteCodeEditor/Tabs/CreateRouteCodeTabs";
+//import Map3DManager from "./Maps/Map3D/Map3DManager";
+//import CreateRouteCodeTabs from "../RouteCodeEditor/Tabs/CreateRouteCodeTabs";
 
 
 class RouteCodeEditor extends React.Component {
@@ -33,12 +33,12 @@ class RouteCodeEditor extends React.Component {
           <Grid item xs style={{position: 'relative'}}>
             <div style={Map3DWrapper}>
               <div style={{height: '100%', width: '100%'}}>
-                <Map3DManager/>
+                Test
               </div>
             </div>
           </Grid>
           <Grid item xs style={{position: 'relative'}}>
-            <CreateRouteCodeTabs/>
+            Test
           </Grid>
         </Grid>
       </div>

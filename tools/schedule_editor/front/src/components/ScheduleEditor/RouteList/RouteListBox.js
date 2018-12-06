@@ -39,7 +39,6 @@ class RouteListBox extends React.Component {
   }
 
   routeCodeEditorModalOpen(){
-    console.log(this);
     this.setState({isOpen: true});
   }
 
