@@ -1,12 +1,11 @@
 import React from 'react';
-import {connect} from "react-redux";
 import Grid from '@material-ui/core/Grid';
 
-//import Map3DManager from "./Maps/Map3D/Map3DManager";
-//import CreateRouteCodeTabs from "../RouteCodeEditor/Tabs/CreateRouteCodeTabs";
+import Map3DManager from "./Maps/Map3D/Map3DManager";
+import CreateRouteCodeTabs from "./Tabs/CreateRouteCodeTabs";
 
 
-class RouteCodeEditor extends React.Component {
+export default class RouteCodeEditor extends React.Component {
 
   constructor(props) {
     super(props);
@@ -33,22 +32,15 @@ class RouteCodeEditor extends React.Component {
           <Grid item xs style={{position: 'relative'}}>
             <div style={Map3DWrapper}>
               <div style={{height: '100%', width: '100%'}}>
-                Test
+                <Map3DManager/>
               </div>
             </div>
           </Grid>
           <Grid item xs style={{position: 'relative'}}>
-            Test
+            <CreateRouteCodeTabs/>
           </Grid>
         </Grid>
       </div>
-
     );
   }
 }
-
-const mapState = () => ({});
-
-const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(RouteCodeEditor);
