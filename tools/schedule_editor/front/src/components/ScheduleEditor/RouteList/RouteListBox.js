@@ -1,21 +1,15 @@
 import React from 'react';
-import {connect} from "react-redux";
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
-import Typography from '@material-ui/core/Typography';
 
 import RouteList from './RouteList';
 import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
 
-class RouteListBox extends React.Component {
+export default class RouteListBox extends React.Component {
 
   constructor(props) {
     super(props);
@@ -38,11 +32,11 @@ class RouteListBox extends React.Component {
     this.setState({listHeight: document.getElementById("RouteListCard").clientHeight - document.getElementById("RouteListCardHeader").clientHeight});
   }
 
-  routeCodeEditorModalOpen(){
+  routeCodeEditorModalOpen() {
     this.setState({isOpen: true});
   }
 
-  closeModal(){
+  closeModal() {
     this.setState({isOpen: false});
   }
 
@@ -55,27 +49,23 @@ class RouteListBox extends React.Component {
       height: '100%'
     };
 
+    const CardStyle = {
+      height: '100%'
+    };
+
     const contentStyle = {
       boxSizing: 'border-box',
       height: cardContentHeight
     };
 
-    const modalHeader = {
-      flexGrow: 1,
-      height: '40px'
-    };
 
     const modalContent = {
-      position: 'absolute',
-      top: '40px',
-      right: 0,
-      bottom: 0,
-      left: 0
+      height: window.innerHeight * 0.9
     };
 
     return (
       <div style={wrapper}>
-        <Card style={{height: '100%'}}
+        <Card style={CardStyle}
               id="RouteListCard"
         >
           <CardHeader
@@ -92,20 +82,11 @@ class RouteListBox extends React.Component {
           </CardContent>
         </Card>
         <Dialog
-          fullScreen
           open={this.state.isOpen}
           onClose={this.closeModal}
+          fullWidth={true}
+          maxWidth='xl'
         >
-          <AppBar style={modalHeader}>
-            <Toolbar style={{minHeight: '40px'}}>
-              <IconButton color="inherit" onClick={this.closeModal} aria-label="Close">
-                <CloseIcon />
-              </IconButton>
-              <Typography variant="h6" color="inherit">
-                Route Code Editor
-              </Typography>
-            </Toolbar>
-          </AppBar>
           <div style={modalContent}>
             <RouteCodeEditor/>
           </div>
@@ -116,10 +97,4 @@ class RouteListBox extends React.Component {
     );
   }
 }
-
-const mapState = () => ({});
-
-const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(RouteListBox);
 

@@ -7,8 +7,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 
-
-class RouteList extends React.Component {
+export default class RouteList extends React.Component {
 
   constructor(props) {
     super(props);
@@ -24,7 +23,7 @@ class RouteList extends React.Component {
       "55:54>67>130>65:77",
       "55:54>67>130>65>500:499"
     ];
-    let resList = [];
+    const resList = [];
     for (const item of testList) {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
@@ -55,10 +54,3 @@ class RouteList extends React.Component {
     );
   }
 }
-
-const mapState = () => ({});
-
-const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(RouteList);
-

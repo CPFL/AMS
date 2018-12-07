@@ -10,11 +10,12 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidUpdate() {
     console.log(this.props);
-    if (this.props.routeCode.startPoint != null && this.props.routeCode.laneList != null && this.props.routeCode.endPoint != null) {
+    const routeCode = this.props.routeCode;
+    if (routeCode.startPoint != null && routeCode.laneList != null && routeCode.endPoint != null) {
       this.props.updateRouteCode(
-        this.props.routeCode.startPoint,
-        this.props.routeCode.laneList,
-        this.props.routeCode.endPoint
+        routeCode.startPoint,
+        routeCode.laneList,
+        routeCode.endPoint
       );
     }
   }
@@ -27,7 +28,6 @@ class RouteCodeUpdater extends React.Component {
 const mapState = (state) => ({
   routeCode: routeCodeSelector(state),
 });
-
 
 const mapDispatch = () => ({});
 

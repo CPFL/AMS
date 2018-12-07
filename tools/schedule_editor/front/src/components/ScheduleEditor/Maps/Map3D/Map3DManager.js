@@ -25,14 +25,10 @@ class Map3DManager extends React.Component {
     super(props);
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-    this.container = null;
-    this.camera = null;
-    this.scene = new THREE.Scene();
-    this.renderer = null;
-    this.controls = null;
-    this.stats = null;
-    this.mouse = new THREE.Vector2();
+    this.container = this.camera = this.renderer = this.controls =
+      this.stats = this.sceneData = null;
 
+    this.scene = new THREE.Scene();
     this.initialCameraPosition = {x: 0, y: 0, z: 0};
 
     this.PCDManager = new PCD();
@@ -60,21 +56,12 @@ class Map3DManager extends React.Component {
     delete this.scene;
     delete this.sceneData;
     delete this.PCDManager;
-    delete this.vehicleModelManager;
     delete this.waypointsModelManager;
-    delete this.raycaster;
+    delete this.initialCameraPosition;
 
-    this.container = null;
-    this.camera = null;
-    this.scene = null;
-    this.renderer = null;
-    this.controls = null;
-    this.stats = null;
-    this.sceneData = {};
-    this.PCDManager = null;
-    this.vehicleModelManager = null;
-    this.waypointsModelManager = null;
-    this.raycaster = null;
+    this.container = this.camera = this.scene = this.renderer =
+      this.controls = this.stats = this.sceneData = this.PCDManager =
+        this.waypointsModelManager = this.initialCameraPosition = null;
 
   }
 
@@ -97,7 +84,7 @@ class Map3DManager extends React.Component {
   }
 
   animate() {
-    if (this.camera !== null && this.controls !== null) {
+    if (this.camera && this.controls) {
       requestAnimationFrame(this.animate.bind(this));
       this.renderMap();
       this.controls.update();
@@ -176,7 +163,7 @@ class Map3DManager extends React.Component {
 
     this.PCDManager.setPCDMapFromBinary(mapData.pcd);
 
-    if (Object.keys(mapData.waypoint).length > 0 && Object.keys(mapData.lane).length > 0) {
+    if (Object.keys(mapData.waypoint).length && Object.keys(mapData.lane).length) {
       this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
     } else {
       this.waypointsModelManager.clear();
