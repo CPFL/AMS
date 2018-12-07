@@ -1,6 +1,6 @@
-var webpack = require('webpack');
-var WebpackDevServer = require('webpack-dev-server');
-var config = require('./webpack.config.local');
+const webpack = require('webpack');
+const WebpackDevServer = require('webpack-dev-server');
+const config = require('./webpack.config.local');
 
 new WebpackDevServer(webpack(config), {
   hot: true,
@@ -9,6 +9,5 @@ new WebpackDevServer(webpack(config), {
   if (err) {
     return console.log(err);
   }
-
   console.log('Listening at http://localhost:3000/');
 });
