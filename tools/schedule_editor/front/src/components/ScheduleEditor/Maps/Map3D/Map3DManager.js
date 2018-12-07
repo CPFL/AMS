@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import 'three/OrbitControls';
 import 'three/PCDLoader';
 
-import Detector from "../../../../lib/threejs/Detector";
+import Detector from "../../../../libs/threejs/Detector";
 
 import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
