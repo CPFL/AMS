@@ -13,7 +13,7 @@ from functools import reduce
 import polyline
 
 from ams.helpers import Waypoint, Lane, Location
-from ams.structures import ROUTE, Autoware, RouteSection
+from ams.structures import ROUTE, Autoware, RoutePoint, RouteSection
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -21,6 +21,8 @@ from ams.structures import Routes as Structures
 class Route(object):
 
     CONST = ROUTE
+    RoutePoint = RoutePoint
+    RouteSection = RouteSection
 
     @classmethod
     def new_route(cls, waypoint_ids, lane_codes, delimiters=None):
@@ -634,12 +636,17 @@ class Route(object):
         route_waypoint_ids = cls.get_waypoint_ids(route_point.route_code, lanes)
         route_section_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
 
-        return cls.calculate_route_section_length(
+        end_index = cls.__get_index_of_list1_first_element_in_list2(
+            route_section_waypoint_ids, route_waypoint_ids)
+
+        length = cls.calculate_route_section_length(
             RouteSection.new_data(**{
                 "route_code": route_point.route_code,
-                "start_index": route_point.index,
-                "end_index": cls.__get_index_of_list1_first_element_in_list2(
-                    route_section_waypoint_ids, route_waypoint_ids)
+                "start_index": min(route_point.index, end_index),
+                "end_index": max(route_point.index, end_index)
             }),
             lanes, waypoints
         )
+        if end_index < route_point.index:
+            return -length
+        return length

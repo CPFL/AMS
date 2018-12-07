@@ -52,9 +52,6 @@
         "route_code": "165:90>172:172"
       },
       {
-        "name": "check_engaged"
-      },
-      {
         "name": "send_lane_array",
         "route_code": "172:172<183:183"
       },

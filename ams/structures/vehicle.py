@@ -18,7 +18,7 @@ topic["CATEGORIES"].update({
     "GEOTOPIC": ["geotopic"],
     "STATE_CMD": ["state_cmd"],
     "ROUTE_CODE": ["route_code"],
-    "LIGHT_COLOR": ["light_color"]
+    "STOP_ROUTE_POINT": ["stop_route_point"]
 })
 
 const = {}

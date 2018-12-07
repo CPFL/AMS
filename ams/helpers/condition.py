@@ -119,6 +119,11 @@ class Condition(object):
         return False
 
     @classmethod
+    def received_stop_signal_initialized(cls, kvs_client, target):
+        received_stop_signal = Hook.get_received_stop_signal(kvs_client, target)
+        return received_stop_signal is None
+
+    @classmethod
     def decision_maker_state_is_expected(cls, kvs_client, target_vehicle, expected):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if vehicle_status is not None:
@@ -133,15 +138,40 @@ class Condition(object):
         return False
 
     @classmethod
+    def vehicle_location_is_ahead_event_route(cls, kvs_client, maps_client, target_vehicle):
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_schedule]:
+            current_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
+            route_section = maps_client.route.generate_route_section_with_route_codes(
+                current_event.route_code, vehicle_status.route_point.route_code
+            )
+            return vehicle_status.route_point.index < route_section.start_index
+        return False
+
+    @classmethod
     def vehicle_location_is_on_event_route(cls, kvs_client, maps_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
         if None not in [vehicle_status, vehicle_schedule]:
             current_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
             if current_event is not None:
-                route_waypoint_ids = maps_client.route.get_waypoint_ids(current_event.route_code)
-                if vehicle_status.location.waypoint_id in route_waypoint_ids:
-                    return True
+                route_section = maps_client.route.generate_route_section_with_route_codes(
+                    current_event.route_code, vehicle_status.route_point.route_code
+                )
+                return route_section.start_index <= vehicle_status.route_point.index <= route_section.end_index
+        return False
+
+    @classmethod
+    def vehicle_location_is_behind_event_route(cls, kvs_client, maps_client, target_vehicle):
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if None not in [vehicle_status, vehicle_schedule]:
+            current_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
+            route_section = maps_client.route.generate_route_section_with_route_codes(
+                current_event.route_code, vehicle_status.route_point.route_code
+            )
+            return route_section.end_index < vehicle_status.route_point.index
         return False
 
     @classmethod

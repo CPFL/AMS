@@ -146,6 +146,14 @@ class Subscriber(object):
         )
 
     @classmethod
+    def get_stop_signal_topic(cls, target_dispatcher, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_dispatcher,
+            to_target=target_vehicle,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.STOP_SIGNAL
+        )
+
+    @classmethod
     def on_request_get_config_message(cls, _client, user_data, topic, request_config_message):
         response_topic = Topic.get_response_topic(topic)
         message = Hook.get_response_config_message(
@@ -262,6 +270,11 @@ class Subscriber(object):
                 Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
 
     @classmethod
+    def on_stop_signal_message(cls, _client, user_data, _topic, stop_signal_message):
+        Hook.set_received_stop_signal(
+            user_data["kvs_client"], user_data["target_vehicle"], stop_signal_message.body)
+
+    @classmethod
     def on_current_pose(cls, _client, user_data, _topic, current_pose):
         Hook.set_current_pose(user_data["kvs_client"], user_data["target_vehicle"], current_pose)
 
@@ -322,22 +335,27 @@ class Subscriber(object):
                         Hook.update_vehicle_route_point,
                         Hook.initialize_vehicle_schedule,
                         Hook.initialize_vehicle_received_schedule,
+                        Hook.initialize_received_stop_signal,
                         Hook.start_vehicle_schedule,
                         Hook.restart_vehicle_schedule,
                         Hook.replace_schedule,
                         Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
                         Publisher.publish_state_cmd,
+                        Publisher.publish_stop_route_point,
                         Condition.on_vehicle_schedule,
                         Condition.on_vehicle_event,
                         Condition.vehicle_located,
                         Condition.vehicle_schedule_initialized,
                         Condition.vehicle_received_schedule_initialized,
+                        Condition.received_stop_signal_initialized,
                         Condition.vehicle_route_point_updated,
                         Condition.vehicle_schedule_replaceable,
                         Condition.decision_maker_state_is_expected,
                         Condition.decision_maker_state_is_in_expected_states,
+                        Condition.vehicle_location_is_ahead_event_route,
                         Condition.vehicle_location_is_on_event_route,
+                        Condition.vehicle_location_is_behind_event_route,
                         Condition.vehicle_state_timeout,
                         Condition.vehicle_schedule_changed
                     ],
