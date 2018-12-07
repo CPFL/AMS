@@ -206,6 +206,15 @@ class Test(unittest.TestCase):
             )
             self.assertEqual(resource["expected"], value)
 
+    def test_generate_route_section_with_route_codes(self):
+        lanes, _, _ = Lane.load("./res/entre/lane.json")
+        with open("./tests/res/test_generate_route_section_with_route_codes.json", "r") as f:
+            resources = json.load(f)
+        for resource in resources:
+            value = Route.generate_route_section_with_route_codes(
+                resource["inner_route_code"], resource["outer_route_code"], lanes)
+            self.assertEqual(resource["expected"], value)
+
     def test_calculate_route_section_length(self):
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")

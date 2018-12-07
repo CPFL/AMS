@@ -609,6 +609,17 @@ class Route(object):
             raise ValueError("{} is not in list {}".format(list1, list2))
 
     @classmethod
+    def generate_route_section_with_route_codes(cls, inner_route_code, outer_route_code, lanes):
+        inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+        outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
+        start_index = cls.__get_index_of_list1_first_element_in_list2(inner_waypoint_ids, outer_waypoint_ids)
+        return RouteSection.new_data(**{
+            "route_code": outer_route_code,
+            "start_index": start_index,
+            "end_index": start_index + len(inner_waypoint_ids) - 1
+        })
+
+    @classmethod
     def calculate_route_section_length(cls, route_section, lanes, waypoints):
         distance = 0.0
         waypoint_ids = Route.get_waypoint_ids(route_section.route_code, lanes)
