@@ -36,7 +36,7 @@
     "vehicle_location": null,
     "lane_array": null,
     "state_cmd": null,
-    "light_color": null,
+    "stop_waypoint_index": null,
     "updated_at": 0.0
   }
 }

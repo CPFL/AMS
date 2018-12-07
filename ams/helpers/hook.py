@@ -68,18 +68,18 @@ class Hook(object):
             ] + Vehicle.CONST.TOPIC.CATEGORIES.STATE_CMD)
 
     @classmethod
-    def get_light_color_key(cls, target):
-        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
-            [
-                Target.get_code(target),
-            ] + Vehicle.CONST.TOPIC.CATEGORIES.LIGHT_COLOR)
-
-    @classmethod
     def get_route_point_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target),
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.ROUTE_POINT)
+
+    @classmethod
+    def get_stop_waypoint_index_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target),
+            ] + AutowareInterface.CONST.TOPIC.CATEGORIES.STOP_WAYPOINT_INDEX)
 
     @classmethod
     def get_schedule_key(cls, target):
@@ -285,8 +285,8 @@ class Hook(object):
         return kvs_client.set(key, value)
 
     @classmethod
-    def set_light_color(cls, kvs_client, target, value):
-        key = cls.get_light_color_key(target)
+    def set_stop_waypoint_index(cls, kvs_client, target, value):
+        key = cls.get_stop_waypoint_index_key(target)
         return kvs_client.set(key, value)
 
     @classmethod
@@ -435,11 +435,11 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_light_color(cls, kvs_client, target):
-        key = cls.get_light_color_key(target)
+    def get_stop_waypoint_index(cls, kvs_client, target):
+        key = cls.get_stop_waypoint_index_key(target)
         value = kvs_client.get(key)
         if value is not None:
-            value = Autoware.Status.LightColor.new_data(**value)
+            value = Autoware.Status.StopWaypointIndex.new_data(**value)
         return value
 
     @classmethod
@@ -633,9 +633,20 @@ class Hook(object):
         if lane_array is not None:
             current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(current_pose, lane_array)
             vehicle_location.lane_array_id = lane_array["id"]
-            vehicle_location.waypoint_index = min(
+
+            next_waypoint_index = min([
                 current_vehicle_location.waypoint_index + config.step_size,
-                len(lane_array["lanes"][0]["waypoints"]) - 1)
+                len(lane_array["lanes"][0]["waypoints"]) - 1
+            ])
+            stop_waypoint_index = cls.get_stop_waypoint_index(kvs_client, target)
+            if stop_waypoint_index is not None:
+                if stop_waypoint_index.data != -1:
+                    next_waypoint_index = min([
+                        next_waypoint_index,
+                        stop_waypoint_index.data
+                    ])
+
+            vehicle_location.waypoint_index = next_waypoint_index
             return cls.set_vehicle_location(kvs_client, target, vehicle_location)
         return False
 

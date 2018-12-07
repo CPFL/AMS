@@ -48,11 +48,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_light_color_topic(cls, target_vehicle, target_autoware):
+    def get_stop_route_point_message_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
             to_target=target_autoware,
-            categories=Vehicle.CONST.TOPIC.CATEGORIES.LIGHT_COLOR
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STOP_ROUTE_POINT
         )
 
     @classmethod
@@ -213,14 +213,18 @@ class Subscriber(object):
             AutowareInterface.CONST.TOPIC.STATE_CMD, state_cmd, user_data["state_cmd_structure"])
 
     @classmethod
-    def on_light_color(cls, _client, user_data, _topic, light_color):
-        Hook.set_light_color(
-            user_data["kvs_client"], user_data["target_autoware"], light_color)
+    def on_stop_waypoint_index(cls, _client, user_data, _topic, stop_waypoint_index):
+        Hook.set_stop_waypoint_index(
+            user_data["kvs_client"], user_data["target_autoware"], stop_waypoint_index)
 
     @classmethod
-    def on_light_color_publish(cls, _client, user_data, _topic, light_color):
+    def on_route_point_message_publish_stop_waypoint_index(cls, _client, user_data, _topic, route_point_message):
+        stop_waypoint_index = {
+            "data": route_point_message.body.index
+        }
         user_data["ros_client"].publish(
-            AutowareInterface.CONST.TOPIC.LIGHT_COLOR, light_color, user_data["light_color_structure"])
+            AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX, stop_waypoint_index,
+            user_data["stop_waypoint_index_structure"])
 
     @classmethod
     def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):

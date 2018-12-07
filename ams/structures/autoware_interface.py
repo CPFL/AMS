@@ -9,7 +9,7 @@ topic = {
     "CATEGORIES": {},
     "STATE_CMD": "/state_cmd",
     "LANE_ARRAY": "/based/lane_waypoints_raw",
-    "LIGHT_COLOR": "/light_color"
+    "STOP_WAYPOINT_INDEX": "/state/stopline_wpidx"
 }
 topic["CATEGORIES"].update(event_loop_const["TOPIC"]["CATEGORIES"])
 topic["CATEGORIES"].update({
@@ -111,7 +111,7 @@ class Message(EventLoop.Message):
     Config = ConfigMessage
     LaneArray = Autoware.ROSMessage.LaneArray
     StateCMD = Autoware.ROSMessage.StateCMD
-    LightColor = Autoware.ROSMessage.LightColor
+    StopWaypointIndex = Autoware.ROSMessage.StopWaypointIndex
     RoutePoint = RoutePointMessage
 
 
