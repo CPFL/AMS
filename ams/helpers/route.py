@@ -602,11 +602,11 @@ class Route(object):
     def __get_index_of_list1_first_element_in_list2(cls, list1, list2):
         try:
             return list(filter(
-                lambda x: list2[x:x+len(list1)+1] == list1,
+                lambda x: list2[x:x+len(list1)] == list1,
                 [i for i, v in enumerate(list2) if v == list1[0]]))[0]
         except IndexError:
             logger.error("{} is not in list {}".format(list1, list2))
-            raise ValueError("{} is not in list".format(list1))
+            raise ValueError("{} is not in list {}".format(list1, list2))
 
     @classmethod
     def calculate_route_section_length(cls, route_section, lanes, waypoints):
