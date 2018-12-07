@@ -45,7 +45,7 @@ class ImportDataModal extends React.Component {
       const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
         e.target.value = "";
-        alert('You cannot set except json file.');
+        alert('Only pcd file is available');
       } else {
         const fileReader = new FileReader();
         fileReader.onload = event => {
@@ -68,7 +68,7 @@ class ImportDataModal extends React.Component {
       const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
         e.target.value = "";
-        alert('You cannot set except json file.');
+        alert('Only json file is available');
       } else {
         const fileReader = new FileReader();
         fileReader.onload = event => {
@@ -86,16 +86,15 @@ class ImportDataModal extends React.Component {
 
   importPCD(e) {
 
-    console.log(e);
     this.pcd = {};
     if (e.target.files.length > 0) {
       const fileList = e.target.files;
-      let isPCDFileCheck = true;
+      let checkPCDFileOnly = true;
       for (const file of fileList) {
-        isPCDFileCheck = file.name.match(/.+.pcd$/)
+        checkPCDFileOnly = file.name.match(/.+.pcd$/)
       }
 
-      if (isPCDFileCheck) {
+      if (checkPCDFileOnly) {
         this.setState({pcdOnLoad: true});
         this.pcdLoader.loadFromLocalFile(fileList).then(pcd => {
           this.pcd = pcd;
@@ -104,7 +103,7 @@ class ImportDataModal extends React.Component {
         })
       } else {
         e.target.value = "";
-        alert('You cannot set except pcd file.');
+        alert('Only pcd file is available');
       }
     }else{
       this.setState({pcdLoaded: false});
@@ -153,7 +152,7 @@ class ImportDataModal extends React.Component {
               component="span"
               style={{width: '100%'}}
             >
-              {waypointLoaded ? (<DoneIcon/>):""}
+              {waypointLoaded ? <DoneIcon/>:""}
               Select Waypoint(Required)
             </Button>
           </label>
@@ -172,7 +171,7 @@ class ImportDataModal extends React.Component {
               component="span"
               style={{marginTop: '5px', width: '100%'}}
             >
-              {laneLoaded ? (<DoneIcon/>):""}
+              {laneLoaded ? <DoneIcon/>:""}
               Select Lane(Required)
             </Button>
           </label>
@@ -191,7 +190,7 @@ class ImportDataModal extends React.Component {
               component="span"
               style={{marginTop: '5px', width: '100%'}}
             >
-              {pcdLoaded ? (<DoneIcon/>):""}
+              {pcdLoaded ? <DoneIcon/>:""}
               Select PCD
             </Button>
           </label>

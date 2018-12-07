@@ -48,7 +48,5 @@ export default class PCD extends THREE.Group {
         this.addPCD(mesh, id);
       }
     }
-
   }
-
 }

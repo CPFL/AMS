@@ -8,7 +8,6 @@ import Dialog from '@material-ui/core/Dialog';
 
 import RouteList from './RouteList';
 import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
-import DialogTitle from "@material-ui/core/DialogTitle/DialogTitle";
 
 export default class RouteListBox extends React.Component {
 
