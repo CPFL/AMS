@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from ams import logger
 from ams.helpers import Location
 from ams.helpers import Route as Helper
 from ams.structures import ROUTE, RouteDetail
@@ -136,7 +135,9 @@ class Route(object):
 
     def get_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
         return Helper.get_shortest_routes(
-            start, goals, self.__lanes, self.__to_lanes, self.__from_lanes, self.__waypoint.get_waypoints(),
+            start, goals,
+            self.__lane.get_lanes(), self.__lane.get_to_lanes(), self.__lane.get_from_lanes(),
+            self.__waypoint.get_waypoints(),
             self.__getRouteCost, cost_limit, reverse)
 
     def add_length_to_routes(self, routes):
@@ -145,7 +146,7 @@ class Route(object):
         return routes
 
     def get_speed_limits(self, route):
-        waypoint_ids = self.get_route_waypoint_ids(route)
+        waypoint_ids = self.get_waypoint_ids(route)
         speed_limits = list(map(self.__waypoint.get_speed_limit, waypoint_ids))
         return speed_limits
 
