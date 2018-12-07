@@ -26,9 +26,7 @@ class ImportDataModal extends React.Component {
       pcdOnLoad: false,
     };
 
-    this.waypoint = null;
-    this.lane = null;
-    this.pcd = null;
+    this.waypoint = this.lane = this.pcd = null;
 
     this.pcdLoader = new PCDLoader();
 
@@ -40,16 +38,16 @@ class ImportDataModal extends React.Component {
   }
 
   importWaypoint(e){
-    let fileList = e.target.files;
+    const fileList = e.target.files;
     this.waypoint = {};
 
-    if (fileList.length > 0) {
-      let file = fileList[0];
+    if (fileList.length) {
+      const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
         e.target.value = "";
         alert('You cannot set except json file.');
       } else {
-        let fileReader = new FileReader();
+        const fileReader = new FileReader();
         fileReader.onload = event => {
           this.waypoint = JSON.parse(event.target.result);
           this.setState({waypointLoaded: true});
@@ -63,16 +61,16 @@ class ImportDataModal extends React.Component {
   }
 
   importLane(e){
-    let fileList = e.target.files;
+    const fileList = e.target.files;
     this.lane = {};
 
-    if (fileList.length > 0) {
-      let file = fileList[0];
+    if (fileList.length) {
+      const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
         e.target.value = "";
         alert('You cannot set except json file.');
       } else {
-        let fileReader = new FileReader();
+        const fileReader = new FileReader();
         fileReader.onload = event => {
           this.lane = JSON.parse(event.target.result);
           this.setState({laneLoaded: true});
@@ -91,7 +89,7 @@ class ImportDataModal extends React.Component {
     console.log(e);
     this.pcd = {};
     if (e.target.files.length > 0) {
-      let fileList = e.target.files;
+      const fileList = e.target.files;
       let isPCDFileCheck = true;
       for (const file of fileList) {
         isPCDFileCheck = file.name.match(/.+.pcd$/)
