@@ -9,7 +9,7 @@ from ams.structures.waypoint import WAYPOINT, Waypoint
 from ams.structures.lane import LANE, Lane
 from ams.structures.target import TARGET, Target, Targets
 from ams.structures.period import Period
-from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint
+from ams.structures.route import ROUTE, Route, Routes, RouteDetail, RoutePoint, RouteSection
 from ams.structures.event import Event, Events
 from ams.structures.event_branch import EventBranch, EventBranches
 from ams.structures.schedule import Schedule

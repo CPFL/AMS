@@ -33,7 +33,7 @@ if __name__ == '__main__':
         raise ValueError("Unknown pubsub client type: {}".format(args.pubsub_client_type))
 
     if args.use_ros_flag:
-        from std_msgs.msg import String
+        from std_msgs.msg import String, Int32
         from geometry_msgs.msg import PoseStamped
         from autoware_msgs.msg import VehicleLocation, LaneArray, traffic_light
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
             "String": String,
             "PoseStamped": PoseStamped,
             "LaneArray": LaneArray,
-            "traffic_light": traffic_light
+            "Int32": Int32
         }
         ros_client = get_ros_client()
     else:
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             "String": None,
             "PoseStamped": None,
             "LaneArray": None,
-            "traffic_light": None
+            "Int32": None
         }
         ros_client = get_paho_client(args.pubsub_host, args.pubsub_port)
         ros_client.set_dumps(yaml.dump)

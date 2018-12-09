@@ -20,7 +20,7 @@ class AutowareInterface(EventLoop):
         self.user_data["target_vehicle"] = self.config.target_vehicle
         self.user_data["lane_array_structure"] = ros_msgs["LaneArray"]
         self.user_data["state_cmd_structure"] = ros_msgs["String"]
-        self.user_data["light_color_structure"] = ros_msgs["traffic_light"]
+        self.user_data["stop_waypoint_index_structure"] = ros_msgs["Int32"]
 
         topic = Subscriber.get_route_code_message_topic(
             self.user_data["target_vehicle"], self.user_data["target_autoware"])
@@ -39,11 +39,12 @@ class AutowareInterface(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = Subscriber.get_light_color_topic(self.user_data["target_vehicle"], self.user_data["target_autoware"])
+        topic = Subscriber.get_stop_route_point_message_topic(
+            self.user_data["target_vehicle"], self.user_data["target_autoware"])
         self.subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_light_color_publish,
-            "structure": None,
+            "callback": Subscriber.on_route_point_message_publish_stop_waypoint_index,
+            "structure": Vehicle.Message.RoutePoint,
             "user_data": self.user_data
         }
 
@@ -76,4 +77,3 @@ class AutowareInterface(EventLoop):
 
     def loop(self):
         self.user_data["ros_client"].loop(self.dt)
-

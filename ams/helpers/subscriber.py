@@ -48,11 +48,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_light_color_topic(cls, target_vehicle, target_autoware):
+    def get_stop_route_point_message_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
             to_target=target_autoware,
-            categories=Vehicle.CONST.TOPIC.CATEGORIES.LIGHT_COLOR
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STOP_ROUTE_POINT
         )
 
     @classmethod
@@ -146,6 +146,14 @@ class Subscriber(object):
         )
 
     @classmethod
+    def get_stop_signal_topic(cls, target_dispatcher, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_dispatcher,
+            to_target=target_vehicle,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.STOP_SIGNAL
+        )
+
+    @classmethod
     def on_request_get_config_message(cls, _client, user_data, topic, request_config_message):
         response_topic = Topic.get_response_topic(topic)
         message = Hook.get_response_config_message(
@@ -213,14 +221,18 @@ class Subscriber(object):
             AutowareInterface.CONST.TOPIC.STATE_CMD, state_cmd, user_data["state_cmd_structure"])
 
     @classmethod
-    def on_light_color(cls, _client, user_data, _topic, light_color):
-        Hook.set_light_color(
-            user_data["kvs_client"], user_data["target_autoware"], light_color)
+    def on_stop_waypoint_index(cls, _client, user_data, _topic, stop_waypoint_index):
+        Hook.set_stop_waypoint_index(
+            user_data["kvs_client"], user_data["target_autoware"], stop_waypoint_index)
 
     @classmethod
-    def on_light_color_publish(cls, _client, user_data, _topic, light_color):
+    def on_route_point_message_publish_stop_waypoint_index(cls, _client, user_data, _topic, route_point_message):
+        stop_waypoint_index = {
+            "data": route_point_message.body.index
+        }
         user_data["ros_client"].publish(
-            AutowareInterface.CONST.TOPIC.LIGHT_COLOR, light_color, user_data["light_color_structure"])
+            AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX, stop_waypoint_index,
+            user_data["stop_waypoint_index_structure"])
 
     @classmethod
     def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):
@@ -256,6 +268,11 @@ class Subscriber(object):
                 Vehicle.CONST.STATE.REPLACING_SCHEDULE_FAILED
             ]:
                 Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
+
+    @classmethod
+    def on_stop_signal_message(cls, _client, user_data, _topic, stop_signal_message):
+        Hook.set_received_stop_signal(
+            user_data["kvs_client"], user_data["target_vehicle"], stop_signal_message.body)
 
     @classmethod
     def on_current_pose(cls, _client, user_data, _topic, current_pose):
@@ -318,22 +335,27 @@ class Subscriber(object):
                         Hook.update_vehicle_route_point,
                         Hook.initialize_vehicle_schedule,
                         Hook.initialize_vehicle_received_schedule,
+                        Hook.initialize_received_stop_signal,
                         Hook.start_vehicle_schedule,
                         Hook.restart_vehicle_schedule,
                         Hook.replace_schedule,
                         Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
                         Publisher.publish_state_cmd,
+                        Publisher.publish_stop_route_point,
                         Condition.on_vehicle_schedule,
                         Condition.on_vehicle_event,
                         Condition.vehicle_located,
                         Condition.vehicle_schedule_initialized,
                         Condition.vehicle_received_schedule_initialized,
+                        Condition.received_stop_signal_initialized,
                         Condition.vehicle_route_point_updated,
                         Condition.vehicle_schedule_replaceable,
                         Condition.decision_maker_state_is_expected,
                         Condition.decision_maker_state_is_in_expected_states,
+                        Condition.vehicle_location_is_ahead_event_route,
                         Condition.vehicle_location_is_on_event_route,
+                        Condition.vehicle_location_is_behind_event_route,
                         Condition.vehicle_state_timeout,
                         Condition.vehicle_schedule_changed
                     ],

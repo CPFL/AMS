@@ -52,6 +52,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_stop_route_point_topic(cls, target_vehicle, target_autoware):
+        return Topic.get_topic(
+            from_target=target_vehicle,
+            to_target=target_autoware,
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STOP_ROUTE_POINT
+        )
+
+    @classmethod
     def get_route_code_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
@@ -245,6 +253,19 @@ class Publisher(object):
     def publish_state_cmd(cls, pubsub_client, target_vehicle, target_autoware, state_cmd):
         topic = cls.get_state_cmd_topic(target_vehicle, target_autoware)
         pubsub_client.publish(topic, state_cmd)
+
+    @classmethod
+    def publish_stop_route_point(cls, pubsub_client, kvs_client, maps_client, target_vehicle, target_autoware):
+        topic = cls.get_stop_route_point_topic(target_vehicle, target_autoware)
+        message = {
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION
+            },
+            "body": Hook.generate_vehicle_stop_route_point(kvs_client, maps_client, target_vehicle)
+        }
+        pubsub_client.publish(topic, message)
 
     @classmethod
     def publish_transportation_status_message(
