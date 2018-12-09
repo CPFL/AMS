@@ -68,18 +68,18 @@ class Hook(object):
             ] + Vehicle.CONST.TOPIC.CATEGORIES.STATE_CMD)
 
     @classmethod
-    def get_light_color_key(cls, target):
-        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
-            [
-                Target.get_code(target),
-            ] + Vehicle.CONST.TOPIC.CATEGORIES.LIGHT_COLOR)
-
-    @classmethod
     def get_route_point_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
                 Target.get_code(target),
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.ROUTE_POINT)
+
+    @classmethod
+    def get_stop_waypoint_index_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
+            [
+                Target.get_code(target),
+            ] + AutowareInterface.CONST.TOPIC.CATEGORIES.STOP_WAYPOINT_INDEX)
 
     @classmethod
     def get_schedule_key(cls, target):
@@ -98,6 +98,13 @@ class Hook(object):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             cls.get_schedule_key(target),
             "received"
+        ])
+
+    @classmethod
+    def get_received_stop_signal_key(cls, target):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            Target.get_code(target),
+            "stop_signal"
         ])
 
     @classmethod
@@ -169,6 +176,12 @@ class Hook(object):
         value = kvs_client.get(key)
         if value.__class__.__name__ == "dict":
             value = Dispatcher.Schedule.new_data(**value)
+        return value
+
+    @classmethod
+    def get_received_stop_signal(cls, kvs_client, target):
+        key = cls.get_received_stop_signal_key(target)
+        value = kvs_client.get(key)
         return value
 
     @classmethod
@@ -250,6 +263,11 @@ class Hook(object):
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
+    def set_received_stop_signal(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
+        key = cls.get_received_stop_signal_key(target)
+        return kvs_client.set(key, value, get_key, timestamp_string)
+
+    @classmethod
     def set_vehicle_location(cls, kvs_client, target, value):
         key = cls.get_vehicle_location_key(target)
         return kvs_client.set(key, value)
@@ -285,8 +303,8 @@ class Hook(object):
         return kvs_client.set(key, value)
 
     @classmethod
-    def set_light_color(cls, kvs_client, target, value):
-        key = cls.get_light_color_key(target)
+    def set_stop_waypoint_index(cls, kvs_client, target, value):
+        key = cls.get_stop_waypoint_index_key(target)
         return kvs_client.set(key, value)
 
     @classmethod
@@ -383,6 +401,10 @@ class Hook(object):
         return cls.initialize_event(kvs_client, target_vehicle)
 
     @classmethod
+    def initialize_received_stop_signal(cls, kvs_client, target):
+        return cls.set_received_stop_signal(kvs_client, target, None)
+
+    @classmethod
     def get_vehicle_location(cls, kvs_client, target):
         key = cls.get_vehicle_location_key(target)
         value = kvs_client.get(key)
@@ -435,11 +457,11 @@ class Hook(object):
         return value
 
     @classmethod
-    def get_light_color(cls, kvs_client, target):
-        key = cls.get_light_color_key(target)
+    def get_stop_waypoint_index(cls, kvs_client, target):
+        key = cls.get_stop_waypoint_index_key(target)
         value = kvs_client.get(key)
         if value is not None:
-            value = Autoware.Status.LightColor.new_data(**value)
+            value = Autoware.Status.StopWaypointIndex.new_data(**value)
         return value
 
     @classmethod
@@ -528,6 +550,26 @@ class Hook(object):
             logger.info(
                 "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
+
+    @classmethod
+    def generate_vehicle_stop_route_point(cls, kvs_client, maps_client, target_vehicle):
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        stop_signal = Hook.get_received_stop_signal(kvs_client, target_vehicle)
+        if stop_signal is None or stop_signal:
+            vehicle_schedule = Hook.get_schedule(kvs_client, target_vehicle)
+            vehicle_event = Event.get_event_by_id(vehicle_schedule.events, vehicle_status.event_id)
+            route_section = maps_client.route.generate_route_section_with_route_codes(
+                vehicle_event.route_code, vehicle_status.route_point.route_code)
+            route_point = RoutePoint.new_data(**{
+                "route_code": route_section.route_code,
+                "index": route_section.end_index
+            })
+        else:
+            route_point = RoutePoint.new_data(**{
+                "route_code": vehicle_status.route_point.route_code,
+                "index": -1
+            })
+        return route_point
 
     @classmethod
     def remove_old_traffic_signal_event_from_schedule(cls, kvs_client, target):
@@ -633,9 +675,20 @@ class Hook(object):
         if lane_array is not None:
             current_vehicle_location = Simulator.search_vehicle_location_from_lane_array(current_pose, lane_array)
             vehicle_location.lane_array_id = lane_array["id"]
-            vehicle_location.waypoint_index = min(
+
+            next_waypoint_index = min([
                 current_vehicle_location.waypoint_index + config.step_size,
-                len(lane_array["lanes"][0]["waypoints"]) - 1)
+                len(lane_array["lanes"][0]["waypoints"]) - 1
+            ])
+            stop_waypoint_index = cls.get_stop_waypoint_index(kvs_client, target)
+            if stop_waypoint_index is not None:
+                if stop_waypoint_index.data != -1:
+                    next_waypoint_index = min([
+                        next_waypoint_index,
+                        stop_waypoint_index.data
+                    ])
+
+            vehicle_location.waypoint_index = next_waypoint_index
             return cls.set_vehicle_location(kvs_client, target, vehicle_location)
         return False
 

@@ -5,7 +5,7 @@ import unittest
 import json
 
 from ams.helpers import Route, Lane, Waypoint
-from ams.structures import RoutePoint
+from ams.structures import RoutePoint, RouteSection
 
 
 class Test(unittest.TestCase):
@@ -205,3 +205,38 @@ class Test(unittest.TestCase):
                 goal_waypoint_id=None if "goal_waypoint_id" not in resource else resource["goal_waypoint_id"]
             )
             self.assertEqual(resource["expected"], value)
+
+    def test_generate_route_section_with_route_codes(self):
+        lanes, _, _ = Lane.load("./res/entre/lane.json")
+        with open("./tests/res/test_generate_route_section_with_route_codes.json", "r") as f:
+            resources = json.load(f)
+        for resource in resources:
+            value = Route.generate_route_section_with_route_codes(
+                resource["inner_route_code"], resource["outer_route_code"], lanes)
+            self.assertEqual(resource["expected"], value)
+
+    def test_calculate_route_section_length(self):
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
+        value = Route.calculate_route_section_length(
+            RouteSection.new_data(**{
+                "route_code": "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988",
+                "start_index": 7,
+                "end_index": 19
+            }),
+            lanes, waypoints
+        )
+        self.assertEqual(12.00029999395704, value)
+
+    def test_calculate_distance_from_route_point_to_inner_route(self):
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
+        waypoints = Waypoint.load("./res/maps/waypoint.json")
+        value = Route.calculate_distance_from_route_point_to_inner_route(
+            RoutePoint.new_data(**{
+                "route_code": "10471:10471>9686:9686:9686<9673:9673:9673>9988:9988",
+                "index": 7
+            }),
+            "10490:10471>9686:9686:9686<9673:9673:9673>9988:9988",
+            lanes, waypoints
+        )
+        self.assertEqual(12.00029999395704, value)

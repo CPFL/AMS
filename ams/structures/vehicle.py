@@ -18,7 +18,7 @@ topic["CATEGORIES"].update({
     "GEOTOPIC": ["geotopic"],
     "STATE_CMD": ["state_cmd"],
     "ROUTE_CODE": ["route_code"],
-    "LIGHT_COLOR": ["light_color"]
+    "STOP_ROUTE_POINT": ["stop_route_point"]
 })
 
 const = {}
@@ -218,10 +218,37 @@ class RouteCodeMessage(get_structure_superclass(route_code_message_template, rou
     Header = MessageHeader
 
 
+route_point_message_template = {
+    "header": MessageHeader.get_template(),
+    "body":  RoutePoint.get_template()
+}
+
+route_point_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": RoutePoint.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class RoutePointMessage(get_structure_superclass(route_point_message_template, route_point_message_schema)):
+    Header = MessageHeader
+    RoutePoint = RoutePoint
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     RouteCode = RouteCodeMessage
+    RoutePoint = RoutePointMessage
 
 
 class Vehicle(EventLoop):

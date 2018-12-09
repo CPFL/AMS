@@ -439,33 +439,211 @@
 
 
     {
-      "event": "publish_light_color",
+      "event": "operate_stop",
       "from": "WaitingEvent",
-      "to": "CheckingLightColor",
-      "hooks": null,
-      "conditions": null
+      "to": "CheckingStopSignal",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_location_is_ahead_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"],
+          "not": true
+        }
+      ]
     },
     {
       "event": null,
-      "from": "CheckingLightColor",
-      "to": "PublishingLightColor",
-      "hooks": null,
-      "conditions": null
+      "from": "CheckingStopSignal",
+      "to": "StartingStopOperation",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "vehicle_location_is_on_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        }
+      ]
     },
     {
       "event": null,
-      "from": "CheckingLightColor",
+      "from": "StartingStopOperation",
+      "to": "SendingStopPoint",
+      "hooks": [
+        {
+          "function": "start_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "initialize_received_stop_signal",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "received_stop_signal_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "CheckingStopSignal",
       "to": "WaitingEvent",
-      "hooks": null,
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "vehicle_location_is_behind_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "received_stop_signal_initialized",
+          "args": ["kvs_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "CheckingStopSignal",
+      "to": "SendingStopPoint",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "received_stop_signal_initialized",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "vehicle_location_is_on_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "CheckingStopSignal",
+      "to": "EndingStopOperation",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_location_is_behind_event_route",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SendingStopPoint",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        },
+        {
+          "function": "publish_stop_route_point",
+          "args": ["pubsub_client", "kvs_client", "maps_client", "target_vehicle", "target_autoware"]
+        }
+      ],
       "conditions": null
     },
     {
       "event": null,
-      "from": "PublishingLightColor",
+      "from": "EndingStopOperation",
       "to": "WaitingEvent",
-      "hooks": null,
-      "conditions": null
+      "hooks": [
+        {
+          "function": "end_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        }
+      ]
     },
+
+
     {
       "event": "change_schedule",
       "from": "WaitingEvent",
