@@ -76,7 +76,7 @@ class Test(unittest.TestCase):
 
     def test_get_waypoint_ids(self):
         lanes, _, _ = Lane.load("./res/maps/lane.json")
-        with open("./tests/res/test_get_waypoint_ids.json", "r") as f:
+        with open("./tests/res/route/test_get_waypoint_ids.json", "r") as f:
             resources = json.load(f)
         for resource in resources:
             value = Route.get_waypoint_ids(resource["route_code"], lanes)
@@ -142,7 +142,7 @@ class Test(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_get_pose_and_velocity_set(self):
-        with open("./tests/res/get_pose_and_velocity_set_expected1.json", "r") as f:
+        with open("./tests/res/route/get_pose_and_velocity_set_expected1.json", "r") as f:
             expected = json.load(f)
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
@@ -151,7 +151,7 @@ class Test(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_generate_lane_array(self):
-        with open("./tests/res/lane_array_expected1.json", "r") as f:
+        with open("./tests/res/route/lane_array_expected1.json", "r") as f:
             expected = json.load(f)["lanes"]
 
         lanes, _, _ = Lane.load("./res/maps/lane.json")
@@ -196,7 +196,7 @@ class Test(unittest.TestCase):
     def test_generate_route_code_from_polyline(self):
         lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
-        with open("./tests/res/test_generate_route_code_from_polyline.json", "r") as f:
+        with open("./tests/res/route/test_generate_route_code_from_polyline.json", "r") as f:
             resources = json.load(f)
         for resource in resources:
             value = Route.generate_route_code_from_polyline(
