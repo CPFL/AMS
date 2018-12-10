@@ -1,0 +1,31 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "sourceType": "module",
+    "allowImportExportEverywhere": false,
+    "codeFrame": false
+  },
+  "plugins": [
+    "react",
+    "prettier"
+  ],
+  "rules": {
+    "no-console": "off",
+    "no-redeclare": "warn",
+    "no-unused-vars": "warn",
+    "no-empty": "warn",
+    "prettier/prettier": "error"
+  },
+  "globals": {
+    "THREE": false
+  }
+}
