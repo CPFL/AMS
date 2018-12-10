@@ -1,0 +1,42 @@
+[
+  {
+    "state_machine_resource": {
+      "initial_state": "state1",
+      "variables": {
+        "A": 1,
+        "B": 2
+      },
+      "transitions": [
+        {
+          "event": "hoge",
+          "from": "state1",
+          "to": "state2",
+          "hooks": null,
+          "conditions": null
+        }
+      ]
+    },
+    "event": "hoge",
+    "expected": true
+  },
+  {
+    "state_machine_resource": {
+      "initial_state": "state1",
+      "variables": {
+        "A": 1,
+        "B": 2
+      },
+      "transitions": [
+        {
+          "event": "hoge",
+          "from": "state1",
+          "to": "state2",
+          "hooks": null,
+          "conditions": null
+        }
+      ]
+    },
+    "event": "piyo",
+    "expected": false
+  }
+]

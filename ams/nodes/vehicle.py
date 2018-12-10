@@ -39,6 +39,14 @@ class Vehicle(EventLoop):
             "user_data": self.user_data
         }
 
+        topic = Subscriber.get_stop_signal_topic(self.config.target_dispatcher, self.config.target_self)
+        self.subscribers[topic] = {
+            "topic": topic,
+            "callback": Subscriber.on_stop_signal_message,
+            "structure": Dispatcher.Message.Signal,
+            "user_data": self.user_data
+        }
+
         topic = Subscriber.get_route_point_topic(self.config.target_autoware, self.config.target_self)
         self.subscribers[topic] = {
             "topic": topic,

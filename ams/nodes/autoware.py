@@ -38,11 +38,11 @@ class Autoware(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = AutowareInterface.CONST.TOPIC.LIGHT_COLOR
+        topic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
         self.subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_light_color,
-            "structure": self.Status.LightColor,
+            "callback": Subscriber.on_stop_waypoint_index,
+            "structure": self.Status.StopWaypointIndex,
             "user_data": self.user_data
         }
 
@@ -55,6 +55,7 @@ class Autoware(EventLoop):
         set_flag *= Hook.set_state_cmd(kvs_client, target, value.state_cmd)
         set_flag *= Hook.set_lane_array(kvs_client, target, value.lane_array)
         set_flag *= Hook.set_decision_maker_state(kvs_client, target, value.decision_maker_state)
+        set_flag *= Hook.set_stop_waypoint_index(kvs_client, target, value.stop_waypoint_index)
         if not set_flag:
             raise IOError("cannot set autoware status.")
 

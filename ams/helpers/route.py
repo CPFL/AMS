@@ -7,12 +7,13 @@ from sys import float_info
 from math import modf, hypot
 from time import time
 
+from ams import logger
 from collections import Counter
 from functools import reduce
 import polyline
 
 from ams.helpers import Waypoint, Lane, Location
-from ams.structures import ROUTE, Autoware
+from ams.structures import ROUTE, Autoware, RoutePoint, RouteSection
 from ams.structures import Route as Structure
 from ams.structures import Routes as Structures
 
@@ -20,6 +21,8 @@ from ams.structures import Routes as Structures
 class Route(object):
 
     CONST = ROUTE
+    RoutePoint = RoutePoint
+    RouteSection = RouteSection
 
     @classmethod
     def new_route(cls, waypoint_ids, lane_codes, delimiters=None):
@@ -596,3 +599,54 @@ class Route(object):
 
         route_code = Route.encode(min(routes, key=lambda x: route_cost_function(x, filtered_lanes, waypoints)))
         return route_code
+
+    @classmethod
+    def __get_index_of_list1_first_element_in_list2(cls, list1, list2):
+        try:
+            return list(filter(
+                lambda x: list2[x:x+len(list1)] == list1,
+                [i for i, v in enumerate(list2) if v == list1[0]]))[0]
+        except IndexError:
+            logger.error("{} is not in list {}".format(list1, list2))
+            raise ValueError("{} is not in list {}".format(list1, list2))
+
+    @classmethod
+    def generate_route_section_with_route_codes(cls, inner_route_code, outer_route_code, lanes):
+        inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+        outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
+        start_index = cls.__get_index_of_list1_first_element_in_list2(inner_waypoint_ids, outer_waypoint_ids)
+        return RouteSection.new_data(**{
+            "route_code": outer_route_code,
+            "start_index": start_index,
+            "end_index": start_index + len(inner_waypoint_ids) - 1
+        })
+
+    @classmethod
+    def calculate_route_section_length(cls, route_section, lanes, waypoints):
+        distance = 0.0
+        waypoint_ids = Route.get_waypoint_ids(route_section.route_code, lanes)
+        for i in range(route_section.start_index, route_section.end_index):
+            distance += Lane.get_distance(
+                Waypoint.get_position(waypoint_ids[i], waypoints),
+                Waypoint.get_position(waypoint_ids[i+1], waypoints))
+        return distance
+
+    @classmethod
+    def calculate_distance_from_route_point_to_inner_route(cls, route_point, inner_route_code, lanes, waypoints):
+        route_waypoint_ids = cls.get_waypoint_ids(route_point.route_code, lanes)
+        route_section_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+
+        end_index = cls.__get_index_of_list1_first_element_in_list2(
+            route_section_waypoint_ids, route_waypoint_ids)
+
+        length = cls.calculate_route_section_length(
+            RouteSection.new_data(**{
+                "route_code": route_point.route_code,
+                "start_index": min(route_point.index, end_index),
+                "end_index": max(route_point.index, end_index)
+            }),
+            lanes, waypoints
+        )
+        if end_index < route_point.index:
+            return -length
+        return length

@@ -31,18 +31,12 @@ const.update({
         "MISSION_CHANGE_SUCCEEDED": "MissionChangeSucceeded\n",
         "MISSION_ABORTED": "MissionAborted\n",
         "MISSION_COMPLETE": "MissionComplete\n"
-
     },
     "STATE_CMD": {
         "ENGAGE": "engage",
         "REQUEST_MISSION_CHANGE": "request_mission_change",
         "RETURN_TO_DRIVING": "return_to_driving",
         "GOTO_WAIT_ORDER": "goto_wait_order"
-    },
-    "TRAFFIC_LIGHT": {
-        "RED": 0,
-        "GREEN": 1,
-        "UNKNOWN": 2
     }
 })
 
@@ -659,19 +653,12 @@ class StateCMD(get_structure_superclass(state_cmd_template, state_cmd_schema)):
     pass
 
 
-light_color_template = {
-    "header": Header.get_template(),
-    "traffic_light": 0
+stop_waypoint_index_template = {
+    "data": 0
 }
 
-light_color_schema = {
-    "header": {
-        "type": "dict",
-        "schema": Header.get_schema(),
-        "required": True,
-        "nullable": False
-    },
-    "traffic_light": {
+stop_waypoint_index_schema = {
+    "data": {
         "type": "integer",
         "required": True,
         "nullable": False
@@ -679,7 +666,7 @@ light_color_schema = {
 }
 
 
-class LightColor(get_structure_superclass(light_color_template, light_color_schema)):
+class StopWaypointIndex(get_structure_superclass(stop_waypoint_index_template, stop_waypoint_index_schema)):
     pass
 
 
@@ -709,7 +696,7 @@ status_template.update({
     "current_pose": CurrentPose.get_template(),
     "vehicle_location": VehicleLocation.get_template(),
     "decision_maker_state": DecisionMakerState.get_template(),
-    "light_color": LightColor.get_template()
+    "stop_waypoint_index": StopWaypointIndex.get_template()
 })
 
 status_schema = EventLoop.Status.get_schema()
@@ -744,9 +731,9 @@ status_schema.update({
         "required": True,
         "nullable": True
     },
-    "light_color": {
+    "stop_waypoint_index": {
         "type": "dict",
-        "schema": LightColor.get_schema(),
+        "schema": StopWaypointIndex.get_schema(),
         "required": True,
         "nullable": True,
     }
@@ -759,7 +746,7 @@ class Status(get_structure_superclass(status_template, status_schema)):
     DecisionMakerState = DecisionMakerState
     LaneArray = LaneArray
     StateCMD = StateCMD
-    LightColor = LightColor
+    StopWaypointIndex = StopWaypointIndex
 
 
 class ROSMessage(object):
@@ -769,7 +756,7 @@ class ROSMessage(object):
     DecisionMakerState = DecisionMakerState
     LaneArray = LaneArray
     StateCMD = StateCMD
-    LightColor = LightColor
+    StopWaypointIndex = StopWaypointIndex
 
 
 config_message_template = {
