@@ -1,18 +1,19 @@
-import React from 'react';
-import {connect} from "react-redux";
-import {bindActionCreators} from "redux";
+import React from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 
 import * as ScheduleEditorActions from "../../redux/Actions/ScheduleEditorActions";
-import {AppBar, Button, Toolbar, Typography} from "@material-ui/core";
-import CloudUploadOutlined from '@material-ui/icons/CloudUploadOutlined';
+import { AppBar, Button, Toolbar, Typography } from "@material-ui/core";
+import CloudUploadOutlined from "@material-ui/icons/CloudUploadOutlined";
 
-import ImportDataModal from './ImportDataModal';
+import ImportDataModal from "./ImportDataModal";
 
 class Header extends React.Component {
-
   constructor(props) {
     super(props);
-    this.isWaypointAndLaneLoaderOpen = this.isWaypointAndLaneLoaderOpen.bind(this);
+    this.isWaypointAndLaneLoaderOpen = this.isWaypointAndLaneLoaderOpen.bind(
+      this
+    );
   }
 
   isWaypointAndLaneLoaderOpen() {
@@ -22,21 +23,23 @@ class Header extends React.Component {
 
   render() {
     return (
-      <div style={{flexGrow: 1}}>
+      <div style={{ flexGrow: 1 }}>
         <AppBar position="static">
           <Toolbar>
-            <Typography variant="h6" color="inherit" style={{flexGrow: 1}}>
+            <Typography variant="h6" color="inherit" style={{ flexGrow: 1 }}>
               Schedule Editor
             </Typography>
             <Button
-              style={{color: 'white'}}
+              style={{ color: "white" }}
               color="default"
               onClick={this.isWaypointAndLaneLoaderOpen}
             >
               Import Map Data
-              <CloudUploadOutlined style={{color: 'white', marginLeft: '5px'}} />
+              <CloudUploadOutlined
+                style={{ color: "white", marginLeft: "5px" }}
+              />
             </Button>
-            <ImportDataModal/>
+            <ImportDataModal />
           </Toolbar>
         </AppBar>
       </div>
@@ -46,10 +49,11 @@ class Header extends React.Component {
 
 const mapState = () => ({});
 
-const mapDispatch = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
-
+const mapDispatch = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
 
-export default connect(mapState, mapDispatch)(Header);
-
+export default connect(
+  mapState,
+  mapDispatch
+)(Header);
