@@ -27,10 +27,11 @@ $ npm run build
 ### TEST
 ```
 $ cd ./schedule_editor/
-$ cd templates
+$ cd ams_tools_front/templates
 $ ln -s ../../front/static/schedule_editor schedule_editor
 $ cd ../static
 $ ln -s ../../front/static/schedule_editor schedule_editor
+$ cd ../
 $ python manage.py migrate
 $ python manage.py runserver
 #Access localhost:8000/schedule_editor
