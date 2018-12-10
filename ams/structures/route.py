@@ -157,3 +157,32 @@ route_point_schema = {
 
 class RoutePoint(get_structure_superclass(route_point_template, route_point_schema)):
     pass
+
+
+route_section_template = {
+    "route_code": "0:0>1:1",
+    "start_index": 0,
+    "end_index": 1
+}
+
+route_section_schema = {
+    "route_code": {
+        "type": "string",
+        "required": True,
+        "nullable": False,
+    },
+    "start_index": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    },
+    "end_index": {
+        "type": "integer",
+        "required": True,
+        "nullable": False,
+    }
+}
+
+
+class RouteSection(get_structure_superclass(route_section_template, route_section_schema)):
+    pass

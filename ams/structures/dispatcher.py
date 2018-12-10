@@ -15,6 +15,7 @@ topic["CATEGORIES"].update({
     "STATUS": ["status"],
     "SCHEDULE": ["schedule"],
     "EVENT": ["event"],
+    "STOP_SIGNAL": ["stop_signal"],
     "TRANSPORTATION_CONFIG": ["transportation", "config"],
     "TRANSPORTATION_STATUS": ["transportation", "status"]
 })
@@ -327,12 +328,40 @@ class EventMessage(
     pass
 
 
+signal_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": {
+        "signal": True
+    }
+}
+
+signal_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "boolean",
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class SignalMessage(
+        get_structure_superclass(signal_message_template, signal_message_schema)):
+    pass
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     TransportationStatus = TransportationStatusMessage
     Schedule = ScheduleMessage
     Event = EventMessage
+    Signal = SignalMessage
 
 
 class Dispatcher(EventLoop):

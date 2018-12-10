@@ -12,6 +12,8 @@ Open-source software for the fleet management and simulation system of vehicles 
 
 ## Installing
 
+Only Python 3.6+ is supported.
+
 ```terminal
 $ pipenv install --dev
 ```

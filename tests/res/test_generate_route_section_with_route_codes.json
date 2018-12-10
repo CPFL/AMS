@@ -1,0 +1,11 @@
+[
+  {
+    "inner_route_code": "97:97>0:101",
+    "outer_route_code": "191:183>97>0>21>90:90",
+    "expected": {
+      "route_code": "191:183>97>0>21>90:90",
+      "start_index": 11,
+      "end_index": 15
+    }
+  }
+]
