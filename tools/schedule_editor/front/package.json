@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "serve": "yarn run watch && yarn run start",
-    "start": "node server.js",
+    "start": "webpack-dev-server",
     "build": "webpack --config webpack.config.prod.js",
-    "develop": "webpack --config webpack.config.js",
+    "develop": "webpack --config webpack.config.dev.js",
     "watch": "webpack --mode=development -w",
     "test": "jest"
   },
@@ -54,7 +54,6 @@
     "reselect": "^4.0.0",
     "three": "^0.98.0"
   },
-  "main": "server.js",
   "author": "",
   "description": ""
 }

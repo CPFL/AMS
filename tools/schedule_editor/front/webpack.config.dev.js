@@ -8,11 +8,8 @@ module.exports = webpackMerge(commonConfig, {
     app: './src/index'
   },
   output: {
-    path: path.join(process.cwd(), '/static/'),
+    path: path.join(process.cwd(), '/static/schedule_editor'),
+    publicPath: '/static/schedule_editor',
     filename: '[name].js'
   },
-  devServer: {
-    contentBase: './static/schedule_editor/',
-    port: 3000,
-  }
 });
