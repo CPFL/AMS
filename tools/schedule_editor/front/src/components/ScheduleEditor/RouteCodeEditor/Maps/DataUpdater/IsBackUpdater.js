@@ -7,7 +7,6 @@ class IsBackUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.isBack !== undefined) {
       this.props.setIsBack(this.props.isBack);
     }

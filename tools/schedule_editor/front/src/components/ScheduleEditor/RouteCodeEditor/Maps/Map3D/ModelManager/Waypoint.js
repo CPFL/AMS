@@ -168,10 +168,7 @@ export default class Waypoint extends THREE.Group {
     this.isBack = isBack;
   }
 
-
-
   changeObjectColorToDefault() {
-
     if (this.startPoint !== null) {
       this.waypointsList[this.startPoint].material.color.set(this.color.default);
     }
@@ -195,12 +192,17 @@ export default class Waypoint extends THREE.Group {
 
   setActiveStep(activeStep) {
 
+    this.activeStep = activeStep;
     if(this.waypoint !==null && this.lane !== null) {
-
-      this.activeStep = activeStep;
       this.selectCandidateObject = [];
 
-      if (activeStep === steps.selectStartPoint.id) {
+      if (activeStep === steps.advanceOrBack.id) {
+        this.changeObjectColorToDefault();
+        this.startPoint = null;
+        this.lanes = [];
+        this.endPoint = null;
+        this.selectCandidateObject = [];
+      }else if (activeStep === steps.selectStartPoint.id) {
         this.changeObjectColorToDefault();
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
@@ -253,30 +255,27 @@ export default class Waypoint extends THREE.Group {
         if (this.endPoint !== null) {
           this.waypointsList[this.endPoint].material.color.set(this.color.selected);
         }
-      } else if (activeStep === steps.advanceOrBack.id) {
-        this.changeObjectColorToDefault();
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
       }
     }
   }
 
-
   updateRouteCode(startPoint, lanes, endPoint) {
 
-    console.log(startPoint, lanes, endPoint);
-
     if (this.waypoint !== null && this.lane !== null) {
-
       this.changeObjectColorToDefault();
       this.selectCandidateObject = [];
       this.startPoint = startPoint !== "" ? startPoint : null;
       this.lanes = lanes;
       this.endPoint = endPoint !== "" ? endPoint : null;
 
-      if (this.activeStep === steps.selectStartPoint.id) {
+
+
+      if (this.activeStep === steps.advanceOrBack.id) {
+        this.startPoint = null;
+        this.lanes = [];
+        this.endPoint = null;
+        this.selectCandidateObject = [];
+      }else if (this.activeStep === steps.selectStartPoint.id) {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
@@ -320,11 +319,16 @@ export default class Waypoint extends THREE.Group {
         if (this.endPoint !== null) {
           this.waypointsList[this.endPoint].material.color.set(this.color.selected);
         }
-      } else if (this.activeStep === steps.advanceOrBack.id) {
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
+      } else if (this.activeStep === steps.result.id) {
+        if (this.startPoint !== null) {
+          this.waypointsList[this.startPoint].material.color.set(this.color.selected);
+        }
+        for (let laneID of this.lanes) {
+          this.laneList[laneID].material.color.set(this.color.selected);
+        }
+        if (this.endPoint !== null) {
+          this.waypointsList[this.endPoint].material.color.set(this.color.selected);
+        }
       }
     }
   }
@@ -383,7 +387,6 @@ export default class Waypoint extends THREE.Group {
     }
 
     this.setLaneList(lanes);
-    console.log(lanes);
   }
 
   selectEndPoint(mouse) {
@@ -398,7 +401,6 @@ export default class Waypoint extends THREE.Group {
     }
 
     this.setEndPoint(endPoint);
-    console.log(endPoint);
 
   }
 

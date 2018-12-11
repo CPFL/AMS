@@ -41,22 +41,23 @@ const ScheduleEditorRecord = new Record({
   activeStep: "advanceOrBack",
   isBack: false,
   startPoint: "",
-  laneList: [],
+  laneList: null,
   endPoint: "",
 
   //route code list
-  routeCodeList: [],
+  routeCodeList: null,
 
   //schedule list
-  scheduleList: [],
+  scheduleList: null,
 
   // 3D View Data
   pcd: {},
   waypoint: {},
   lane: {},
 
-  //Header
-  isImportDataModalOpen: false
+  //Modal
+  isImportDataModalOpen: true,
+  isAddRouteModalOpen: false
 
 });
 
@@ -69,25 +70,29 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       startPoint: "",
       laneList: List(),
       endPoint: "",
+      routeCodeList: List(),
+      scheduleList: List(),
       pcd: {},
       waypoint: {},
       lane: {},
-      isImportDataModalOpen: false
+      isImportDataModalOpen: true,
+      isAddRouteModalOpen: false
     });
   }
+
+
+  //SET
 
   setActiveStep(activeStep) {
     return this.set('activeStep', activeStep)
   }
 
   backStep(activeStep) {
-    console.log(activeStep);
     if(activeStep === steps.advanceOrBack.id){
       return this.set('startPoint', "").set('laneList', List())
         .set('endPoint', "").set('isBack', false)
         .set('activeStep', activeStep)
     } else if(activeStep === steps.selectLane.id) {
-      console.log(activeStep);
       return this.set('activeStep', activeStep).set('endPoint', "")
     }
     return this.set('activeStep', activeStep)
@@ -123,6 +128,22 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       .set('activeStep', steps.advanceOrBack.id)
   }
 
+  saveRouteCode(routeCode) {
+
+    const routeCodeList = this.get('routeCodeList').push(routeCode);
+    return this.set('startPoint', "").set('laneList', List())
+      .set('endPoint', "").set('isBack', false)
+      .set('activeStep', steps.advanceOrBack.id).set('routeCodeList', routeCodeList).set('isAddRouteModalOpen', false)
+  }
+
+  saveAndAnotherSelectRouteCode(routeCode) {
+
+    const routeCodeList = this.get('routeCodeList').push(routeCode);
+    return this.set('startPoint', "").set('laneList', List())
+      .set('endPoint', "").set('isBack', false)
+      .set('activeStep', steps.advanceOrBack.id).set('routeCodeList', routeCodeList)
+  }
+
   clearRouteCodeData() {
     return this.set('startPoint', "").set('laneList', List()).set('endPoint', "").set('isBack', false)
   }
@@ -130,6 +151,13 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   setIsImportDataModalOpen(isImportDataModalOpen) {
     return this.set('isImportDataModalOpen', isImportDataModalOpen)
   }
+
+  setIsAddRouteModalOpen(isAddRouteModalOpen) {
+    return this.set('isAddRouteModalOpen', isAddRouteModalOpen)
+  }
+
+
+  //GET
 
   getActiveStep() {
     return this.get('activeStep')
@@ -151,6 +179,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.get('endPoint')
   }
 
+  getRouteCodeList(){
+    return this.get('routeCodeList').toJS();
+  }
+
   getMapData() {
     return {
       pcd: this.get('pcd'),
@@ -163,5 +195,8 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.get('isImportDataModalOpen')
   }
 
+  getIsAddRouteModalOpen() {
+    return this.get('isAddRouteModalOpen')
+  }
 
 }

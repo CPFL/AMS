@@ -36,6 +36,7 @@ class Map3DManager extends React.Component {
     this.mouse = new THREE.Vector2();
 
     this.mapData = null;
+    this.routeCode = null;
 
     this.initialCameraPosition = {x: 0, y: 0, z: 0};
 
@@ -45,6 +46,7 @@ class Map3DManager extends React.Component {
     this.onClickCanvas = this.onClickCanvas.bind(this);
     this.resize = this.resize.bind(this);
     this.initMapData = this.initMapData.bind(this);
+    this.initRouteCode = this.initRouteCode.bind(this);
     this.setMapData = this.setMapData.bind(this);
     this.setActiveStep = this.setActiveStep.bind(this);
     this.setIsBack = this.setIsBack.bind(this);
@@ -53,10 +55,12 @@ class Map3DManager extends React.Component {
   }
 
   componentDidMount() {
-    console.log("route code map mount");
     this.setMapSize();
     this.prepare();
     this.setMapData(this.mapData);
+    console.log(this.routeCode);
+    this.updateRouteCode(this.routeCode.startPoint, this.routeCode.laneList, this.routeCode.endPoint);
+
     document.getElementById("route_code_map_canvas").addEventListener('click', this.onClickCanvas, false);
     addResizeListener(document.getElementById("route_code_map_canvas"), this.resize);
   }
@@ -207,14 +211,15 @@ class Map3DManager extends React.Component {
   }
 
   initMapData(mapData){
-    console.log(mapData);
     this.mapData = mapData;
   }
 
+  initRouteCode(routeCode){
+    console.log(routeCode);
+    this.routeCode = routeCode;
+  }
+
   setMapData(mapData) {
-
-    console.log(mapData);
-
     this.PCDManager.setPCDMapFromBinary(mapData.pcd);
     if (Object.keys(mapData.waypoint).length > 0 && Object.keys(mapData.lane).length > 0) {
       this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
@@ -233,7 +238,6 @@ class Map3DManager extends React.Component {
 
   updateRouteCode(startPoint, lanes, endPoint){
     this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
-
   }
 
   render() {
@@ -250,6 +254,7 @@ class Map3DManager extends React.Component {
           setIsBack={this.setIsBack}
         />
         <RouteCodeUpdater
+          initRouteCode={this.initRouteCode}
           updateRouteCode={this.updateRouteCode}
         />
       </div>

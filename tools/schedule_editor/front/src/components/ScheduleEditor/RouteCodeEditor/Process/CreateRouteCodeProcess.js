@@ -4,26 +4,33 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Button from '@material-ui/core/Button';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Typography from '@material-ui/core/Typography';
 
 import {connect} from "react-redux";
 import * as ScheduleEditorActions from "../../../../redux/Actions/ScheduleEditorActions";
 import {bindActionCreators} from "redux";
 
 import {steps} from '../../../../model/Redux/Page/ScheduleEditor'
+import ListItemText from "@material-ui/core/ListItemText/ListItemText";
 
 class AdvanceOrBackComponent extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.confirm = this.confirm.bind(this);
+  }
 
   confirm() {
     this.props.scheduleEditorActions.setActiveStep(steps.advanceOrBack.nextStep)
   }
 
   setIsBack(event) {
-    console.log(event);
     this.props.scheduleEditorActions.setIsBack(event.target.value === "back");
   };
 
@@ -44,7 +51,7 @@ class AdvanceOrBackComponent extends React.Component {
         </CardContent>
         <CardActions>
           <div style={{marginLeft: "auto"}}>
-            <Button onClick={this.confirm.bind(this)}>Confirm</Button>
+            <Button color="primary" onClick={this.confirm}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
@@ -63,6 +70,12 @@ let AdvanceOrBack = connect(mapStateAdvanceOrBack, mapDispatchAdvanceOrBack)(Adv
 
 
 class SelectStartPointComponent extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.back = this.back.bind(this);
+    this.confirm = this.confirm.bind(this);
+  }
 
   confirm() {
     if (this.props.startPoint !== "") {
@@ -84,16 +97,14 @@ class SelectStartPointComponent extends React.Component {
         <CardContent><strong>Selected Point ID: {this.props.startPoint}</strong></CardContent>
         <CardActions>
           <div style={{marginLeft: "auto"}}>
-            <Button onClick={this.back.bind(this)}>Back</Button>
-            <Button onClick={this.confirm.bind(this)}>Confirm</Button>
+            <Button onClick={this.back}>Back</Button>
+            <Button color="primary" onClick={this.confirm}　style={{marginLeft: '5px'}}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
-
     )
   }
 }
-
 const mapStateSelectStartPoint = (state) => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   startPoint: state.scheduleEditor.getStartPoint()
@@ -105,6 +116,12 @@ let SelectStartPoint = connect(mapStateSelectStartPoint, mapDispatchSelectStartP
 
 
 class SelectLaneComponent extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.back = this.back.bind(this);
+    this.confirm = this.confirm.bind(this);
+  }
 
   confirm() {
     this.props.scheduleEditorActions.setActiveStep(steps.selectLane.nextStep)
@@ -123,11 +140,13 @@ class SelectLaneComponent extends React.Component {
       if (laneList.hasOwnProperty(key)) {
         resList.push((
           <ListItem key={key}>
-            <ListItemContent icon="navigation" key={key}>
-              <strong>
-                Lane ID: {lane}
-              </strong>
-            </ListItemContent>
+            <ListItemText
+              primary={
+                <strong>
+                  Lane ID: {lane}
+                </strong>
+              }
+            />
           </ListItem>
         ));
         key += 1;
@@ -137,20 +156,19 @@ class SelectLaneComponent extends React.Component {
   };
 
   render() {
-
     return (
       <Card shadow={0}
-            style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader title="Select Lane"/>
-        <CardText>
+            style={{width: "100%", height: '100%'}}>
+        <CardHeader title="Select Lane" id="SelectLaneStepCardHeader"/>
+        <CardContent style={{overflowY: 'auto', height: '60%'}} id="SelectLaneStepCardContent">
           <List>
             {this.getLaneList(this.props.laneList)}
           </List>
-        </CardText>
-        <CardActions border>
-          <div style={{float: "right"}}>
-            <Button onClick={this.back.bind(this)}>Back</Button>
-            <Button onClick={this.confirm.bind(this)}>Confirm</Button>
+        </CardContent>
+        <CardActions>
+          <div style={{marginLeft: "auto"}}>
+            <Button onClick={this.back}>Back</Button>
+            <Button color="primary"　onClick={this.confirm.bind(this)} style={{marginLeft: '5px'}}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
@@ -170,6 +188,12 @@ let SelectLane = connect(mapStateSelectLane, mapDispatchSelectLane)(SelectLaneCo
 
 class SelectEndPointComponent extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.back = this.back.bind(this);
+    this.confirm = this.confirm.bind(this);
+  }
+
   confirm() {
     if (this.props.endPoint !== "") {
       this.props.scheduleEditorActions.setActiveStep(steps.selectEndPoint.nextStep)
@@ -186,14 +210,12 @@ class SelectEndPointComponent extends React.Component {
     return (
       <Card shadow={0}
             style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader>
-          Select End Point
-        </CardHeader>
-        <CardText><strong>Selected Point ID: {this.props.endPoint}</strong></CardText>
-        <CardActions border>
-          <div style={{float: "right"}}>
-            <Button onClick={this.back.bind(this)}>Back</Button>
-            <Button onClick={this.confirm.bind(this)}>Confirm</Button>
+        <CardHeader title="Select End Point"/>
+        <CardContent><strong>Selected Point ID: {this.props.endPoint}</strong></CardContent>
+        <CardActions>
+          <div style={{marginLeft: "auto"}}>
+            <Button onClick={this.back}>Back</Button>
+            <Button color="primary" onClick={this.confirm} style={{marginLeft: '5px'}}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
@@ -212,6 +234,21 @@ let SelectEndPoint = connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(
 
 
 class ResultComponent extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.save = this.save.bind(this);
+    this.back = this.back.bind(this);
+    this.reselect = this.reselect.bind(this);
+  }
+
+  save(routeCode){
+    this.props.scheduleEditorActions.saveRouteCode(routeCode)
+  }
+
+  saveAndAnotherSelect(routeCode){
+    this.props.scheduleEditorActions.saveAndAnotherSelectRouteCode(routeCode)
+  }
 
   reselect() {
     this.props.scheduleEditorActions.resetRouteCode()
@@ -301,12 +338,10 @@ class ResultComponent extends React.Component {
 
     if (isValidate) {
       let res = [];
-      res.push((<br/>));
       res.push((<p style={{color: "blue"}}>Validation is OK!</p>));
       return res
     } else {
       let errorList = [];
-      errorList.push((<br/>));
       errorList.push((<p style={{color: "red"}}>Validation is Fail!</p>));
       for (const errorMessage of errorMessages) {
         errorList.push((<p style={{color: "red"}}>{errorMessage}</p>))
@@ -316,23 +351,31 @@ class ResultComponent extends React.Component {
   }
 
   render() {
+    const {startPoint, laneList, endPoint} = this.props;
+    const routeCode = this.getResult(startPoint, laneList, endPoint);
     return (
       <Card shadow={0}
             style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader>
-          Result
-        </CardHeader>
-        <CardText>
-          <div style={{wordWrap: "break-word"}}>
-            <strong>Result: {this.getResult(this.props.startPoint, this.props.laneList, this.props.endPoint)}</strong>
-            <br/>
-            {this.validateResult()}
-          </div>
-        </CardText>
-        <CardActions border>
-          <div style={{float: "right"}}>
-            <Button onClick={this.back.bind(this)}>Back</Button>
-            <Button onClick={this.reselect.bind(this)}>Reselect</Button>
+        <CardHeader title="Result"/>
+        <CardContent>
+          <Typography component="strong">
+            <div style={{wordBreak: 'break-all'}}>
+              Result: {routeCode}
+            </div>
+          </Typography>
+          <Typography component="strong">
+          {this.validateResult()}
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <div style={{marginLeft: "auto"}}>
+            <Button variant="outlined" onClick={this.back}>Back</Button>
+            <Button variant="outlined" color="primary"
+                    onClick={() => {this.save(routeCode)}} style={{marginLeft: '5px'}}>Save</Button>
+            <Button variant="outlined" color="primary"
+                    onClick={() => {this.saveAndAnotherSelect(routeCode)}} style={{marginLeft: '5px'}}>Save And Select Another</Button>
+            <Button variant="outlined" color="secondary"
+                    onClick={this.reselect} style={{marginLeft: '5px'}}>Reselect</Button>
           </div>
         </CardActions>
       </Card>
@@ -354,7 +397,7 @@ const mapDispatchResult = (dispatch) => ({
 let Result = connect(mapStateResult, mapDispatchResult)(ResultComponent);
 
 
-class CreateRouteCodeTabs extends React.Component {
+class CreateRouteCodeProcess extends React.Component {
 
   constructor(props) {
     super(props);
@@ -378,14 +421,21 @@ class CreateRouteCodeTabs extends React.Component {
     };
   }
 
-  getShowTab() {
+  getSteps() {
     return this.component[this.props.activeStep].component
   }
 
   render() {
+    const ProcessBoxStyle = {
+      paddingTop: '5px',
+      paddingLeft: '5px',
+      paddingBottom: '5px',
+      height: '100%',
+      boxSizing: 'border-box'
+    };
     return (
-      <div>
-        {this.getShowTab()}
+      <div style={ProcessBoxStyle}>
+        {this.getSteps()}
       </div>
 
     );
@@ -400,4 +450,4 @@ const mapDispatch = (dispatch) => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
 });
 
-export default connect(mapState, mapDispatch)(CreateRouteCodeTabs);
+export default connect(mapState, mapDispatch)(CreateRouteCodeProcess);

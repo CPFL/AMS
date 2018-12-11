@@ -17,7 +17,6 @@ class Header extends React.Component {
 
   isWaypointAndLaneLoaderOpen() {
     this.props.scheduleEditorActions.setIsImportDataModalOpen(true);
-    console.log("test");
   }
 
   render() {

@@ -59,6 +59,19 @@ export function setStartPointAndLaneList(startPoint, laneList) {
   }
 }
 
+export function saveRouteCode(routeCode) {
+  return {
+    type: REDUX.ACTION_TYPE.SAVE_ROUTE_CODE_SCHEDULE_EDITOR,
+    routeCode: routeCode
+  }
+}
+
+export function saveAndAnotherSelectRouteCode(routeCode) {
+  return {
+    type: REDUX.ACTION_TYPE.SAVE_AND_ANOTHER_SELECT_ROUTE_CODE_SCHEDULE_EDITOR,
+    routeCode: routeCode
+  }
+}
 
 export function resetRouteCode() {
   return {
@@ -73,3 +86,9 @@ export function setIsImportDataModalOpen(isImportDataModalOpen) {
   }
 }
 
+export function setIsAddRouteModalOpen(isAddRouteModalOpen) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_SCHEDULE_EDITOR,
+    isAddRouteModalOpen: isAddRouteModalOpen
+  }
+}
