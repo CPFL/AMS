@@ -24,7 +24,7 @@ $ npm run develop
 $ npm run build
 ```
 
-### TEST
+### SERVER SETUP
 ```
 $ cd ./schedule_editor/
 $ cd ams_tools_front/templates
@@ -35,4 +35,11 @@ $ cd ../
 $ python manage.py migrate
 $ python manage.py runserver
 #Access localhost:8000/schedule_editor
+```
+
+### DEVELOP
+```
+$ cd ./schedule_editor/front
+$ npm start
+#Access localhost:3000
 ```
