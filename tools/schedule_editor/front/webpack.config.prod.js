@@ -3,14 +3,12 @@ let webpack = require('webpack');
 let webpackMerge = require('webpack-merge');
 let commonConfig = require('./webpack.config.common.js');
 
-const pkg = require('./package.json');
-
 module.exports = webpackMerge(commonConfig,{
     entry: {
         app: './src/index'
     },
     output: {
-        path: path.join(__dirname, 'static/schedule_editor'),
+        path: path.join(__dirname, '/static/schedule_editor'),
         publicPath: '/static/schedule_editor',
         filename: 'bundle.[chunkhash:8].js',
     },

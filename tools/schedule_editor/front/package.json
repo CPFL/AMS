@@ -1,5 +1,5 @@
 {
-  "name": "ai_driving_school",
+  "name": "schedule_editor",
   "version": "1.0.0",
   "scripts": {
     "serve": "yarn run watch && yarn run start",
@@ -58,7 +58,6 @@
     "reselect": "^4.0.0",
     "three": "^0.98.0"
   },
-  "main": "server.js",
   "author": "",
   "description": ""
 }

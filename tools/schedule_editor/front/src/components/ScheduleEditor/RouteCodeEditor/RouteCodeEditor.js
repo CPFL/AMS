@@ -4,7 +4,6 @@ import Grid from '@material-ui/core/Grid';
 import Map3DManager from './Maps/Map3D/Map3DManager';
 import CreateRouteCodeTabs from './Tabs/CreateRouteCodeTabs';
 
-
 export default class RouteCodeEditor extends React.Component {
 
   constructor(props) {
@@ -41,7 +40,6 @@ export default class RouteCodeEditor extends React.Component {
           </Grid>
         </Grid>
       </div>
-
     );
   }
 }
