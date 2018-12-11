@@ -36,7 +36,6 @@ const mapState = (state) => ({
   routeCode: routeCodeSelector(state),
 });
 
-
 const mapDispatch = () => ({});
 
 export default connect(mapState, mapDispatch)(RouteCodeUpdater);
