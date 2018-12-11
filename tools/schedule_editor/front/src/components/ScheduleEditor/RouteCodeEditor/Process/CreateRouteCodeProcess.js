@@ -94,17 +94,22 @@ class SelectStartPointComponent extends React.Component {
       <Card shadow={0}
             style={{width: "100%", minHeight: "100px"}}>
         <CardHeader title="Select Start Point"/>
-        <CardContent><strong>Selected Point ID: {this.props.startPoint}</strong></CardContent>
+        <CardContent>
+          <Typography variant="subtitle1">
+            <strong>Selected Point ID: {this.props.startPoint}</strong>
+          </Typography>
+        </CardContent>
         <CardActions>
           <div style={{marginLeft: "auto"}}>
             <Button onClick={this.back}>Back</Button>
-            <Button color="primary" onClick={this.confirm}　style={{marginLeft: '5px'}}>Confirm</Button>
+            <Button color="primary" onClick={this.confirm} style={{marginLeft: '5px'}}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
     )
   }
 }
+
 const mapStateSelectStartPoint = (state) => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   startPoint: state.scheduleEditor.getStartPoint()
@@ -142,9 +147,11 @@ class SelectLaneComponent extends React.Component {
           <ListItem key={key}>
             <ListItemText
               primary={
-                <strong>
-                  Lane ID: {lane}
-                </strong>
+                <Typography variant="subtitle1">
+                  <strong>
+                    Lane ID: {lane}
+                  </strong>
+                </Typography>
               }
             />
           </ListItem>
@@ -168,7 +175,7 @@ class SelectLaneComponent extends React.Component {
         <CardActions>
           <div style={{marginLeft: "auto"}}>
             <Button onClick={this.back}>Back</Button>
-            <Button color="primary"　onClick={this.confirm.bind(this)} style={{marginLeft: '5px'}}>Confirm</Button>
+            <Button color="primary" onClick={this.confirm.bind(this)} style={{marginLeft: '5px'}}>Confirm</Button>
           </div>
         </CardActions>
       </Card>
@@ -211,7 +218,11 @@ class SelectEndPointComponent extends React.Component {
       <Card shadow={0}
             style={{width: "100%", minHeight: "100px"}}>
         <CardHeader title="Select End Point"/>
-        <CardContent><strong>Selected Point ID: {this.props.endPoint}</strong></CardContent>
+        <CardContent>
+          <Typography variant="subtitle1">
+            <strong>Selected Point ID: {this.props.endPoint}</strong>
+          </Typography>
+        </CardContent>
         <CardActions>
           <div style={{marginLeft: "auto"}}>
             <Button onClick={this.back}>Back</Button>
@@ -242,11 +253,11 @@ class ResultComponent extends React.Component {
     this.reselect = this.reselect.bind(this);
   }
 
-  save(routeCode){
+  save(routeCode) {
     this.props.scheduleEditorActions.saveRouteCode(routeCode)
   }
 
-  saveAndAnotherSelect(routeCode){
+  saveAndAnotherSelect(routeCode) {
     this.props.scheduleEditorActions.saveAndAnotherSelectRouteCode(routeCode)
   }
 
@@ -358,22 +369,28 @@ class ResultComponent extends React.Component {
             style={{width: "100%", minHeight: "100px"}}>
         <CardHeader title="Result"/>
         <CardContent>
-          <Typography component="strong">
+          <Typography variant="subtitle1">
             <div style={{wordBreak: 'break-all'}}>
-              Result: {routeCode}
+              <strong>
+                Result: {routeCode}
+              </strong>
             </div>
           </Typography>
-          <Typography component="strong">
-          {this.validateResult()}
+          <Typography variant="subtitle1">
+            {this.validateResult()}
           </Typography>
         </CardContent>
         <CardActions>
           <div style={{marginLeft: "auto"}}>
             <Button variant="outlined" onClick={this.back}>Back</Button>
             <Button variant="outlined" color="primary"
-                    onClick={() => {this.save(routeCode)}} style={{marginLeft: '5px'}}>Save</Button>
+                    onClick={() => {
+                      this.save(routeCode)
+                    }} style={{marginLeft: '5px'}}>Save</Button>
             <Button variant="outlined" color="primary"
-                    onClick={() => {this.saveAndAnotherSelect(routeCode)}} style={{marginLeft: '5px'}}>Save And Select Another</Button>
+                    onClick={() => {
+                      this.saveAndAnotherSelect(routeCode)
+                    }} style={{marginLeft: '5px'}}>Save And Select Another</Button>
             <Button variant="outlined" color="secondary"
                     onClick={this.reselect} style={{marginLeft: '5px'}}>Reselect</Button>
           </div>
