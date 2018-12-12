@@ -1,6 +1,8 @@
 import React from 'react';
-import connect from "react-redux/es/connect/connect";
-import {bindActionCreators} from "redux";
+import PropTypes from 'prop-types';
+
+import connect from 'react-redux/es/connect/connect';
+import { bindActionCreators } from 'redux';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -11,14 +13,12 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 
-import * as ScheduleEditorActions from "../../../redux/Actions/ScheduleEditorActions";
+import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 
 import RouteList from './RouteList';
 import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
 
-
 class RouteListBox extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -31,12 +31,22 @@ class RouteListBox extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({listHeight: document.getElementById("RouteListCard").clientHeight - document.getElementById("RouteListCardHeader").clientHeight});
-    document.getElementById("RouteListCard").addEventListener('resize', this.resize, false);
+    this.setState({
+      listHeight:
+        document.getElementById('RouteListCard').clientHeight -
+        document.getElementById('RouteListCardHeader').clientHeight
+    });
+    document
+      .getElementById('RouteListCard')
+      .addEventListener('resize', this.resize, false);
   }
 
   resize() {
-    this.setState({listHeight: document.getElementById("RouteListCard").clientHeight - document.getElementById("RouteListCardHeader").clientHeight});
+    this.setState({
+      listHeight:
+        document.getElementById('RouteListCard').clientHeight -
+        document.getElementById('RouteListCardHeader').clientHeight
+    });
   }
 
   routeCodeEditorModalOpen() {
@@ -65,19 +75,20 @@ class RouteListBox extends React.Component {
       height: cardContentHeight
     };
 
-
     const modalContent = {
       position: 'relative',
       height: window.innerHeight * 0.9
     };
     return (
       <div style={wrapper}>
-        <Card style={CardStyle}
-              id="RouteListCard"
-        >
+        <Card style={CardStyle} id="RouteListCard">
           <CardHeader
             action={
-              <Button variant="contained" color="primary" onClick={this.routeCodeEditorModalOpen}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={this.routeCodeEditorModalOpen}
+              >
                 Add Route
               </Button>
             }
@@ -85,22 +96,26 @@ class RouteListBox extends React.Component {
             id="RouteListCardHeader"
           />
           <CardContent style={contentStyle}>
-            <RouteList/>
+            <RouteList />
           </CardContent>
         </Card>
         <Dialog
           open={this.props.isAddRouteModalOpen}
           onClose={this.closeModal}
           fullWidth={true}
-          maxWidth='xl'
+          maxWidth="xl"
         >
           <DialogTitle id="alert-dialog-slide-title">
-            <IconButton color="inherit" onClick={this.closeModal} aria-label="Close">
+            <IconButton
+              color="inherit"
+              onClick={this.closeModal}
+              aria-label="Close"
+            >
               <CloseIcon />
             </IconButton>
           </DialogTitle>
           <div style={modalContent}>
-            <RouteCodeEditor/>
+            <RouteCodeEditor />
           </div>
         </Dialog>
       </div>
@@ -108,12 +123,17 @@ class RouteListBox extends React.Component {
   }
 }
 
-const mapStateSelectEndPoint = (state) => ({
-  isAddRouteModalOpen: state.scheduleEditor.getIsAddRouteModalOpen(),
+RouteListBox.propTypes = {
+  isAddRouteModalOpen: PropTypes.bool,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectEndPoint = state => ({
+  isAddRouteModalOpen: state.scheduleEditor.getIsAddRouteModalOpen()
 });
-const mapDispatchSelectEndPoint = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchSelectEndPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-export default connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(RouteListBox);
-
-
+export default connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(RouteListBox);

@@ -1,7 +1,9 @@
 import React from 'react';
-import {connect} from "react-redux";
+import PropTypes from 'prop-types';
 
-import {routeCodeSelector} from '../../../../redux/selectors/ScheduleEditorSelector';
+import { connect } from 'react-redux';
+
+import { routeCodeSelector } from '../../../../redux/selectors/ScheduleEditorSelector';
 
 class RouteCodeUpdater extends React.Component {
   constructor(props) {
@@ -10,7 +12,11 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidUpdate() {
     const routeCode = this.props.routeCode;
-    if (routeCode.startPoint != null && routeCode.laneList != null && routeCode.endPoint != null) {
+    if (
+      routeCode.startPoint != null &&
+      routeCode.laneList != null &&
+      routeCode.endPoint != null
+    ) {
       this.props.updateRouteCode(
         routeCode.startPoint,
         routeCode.laneList,
@@ -20,15 +26,19 @@ class RouteCodeUpdater extends React.Component {
   }
 
   render() {
-    return (<div/>)
+    return <div />;
   }
 }
 
-const mapState = (state) => ({
-  routeCode: routeCodeSelector(state),
+RouteCodeUpdater.propTypes = {
+  routeCode: PropTypes.object,
+  updateRouteCode: PropTypes.func
+};
+const mapState = state => ({
+  routeCode: routeCodeSelector(state)
 });
-
-
 const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(RouteCodeUpdater);
+export default connect(
+  mapState,
+  mapDispatch
+)(RouteCodeUpdater);

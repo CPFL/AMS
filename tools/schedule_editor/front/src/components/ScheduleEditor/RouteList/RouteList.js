@@ -1,5 +1,7 @@
 import React from 'react';
-import connect from "react-redux/es/connect/connect";
+import PropTypes from 'prop-types';
+
+import connect from 'react-redux/es/connect/connect';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -8,7 +10,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 
 class RouteList extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -24,17 +25,15 @@ class RouteList extends React.Component {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
           <ListItemIcon>
-            <DoneIcon/>
+            <DoneIcon />
           </ListItemIcon>
-          <ListItemText primary={
-            <div style={{wordBreak: 'break-all'}}>
-              {item}
-            </div>
-          }/>
+          <ListItemText
+            primary={<div style={{ wordBreak: 'break-all' }}>{item}</div>}
+          />
         </ListItem>
-      )
+      );
     }
-    return resList
+    return resList;
   }
 
   selectRouteCode(event, item) {
@@ -47,16 +46,18 @@ class RouteList extends React.Component {
       height: '100%'
     };
 
-    return (
-      <List style={routeListStyle}>
-        {this.getItems()}
-      </List>
-    );
+    return <List style={routeListStyle}>{this.getItems()}</List>;
   }
 }
 
-const mapStateSelectEndPoint = (state) => ({
-  routeCodeList: state.scheduleEditor.getRouteCodeList(),
+RouteList.propTypes = {
+  routeCodeList: PropTypes.array
+};
+const mapStateSelectEndPoint = state => ({
+  routeCodeList: state.scheduleEditor.getRouteCodeList()
 });
 const mapDispatchSelectEndPoint = () => ({});
-export default connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(RouteList);
+export default connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(RouteList);

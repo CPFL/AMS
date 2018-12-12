@@ -1,4 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -12,65 +16,73 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 
-import {connect} from "react-redux";
-import * as ScheduleEditorActions from "../../../../redux/Actions/ScheduleEditorActions";
-import {bindActionCreators} from "redux";
-
-import {steps} from '../../../../model/Redux/Page/ScheduleEditor'
-import ListItemText from "@material-ui/core/ListItemText/ListItemText";
+import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
+import { steps } from '../../../../model/Redux/Page/ScheduleEditor';
+import ListItemText from '@material-ui/core/ListItemText/ListItemText';
 
 class AdvanceOrBackComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.confirm = this.confirm.bind(this);
   }
 
   confirm() {
-    this.props.scheduleEditorActions.setActiveStep(steps.advanceOrBack.nextStep)
+    this.props.scheduleEditorActions.setActiveStep(
+      steps.advanceOrBack.nextStep
+    );
   }
 
   setIsBack(event) {
-    this.props.scheduleEditorActions.setIsBack(event.target.value === "back");
-  };
+    this.props.scheduleEditorActions.setIsBack(event.target.value === 'back');
+  }
 
   render() {
     return (
-      <Card shadow={0}
-            style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader title="Select Advance or Back"/>
+      <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
+        <CardHeader title="Select Advance or Back" />
         <CardContent>
           <RadioGroup
             name="AdvanceOrBack"
-            value={this.props.isBack ? "back" : "advance"}
+            value={this.props.isBack ? 'back' : 'advance'}
             onChange={this.setIsBack.bind(this)}
           >
-            <FormControlLabel value="advance" control={<Radio/>} label="Advance"/>
-            <FormControlLabel value="back" control={<Radio/>} label="Back"/>
+            <FormControlLabel
+              value="advance"
+              control={<Radio />}
+              label="Advance"
+            />
+            <FormControlLabel value="back" control={<Radio />} label="Back" />
           </RadioGroup>
         </CardContent>
         <CardActions>
-          <div style={{marginLeft: "auto"}}>
-            <Button color="primary" onClick={this.confirm}>Confirm</Button>
+          <div style={{ marginLeft: 'auto' }}>
+            <Button color="primary" onClick={this.confirm}>
+              Confirm
+            </Button>
           </div>
         </CardActions>
       </Card>
-    )
+    );
   }
 }
-
-const mapStateAdvanceOrBack = (state) => ({
+AdvanceOrBackComponent.propTypes = {
+  activeStep: PropTypes.string,
+  isBack: PropTypes.bool,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateAdvanceOrBack = state => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   isBack: state.scheduleEditor.getIsBack()
 });
-const mapDispatchAdvanceOrBack = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchAdvanceOrBack = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-let AdvanceOrBack = connect(mapStateAdvanceOrBack, mapDispatchAdvanceOrBack)(AdvanceOrBackComponent);
-
+let AdvanceOrBack = connect(
+  mapStateAdvanceOrBack,
+  mapDispatchAdvanceOrBack
+)(AdvanceOrBackComponent);
 
 class SelectStartPointComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.back = this.back.bind(this);
@@ -78,50 +90,64 @@ class SelectStartPointComponent extends React.Component {
   }
 
   confirm() {
-    if (this.props.startPoint !== "") {
-      this.props.scheduleEditorActions.setActiveStep(steps.selectStartPoint.nextStep)
+    if (this.props.startPoint !== '') {
+      this.props.scheduleEditorActions.setActiveStep(
+        steps.selectStartPoint.nextStep
+      );
     } else {
-      alert("Start point is not selected!");
+      alert('Start point is not selected!');
     }
   }
 
   back() {
-    this.props.scheduleEditorActions.backStep(steps.selectStartPoint.previousStep)
+    this.props.scheduleEditorActions.backStep(
+      steps.selectStartPoint.previousStep
+    );
   }
 
   render() {
     return (
-      <Card shadow={0}
-            style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader title="Select Start Point"/>
+      <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
+        <CardHeader title="Select Start Point" />
         <CardContent>
           <Typography variant="subtitle1">
             <strong>Selected Point ID: {this.props.startPoint}</strong>
           </Typography>
         </CardContent>
         <CardActions>
-          <div style={{marginLeft: "auto"}}>
+          <div style={{ marginLeft: 'auto' }}>
             <Button onClick={this.back}>Back</Button>
-            <Button color="primary" onClick={this.confirm} style={{marginLeft: '5px'}}>Confirm</Button>
+            <Button
+              color="primary"
+              onClick={this.confirm}
+              style={{ marginLeft: '5px' }}
+            >
+              Confirm
+            </Button>
           </div>
         </CardActions>
       </Card>
-    )
+    );
   }
 }
-
-const mapStateSelectStartPoint = (state) => ({
+SelectStartPointComponent.propTypes = {
+  activeStep: PropTypes.string,
+  startPoint: PropTypes.string,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectStartPoint = state => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   startPoint: state.scheduleEditor.getStartPoint()
 });
-const mapDispatchSelectStartPoint = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchSelectStartPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-let SelectStartPoint = connect(mapStateSelectStartPoint, mapDispatchSelectStartPoint)(SelectStartPointComponent);
-
+let SelectStartPoint = connect(
+  mapStateSelectStartPoint,
+  mapDispatchSelectStartPoint
+)(SelectStartPointComponent);
 
 class SelectLaneComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.back = this.back.bind(this);
@@ -129,72 +155,80 @@ class SelectLaneComponent extends React.Component {
   }
 
   confirm() {
-    this.props.scheduleEditorActions.setActiveStep(steps.selectLane.nextStep)
+    this.props.scheduleEditorActions.setActiveStep(steps.selectLane.nextStep);
   }
 
   back() {
-    this.props.scheduleEditorActions.backStep(steps.selectLane.previousStep)
+    this.props.scheduleEditorActions.backStep(steps.selectLane.previousStep);
   }
 
   getLaneList(laneList) {
-
     let resList = [];
     let key = 0;
 
     for (let lane of laneList) {
       if (laneList.hasOwnProperty(key)) {
-        resList.push((
+        resList.push(
           <ListItem key={key}>
             <ListItemText
               primary={
                 <Typography variant="subtitle1">
-                  <strong>
-                    Lane ID: {lane}
-                  </strong>
+                  <strong>Lane ID: {lane}</strong>
                 </Typography>
               }
             />
           </ListItem>
-        ));
+        );
         key += 1;
       }
     }
-    return resList
-  };
+    return resList;
+  }
 
   render() {
     return (
-      <Card shadow={0}
-            style={{width: "100%", height: '100%'}}>
-        <CardHeader title="Select Lane" id="SelectLaneStepCardHeader"/>
-        <CardContent style={{overflowY: 'auto', height: '60%'}} id="SelectLaneStepCardContent">
-          <List>
-            {this.getLaneList(this.props.laneList)}
-          </List>
+      <Card shadow={0} style={{ width: '100%', height: '100%' }}>
+        <CardHeader title="Select Lane" id="SelectLaneStepCardHeader" />
+        <CardContent
+          style={{ overflowY: 'auto', height: '60%' }}
+          id="SelectLaneStepCardContent"
+        >
+          <List>{this.getLaneList(this.props.laneList)}</List>
         </CardContent>
         <CardActions>
-          <div style={{marginLeft: "auto"}}>
+          <div style={{ marginLeft: 'auto' }}>
             <Button onClick={this.back}>Back</Button>
-            <Button color="primary" onClick={this.confirm.bind(this)} style={{marginLeft: '5px'}}>Confirm</Button>
+            <Button
+              color="primary"
+              onClick={this.confirm.bind(this)}
+              style={{ marginLeft: '5px' }}
+            >
+              Confirm
+            </Button>
           </div>
         </CardActions>
       </Card>
-    )
+    );
   }
 }
-
-const mapStateSelectLane = (state) => ({
+SelectLaneComponent.propTypes = {
+  activeStep: PropTypes.string,
+  laneList: PropTypes.array,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectLane = state => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   laneList: state.scheduleEditor.getLaneList()
 });
-const mapDispatchSelectLane = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchSelectLane = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-let SelectLane = connect(mapStateSelectLane, mapDispatchSelectLane)(SelectLaneComponent);
-
+let SelectLane = connect(
+  mapStateSelectLane,
+  mapDispatchSelectLane
+)(SelectLaneComponent);
 
 class SelectEndPointComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.back = this.back.bind(this);
@@ -202,50 +236,64 @@ class SelectEndPointComponent extends React.Component {
   }
 
   confirm() {
-    if (this.props.endPoint !== "") {
-      this.props.scheduleEditorActions.setActiveStep(steps.selectEndPoint.nextStep)
+    if (this.props.endPoint !== '') {
+      this.props.scheduleEditorActions.setActiveStep(
+        steps.selectEndPoint.nextStep
+      );
     } else {
-      alert("End point is not selected!");
+      alert('End point is not selected!');
     }
   }
 
   back() {
-    this.props.scheduleEditorActions.backStep(steps.selectEndPoint.previousStep)
+    this.props.scheduleEditorActions.backStep(
+      steps.selectEndPoint.previousStep
+    );
   }
 
   render() {
     return (
-      <Card shadow={0}
-            style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader title="Select End Point"/>
+      <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
+        <CardHeader title="Select End Point" />
         <CardContent>
           <Typography variant="subtitle1">
             <strong>Selected Point ID: {this.props.endPoint}</strong>
           </Typography>
         </CardContent>
         <CardActions>
-          <div style={{marginLeft: "auto"}}>
+          <div style={{ marginLeft: 'auto' }}>
             <Button onClick={this.back}>Back</Button>
-            <Button color="primary" onClick={this.confirm} style={{marginLeft: '5px'}}>Confirm</Button>
+            <Button
+              color="primary"
+              onClick={this.confirm}
+              style={{ marginLeft: '5px' }}
+            >
+              Confirm
+            </Button>
           </div>
         </CardActions>
       </Card>
-    )
+    );
   }
 }
-
-const mapStateSelectEndPoint = (state) => ({
+SelectEndPointComponent.propTypes = {
+  activeStep: PropTypes.string,
+  endPoint: PropTypes.string,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectEndPoint = state => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   endPoint: state.scheduleEditor.getEndPoint()
 });
-const mapDispatchSelectEndPoint = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchSelectEndPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-let SelectEndPoint = connect(mapStateSelectEndPoint, mapDispatchSelectEndPoint)(SelectEndPointComponent);
-
+let SelectEndPoint = connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(SelectEndPointComponent);
 
 class ResultComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.save = this.save.bind(this);
@@ -254,40 +302,40 @@ class ResultComponent extends React.Component {
   }
 
   save(routeCode) {
-    this.props.scheduleEditorActions.saveRouteCode(routeCode)
+    this.props.scheduleEditorActions.saveRouteCode(routeCode);
   }
 
   saveAndAnotherSelect(routeCode) {
-    this.props.scheduleEditorActions.saveAndAnotherSelectRouteCode(routeCode)
+    this.props.scheduleEditorActions.saveAndAnotherSelectRouteCode(routeCode);
   }
 
   reselect() {
-    this.props.scheduleEditorActions.resetRouteCode()
+    this.props.scheduleEditorActions.resetRouteCode();
   }
 
   back() {
-    this.props.scheduleEditorActions.backStep(steps.result.previousStep)
+    this.props.scheduleEditorActions.backStep(steps.result.previousStep);
   }
 
   getResult(startPoint, laneList, endPoint) {
-
-    let lastPoint = "";
-    let laneString = "";
+    let lastPoint = '';
+    let laneString = '';
     for (const lane of laneList) {
       const points = lane.split('_');
 
-      const [arrow, startIndex, endIndex] = this.props.isBack ? ["<", 1, 0] : [">", 0, 1];
+      const [arrow, startIndex, endIndex] = this.props.isBack
+        ? ['<', 1, 0]
+        : ['>', 0, 1];
 
       laneString += points[startIndex] + arrow;
       lastPoint = points[endIndex];
     }
     laneString += lastPoint;
 
-    return startPoint + ":" + laneString + ":" + endPoint
+    return startPoint + ':' + laneString + ':' + endPoint;
   }
 
   validateResult() {
-
     const waypoints = this.props.mapData.waypoint.waypoints;
     const lane = this.props.mapData.lane;
     const startPoint = this.props.startPoint;
@@ -298,29 +346,40 @@ class ResultComponent extends React.Component {
 
     if (!waypoints.hasOwnProperty(startPoint)) {
       isValidate = false;
-      errorMessages.push("Waypoints does not have this Start Point");
+      errorMessages.push('Waypoints does not have this Start Point');
     }
     for (const laneID of laneList) {
       if (!lane.lanes.hasOwnProperty(laneID)) {
         isValidate = false;
-        errorMessages.push("Lanes does not have this LaneID:" + laneID);
+        errorMessages.push('Lanes does not have this LaneID:' + laneID);
       } else {
         const index = laneList.indexOf(laneID);
         if (index === 0) {
           if (lane.lanes[laneID].waypointIDs.indexOf(startPoint) === -1) {
             isValidate = false;
-            errorMessages.push("Start Point does not exist on the first lane");
+            errorMessages.push('Start Point does not exist on the first lane');
           }
         } else {
           if (!this.props.isBack) {
-            if (lane.toLanes[laneList[index - 1]].indexOf(laneList[index]) === -1) {
+            if (
+              lane.toLanes[laneList[index - 1]].indexOf(laneList[index]) === -1
+            ) {
               isValidate = false;
-              errorMessages.push("This Lane does not exist in toLanes of previous lane: LaneID is " + laneID);
+              errorMessages.push(
+                'This Lane does not exist in toLanes of previous lane: LaneID is ' +
+                  laneID
+              );
             }
           } else {
-            if (lane.fromLanes[laneList[index - 1]].indexOf(laneList[index]) === -1) {
+            if (
+              lane.fromLanes[laneList[index - 1]].indexOf(laneList[index]) ===
+              -1
+            ) {
               isValidate = false;
-              errorMessages.push("This Lane does not exist in fromLanes of previous lane: LaneID is " + laneID);
+              errorMessages.push(
+                'This Lane does not exist in fromLanes of previous lane: LaneID is ' +
+                  laneID
+              );
             }
           }
         }
@@ -328,79 +387,108 @@ class ResultComponent extends React.Component {
     }
 
     if (lane.lanes.hasOwnProperty(laneList[laneList.length - 1])) {
-      if (lane.lanes[laneList[laneList.length - 1]].waypointIDs.indexOf(endPoint) === -1) {
+      if (
+        lane.lanes[laneList[laneList.length - 1]].waypointIDs.indexOf(
+          endPoint
+        ) === -1
+      ) {
         isValidate = false;
-        errorMessages.push("End Point does not exist on the last lane");
+        errorMessages.push('End Point does not exist on the last lane');
       }
     }
 
     if (laneList.length === 1 && lane.lanes.hasOwnProperty(laneList[0])) {
-      const startIndex = lane.lanes[laneList[0]].waypointIDs.indexOf(startPoint);
+      const startIndex = lane.lanes[laneList[0]].waypointIDs.indexOf(
+        startPoint
+      );
       const endIndex = lane.lanes[laneList[0]].waypointIDs.indexOf(endPoint);
 
       if (!this.props.isBack && startIndex > endIndex) {
         isValidate = false;
-        errorMessages.push("Start Point is behind End Point");
+        errorMessages.push('Start Point is behind End Point');
       } else if (this.props.isBack && startIndex < endIndex) {
         isValidate = false;
-        errorMessages.push("Start Point is behind End Point");
+        errorMessages.push('Start Point is behind End Point');
       }
     }
 
     if (isValidate) {
       let res = [];
-      res.push((<p style={{color: "blue"}}>Validation is OK!</p>));
-      return res
+      res.push(<p style={{ color: 'blue' }}>Validation is OK!</p>);
+      return res;
     } else {
       let errorList = [];
-      errorList.push((<p style={{color: "red"}}>Validation is Fail!</p>));
+      errorList.push(<p style={{ color: 'red' }}>Validation is Fail!</p>);
       for (const errorMessage of errorMessages) {
-        errorList.push((<p style={{color: "red"}}>{errorMessage}</p>))
+        errorList.push(<p style={{ color: 'red' }}>{errorMessage}</p>);
       }
-      return errorList
+      return errorList;
     }
   }
 
   render() {
-    const {startPoint, laneList, endPoint} = this.props;
+    const { startPoint, laneList, endPoint } = this.props;
     const routeCode = this.getResult(startPoint, laneList, endPoint);
     return (
-      <Card shadow={0}
-            style={{width: "100%", minHeight: "100px"}}>
-        <CardHeader title="Result"/>
+      <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
+        <CardHeader title="Result" />
         <CardContent>
           <Typography variant="subtitle1">
-            <div style={{wordBreak: 'break-all'}}>
-              <strong>
-                Result: {routeCode}
-              </strong>
+            <div style={{ wordBreak: 'break-all' }}>
+              <strong>Result: {routeCode}</strong>
             </div>
           </Typography>
-          <Typography variant="subtitle1">
-            {this.validateResult()}
-          </Typography>
+          <Typography variant="subtitle1">{this.validateResult()}</Typography>
         </CardContent>
         <CardActions>
-          <div style={{marginLeft: "auto"}}>
-            <Button variant="outlined" onClick={this.back}>Back</Button>
-            <Button variant="outlined" color="primary"
-                    onClick={() => {
-                      this.save(routeCode)
-                    }} style={{marginLeft: '5px'}}>Save</Button>
-            <Button variant="outlined" color="primary"
-                    onClick={() => {
-                      this.saveAndAnotherSelect(routeCode)
-                    }} style={{marginLeft: '5px'}}>Save And Select Another</Button>
-            <Button variant="outlined" color="secondary"
-                    onClick={this.reselect} style={{marginLeft: '5px'}}>Reselect</Button>
+          <div style={{ marginLeft: 'auto' }}>
+            <Button variant="outlined" onClick={this.back}>
+              Back
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                this.save(routeCode);
+              }}
+              style={{ marginLeft: '5px' }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                this.saveAndAnotherSelect(routeCode);
+              }}
+              style={{ marginLeft: '5px' }}
+            >
+              Save And Select Another
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={this.reselect}
+              style={{ marginLeft: '5px' }}
+            >
+              Reselect
+            </Button>
           </div>
         </CardActions>
       </Card>
-    )
+    );
   }
 }
-
-const mapStateResult = (state) => ({
+ResultComponent.propTypes = {
+  activeStep: PropTypes.string,
+  isBack: PropTypes.bool,
+  startPoint: PropTypes.string,
+  laneList: PropTypes.array,
+  endPoint: PropTypes.string,
+  mapData: PropTypes.object,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateResult = state => ({
   activeStep: state.scheduleEditor.getActiveStep(),
   isBack: state.scheduleEditor.getIsBack(),
   startPoint: state.scheduleEditor.getStartPoint(),
@@ -408,38 +496,39 @@ const mapStateResult = (state) => ({
   endPoint: state.scheduleEditor.getEndPoint(),
   mapData: state.scheduleEditor.getMapData()
 });
-const mapDispatchResult = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatchResult = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-let Result = connect(mapStateResult, mapDispatchResult)(ResultComponent);
-
+let Result = connect(
+  mapStateResult,
+  mapDispatchResult
+)(ResultComponent);
 
 class CreateRouteCodeProcess extends React.Component {
-
   constructor(props) {
     super(props);
 
     this.component = {
       advanceOrBack: {
-        component: (<AdvanceOrBack/>),
+        component: <AdvanceOrBack />
       },
       selectStartPoint: {
-        component: (<SelectStartPoint/>),
+        component: <SelectStartPoint />
       },
       selectLane: {
-        component: (<SelectLane/>),
+        component: <SelectLane />
       },
       selectEndPoint: {
-        component: (<SelectEndPoint/>),
+        component: <SelectEndPoint />
       },
       result: {
-        component: (<Result/>),
+        component: <Result />
       }
     };
   }
 
   getSteps() {
-    return this.component[this.props.activeStep].component
+    return this.component[this.props.activeStep].component;
   }
 
   render() {
@@ -450,21 +539,23 @@ class CreateRouteCodeProcess extends React.Component {
       height: '100%',
       boxSizing: 'border-box'
     };
-    return (
-      <div style={ProcessBoxStyle}>
-        {this.getSteps()}
-      </div>
-
-    );
+    return <div style={ProcessBoxStyle}>{this.getSteps()}</div>;
   }
 }
 
-const mapState = (state) => ({
+CreateRouteCodeProcess.propTypes = {
+  activeStep: PropTypes.string,
+  scheduleEditorActions: PropTypes.object
+};
+
+const mapState = state => ({
   activeStep: state.scheduleEditor.getActiveStep()
 });
-
-const mapDispatch = (dispatch) => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch),
+const mapDispatch = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
 
-export default connect(mapState, mapDispatch)(CreateRouteCodeProcess);
+export default connect(
+  mapState,
+  mapDispatch
+)(CreateRouteCodeProcess);

@@ -5,7 +5,6 @@ import Map3DManager from './Maps/Map3D/Map3DManager';
 import CreateRouteCodeTabs from './Process/CreateRouteCodeProcess';
 
 export default class RouteCodeEditor extends React.Component {
-
   constructor(props) {
     super(props);
   }
@@ -22,19 +21,19 @@ export default class RouteCodeEditor extends React.Component {
     const Map3DWrapper = {
       padding: '5px',
       boxSizing: 'border-box',
-      height: '100%',
+      height: '100%'
     };
 
     return (
       <div style={wrapper}>
-        <Grid container style={{height: '100%'}}>
-          <Grid item xs style={{position: 'relative'}}>
-            <CreateRouteCodeTabs/>
+        <Grid container style={{ height: '100%' }}>
+          <Grid item xs style={{ position: 'relative' }}>
+            <CreateRouteCodeTabs />
           </Grid>
-          <Grid item xs style={{position: 'relative'}}>
+          <Grid item xs style={{ position: 'relative' }}>
             <div style={Map3DWrapper}>
-              <div style={{height: '100%', width: '100%'}}>
-                <Map3DManager/>
+              <div style={{ height: '100%', width: '100%' }}>
+                <Map3DManager />
               </div>
             </div>
           </Grid>
