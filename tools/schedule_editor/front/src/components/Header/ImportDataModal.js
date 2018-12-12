@@ -1,16 +1,17 @@
-import React from "react";
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-import * as ScheduleEditorActions from "../../redux/Actions/ScheduleEditorActions";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Button from "@material-ui/core/Button";
-import DoneIcon from "@material-ui/icons/Done";
+import * as ScheduleEditorActions from '../../redux/Actions/ScheduleEditorActions';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Button from '@material-ui/core/Button';
+import DoneIcon from '@material-ui/icons/Done';
 
-import PCDLoader from "../../io/PCDLoader";
+import PCDLoader from '../../io/PCDLoader';
+import PropTypes from 'prop-types';
 
 class ImportDataModal extends React.Component {
   constructor(props) {
@@ -41,8 +42,8 @@ class ImportDataModal extends React.Component {
     if (fileList.length) {
       const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
-        e.target.value = "";
-        alert("Only pcd file is available");
+        e.target.value = '';
+        alert('Only pcd file is available');
       } else {
         const fileReader = new FileReader();
         fileReader.onload = event => {
@@ -64,8 +65,8 @@ class ImportDataModal extends React.Component {
     if (fileList.length) {
       const file = fileList[0];
       if (!file.name.match(/.+.json$/)) {
-        e.target.value = "";
-        alert("Only json file is available");
+        e.target.value = '';
+        alert('Only json file is available');
       } else {
         const fileReader = new FileReader();
         fileReader.onload = event => {
@@ -98,8 +99,8 @@ class ImportDataModal extends React.Component {
           console.log(fileList, e);
         });
       } else {
-        e.target.value = "";
-        alert("Only pcd file is available");
+        e.target.value = '';
+        alert('Only pcd file is available');
       }
     } else {
       this.setState({ pcdLoaded: false });
@@ -137,7 +138,7 @@ class ImportDataModal extends React.Component {
             id="importWaypoint"
             multiple
             type="file"
-            style={{ display: "none" }}
+            style={{ display: 'none' }}
             onChange={this.importWaypoint}
           />
           <label htmlFor="importWaypoint">
@@ -145,9 +146,9 @@ class ImportDataModal extends React.Component {
               variant="contained"
               color="primary"
               component="span"
-              style={{ width: "100%" }}
+              style={{ width: '100%' }}
             >
-              {waypointLoaded ? <DoneIcon /> : ""}
+              {waypointLoaded ? <DoneIcon /> : ''}
               Select Waypoint(Required)
             </Button>
           </label>
@@ -156,7 +157,7 @@ class ImportDataModal extends React.Component {
             id="importLane"
             multiple
             type="file"
-            style={{ display: "none" }}
+            style={{ display: 'none' }}
             onChange={this.importLane}
           />
           <label htmlFor="importLane">
@@ -164,9 +165,9 @@ class ImportDataModal extends React.Component {
               variant="contained"
               color="primary"
               component="span"
-              style={{ marginTop: "5px", width: "100%" }}
+              style={{ marginTop: '5px', width: '100%' }}
             >
-              {laneLoaded ? <DoneIcon /> : ""}
+              {laneLoaded ? <DoneIcon /> : ''}
               Select Lane(Required)
             </Button>
           </label>
@@ -175,7 +176,7 @@ class ImportDataModal extends React.Component {
             id="importPCD"
             multiple
             type="file"
-            style={{ display: "none" }}
+            style={{ display: 'none' }}
             onChange={this.importPCD}
           />
           <label htmlFor="importPCD">
@@ -183,9 +184,9 @@ class ImportDataModal extends React.Component {
               variant="contained"
               color="primary"
               component="span"
-              style={{ marginTop: "5px", width: "100%" }}
+              style={{ marginTop: '5px', width: '100%' }}
             >
-              {pcdLoaded ? <DoneIcon /> : ""}
+              {pcdLoaded ? <DoneIcon /> : ''}
               Select PCD
             </Button>
           </label>
@@ -206,7 +207,10 @@ class ImportDataModal extends React.Component {
     );
   }
 }
-
+ImportDataModal.propTypes = {
+  isImportDataModalOpen: PropTypes.bool,
+  scheduleEditorActions: PropTypes.object
+};
 const mapState = state => ({
   isImportDataModalOpen: state.scheduleEditor.getIsImportDataModalOpen()
 });
@@ -214,7 +218,6 @@ const mapState = state => ({
 const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-
 export default connect(
   mapState,
   mapDispatch

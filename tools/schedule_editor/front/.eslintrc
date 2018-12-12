@@ -19,12 +19,13 @@
     "prettier"
   ],
   "rules": {
+    "quotes": ["error", "single"],
     "no-console": "off",
     "no-extra-parens": "warn",
     "no-redeclare": "warn",
     "no-unused-vars": "warn",
     "no-empty": "warn",
-    "prettier/prettier": "error"
+    "prettier/prettier": ["error", { "singleQuote": true }]
   },
   "globals": {
     "THREE": false

@@ -1,23 +1,20 @@
-import React from "react";
+import React from 'react';
 
-import * as THREE from "three";
-import "three/OrbitControls";
-import "three/PCDLoader";
+import * as THREE from 'three';
+import 'three/OrbitControls';
+import 'three/PCDLoader';
 
-import Detector from "../../../../libs/threejs/Detector";
+import Detector from '../../../../libs/threejs/Detector';
 
-import PCD from "./ModelManager/PCD";
-import Waypoint from "./ModelManager/Waypoint";
+import PCD from './ModelManager/PCD';
+import Waypoint from './ModelManager/Waypoint';
 
-import MapDataUpdater from "../DataUpdater/MapDataUpdater";
-import RouteCodeUpdater from "../DataUpdater/RouteCodeUpdater";
+import MapDataUpdater from '../DataUpdater/MapDataUpdater';
+import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
 
-import connect from "react-redux/es/connect/connect";
-import { bindActionCreators } from "redux";
-import * as ScheduleEditorActions from "../../../../redux/Actions/ScheduleEditorActions";
-import { addResizeListener } from "detect-resize";
+import { addResizeListener } from 'detect-resize';
 
-class Map3DManager extends React.Component {
+export default class Map3DManager extends React.Component {
   constructor(props) {
     super(props);
     if (!Detector.webgl) Detector.addGetWebGLMessage();
@@ -38,7 +35,7 @@ class Map3DManager extends React.Component {
   componentDidMount() {
     this.setMapSize();
     this.prepare();
-    addResizeListener(document.getElementById("map_canvas"), this.resize);
+    addResizeListener(document.getElementById('map_canvas'), this.resize);
   }
 
   componentWillUnmount() {
@@ -57,8 +54,8 @@ class Map3DManager extends React.Component {
   }
 
   setMapSize() {
-    this.width = document.getElementById("map_canvas").clientWidth;
-    this.height = document.getElementById("map_canvas").clientHeight;
+    this.width = document.getElementById('map_canvas').clientWidth;
+    this.height = document.getElementById('map_canvas').clientHeight;
   }
 
   prepare() {
@@ -95,7 +92,7 @@ class Map3DManager extends React.Component {
 
   prepareScene() {
     if (this.container === null) {
-      this.container = document.getElementById("map_canvas");
+      this.container = document.getElementById('map_canvas');
     }
 
     if (this.camera === null) {
@@ -131,7 +128,7 @@ class Map3DManager extends React.Component {
         this.camera,
         this.renderer.domElement
       );
-      this.controls.addEventListener("change", this.renderMap.bind(this));
+      this.controls.addEventListener('change', this.renderMap.bind(this));
       this.controls.target.set(0, 0, 0);
 
       this.animate();
@@ -172,20 +169,10 @@ class Map3DManager extends React.Component {
 
   render() {
     return (
-      <div id="map_canvas" style={{ width: "100%", height: "100%" }}>
+      <div id="map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater setMapData={this.setMapData} />
         <RouteCodeUpdater updateRouteCode={this.updateRouteCode} />
       </div>
     );
   }
 }
-
-const mapState = () => ({});
-
-const mapDispatch = dispatch => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
-});
-export default connect(
-  mapState,
-  mapDispatch
-)(Map3DManager);

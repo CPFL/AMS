@@ -1,5 +1,6 @@
 import React from 'react';
-import {connect} from "react-redux";
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 class ActiveStepUpdater extends React.Component {
   constructor(props) {
@@ -14,15 +15,19 @@ class ActiveStepUpdater extends React.Component {
   }
 
   render() {
-    return (<div/>)
+    return <div />;
   }
 }
 
-const mapState = (state) => ({
+ActiveStepUpdater.propTypes = {
+  activeStep: PropTypes.string,
+  setActiveStep: PropTypes.func
+};
+const mapState = state => ({
   activeStep: state.scheduleEditor.getActiveStep()
 });
-
-
 const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(ActiveStepUpdater);
+export default connect(
+  mapState,
+  mapDispatch
+)(ActiveStepUpdater);
