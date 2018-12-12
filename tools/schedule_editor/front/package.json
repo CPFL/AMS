@@ -6,8 +6,7 @@
     "start": "webpack-dev-server --mode=development",
     "build": "webpack --config webpack.config.prod.js",
     "develop": "webpack --config webpack.config.dev.js",
-    "eslint": "eslint src;exit 0",
-    "eslintAll": "eslint --fix src; exit 0"
+    "eslint": "eslint src;exit 0"
   },
   "license": "MIT",
   "devDependencies": {
