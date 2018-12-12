@@ -89,9 +89,9 @@ export default class Waypoint extends THREE.Group {
           }
 
           let path = new THREE.CatmullRomCurve3(positions);
-          let geometry = new THREE.TubeBufferGeometry( path, 64, 0.1, 8, false );
-          let material = new THREE.MeshBasicMaterial( { color: this.color.default } );
-          let line = new THREE.Mesh( geometry, material );
+          let geometry = new THREE.TubeBufferGeometry(path, 64, 0.1, 8, false);
+          let material = new THREE.MeshBasicMaterial({color: this.color.default});
+          let line = new THREE.Mesh(geometry, material);
           line.name = laneID;
           this.laneList[laneID] = line;
 
@@ -101,7 +101,7 @@ export default class Waypoint extends THREE.Group {
             waypoints[waypointIDs[waypointIDs.length - 1]].x,
             waypoints[waypointIDs[waypointIDs.length - 1]].y,
             waypoints[waypointIDs[waypointIDs.length - 1]].z);
-          let from =  new THREE.Vector3(
+          let from = new THREE.Vector3(
             waypoints[waypointIDs[waypointIDs.length - 2]].x,
             waypoints[waypointIDs[waypointIDs.length - 2]].y,
             waypoints[waypointIDs[waypointIDs.length - 2]].z);
@@ -175,7 +175,7 @@ export default class Waypoint extends THREE.Group {
     for (const laneID of this.lanes) {
       this.laneList[laneID].material.color.set(this.color.default);
     }
-    if(this.lanes.length > 0) {
+    if (this.lanes.length > 0) {
       for (let laneID of this.getNextLanes(this.lanes[this.lanes.length - 1])) {
         this.laneList[laneID].material.color.set(this.color.default);
       }
@@ -183,7 +183,7 @@ export default class Waypoint extends THREE.Group {
     if (this.endPoint !== null) {
       this.waypointsList[this.endPoint].material.color.set(this.color.default);
     }
-    if(this.lanes.length > 0) {
+    if (this.lanes.length > 0) {
       for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
         this.waypointsList[waypointID].material.color.set(this.color.default);
       }
@@ -193,7 +193,7 @@ export default class Waypoint extends THREE.Group {
   setActiveStep(activeStep) {
 
     this.activeStep = activeStep;
-    if(this.waypoint !==null && this.lane !== null) {
+    if (this.waypoint !== null && this.lane !== null) {
       this.selectCandidateObject = [];
 
       if (activeStep === steps.advanceOrBack.id) {
@@ -202,7 +202,7 @@ export default class Waypoint extends THREE.Group {
         this.lanes = [];
         this.endPoint = null;
         this.selectCandidateObject = [];
-      }else if (activeStep === steps.selectStartPoint.id) {
+      } else if (activeStep === steps.selectStartPoint.id) {
         this.changeObjectColorToDefault();
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
@@ -226,16 +226,16 @@ export default class Waypoint extends THREE.Group {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
-        if(this.lanes.length === 1) {
+        if (this.lanes.length === 1) {
           const index = this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.indexOf(this.startPoint);
           let selectCandidateWaypointIDs = !this.isBack ?
-              this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(index + 1) :
-              this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(0, index - 1);
+            this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(index + 1) :
+            this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(0, index - 1);
           for (const waypointID of selectCandidateWaypointIDs) {
             this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
             this.selectCandidateObject.push(this.waypointsList[waypointID]);
           }
-        }else{
+        } else {
           for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
             this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
             this.selectCandidateObject.push(this.waypointsList[waypointID]);
@@ -269,13 +269,12 @@ export default class Waypoint extends THREE.Group {
       this.endPoint = endPoint !== "" ? endPoint : null;
 
 
-
       if (this.activeStep === steps.advanceOrBack.id) {
         this.startPoint = null;
         this.lanes = [];
         this.endPoint = null;
         this.selectCandidateObject = [];
-      }else if (this.activeStep === steps.selectStartPoint.id) {
+      } else if (this.activeStep === steps.selectStartPoint.id) {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
@@ -298,7 +297,7 @@ export default class Waypoint extends THREE.Group {
           this.waypointsList[this.startPoint].material.color.set(this.color.selected);
         }
 
-        if(this.lanes.length === 1) {
+        if (this.lanes.length === 1) {
           const index = this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.indexOf(this.startPoint);
           let selectCandidateWaypointIDs = !this.isBack ?
             this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs.slice(index + 1) :
@@ -307,7 +306,7 @@ export default class Waypoint extends THREE.Group {
             this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
             this.selectCandidateObject.push(this.waypointsList[waypointID]);
           }
-        }else {
+        } else {
           for (let waypointID of this.lane.lanes[this.lanes[this.lanes.length - 1]].waypointIDs) {
             this.waypointsList[waypointID].material.color.set(this.color.selectCandidate);
             this.selectCandidateObject.push(this.waypointsList[waypointID]);
@@ -341,7 +340,7 @@ export default class Waypoint extends THREE.Group {
   }
 
   selectObject(mouse) {
-    if(this.waypoint !==null && this.lane !== null) {
+    if (this.waypoint !== null && this.lane !== null) {
       if (this.activeStep === steps.selectStartPoint.id) {
         this.selectStartPoint(mouse);
       } else if (this.activeStep === steps.selectLane.id) {
@@ -364,9 +363,7 @@ export default class Waypoint extends THREE.Group {
         lanes = [intersects[0].object.userData.laneCode];
       }
     }
-
     this.setStartPointAndLaneList(startPoint, lanes);
-
   }
 
   selectLane(mouse) {
@@ -380,12 +377,11 @@ export default class Waypoint extends THREE.Group {
       if (lanes[lanes.length - 1] !== intersects[0].object.name) {
         lanes.push(intersects[0].object.name);
       } else {
-        if(lanes.length > 1) {
+        if (lanes.length > 1) {
           lanes.pop();
         }
       }
     }
-
     this.setLaneList(lanes);
   }
 
@@ -405,19 +401,89 @@ export default class Waypoint extends THREE.Group {
   }
 
   getNextLanes(laneID) {
-    if(this.lane !== null) {
+    if (this.lane !== null) {
       let nextLanes = this.isBack ? this.lane.fromLanes[laneID] : this.lane.toLanes[laneID];
       return nextLanes ? nextLanes : [];
-    }else{
+    } else {
       return []
     }
   }
 
+  focusCamera() {
+    switch (this.activeStep) {
+    case steps.advanceOrBack.id:
+      break;
+    case steps.selectStartPoint.id:
+      if (this.startPoint !== null) {
+        const position = this.waypointsList[this.startPoint].position;
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      }
+      break;
+    case steps.selectLane.id:
+      if (this.lanes.length) {
+        console.log(this.laneList[this.lanes[this.lanes.length - 1]]);
+        const position = this.laneList[this.lanes[this.lanes.length - 1]].geometry.parameters.path.points[0];
+        console.log(position);
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      } else if (this.startPoint !== null) {
+        const position = this.waypointsList[this.startPoint].position;
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      }
+      break;
+    case steps.selectEndPoint.id:
+      if (this.endPoint !== null) {
+        const position = this.waypointsList[this.endPoint].position;
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      } else if (this.lanes.length) {
+        const position = this.laneList[this.lanes[this.lanes.length - 1]].geometry.parameters.path.points[0];
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      }
+      break;
+    case steps.result.id:
+      if (this.startPoint !== null) {
+        const position = this.waypointsList[this.startPoint].position;
+        let newCameraPosition = {
+          x: position.x,
+          y: position.y,
+          z: position.z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      }
+      break;
+    default:
+
+    }
+  }
 
   updateCameraPosition(newCameraPosition) {
     this.camera.position.x = newCameraPosition.x;
     this.camera.position.y = newCameraPosition.y;
-    this.camera.position.z = newCameraPosition.z + 200;
+    this.camera.position.z = newCameraPosition.z + 100;
     this.controls.target.set(
       newCameraPosition.x,
       newCameraPosition.y,

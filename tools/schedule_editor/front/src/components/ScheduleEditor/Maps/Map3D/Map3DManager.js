@@ -35,32 +35,23 @@ class Map3DManager extends React.Component {
     this.waypointsModelManager = new Waypoint();
 
     this.resize = this.resize.bind(this);
-    this.setMapData = this.setMapData.bind(this);
-    this.updateRouteCode = this.updateRouteCode.bind(this);
-
   }
 
   componentDidMount() {
     this.setMapSize();
     this.prepare();
+    this.initMap();
     addResizeListener(document.getElementById("map_canvas"), this.resize);
   }
 
   componentWillUnmount() {
+    this.renderer.forceContextLoss();
+    this.renderer.context = null;
+    this.renderer.domElement = null;
+    this.renderer = null;
 
-    delete this.container;
-    delete this.stats;
-    delete this.camera;
-    delete this.renderer;
-    delete this.controls;
-    delete this.scene;
-    delete this.sceneData;
-    delete this.PCDManager;
-    delete this.waypointsModelManager;
-    delete this.initialCameraPosition;
-
-    this.container = this.camera = this.scene = this.renderer =
-      this.controls = this.stats = this.sceneData = this.PCDManager =
+    this.container = this.camera = this.scene = this.controls =
+      this.stats = this.sceneData = this.PCDManager =
         this.waypointsModelManager = this.initialCameraPosition = null;
 
   }
@@ -70,11 +61,6 @@ class Map3DManager extends React.Component {
     this.height = document.getElementById("map_canvas").clientHeight;
   }
 
-  prepare() {
-    this.prepareScene();
-    this.initializeCameraPosition();
-  }
-
   resize() {
     this.setMapSize();
     console.log(this.width, this.height);
@@ -82,6 +68,11 @@ class Map3DManager extends React.Component {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
+  }
+
+  prepare() {
+    this.prepareScene();
+    this.initializeCameraPosition();
   }
 
   animate() {
@@ -128,10 +119,6 @@ class Map3DManager extends React.Component {
       this.container.appendChild(this.renderer.domElement);
     }
 
-    let light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(-1, -1, 1).normalize();
-    this.scene.add(light);
-
     if (this.controls === null) {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.addEventListener('change', this.renderMap.bind(this));
@@ -139,50 +126,41 @@ class Map3DManager extends React.Component {
 
       this.animate();
     }
-
-    this.initModels();
-
   }
 
   renderMap() {
-
     this.renderer.render(this.scene, this.camera);
     this.camera.lookAt(this.controls.target);
 
   }
 
-  initModels() {
-
+  initMap() {
     this.PCDManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.PCDManager);
-
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.waypointsModelManager);
   }
 
-  setMapData(mapData) {
-
-    this.PCDManager.setPCDMapFromBinary(mapData.pcd);
-
-    if (Object.keys(mapData.waypoint).length && Object.keys(mapData.lane).length) {
-      this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
-    } else {
-      this.waypointsModelManager.clear();
-    }
-  }
-
-  updateRouteCode(startPoint, lanes, endPoint) {
-    this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
-  }
-
   render() {
+    const setMapData = mapData => {
+      this.PCDManager.setPCDMapFromBinary(mapData.pcd);
+      if (Object.keys(mapData.waypoint).length && Object.keys(mapData.lane).length) {
+        this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
+      } else {
+        this.waypointsModelManager.clear();
+      }
+    };
+    const updateRouteCode = (startPoint, lanes, endPoint) => {
+      this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    };
+
     return (
       <div id="map_canvas" style={{width: '100%', height: '100%'}}>
         <MapDataUpdater
-          setMapData={this.setMapData}
+          setMapData={setMapData}
         />
         <RouteCodeUpdater
-          updateRouteCode={this.updateRouteCode}
+          updateRouteCode={updateRouteCode}
         />
       </div>
     )

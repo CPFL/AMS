@@ -45,21 +45,13 @@ class Map3DManager extends React.Component {
 
     this.onClickCanvas = this.onClickCanvas.bind(this);
     this.resize = this.resize.bind(this);
-    this.initMapData = this.initMapData.bind(this);
-    this.initRouteCode = this.initRouteCode.bind(this);
-    this.setMapData = this.setMapData.bind(this);
-    this.setActiveStep = this.setActiveStep.bind(this);
-    this.setIsBack = this.setIsBack.bind(this);
-    this.updateRouteCode = this.updateRouteCode.bind(this);
 
   }
 
   componentDidMount() {
     this.setMapSize();
     this.prepare();
-    this.setMapData(this.mapData);
-    console.log(this.routeCode);
-    this.updateRouteCode(this.routeCode.startPoint, this.routeCode.laneList, this.routeCode.endPoint);
+    this.initMap();
 
     document.getElementById("route_code_map_canvas").addEventListener('click', this.onClickCanvas, false);
     addResizeListener(document.getElementById("route_code_map_canvas"), this.resize);
@@ -67,32 +59,12 @@ class Map3DManager extends React.Component {
 
   componentWillUnmount() {
 
-    delete this.container;
-    delete this.stats;
-    delete this.camera;
-    delete this.renderer;
-    delete this.controls;
-    delete this.scene;
-    delete this.sceneData;
-    delete this.PCDManager;
-    delete this.waypointsModelManager;
-    delete this.raycaster;
-    delete this.mapData;
+    this.renderer.forceContextLoss();
+    this.renderer.context = this.renderer.domElement = this.renderer = null;
 
-    this.container = null;
-    this.camera = null;
-    this.scene = null;
-    this.renderer = null;
-    this.controls = null;
-    this.stats = null;
-    this.sceneData = {};
-    this.PCDManager = null;
-    this.waypointsModelManager = null;
-    this.raycaster = null;
-    this.mapData = null;
-
+    this.container = this.camera = this.scene = this.controls =
+      this.stats =this.PCDManager = this.waypointsModelManager = this.mapData = null;
     removeResizeListener(document.getElementById("route_code_map_canvas"), this.resize);
-
   }
 
   setMapSize() {
@@ -110,14 +82,7 @@ class Map3DManager extends React.Component {
     const h = elementPosition.height;
     this.mouse.x = (x / w) * 2 - 1;
     this.mouse.y = -(y / h) * 2 + 1;
-
     this.waypointsModelManager.selectObject(this.mouse);
-
-  }
-
-  prepare() {
-    this.prepareScene();
-    this.initializeCameraPosition();
   }
 
   resize() {
@@ -127,6 +92,11 @@ class Map3DManager extends React.Component {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
+  }
+
+  prepare() {
+    this.prepareScene();
+    this.initializeCameraPosition();
   }
 
   animate() {
@@ -146,7 +116,6 @@ class Map3DManager extends React.Component {
       this.initialCameraPosition.y,
       this.initialCameraPosition.z);
   }
-
 
   prepareScene() {
     if (this.container === null) {
@@ -173,10 +142,6 @@ class Map3DManager extends React.Component {
       this.container.appendChild(this.renderer.domElement);
     }
 
-    let light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(-1, -1, 1).normalize();
-    this.scene.add(light);
-
     if (this.controls === null) {
       this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
       this.controls.addEventListener('change', this.renderMap.bind(this));
@@ -184,9 +149,6 @@ class Map3DManager extends React.Component {
 
       this.animate();
     }
-
-    this.initModels();
-
   }
 
   renderMap() {
@@ -196,7 +158,7 @@ class Map3DManager extends React.Component {
 
   }
 
-  initModels() {
+  initMap() {
 
     this.PCDManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.PCDManager);
@@ -208,54 +170,61 @@ class Map3DManager extends React.Component {
       this.props.scheduleEditorActions.setEndPoint
     );
     this.scene.add(this.waypointsModelManager);
-  }
 
-  initMapData(mapData){
-    this.mapData = mapData;
-  }
 
-  initRouteCode(routeCode){
-    console.log(routeCode);
-    this.routeCode = routeCode;
-  }
-
-  setMapData(mapData) {
-    this.PCDManager.setPCDMapFromBinary(mapData.pcd);
-    if (Object.keys(mapData.waypoint).length > 0 && Object.keys(mapData.lane).length > 0) {
-      this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
+    this.PCDManager.setPCDMapFromBinary(this.mapData.pcd);
+    if (Object.keys(this.mapData.waypoint).length > 0 && Object.keys(this.mapData.lane).length > 0) {
+      this.waypointsModelManager.setWaypoint(this.mapData.waypoint, this.mapData.lane);
     } else {
       this.waypointsModelManager.clear();
     }
-  }
-
-  setActiveStep(activeStep) {
-    this.waypointsModelManager.setActiveStep(activeStep);
-  }
-
-  setIsBack(isBack) {
-    this.waypointsModelManager.setIsBack(isBack);
-  }
-
-  updateRouteCode(startPoint, lanes, endPoint){
-    this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    this.waypointsModelManager.updateRouteCode(this.routeCode.startPoint, this.routeCode.laneList, this.routeCode.endPoint);
+    this.waypointsModelManager.focusCamera();
   }
 
   render() {
+
+
+    const initMapData = mapData => {
+      this.mapData = mapData;
+    };
+    const initRouteCode = routeCode => {
+      console.log(routeCode);
+      this.routeCode = routeCode;
+    };
+    const setMapData = mapData => {
+      this.PCDManager.setPCDMapFromBinary(mapData.pcd);
+      if (Object.keys(mapData.waypoint).length > 0 && Object.keys(mapData.lane).length > 0) {
+        this.waypointsModelManager.setWaypoint(mapData.waypoint, mapData.lane);
+      } else {
+        this.waypointsModelManager.clear();
+      }
+    };
+    const setActiveStep = activeStep => {
+      this.waypointsModelManager.setActiveStep(activeStep);
+    };
+    const setIsBack = isBack => {
+      this.waypointsModelManager.setIsBack(isBack);
+    };
+    const updateRouteCode = (startPoint, lanes, endPoint) => {
+      this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    };
+
     return (
       <div id="route_code_map_canvas" style={{width: '100%', height: '100%'}}>
         <MapDataUpdater
-          initMapData={this.initMapData}
-          setMapData={this.setMapData}
+          initMapData={initMapData}
+          setMapData={setMapData}
         />
         <ActiveStepUpdater
-          setActiveStep={this.setActiveStep}
+          setActiveStep={setActiveStep}
         />
         <IsBackUpdater
-          setIsBack={this.setIsBack}
+          setIsBack={setIsBack}
         />
         <RouteCodeUpdater
-          initRouteCode={this.initRouteCode}
-          updateRouteCode={this.updateRouteCode}
+          initRouteCode={initRouteCode}
+          updateRouteCode={updateRouteCode}
         />
       </div>
     )

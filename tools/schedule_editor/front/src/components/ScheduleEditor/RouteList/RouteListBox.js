@@ -8,7 +8,8 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogActions from '@material-ui/core/DialogActions';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 
 import * as ScheduleEditorActions from "../../../redux/Actions/ScheduleEditorActions";
 
@@ -94,19 +95,15 @@ class RouteListBox extends React.Component {
           maxWidth='xl'
         >
           <DialogTitle id="alert-dialog-slide-title">
-            {"Select Route"}
+            <IconButton color="inherit" onClick={this.closeModal} aria-label="Close">
+              <CloseIcon />
+            </IconButton>
           </DialogTitle>
           <div style={modalContent}>
             <RouteCodeEditor/>
           </div>
-          <DialogActions>
-            <Button onClick={this.closeModal}>
-              Cancel
-            </Button>
-          </DialogActions>
         </Dialog>
       </div>
-
     );
   }
 }
