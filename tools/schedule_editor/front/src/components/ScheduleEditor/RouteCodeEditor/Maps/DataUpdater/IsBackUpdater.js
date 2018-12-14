@@ -1,5 +1,6 @@
 import React from 'react';
-import {connect} from "react-redux";
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 class IsBackUpdater extends React.Component {
   constructor(props) {
@@ -14,15 +15,18 @@ class IsBackUpdater extends React.Component {
   }
 
   render() {
-    return (<div/>)
+    return <div />;
   }
 }
-
-const mapState = (state) => ({
+IsBackUpdater.propTypes = {
+  isBack: PropTypes.bool,
+  setIsBack: PropTypes.func
+};
+const mapState = state => ({
   isBack: state.scheduleEditor.getIsBack()
 });
-
-
 const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(IsBackUpdater);
+export default connect(
+  mapState,
+  mapDispatch
+)(IsBackUpdater);

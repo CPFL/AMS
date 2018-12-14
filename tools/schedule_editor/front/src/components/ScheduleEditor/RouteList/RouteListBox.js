@@ -10,7 +10,6 @@ import RouteList from './RouteList';
 import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
 
 export default class RouteListBox extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -24,20 +23,30 @@ export default class RouteListBox extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({listHeight: document.getElementById("RouteListCard").clientHeight - document.getElementById("RouteListCardHeader").clientHeight});
-    document.getElementById("RouteListCard").addEventListener('resize', this.resize, false);
+    this.setState({
+      listHeight:
+        document.getElementById('RouteListCard').clientHeight -
+        document.getElementById('RouteListCardHeader').clientHeight
+    });
+    document
+      .getElementById('RouteListCard')
+      .addEventListener('resize', this.resize, false);
   }
 
   resize() {
-    this.setState({listHeight: document.getElementById("RouteListCard").clientHeight - document.getElementById("RouteListCardHeader").clientHeight});
+    this.setState({
+      listHeight:
+        document.getElementById('RouteListCard').clientHeight -
+        document.getElementById('RouteListCardHeader').clientHeight
+    });
   }
 
   routeCodeEditorModalOpen() {
-    this.setState({isOpen: true});
+    this.setState({ isOpen: true });
   }
 
   closeModal() {
-    this.setState({isOpen: false});
+    this.setState({ isOpen: false });
   }
 
   render() {
@@ -58,19 +67,19 @@ export default class RouteListBox extends React.Component {
       height: cardContentHeight
     };
 
-
     const modalContent = {
       height: window.innerHeight * 0.9
     };
 
     return (
       <div style={wrapper}>
-        <Card style={CardStyle}
-              id="RouteListCard"
-        >
+        <Card style={CardStyle} id="RouteListCard">
           <CardHeader
             action={
-              <Button variant="outlined" onClick={this.routeCodeEditorModalOpen}>
+              <Button
+                variant="outlined"
+                onClick={this.routeCodeEditorModalOpen}
+              >
                 Add Route
               </Button>
             }
@@ -78,23 +87,20 @@ export default class RouteListBox extends React.Component {
             id="RouteListCardHeader"
           />
           <CardContent style={contentStyle}>
-            <RouteList/>
+            <RouteList />
           </CardContent>
         </Card>
         <Dialog
           open={this.state.isOpen}
           onClose={this.closeModal}
           fullWidth={true}
-          maxWidth='xl'
+          maxWidth="xl"
         >
           <div style={modalContent}>
-            <RouteCodeEditor/>
+            <RouteCodeEditor />
           </div>
-
         </Dialog>
       </div>
-
     );
   }
 }
-

@@ -1,7 +1,8 @@
 import React from 'react';
-import {connect} from "react-redux";
+import { connect } from 'react-redux';
 
-import {mapDataSelector} from "../../../../redux/selectors/ScheduleEditorSelector";
+import { mapDataSelector } from '../../../../redux/selectors/ScheduleEditorSelector';
+import PropTypes from 'prop-types';
 
 class MapDataUpdater extends React.Component {
   constructor(props) {
@@ -16,14 +17,19 @@ class MapDataUpdater extends React.Component {
   }
 
   render() {
-    return (<div/>)
+    return <div />;
   }
 }
 
-const mapState = (state) => ({
+MapDataUpdater.propTypes = {
+  mapData: PropTypes.object,
+  setMapData: PropTypes.func
+};
+const mapState = state => ({
   mapData: mapDataSelector(state)
 });
-
 const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(MapDataUpdater);
+export default connect(
+  mapState,
+  mapDispatch
+)(MapDataUpdater);

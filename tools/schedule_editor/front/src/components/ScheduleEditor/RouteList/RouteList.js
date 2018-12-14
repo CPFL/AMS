@@ -1,5 +1,4 @@
 import React from 'react';
-import {connect} from "react-redux";
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -8,7 +7,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 
 export default class RouteList extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -19,22 +17,22 @@ export default class RouteList extends React.Component {
 
   getItems() {
     const testList = [
-      "55:54>67>130:129",
-      "55:54>67>130>65:77",
-      "55:54>67>130>65>500:499"
+      '55:54>67>130:129',
+      '55:54>67>130>65:77',
+      '55:54>67>130>65>500:499'
     ];
     const resList = [];
     for (const item of testList) {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
           <ListItemIcon>
-            <DoneIcon/>
+            <DoneIcon />
           </ListItemIcon>
-          <ListItemText primary={item}/>
+          <ListItemText primary={item} />
         </ListItem>
-      )
+      );
     }
-    return resList
+    return resList;
   }
 
   selectRouteCode(event, item) {
@@ -47,10 +45,6 @@ export default class RouteList extends React.Component {
       height: '100%'
     };
 
-    return (
-      <List style={routeListStyle}>
-        {this.getItems()}
-      </List>
-    );
+    return <List style={routeListStyle}>{this.getItems()}</List>;
   }
 }
