@@ -12,11 +12,12 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import AddIcon from '@material-ui/icons/Add';
 
 import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 
 import RouteList from './RouteList';
-import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
+import RouteCodeEditor from './RouteCodeEditor/RouteCodeEditor';
 
 class RouteListBox extends React.Component {
   constructor(props) {
@@ -25,8 +26,8 @@ class RouteListBox extends React.Component {
       listHeight: 0
     };
 
-    this.routeCodeEditorModalOpen = this.routeCodeEditorModalOpen.bind(this);
-    this.closeModal = this.closeModal.bind(this);
+    this.openAddRouteModal = this.openAddRouteModal.bind(this);
+    this.closeAddRouteModal = this.closeAddRouteModal.bind(this);
     this.resize = this.resize.bind(this);
   }
 
@@ -49,11 +50,11 @@ class RouteListBox extends React.Component {
     });
   }
 
-  routeCodeEditorModalOpen() {
+  openAddRouteModal() {
     this.props.scheduleEditorActions.setIsAddRouteModalOpen(true);
   }
 
-  closeModal() {
+  closeAddRouteModal() {
     this.props.scheduleEditorActions.setIsAddRouteModalOpen(false);
   }
 
@@ -87,8 +88,9 @@ class RouteListBox extends React.Component {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={this.routeCodeEditorModalOpen}
+                onClick={this.openAddRouteModal}
               >
+                <AddIcon style={{ color: 'white', marginRight: '5px' }} />
                 Add Route
               </Button>
             }
@@ -101,14 +103,14 @@ class RouteListBox extends React.Component {
         </Card>
         <Dialog
           open={this.props.isAddRouteModalOpen}
-          onClose={this.closeModal}
+          onClose={this.closeAddRouteModal}
           fullWidth={true}
           maxWidth="xl"
         >
           <DialogTitle id="alert-dialog-slide-title">
             <IconButton
               color="inherit"
-              onClick={this.closeModal}
+              onClick={this.closeAddRouteModal}
               aria-label="Close"
             >
               <CloseIcon />

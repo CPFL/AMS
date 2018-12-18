@@ -9,7 +9,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 
-class RouteList extends React.Component {
+class ChangeRouteList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -19,18 +19,19 @@ class RouteList extends React.Component {
   }
 
   getItems() {
-    const routeCodeList = this.props.routeCodeList;
+    let currentEditChangeRouoteList = this.props.currentEditChangeRouoteList;
+    console.log(currentEditChangeRouoteList);
+    currentEditChangeRouoteList = ['test', 'test2', 'test4'];
+
     const resList = [];
-    for (const item of routeCodeList) {
+    for (const item of currentEditChangeRouoteList) {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
           <ListItemIcon>
             <DoneIcon />
           </ListItemIcon>
           <ListItemText
-            primary={
-              <div style={{ wordBreak: 'break-all' }}>{item.routeCode}</div>
-            }
+            primary={<div style={{ wordBreak: 'break-all' }}>{item}</div>}
           />
         </ListItem>
       );
@@ -51,15 +52,14 @@ class RouteList extends React.Component {
     return <List style={routeListStyle}>{this.getItems()}</List>;
   }
 }
-
-RouteList.propTypes = {
-  routeCodeList: PropTypes.array
+ChangeRouteList.propTypes = {
+  currentEditChangeRouoteList: PropTypes.array
 };
 const mapStateSelectEndPoint = state => ({
-  routeCodeList: state.scheduleEditor.getRouteCodeList()
+  currentEditChangeRouoteList: state.scheduleEditor.getCurrentEditChangeRouoteList()
 });
 const mapDispatchSelectEndPoint = () => ({});
 export default connect(
   mapStateSelectEndPoint,
   mapDispatchSelectEndPoint
-)(RouteList);
+)(ChangeRouteList);

@@ -16,8 +16,8 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Typography from '@material-ui/core/Typography';
 
-import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
-import { steps } from '../../../../model/Redux/Page/ScheduleEditor';
+import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import { steps } from '../../../../../model/Redux/Page/ScheduleEditor';
 import ListItemText from '@material-ui/core/ListItemText/ListItemText';
 
 class AdvanceOrBackComponent extends React.Component {

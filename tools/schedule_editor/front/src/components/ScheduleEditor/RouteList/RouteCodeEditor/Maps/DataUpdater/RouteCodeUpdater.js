@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { routeCodeSelector } from '../../../../../redux/selectors/ScheduleEditorSelector';
+import { routeCodeSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class RouteCodeUpdater extends React.Component {
   constructor(props) {

@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 
 import * as ScheduleEditorActions from '../../redux/Actions/ScheduleEditorActions';
 import { AppBar, Button, Toolbar, Typography } from '@material-ui/core';
-import CloudUploadOutlined from '@material-ui/icons/CloudUploadOutlined';
+import InputIcon from '@material-ui/icons/Input';
 
 import ImportDataModal from './ImportDataModal';
 import PropTypes from 'prop-types';
@@ -35,9 +35,7 @@ class Header extends React.Component {
               onClick={this.isWaypointAndLaneLoaderOpen}
             >
               Import Map Data
-              <CloudUploadOutlined
-                style={{ color: 'white', marginLeft: '5px' }}
-              />
+              <InputIcon style={{ color: 'white', marginLeft: '5px' }} />
             </Button>
             <ImportDataModal />
           </Toolbar>

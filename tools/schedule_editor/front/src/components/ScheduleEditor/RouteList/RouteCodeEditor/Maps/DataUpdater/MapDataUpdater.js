@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { mapDataSelector } from '../../../../../redux/selectors/ScheduleEditorSelector';
+import { mapDataSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class MapDataUpdater extends React.Component {
   constructor(props) {

@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import 'three/OrbitControls';
 import 'three/PCDLoader';
 
-import Detector from '../../../../../libs/threejs/Detector';
+import Detector from '../../../../../../libs/threejs/Detector';
 
 import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
@@ -18,7 +18,7 @@ import ActiveStepUpdater from '../DataUpdater/ActiveStepUpdater';
 import IsBackUpdater from '../DataUpdater/IsBackUpdater';
 import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
 
-import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import * as ScheduleEditorActions from '../../../../../../redux/Actions/ScheduleEditorActions';
 
 import { addResizeListener, removeResizeListener } from 'detect-resize';
 
