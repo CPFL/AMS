@@ -26,98 +26,63 @@ class SelectRouteCodeComponent extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      routeCode: '',
-      checkedSendEngage: false,
-      waitTime: 0,
-      addScheduleCardHegiht: 0
-    };
-
-    this.resize = this.resize.bind(this);
     this.setSelectRouteCode = this.setSelectRouteCode.bind(this);
     this.setIsSendEngage = this.setIsSendEngage.bind(this);
     this.setWaitTime = this.setWaitTime.bind(this);
   }
 
-  componentDidMount() {
-    this.setState({
-      addScheduleCardHegiht:
-        document.getElementById('AddScheduleCard').clientHeight -
-        document.getElementById('AddScheduleCardActions').clientHeight
-    });
-
-    //document.getElementById('AddScheduleCard').addEventListener('resize', resize, false);
-    window.addEventListener('resize', this.resize, false);
-  }
-
-  resize() {
-    this.setState({
-      addScheduleCardHegiht:
-        document.getElementById('AddScheduleCard').clientHeight -
-        document.getElementById('AddScheduleCardActions').clientHeight
-    });
-  }
-
-  componentWillUnmount() {
-    document
-      .getElementById('AddScheduleCard')
-      .removeEventListener('resize', this.resize, false);
-  }
-
   setSelectRouteCode(event) {
-    this.setState({ routeCode: event.target.value });
+    const [currentRouteCode] = this.props.selectableRouteCode.filter(
+      routeCode => routeCode.routeCode === event.target.value
+    );
+    this.props.scheduleEditorActions.setCurrentRouteCodeSchedule(
+      currentRouteCode
+    );
   }
 
   setIsSendEngage(event) {
-    console.log(event);
-    this.setState({ checkedSendEngage: event.target.checked });
+    this.props.scheduleEditorActions.setCheckedSendEngage(event.target.checked);
   }
 
   setWaitTime(event) {
-    console.log(event);
-    this.setState({ waitTime: event.target.value });
+    this.props.scheduleEditorActions.setWaitTime(event.target.value);
   }
 
-  getNextStepButtons() {
+  getSelectItem() {
     const resList = [];
-    const nextStepList = scheduleEditSteps.selectRouteCode.nextStep;
-    for (const nextStep of nextStepList) {
-      const confirm = () => {
-        this.props.scheduleEditorActions.setActiveStepScheduleEditor(nextStep);
-      };
+
+    resList.push(
+      <MenuItem value="">
+        <em>None</em>
+      </MenuItem>
+    );
+
+    for (const routeCode of this.props.selectableRouteCode) {
       resList.push(
-        <Button color="primary" onClick={confirm}>
-          {nextStep}
-        </Button>
+        <MenuItem value={routeCode.routeCode}>
+          <em>{routeCode.routeCode}</em>
+        </MenuItem>
       );
     }
-
     return resList;
   }
 
   render() {
-    const selectableRouteCodeList = this.props.selectableRouteCode;
-    const addScheduleCardHegiht = this.state.addScheduleCardHegiht;
+    const test = {
+      endPoint: '8878',
+      isBack: false,
+      laneList: ['8805_8855', '8855_8871', '8871_8873', '8873_8883'],
+      routeCode: '8829:8805>8855>8871>8873>8883:8878',
+      startPoint: '8829'
+    };
+    this.props.selectableRouteCode.push(test);
 
-    console.log(addScheduleCardHegiht);
-
-    const getSelectItem = () => {
-      const resList = [];
-
-      resList.push(
-        <MenuItem value="">
-          <em>None</em>
-        </MenuItem>
-      );
-
-      for (const routeCode of selectableRouteCodeList) {
-        resList.push(
-          <MenuItem value={routeCode}>
-            <em>{routeCode}</em>
-          </MenuItem>
-        );
-      }
-      return resList;
+    const wrapper = {
+      paddingTop: '5px',
+      paddingLeft: '5px',
+      paddingBottom: '5px',
+      height: '100%',
+      boxSizing: 'border-box'
     };
 
     const addScheduleCardStyle = {
@@ -127,7 +92,7 @@ class SelectRouteCodeComponent extends React.Component {
 
     const addScheduleCardContentStyle = {
       boxSizing: 'border-box',
-      height: addScheduleCardHegiht,
+      height: 'calc(100% - 52px)',
       overflowY: 'auto'
     };
 
@@ -142,86 +107,111 @@ class SelectRouteCodeComponent extends React.Component {
     };
 
     return (
-      <Card style={addScheduleCardStyle} id="AddScheduleCard">
-        <CardContent style={addScheduleCardContentStyle}>
-          <InputLabel htmlFor="route-code">Route Code</InputLabel>
-          <Select
-            value={this.state.routeCode}
-            onChange={this.setSelectRouteCode}
-            inputProps={{
-              name: 'route-code'
-            }}
-          >
-            {getSelectItem()}
-          </Select>
-          <br />
-          <div style={{ marginTop: '10px', position: 'relative' }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.state.checkedSendEngage}
-                  onChange={this.setIsSendEngage}
-                  value="sendEngage"
-                  color="primary"
-                />
-              }
-              label="Send Engage"
-              style={{ marginTop: '24px' }}
-            />
-            <TextField
-              id="wait-time"
-              label="Wait Time"
-              value={this.state.waitTime}
-              onChange={this.setWaitTime}
-              style={{ width: '100px' }}
-              type="number"
-              InputLabelProps={{
-                shrink: true
-              }}
+      <div style={wrapper}>
+        <Card style={addScheduleCardStyle}>
+          <CardContent style={addScheduleCardContentStyle}>
+            <InputLabel htmlFor="route-code">Route Code</InputLabel>
+            <Select
+              value={this.props.currentRouteCodeSchedule.routeCode}
+              onChange={this.setSelectRouteCode}
               inputProps={{
-                min: '0',
-                step: '1'
+                name: 'route-code'
               }}
-              margin="normal"
-            />
-          </div>
-          <Card style={changeRouteListCardStyle}>
-            <CardHeader
-              action={
-                <Button variant="contained" color="primary" size="small">
-                  <AddIcon
-                    style={{ color: 'white', marginRight: '5px' }}
-                    fontSize="small"
+              style={{ marginLeft: '5px' }}
+            >
+              {this.getSelectItem()}
+            </Select>
+            <br />
+            <div style={{ marginTop: '10px', position: 'relative' }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={this.props.checkedSendEngage}
+                    onChange={this.setIsSendEngage}
+                    value="sendEngage"
+                    color="primary"
                   />
-                  Add Change Route
-                </Button>
-              }
-              title={
-                <Typography variant="subtitle1" gutterBottom>
-                  Change Route List
-                </Typography>
-              }
-            />
-            <CardContent style={changeRouteListCardContentStyle}>
-              <ChangeRouteList />
-            </CardContent>
-          </Card>
-        </CardContent>
-        <CardActions id="AddScheduleCardActions">
-          <div style={{ marginLeft: 'auto' }}>{this.getNextStepButtons()}</div>
-        </CardActions>
-      </Card>
+                }
+                label="Send Engage"
+                style={{ marginTop: '24px' }}
+              />
+              <TextField
+                id="wait-time"
+                label="Wait Time"
+                value={this.props.waitTime}
+                onChange={this.setWaitTime}
+                style={{ width: '100px' }}
+                type="number"
+                InputLabelProps={{
+                  shrink: true
+                }}
+                inputProps={{
+                  min: '0',
+                  step: '1'
+                }}
+                margin="normal"
+              />
+            </div>
+            <Card style={changeRouteListCardStyle}>
+              <CardHeader
+                action={
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    onClick={() => {
+                      this.props.scheduleEditorActions.setActiveStepScheduleEditor(
+                        'changeRouteEditor'
+                      );
+                    }}
+                  >
+                    <AddIcon
+                      style={{ color: 'white', marginRight: '5px' }}
+                      fontSize="small"
+                    />
+                    Add Change Route
+                  </Button>
+                }
+                title={
+                  <Typography variant="subtitle1" gutterBottom>
+                    Change Route List
+                  </Typography>
+                }
+              />
+              <CardContent style={changeRouteListCardContentStyle}>
+                <ChangeRouteList />
+              </CardContent>
+            </Card>
+          </CardContent>
+          <CardActions>
+            <div style={{ marginLeft: 'auto' }}>
+              <Button
+                color="primary"
+                onClick={() => console.log('save schedule')}
+              >
+                Save
+              </Button>
+            </div>
+          </CardActions>
+        </Card>
+      </div>
     );
   }
 }
 SelectRouteCodeComponent.propTypes = {
   activeStepSchedule: PropTypes.string,
   selectableRouteCode: PropTypes.array,
+  currentRouteCodeSchedule: PropTypes.object,
+  checkedSendEngage: PropTypes.bool,
+  waitTime: PropTypes.number,
   scheduleEditorActions: PropTypes.object
 };
 const mapStateSelectRouteCode = state => ({
   activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor(),
-  selectableRouteCode: state.scheduleEditor.getSelectableRouteCode()
+  selectableRouteCode: state.scheduleEditor.getSelectableRouteCode(),
+  currentRouteCodeSchedule: state.scheduleEditor.getCurrentRouteCodeSchedule(),
+  checkedSendEngage: state.scheduleEditor.getCheckedSendEngage(),
+  waitTime: state.scheduleEditor.getWaitTime()
 });
 const mapDispatchSelectRouteCode = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)

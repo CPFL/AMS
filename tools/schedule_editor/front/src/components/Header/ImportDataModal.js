@@ -50,7 +50,6 @@ class ImportDataModal extends React.Component {
         fileReader.onload = event => {
           this.waypoint = JSON.parse(event.target.result);
           this.setState({ waypointLoaded: true });
-          console.log(this.waypoint);
         };
         fileReader.readAsText(file);
       }
@@ -73,7 +72,6 @@ class ImportDataModal extends React.Component {
         fileReader.onload = event => {
           this.lane = JSON.parse(event.target.result);
           this.setState({ laneLoaded: true });
-          console.log(this.lane);
         };
         fileReader.readAsText(file);
       }
@@ -96,7 +94,6 @@ class ImportDataModal extends React.Component {
         this.pcdLoader.loadFromLocalFile(fileList).then(pcd => {
           this.pcd = pcd;
           this.setState({ pcdOnLoad: false, pcdLoaded: true });
-          console.log(fileList, e);
         });
       } else {
         e.target.value = '';

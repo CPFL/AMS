@@ -93,7 +93,6 @@ class Map3DManager extends React.Component {
 
   resize() {
     this.setMapSize();
-    console.log(this.width, this.height);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -194,11 +193,7 @@ class Map3DManager extends React.Component {
     } else {
       this.waypointsModelManager.clear();
     }
-    this.waypointsModelManager.updateRouteCode(
-      this.routeCode.startPoint,
-      this.routeCode.laneList,
-      this.routeCode.endPoint
-    );
+    this.waypointsModelManager.updateRouteCode(this.routeCode);
     this.waypointsModelManager.focusCamera();
   }
 
@@ -227,8 +222,22 @@ class Map3DManager extends React.Component {
     const setIsBack = isBack => {
       this.waypointsModelManager.setIsBack(isBack);
     };
-    const updateRouteCode = (startPoint, lanes, endPoint) => {
-      this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    const updateRouteCode = routeCode => {
+      this.waypointsModelManager.updateRouteCode(routeCode);
+    };
+
+    const updateChangeRoute = (
+      startPoint,
+      lanes,
+      endPoint,
+      decisionSectionEndPoint
+    ) => {
+      this.waypointsModelManager.updateChangeRoute(
+        startPoint,
+        lanes,
+        endPoint,
+        decisionSectionEndPoint
+      );
     };
 
     return (

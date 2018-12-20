@@ -1,5 +1,7 @@
 import { REDUX } from '../../constants/Constant';
 
+
+//Route Code Editor
 export function setActiveStep(activeStep) {
   return {
     type: REDUX.ACTION_TYPE.SET_ACTIVE_STEP_ROUTE_CODE_EDITOR,
@@ -51,13 +53,6 @@ export function setEndPoint(endPoint) {
   };
 }
 
-export function setActiveStepScheduleEditor(activeStepScheduleEditor) {
-  return {
-    type: REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR,
-    activeStepScheduleEditor: activeStepScheduleEditor
-  };
-}
-
 export function setStartPointAndLaneList(startPoint, laneList) {
   return {
     type: REDUX.ACTION_TYPE.SET_START_POINT_AND_LANE_LIST_SCHEDULE_EDITOR,
@@ -68,41 +63,102 @@ export function setStartPointAndLaneList(startPoint, laneList) {
 
 export function saveRouteCode(routeCode) {
   return {
-    type: REDUX.ACTION_TYPE.SAVE_ROUTE_CODE_SCHEDULE_EDITOR,
+    type: REDUX.ACTION_TYPE.SAVE_ROUTE_CODE,
     routeCode: routeCode
   };
 }
 
 export function saveAndAnotherSelectRouteCode(routeCode) {
   return {
-    type: REDUX.ACTION_TYPE.SAVE_AND_ANOTHER_SELECT_ROUTE_CODE_SCHEDULE_EDITOR,
+    type: REDUX.ACTION_TYPE.SAVE_AND_ANOTHER_SELECT_ROUTE_CODE,
     routeCode: routeCode
   };
 }
 
 export function resetRouteCode() {
   return {
-    type: REDUX.ACTION_TYPE.RESET_ROUTE_CODE_SCHEDULE_EDITOR
+    type: REDUX.ACTION_TYPE.RESET_ROUTE_CODE
   };
 }
 
+//Schedule Editor
+
+export function setActiveStepScheduleEditor(activeStepScheduleEditor) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR,
+    activeStepScheduleEditor: activeStepScheduleEditor
+  };
+}
+
+export function setCurrentRouteCodeSchedule(currentRouteCodeSchedule) {
+  return {
+    type: REDUX.ACTION_TYPE.SER_CURRENT_ROUTE_CODE_SCHEDULE,
+    currentRouteCodeSchedule: currentRouteCodeSchedule
+  };
+}
+
+export function setCheckedSendEngage(checkedSendEngage) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_CHECKED_SEND_ENGAGE,
+    checkedSendEngage: checkedSendEngage
+  };
+}
+
+export function setWaitTime(waitTime) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_WAIT_TIME,
+    waitTime: waitTime
+  };
+}
+
+export function setCurrentEditChangeRouteList(currentEditChangeRouteList) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_CURRENT_EDIT_CHANGE_ROUTE_LIST,
+    currentEditChangeRouteList: currentEditChangeRouteList
+  };
+}
+
+//Change Route Editor
+
+export function setChangeRouteActiveStepNext(changeRouteActiveStep) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT,
+    changeRouteActiveStep: changeRouteActiveStep
+  };
+}
+
+export function setChangeRouteActiveStepPrevious(changeRouteActiveStep) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS,
+    changeRouteActiveStep: changeRouteActiveStep
+  };
+}
+
+export function setChangeRouteActiveStepReset(changeRouteActiveStep) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET,
+    changeRouteActiveStep: changeRouteActiveStep
+  };
+}
+
+//Modal
 export function setIsImportDataModalOpen(isImportDataModalOpen) {
   return {
-    type: REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_HEADER,
+    type: REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_OPEN,
     isImportDataModalOpen: isImportDataModalOpen
   };
 }
 
 export function setIsAddRouteModalOpen(isAddRouteModalOpen) {
   return {
-    type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_SCHEDULE_EDITOR,
+    type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_OPEN,
     isAddRouteModalOpen: isAddRouteModalOpen
   };
 }
 
 export function setIsAddScheduleModalOpen(isAddScheduleModalOpen) {
   return {
-    type: REDUX.ACTION_TYPE.SET_IS_ADD_SCHEDULE_MODAL_SCHEDULE_EDITOR,
+    type: REDUX.ACTION_TYPE.SET_IS_ADD_SCHEDULE_MODAL_OPEN,
     isAddScheduleModalOpen: isAddScheduleModalOpen
   };
 }

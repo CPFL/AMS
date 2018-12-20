@@ -498,10 +498,8 @@ export default class Waypoint extends THREE.Group {
         break;
       case steps.selectLane.id:
         if (this.lanes.length) {
-          console.log(this.laneList[this.lanes[this.lanes.length - 1]]);
           const position = this.laneList[this.lanes[this.lanes.length - 1]]
             .geometry.parameters.path.points[0];
-          console.log(position);
           let newCameraPosition = {
             x: position.x,
             y: position.y,

@@ -302,7 +302,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateRouteCode(startPoint, lanes, endPoint) {
-    console.log(startPoint, lanes, endPoint);
 
     if (this.waypoint !== null && this.lane !== null) {
       this.changeObjectColorToDefault();
@@ -442,7 +441,6 @@ export default class Waypoint extends THREE.Group {
     }
 
     this.setLaneList(lanes);
-    console.log(lanes);
   }
 
   selectEndPoint(mouse) {
@@ -459,7 +457,6 @@ export default class Waypoint extends THREE.Group {
     }
 
     this.setEndPoint(endPoint);
-    console.log(endPoint);
   }
 
   getNextLanes(laneID) {

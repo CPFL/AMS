@@ -19,7 +19,7 @@ class ChangeRouteList extends React.Component {
   }
 
   getItems() {
-    let currentEditChangeRouoteList = this.props.currentEditChangeRouoteList;
+    let currentEditChangeRouoteList = this.props.currentEditChangeRouteList;
     console.log(currentEditChangeRouoteList);
     currentEditChangeRouoteList = ['test', 'test2', 'test4'];
 
@@ -53,10 +53,10 @@ class ChangeRouteList extends React.Component {
   }
 }
 ChangeRouteList.propTypes = {
-  currentEditChangeRouoteList: PropTypes.array
+  currentEditChangeRouteList: PropTypes.array
 };
 const mapStateSelectEndPoint = state => ({
-  currentEditChangeRouoteList: state.scheduleEditor.getCurrentEditChangeRouoteList()
+  currentEditChangeRouteList: state.scheduleEditor.getCurrentEditChangeRouteList()
 });
 const mapDispatchSelectEndPoint = () => ({});
 export default connect(

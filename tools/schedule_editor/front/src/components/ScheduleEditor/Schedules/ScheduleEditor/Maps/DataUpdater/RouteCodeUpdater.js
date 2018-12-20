@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { routeCodeSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
+import { currentRouteCodeScheduleSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class RouteCodeUpdater extends React.Component {
   constructor(props) {
@@ -11,29 +11,18 @@ class RouteCodeUpdater extends React.Component {
   }
 
   componentDidMount() {
-    const routeCode = this.props.routeCode;
-    console.log(routeCode);
-    if (
-      routeCode.startPoint !== null &&
-      routeCode.laneList !== null &&
-      routeCode.endPoint !== null
-    ) {
-      this.props.initRouteCode(routeCode);
+    const currentRouteCodeSchedule = this.props.currentRouteCodeSchedule;
+    console.log(currentRouteCodeSchedule);
+    if (currentRouteCodeSchedule) {
+      this.props.initRouteCode(currentRouteCodeSchedule);
     }
   }
 
   componentDidUpdate() {
-    const routeCode = this.props.routeCode;
-    if (
-      routeCode.startPoint != null &&
-      routeCode.laneList != null &&
-      routeCode.endPoint != null
-    ) {
-      this.props.updateRouteCode(
-        routeCode.startPoint,
-        routeCode.laneList,
-        routeCode.endPoint
-      );
+    const currentRouteCodeSchedule = this.props.currentRouteCodeSchedule;
+    console.log(currentRouteCodeSchedule);
+    if (currentRouteCodeSchedule) {
+      this.props.updateRouteCode(currentRouteCodeSchedule);
     }
   }
 
@@ -42,13 +31,13 @@ class RouteCodeUpdater extends React.Component {
   }
 }
 RouteCodeUpdater.propTypes = {
-  routeCode: PropTypes.object,
+  currentRouteCodeSchedule: PropTypes.object,
   initRouteCode: PropTypes.func,
   updateRouteCode: PropTypes.func
 };
 
 const mapState = state => ({
-  routeCode: routeCodeSelector(state)
+  currentRouteCodeSchedule: currentRouteCodeScheduleSelector(state)
 });
 const mapDispatch = () => ({});
 export default connect(

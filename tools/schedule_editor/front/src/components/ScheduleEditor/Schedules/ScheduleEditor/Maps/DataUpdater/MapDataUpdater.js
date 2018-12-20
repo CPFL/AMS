@@ -11,14 +11,12 @@ class MapDataUpdater extends React.Component {
   }
 
   componentDidMount() {
-    console.log(this.props);
     if (this.props.mapData !== undefined) {
       this.props.initMapData(this.props.mapData);
     }
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.mapData !== undefined) {
       this.props.setMapData(this.props.mapData);
     }

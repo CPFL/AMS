@@ -5,6 +5,8 @@ const mapData = state => state.scheduleEditor.getMapData();
 const startPoint = state => state.scheduleEditor.getStartPoint();
 const laneList = state => state.scheduleEditor.getLaneList();
 const endPoint = state => state.scheduleEditor.getEndPoint();
+const currentRouteCodeSchedule = state =>
+  state.scheduleEditor.getCurrentRouteCodeSchedule();
 
 const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual);
 
@@ -20,5 +22,12 @@ export const routeCodeSelector = createDeepEqualSelector(
       laneList: laneList,
       endPoint: endPoint
     };
+  }
+);
+
+export const currentRouteCodeScheduleSelector = createDeepEqualSelector(
+  [currentRouteCodeSchedule],
+  currentRouteCodeSchedule => {
+    return currentRouteCodeSchedule;
   }
 );

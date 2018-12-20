@@ -93,7 +93,6 @@ class Map3DManager extends React.Component {
 
   resize() {
     this.setMapSize();
-    console.log(this.width, this.height);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -207,7 +206,6 @@ class Map3DManager extends React.Component {
       this.mapData = mapData;
     };
     const initRouteCode = routeCode => {
-      console.log(routeCode);
       this.routeCode = routeCode;
     };
     const setMapData = mapData => {

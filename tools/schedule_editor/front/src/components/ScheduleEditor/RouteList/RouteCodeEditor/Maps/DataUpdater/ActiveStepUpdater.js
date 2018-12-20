@@ -15,7 +15,6 @@ class ActiveStepUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.activeStep !== undefined) {
       this.props.setActiveStep(this.props.activeStep);
     }

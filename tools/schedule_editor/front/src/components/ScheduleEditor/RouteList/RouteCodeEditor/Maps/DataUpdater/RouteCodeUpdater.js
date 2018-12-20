@@ -12,7 +12,6 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidMount() {
     const routeCode = this.props.routeCode;
-    console.log(routeCode);
     if (
       routeCode.startPoint !== null &&
       routeCode.laneList !== null &&

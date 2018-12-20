@@ -22,32 +22,9 @@ import RouteCodeEditor from './RouteCodeEditor/RouteCodeEditor';
 class RouteListBox extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      listHeight: 0
-    };
 
     this.openAddRouteModal = this.openAddRouteModal.bind(this);
     this.closeAddRouteModal = this.closeAddRouteModal.bind(this);
-    this.resize = this.resize.bind(this);
-  }
-
-  componentDidMount() {
-    this.setState({
-      listHeight:
-        document.getElementById('RouteListCard').clientHeight -
-        document.getElementById('RouteListCardHeader').clientHeight
-    });
-    document
-      .getElementById('RouteListCard')
-      .addEventListener('resize', this.resize, false);
-  }
-
-  resize() {
-    this.setState({
-      listHeight:
-        document.getElementById('RouteListCard').clientHeight -
-        document.getElementById('RouteListCardHeader').clientHeight
-    });
   }
 
   openAddRouteModal() {
@@ -59,7 +36,6 @@ class RouteListBox extends React.Component {
   }
 
   render() {
-    const cardContentHeight = this.state.listHeight;
 
     const wrapper = {
       padding: '5px',
@@ -73,7 +49,7 @@ class RouteListBox extends React.Component {
 
     const contentStyle = {
       boxSizing: 'border-box',
-      height: cardContentHeight
+      height: 'calc(100% - 64px)'
     };
 
     const modalContent = {

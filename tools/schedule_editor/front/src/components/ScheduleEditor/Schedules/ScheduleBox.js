@@ -20,32 +20,9 @@ import connect from 'react-redux/es/connect/connect';
 class ScheduleBox extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      listHeight: 0
-    };
 
     this.openAddScheduleModal = this.openAddScheduleModal.bind(this);
     this.closeAddScheduleModal = this.closeAddScheduleModal.bind(this);
-    this.resize = this.resize.bind(this);
-  }
-
-  componentDidMount() {
-    this.setState({
-      listHeight:
-        document.getElementById('ScheduleCard').clientHeight -
-        document.getElementById('ScheduleCardHeader').clientHeight
-    });
-    document
-      .getElementById('ScheduleCard')
-      .addEventListener('resize', this.resize, false);
-  }
-
-  resize() {
-    this.setState({
-      listHeight:
-        document.getElementById('ScheduleCard').clientHeight -
-        document.getElementById('ScheduleCardHeader').clientHeight
-    });
   }
 
   openAddScheduleModal() {
@@ -57,7 +34,6 @@ class ScheduleBox extends React.Component {
   }
 
   render() {
-    const cardContentHeight = this.state.listHeight;
 
     const wrapper = {
       padding: '5px',
@@ -67,7 +43,7 @@ class ScheduleBox extends React.Component {
 
     const contentStyle = {
       boxSizing: 'border-box',
-      height: cardContentHeight
+      height: 'calc(100% - 64px)'
     };
 
     const modalContent = {

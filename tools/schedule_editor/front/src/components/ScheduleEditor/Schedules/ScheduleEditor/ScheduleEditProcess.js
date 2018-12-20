@@ -4,6 +4,8 @@ import { bindActionCreators } from 'redux';
 import connect from 'react-redux/es/connect/connect';
 
 import { SelectRouteCode, Result } from './ScheduleEditSteps';
+import ChangeRouteEditor from './ChangeRouteEditor/ChangeRouteEditor';
+
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
 
 class ScheduleEditProcess extends React.Component {
@@ -12,6 +14,7 @@ class ScheduleEditProcess extends React.Component {
 
     this.component = {
       selectRouteCode: <SelectRouteCode />,
+      changeRouteEditor: <ChangeRouteEditor />,
       result: <Result />
       /*
       SelectChangeRoute: {
@@ -25,9 +28,6 @@ class ScheduleEditProcess extends React.Component {
   }
 
   getSteps() {
-    console.log(this.props.activeStepSchedule);
-    console.log(this.component[this.props.activeStepSchedule]);
-
     return this.component[this.props.activeStepSchedule];
   }
 
@@ -37,18 +37,7 @@ class ScheduleEditProcess extends React.Component {
       height: '100%'
     };
 
-    const ProcessBoxStyle = {
-      paddingTop: '5px',
-      paddingLeft: '5px',
-      paddingBottom: '5px',
-      height: '100%',
-      boxSizing: 'border-box'
-    };
-    return (
-      <div style={wrapper}>
-        <div style={ProcessBoxStyle}>{this.getSteps()}</div>
-      </div>
-    );
+    return <div style={wrapper}>{this.getSteps()}</div>;
   }
 }
 
