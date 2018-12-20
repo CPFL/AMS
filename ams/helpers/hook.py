@@ -62,10 +62,10 @@ class Hook(object):
 
     @classmethod
     def get_state_cmd_key(cls, target):
-        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
-            [
-                Target.get_code(target),
-            ] + Vehicle.CONST.TOPIC.CATEGORIES.STATE_CMD)
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            Target.get_code(target),
+            AutowareInterface.CONST.TOPIC.STATE_CMD
+        ])
 
     @classmethod
     def get_route_point_key(cls, target):
@@ -76,10 +76,10 @@ class Hook(object):
 
     @classmethod
     def get_stop_waypoint_index_key(cls, target):
-        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
-            [
-                Target.get_code(target),
-            ] + AutowareInterface.CONST.TOPIC.CATEGORIES.STOP_WAYPOINT_INDEX)
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
+            Target.get_code(target),
+            AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        ])
 
     @classmethod
     def get_schedule_key(cls, target):
