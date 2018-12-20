@@ -33,29 +33,6 @@ export const steps = {
   }
 };
 
-export const scheduleEditSteps = {
-  selectRouteCode: {
-    id: 'selectRouteCode',
-    name: 'Select Route Code',
-    nextStep: ['selectChangeRoute', 'result']
-  },
-  changeRouteEditor: {
-    id: 'changeRouteEditor',
-    name: 'Change Route Editor',
-    nextStep: ['selectRouteCode']
-  },
-  selectChangeRoute: {
-    id: 'selectChangeRoute',
-    name: 'Select Change Route',
-    nextStep: ['result']
-  },
-  result: {
-    id: 'result',
-    name: 'Result',
-    nextStep: []
-  }
-};
-
 const RouteCodeRecord = new Record({
   routeCode: '',
   startPoint: '',
@@ -70,10 +47,10 @@ const ScheduleRecord = new Record({
   laneList: [],
   endPoint: '',
   isBack: false,
-  sendEngage: false,
+  checkedSendEngage: false,
   waitTime: 0,
   changeRouteList: null,
-  lastRouteCode: null
+  lastRoute: null
 });
 
 const ScheduleEditorRecord = new Record({
@@ -87,7 +64,8 @@ const ScheduleEditorRecord = new Record({
   // create schedule
   activeStepScheduleEditor: '',
   selectableRouteCodeList: null,
-  currentRouteCodeSchedule: '',
+  nextSelectableRouteCodeList: null,
+  currentRouteCodeSchedule: null,
   checkedSendEngage: false,
   waitTime: 0,
   currentEditChangeRouteList: null,
@@ -129,11 +107,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       // create schedule
       activeStepScheduleEditor: 'selectRouteCode',
       selectableRouteCodeList: List(),
+      nextSelectableRouteCodeList: List(),
       currentRouteCodeSchedule: new RouteCodeRecord(),
       checkedSendEngage: false,
       waitTime: 0,
       currentEditChangeRouteList: List(),
-      currentLastRoute: new RouteCodeRecord(),
 
       //create Change Route
       changeRouteActiveStep: 0,
@@ -251,7 +229,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   //Change Route
   setChangeRouteActiveStepNext(changeRouteActiveStep) {
-    console.log(changeRouteActiveStep);
     changeRouteActiveStep = changeRouteActiveStep + 1;
 
     return this.set('changeRouteActiveStep', changeRouteActiveStep);
@@ -295,16 +272,26 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   setCurrentRouteCodeSchedule(currentRouteCodeSchedule) {
-    let routeCode = null;
-    if (currentRouteCodeSchedule !== undefined) {
-      routeCode = new RouteCodeRecord(currentRouteCodeSchedule);
+    let currentRouteCode = null;
+    if (currentRouteCodeSchedule) {
+      currentRouteCode = new RouteCodeRecord(currentRouteCodeSchedule);
     } else {
-      routeCode = new RouteCodeRecord();
+      currentRouteCode = new RouteCodeRecord();
     }
-    console.log(routeCode);
-    return this.set('currentRouteCodeSchedule', routeCode).set(
-      'currentLastRoute',
-      routeCode
+
+    const RouteCodeList = this.get('routeCodeList').toJS();
+    const nextSelectableRouteCodeList = [];
+    for (const routeCode of RouteCodeList) {
+      const endPoint = currentRouteCode.endPoint;
+      const routeStartPoint = routeCode.startPoint;
+      if (endPoint === routeStartPoint) {
+        nextSelectableRouteCodeList.push(routeCode);
+      }
+    }
+    console.log(nextSelectableRouteCodeList);
+    return this.set('currentRouteCodeSchedule', currentRouteCode).set(
+      'nextSelectableRouteCodeList',
+      List(nextSelectableRouteCodeList)
     );
   }
 
@@ -318,6 +305,40 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setCurrentEditChangeRouteList(currentEditChangeRouteList) {
     return this.set('currentEditChangeRouteList', currentEditChangeRouteList);
+  }
+
+  saveSchedule() {
+    const selectRouteCode = this.get('currentRouteCodeSchedule');
+    if (selectRouteCode.routeCode !== '') {
+      const lastRoute = selectRouteCode;
+      const newSchedule = new ScheduleRecord()
+        .set('routeCode', selectRouteCode.routeCode)
+        .set('startPoint', selectRouteCode.startPoint)
+        .set('laneList', selectRouteCode.laneList)
+        .set('endPoint', selectRouteCode.endPoint)
+        .set('isBack', selectRouteCode.isBack)
+        .set('checkedSendEngage', this.get('checkedSendEngage'))
+        .set('waitTime', this.get('waitTime'))
+        .set('lastRoute', lastRoute);
+      const newScheduleList = this.get('scheduleList').push(newSchedule);
+      return this.set('scheduleList', newScheduleList)
+        .set('lastRoute', lastRoute)
+        .set('activeStepScheduleEditor', 'selectRouteCode')
+        .set('currentRouteCodeSchedule', new RouteCodeRecord())
+        .set('checkedSendEngage', false)
+        .set('waitTime', 0)
+        .set('currentEditChangeRouteList', List())
+        .set('isAddScheduleModalOpen', false);
+    } else {
+      return this.set('isAddScheduleModalOpen', false)
+        .set('activeStepScheduleEditor', 'selectRouteCode')
+        .set('currentRouteCodeSchedule', new RouteCodeRecord())
+        .set('checkedSendEngage', false)
+        .set('waitTime', 0)
+        .set('currentEditChangeRouteList', List())
+        .set('scheduleList', List())
+        .set('lastRoute', new RouteCodeRecord());
+    }
   }
 
   //3D Map
@@ -345,7 +366,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       );
     } else {
       const RouteCodeList = this.get('routeCodeList').toJS();
-      const selectableRouteCodeList = List();
+      const selectableRouteCodeList = [];
       for (const routeCode of RouteCodeList) {
         const endPoint = lastRoute.endPoint;
         const routeStartPoint = routeCode.startPoint;
@@ -353,10 +374,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
           selectableRouteCodeList.push(routeCode);
         }
       }
-      selectableRouteCodeList.push(this.get('currentRouteCodeSchedule'));
+      console.log(selectableRouteCodeList);
       return this.set('isAddScheduleModalOpen', isAddScheduleModalOpen).set(
         'selectableRouteCodeList',
-        selectableRouteCodeList
+        List(selectableRouteCodeList)
       );
     }
   }
@@ -414,8 +435,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.get('selectableRouteCodeList').toJS();
   }
 
+  getNextSelectableRouteCode() {
+    return this.get('nextSelectableRouteCodeList').toJS();
+  }
+
   getCurrentRouteCodeSchedule() {
-    console.log(this.get('currentRouteCodeSchedule').toJS());
     return this.get('currentRouteCodeSchedule').toJS();
   }
 
@@ -434,6 +458,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   //Route List
   getRouteCodeList() {
     return this.get('routeCodeList').toJS();
+  }
+
+  //Schedule List
+  getScheduleList() {
+    return this.get('scheduleList').toJS();
   }
 
   getMapData() {

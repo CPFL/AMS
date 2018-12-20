@@ -68,14 +68,6 @@ class SelectRouteCodeComponent extends React.Component {
   }
 
   render() {
-    const test = {
-      endPoint: '8878',
-      isBack: false,
-      laneList: ['8805_8855', '8855_8871', '8871_8873', '8873_8883'],
-      routeCode: '8829:8805>8855>8871>8873>8883:8878',
-      startPoint: '8829'
-    };
-    this.props.selectableRouteCode.push(test);
 
     const wrapper = {
       paddingTop: '5px',
@@ -187,7 +179,7 @@ class SelectRouteCodeComponent extends React.Component {
             <div style={{ marginLeft: 'auto' }}>
               <Button
                 color="primary"
-                onClick={() => console.log('save schedule')}
+                onClick={() => this.props.scheduleEditorActions.saveSchedule()}
               >
                 Save
               </Button>

@@ -4,13 +4,10 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -27,8 +24,10 @@ class SelectStartPointComponent extends React.Component {
   }
 
   confirm() {
-    if (this.props.changeRouteStartPoint !== '' || true) {
-      this.props.scheduleEditorActions.setChangeRouteActiveStepNext(this.props.changeRouteActiveStep);
+    if (this.props.changeRouteStartPoint !== '') {
+      this.props.scheduleEditorActions.setChangeRouteActiveStepNext(
+        this.props.changeRouteActiveStep
+      );
     } else {
       alert('Start point is not selected!');
     }

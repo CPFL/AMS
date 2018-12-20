@@ -40,8 +40,6 @@ class ChangeRouteEditor extends React.Component {
   }
 
   getChangeRouteSteps() {
-    console.log(this.props.changeRouteActiveStep);
-    console.log(this.steps);
     return this.steps[this.props.changeRouteActiveStep].component;
   }
 

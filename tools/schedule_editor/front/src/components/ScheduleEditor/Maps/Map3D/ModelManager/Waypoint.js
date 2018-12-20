@@ -302,7 +302,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateRouteCode(startPoint, lanes, endPoint) {
-
     if (this.waypoint !== null && this.lane !== null) {
       this.changeObjectColorToDefault();
       this.selectCandidateObject = [];

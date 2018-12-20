@@ -190,7 +190,7 @@ class SelectLaneComponent extends React.Component {
       <Card shadow={0} style={{ width: '100%', height: '100%' }}>
         <CardHeader title="Select Lane" id="SelectLaneStepCardHeader" />
         <CardContent
-          style={{ overflowY: 'auto', height: '60%' }}
+          style={{ overflowY: 'auto', height: 'calc(100% - 144px)' }}
           id="SelectLaneStepCardContent"
         >
           <List>{this.getLaneList(this.props.laneList)}</List>

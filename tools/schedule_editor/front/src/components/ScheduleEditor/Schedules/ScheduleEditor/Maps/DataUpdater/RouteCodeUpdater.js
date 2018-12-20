@@ -12,7 +12,6 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidMount() {
     const currentRouteCodeSchedule = this.props.currentRouteCodeSchedule;
-    console.log(currentRouteCodeSchedule);
     if (currentRouteCodeSchedule) {
       this.props.initRouteCode(currentRouteCodeSchedule);
     }
@@ -20,7 +19,6 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidUpdate() {
     const currentRouteCodeSchedule = this.props.currentRouteCodeSchedule;
-    console.log(currentRouteCodeSchedule);
     if (currentRouteCodeSchedule) {
       this.props.updateRouteCode(currentRouteCodeSchedule);
     }

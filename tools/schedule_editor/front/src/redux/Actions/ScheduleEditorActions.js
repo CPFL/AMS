@@ -1,6 +1,5 @@
 import { REDUX } from '../../constants/Constant';
 
-
 //Route Code Editor
 export function setActiveStep(activeStep) {
   return {
@@ -115,6 +114,12 @@ export function setCurrentEditChangeRouteList(currentEditChangeRouteList) {
   return {
     type: REDUX.ACTION_TYPE.SET_CURRENT_EDIT_CHANGE_ROUTE_LIST,
     currentEditChangeRouteList: currentEditChangeRouteList
+  };
+}
+
+export function saveSchedule() {
+  return {
+    type: REDUX.ACTION_TYPE.SAVE_SCHEDULE
   };
 }
 

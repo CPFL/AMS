@@ -20,7 +20,6 @@ class ChangeRouteList extends React.Component {
 
   getItems() {
     let currentEditChangeRouoteList = this.props.currentEditChangeRouteList;
-    console.log(currentEditChangeRouoteList);
     currentEditChangeRouoteList = ['test', 'test2', 'test4'];
 
     const resList = [];

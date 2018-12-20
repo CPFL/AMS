@@ -14,8 +14,8 @@ import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
 
 import MapDataUpdater from '../DataUpdater/MapDataUpdater';
-import ActiveStepUpdater from '../DataUpdater/ActiveStepUpdater';
-import IsBackUpdater from '../DataUpdater/IsBackUpdater';
+import ScheduleListUpdater from '../DataUpdater/ScheduleListUpdater';
+import RouteCodeListUpdater from '../DataUpdater/RouteCodeListUpdater';
 import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
 
 import * as ScheduleEditorActions from '../../../../../../redux/Actions/ScheduleEditorActions';
@@ -37,6 +37,7 @@ class Map3DManager extends React.Component {
 
     this.mapData = null;
     this.routeCode = null;
+    this.scheduleList = null;
 
     this.initialCameraPosition = { x: 0, y: 0, z: 0 };
 
@@ -65,7 +66,7 @@ class Map3DManager extends React.Component {
     this.renderer.forceContextLoss();
     this.renderer.context = this.renderer.domElement = this.renderer = null;
 
-    this.container = this.camera = this.scene = this.controls = this.stats = this.PCDManager = this.waypointsModelManager = this.mapData = null;
+    this.container = this.camera = this.scene = this.controls = this.stats = this.PCDManager = this.waypointsModelManager = this.mapData = this.scheduleList = null;
     removeResizeListener(
       document.getElementById('route_code_map_canvas'),
       this.resize
@@ -174,11 +175,6 @@ class Map3DManager extends React.Component {
     this.scene.add(this.PCDManager);
 
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
-    this.waypointsModelManager.setCallback(
-      this.props.scheduleEditorActions.setStartPointAndLaneList,
-      this.props.scheduleEditorActions.setLaneList,
-      this.props.scheduleEditorActions.setEndPoint
-    );
     this.scene.add(this.waypointsModelManager);
 
     this.PCDManager.setPCDMapFromBinary(this.mapData.pcd);
@@ -193,17 +189,26 @@ class Map3DManager extends React.Component {
     } else {
       this.waypointsModelManager.clear();
     }
-    this.waypointsModelManager.updateRouteCode(this.routeCode);
-    this.waypointsModelManager.focusCamera();
+    this.waypointsModelManager.initRouteCodeList(this.routeCodeList);
+    this.waypointsModelManager.updateCurrentRouteCode(this.routeCode);
+    this.waypointsModelManager.initScheduleList(this.scheduleList);
   }
 
   render() {
     const initMapData = mapData => {
       this.mapData = mapData;
     };
+
+    const initRouteCodeList = routeCodeList => {
+      this.routeCodeList = routeCodeList;
+    };
+
     const initRouteCode = routeCode => {
-      console.log(routeCode);
       this.routeCode = routeCode;
+    };
+
+    const initScheduleList = scheduleList => {
+      this.scheduleList = scheduleList;
     };
     const setMapData = mapData => {
       this.PCDManager.setPCDMapFromBinary(mapData.pcd);
@@ -216,14 +221,9 @@ class Map3DManager extends React.Component {
         this.waypointsModelManager.clear();
       }
     };
-    const setActiveStep = activeStep => {
-      this.waypointsModelManager.setActiveStep(activeStep);
-    };
-    const setIsBack = isBack => {
-      this.waypointsModelManager.setIsBack(isBack);
-    };
-    const updateRouteCode = routeCode => {
-      this.waypointsModelManager.updateRouteCode(routeCode);
+
+    const updateCurrentRouteCode = routeCode => {
+      this.waypointsModelManager.updateCurrentRouteCode(routeCode);
     };
 
     const updateChangeRoute = (
@@ -243,12 +243,12 @@ class Map3DManager extends React.Component {
     return (
       <div id="route_code_map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater initMapData={initMapData} setMapData={setMapData} />
-        <ActiveStepUpdater setActiveStep={setActiveStep} />
-        <IsBackUpdater setIsBack={setIsBack} />
         <RouteCodeUpdater
           initRouteCode={initRouteCode}
-          updateRouteCode={updateRouteCode}
+          updateRouteCode={updateCurrentRouteCode}
         />
+        <ScheduleListUpdater initScheduleList={initScheduleList} />
+        <RouteCodeListUpdater initRouteCodeList={initRouteCodeList} />
       </div>
     );
   }

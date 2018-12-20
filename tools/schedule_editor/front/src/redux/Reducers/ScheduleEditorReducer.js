@@ -72,6 +72,8 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     return state.setCurrentEditChangeRouteList(
       action.currentEditChangeRouteList
     );
+  } else if (action.type === REDUX.ACTION_TYPE.SAVE_SCHEDULE) {
+    return state.saveSchedule();
   }
   // Modal
   else if (action.type === REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_OPEN) {

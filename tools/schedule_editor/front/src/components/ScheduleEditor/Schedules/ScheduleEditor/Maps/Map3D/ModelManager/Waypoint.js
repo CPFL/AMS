@@ -18,10 +18,10 @@ export default class Waypoint extends THREE.Group {
 
     this.activeStep = null;
 
-    this.isBack = false;
-    this.startPoint = null;
-    this.lanes = [];
-    this.endPoint = null;
+    this.selectRouteCode = null;
+    this.scheduleList = null;
+    this.routeCodeList = null;
+    this.nextSelectableRouteList = null;
 
     this.setStartPointAndLaneList = null;
     this.setLaneList = null;
@@ -34,7 +34,8 @@ export default class Waypoint extends THREE.Group {
     this.color = {
       default: '#d5cdce',
       selectCandidate: '#ff0016',
-      selected: '#00FF00'
+      selected: '#00FF00',
+      decided: '#1121ff'
     };
   }
 
@@ -178,304 +179,148 @@ export default class Waypoint extends THREE.Group {
     this.arrowHelper = {};
   }
 
-  setIsBack(isBack) {
-    this.isBack = isBack;
-  }
-
-  changeRouteCodeColorToDefault() {
-    if (this.startPoint !== null) {
-      this.waypointsList[this.startPoint].material.color.set(
-        this.color.default
-      );
-    }
-    for (const laneID of this.lanes) {
-      this.laneList[laneID].material.color.set(this.color.default);
-    }
-    if (this.endPoint !== null) {
-      this.waypointsList[this.endPoint].material.color.set(this.color.default);
-    }
-  }
-
-  setActiveStep(activeStep) {
-    this.activeStep = activeStep;
-    if (this.waypoint !== null && this.lane !== null) {
-      this.selectCandidateObject = [];
-
-      if (activeStep === steps.advanceOrBack.id) {
-        this.changeObjectColorToDefault();
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
-      } else if (activeStep === steps.selectStartPoint.id) {
-        this.changeObjectColorToDefault();
-        if (this.startPoint !== null) {
-          this.waypointsList[this.startPoint].material.color.set(
-            this.color.selected
+  changeScheduleListColorToDefault() {
+    if (this.scheduleList) {
+      for (const schedule of this.scheduleList) {
+        if (schedule.startPoint) {
+          this.waypointsList[schedule.startPoint].material.color.set(
+            this.color.default
           );
         }
-        this.selectCandidateObject = Object.values(this.waypointsList);
-      } else if (activeStep === steps.selectLane.id) {
-        this.changeObjectColorToDefault();
-        if (this.startPoint !== null) {
-          this.waypointsList[this.startPoint].material.color.set(
-            this.color.selected
-          );
+        for (const laneID of schedule.laneList) {
+          this.laneList[laneID].material.color.set(this.color.default);
         }
-        for (let laneID of this.lanes) {
-          this.laneList[laneID].material.color.set(this.color.selected);
-        }
-        for (let laneID of this.getNextLanes(
-          this.lanes[this.lanes.length - 1]
-        )) {
-          this.laneList[laneID].material.color.set(this.color.selectCandidate);
-          this.selectCandidateObject.push(this.laneList[laneID]);
-        }
-        this.selectCandidateObject.push(
-          this.laneList[this.lanes[this.lanes.length - 1]]
-        );
-      } else if (activeStep === steps.selectEndPoint.id) {
-        this.changeObjectColorToDefault();
-        if (this.startPoint !== null) {
-          this.waypointsList[this.startPoint].material.color.set(
-            this.color.selected
-          );
-        }
-        if (this.lanes.length === 1) {
-          const index = this.lane.lanes[
-            this.lanes[this.lanes.length - 1]
-          ].waypointIDs.indexOf(this.startPoint);
-          let selectCandidateWaypointIDs = !this.isBack
-            ? this.lane.lanes[
-                this.lanes[this.lanes.length - 1]
-              ].waypointIDs.slice(index + 1)
-            : this.lane.lanes[
-                this.lanes[this.lanes.length - 1]
-              ].waypointIDs.slice(0, index - 1);
-          for (const waypointID of selectCandidateWaypointIDs) {
-            this.waypointsList[waypointID].material.color.set(
-              this.color.selectCandidate
-            );
-            this.selectCandidateObject.push(this.waypointsList[waypointID]);
-          }
-        } else {
-          for (let waypointID of this.lane.lanes[
-            this.lanes[this.lanes.length - 1]
-          ].waypointIDs) {
-            this.waypointsList[waypointID].material.color.set(
-              this.color.selectCandidate
-            );
-            this.selectCandidateObject.push(this.waypointsList[waypointID]);
-          }
-        }
-        for (let laneID of this.lanes) {
-          this.laneList[laneID].material.color.set(this.color.selected);
-        }
-      } else if (activeStep === steps.result.id) {
-        this.changeObjectColorToDefault();
-        if (this.startPoint !== null) {
-          this.waypointsList[this.startPoint].material.color.set(
-            this.color.selected
-          );
-        }
-        for (let laneID of this.lanes) {
-          this.laneList[laneID].material.color.set(this.color.selected);
-        }
-        if (this.endPoint !== null) {
-          this.waypointsList[this.endPoint].material.color.set(
-            this.color.selected
+        if (schedule.endPoint) {
+          this.waypointsList[schedule.endPoint].material.color.set(
+            this.color.default
           );
         }
       }
     }
   }
 
-  updateRouteCode(routeCode) {
+  initScheduleList(scheduleList) {
+    console.log(scheduleList);
+    if (scheduleList && this.waypoint && this.lane) {
+      this.changeScheduleListColorToDefault();
+      this.scheduleList = scheduleList;
 
-    console.log(routeCode);
-    if (this.waypoint !== null && this.lane !== null && routeCode) {
-      const startPoint = routeCode.startPoint;
-      const lanes = routeCode.laneList;
-      const endPoint = routeCode.endPoint;
+      for (const schedule of scheduleList) {
+        const startPoint = schedule.startPoint;
+        const lanes = schedule.laneList;
+        const endPoint = schedule.endPoint;
 
-      this.changeRouteCodeColorToDefault();
-      this.selectCandidateObject = [];
-      this.startPoint = startPoint !== '' ? startPoint : null;
-      this.lanes = lanes;
-      this.endPoint = endPoint !== '' ? endPoint : null;
+        if (startPoint && lanes.length > 0 && endPoint) {
+          this.waypointsList[startPoint].material.color.set(this.color.decided);
+          for (let laneID of lanes) {
+            this.laneList[laneID].material.color.set(this.color.decided);
+          }
+          this.waypointsList[endPoint].material.color.set(this.color.decided);
 
-      console.log(routeCode);
+          const newCameraPosition = {
+            x: this.waypoint.waypoints[endPoint].x,
+            y: this.waypoint.waypoints[endPoint].y,
+            z: this.waypoint.waypoints[endPoint].z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
+      }
+    }
+  }
 
-      if (this.startPoint) {
-        this.waypointsList[this.startPoint].material.color.set(
-          this.color.selected
+  initRouteCodeList(routeCodeList) {
+    console.log(routeCodeList);
+    this.routeCodeList = routeCodeList;
+  }
+
+  changeCurrentRouteCodeColorToDefault() {
+    if (this.selectRouteCode) {
+      if (this.selectRouteCode.startPoint) {
+        this.waypointsList[this.selectRouteCode.startPoint].material.color.set(
+          this.color.default
         );
       }
-      for (let laneID of this.lanes) {
+      for (const laneID of this.selectRouteCode.laneList) {
+        this.laneList[laneID].material.color.set(this.color.default);
+      }
+      if (this.selectRouteCode.endPoint) {
+        this.waypointsList[this.selectRouteCode.endPoint].material.color.set(
+          this.color.default
+        );
+      }
+    }
+    if(this.nextSelectableRouteList){
+      for(const routeCode of this.nextSelectableRouteList){
+        if (routeCode.startPoint) {
+          this.waypointsList[routeCode.startPoint].material.color.set(
+            this.color.default
+          );
+        }
+        for (const laneID of routeCode.laneList) {
+          this.laneList[laneID].material.color.set(this.color.default);
+        }
+        if (routeCode.endPoint) {
+          this.waypointsList[routeCode.endPoint].material.color.set(
+            this.color.default
+          );
+        }
+      }
+    }
+  }
+
+  updateCurrentRouteCode(selectRouteCode) {
+    console.log(selectRouteCode);
+    const startPoint = selectRouteCode.startPoint;
+    const lanes = selectRouteCode.laneList;
+    const endPoint = selectRouteCode.endPoint;
+    if (
+      this.waypoint &&
+      this.lane &&
+      startPoint &&
+      lanes.length > 0 &&
+      endPoint
+    ) {
+      this.changeCurrentRouteCodeColorToDefault();
+
+      this.selectRouteCode = selectRouteCode;
+
+      this.waypointsList[startPoint].material.color.set(this.color.selected);
+      for (let laneID of lanes) {
         this.laneList[laneID].material.color.set(this.color.selected);
       }
-      if (this.endPoint) {
-        this.waypointsList[this.endPoint].material.color.set(
-          this.color.selected
-        );
-      }
-    }
-  }
+      this.waypointsList[endPoint].material.color.set(this.color.selected);
 
-  setCallback(setStartPointAndLaneList, setLaneList, setEndPoint) {
-    this.setStartPointAndLaneList = setStartPointAndLaneList;
-    this.setLaneList = setLaneList;
-    this.setEndPoint = setEndPoint;
-  }
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
 
-  selectObject(mouse) {
-    if (this.waypoint !== null && this.lane !== null) {
-      if (this.activeStep === steps.selectStartPoint.id) {
-        this.selectStartPoint(mouse);
-      } else if (this.activeStep === steps.selectLane.id) {
-        this.selectLane(mouse);
-      } else if (this.activeStep === steps.selectEndPoint.id) {
-        this.selectEndPoint(mouse);
-      }
-    }
-  }
-
-  selectStartPoint(mouse) {
-    this.raycaster.setFromCamera(mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(
-      this.selectCandidateObject
-    );
-    let startPoint = '';
-    let lanes = [];
-
-    if (intersects.length > 0) {
-      if (this.startPoint !== intersects[0].object.name) {
-        startPoint = intersects[0].object.userData.waypointID;
-        lanes = [intersects[0].object.userData.laneCode];
-      }
-    }
-    this.setStartPointAndLaneList(startPoint, lanes);
-  }
-
-  selectLane(mouse) {
-    this.raycaster.setFromCamera(mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(
-      this.selectCandidateObject
-    );
-
-    let lanes = this.lanes.slice(0, this.lanes.length);
-
-    if (intersects.length > 0) {
-      if (lanes[lanes.length - 1] !== intersects[0].object.name) {
-        lanes.push(intersects[0].object.name);
-      } else {
-        if (lanes.length > 1) {
-          lanes.pop();
+      this.nextSelectableRouteList = [];
+      console.log(this.routeCodeList);
+      for (const routeCode of this.routeCodeList) {
+        const routeStartPoint = routeCode.startPoint;
+        if (endPoint === routeStartPoint) {
+          this.waypointsList[routeCode.startPoint].material.color.set(
+            this.color.selectCandidate
+          );
+          for (let laneID of routeCode.laneList) {
+            this.laneList[laneID].material.color.set(
+              this.color.selectCandidate
+            );
+          }
+          this.waypointsList[routeCode.endPoint].material.color.set(
+            this.color.selectCandidate
+          );
+          this.nextSelectableRouteList.push(routeCode);
         }
       }
-    }
-    this.setLaneList(lanes);
-  }
-
-  selectEndPoint(mouse) {
-    this.raycaster.setFromCamera(mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(
-      this.selectCandidateObject
-    );
-    let endPoint = '';
-
-    if (intersects.length > 0) {
-      if (this.endPoint !== intersects[0].object.name) {
-        endPoint = intersects[0].object.userData.waypointID;
-      }
-    }
-
-    this.setEndPoint(endPoint);
-  }
-
-  getNextLanes(laneID) {
-    if (this.lane !== null) {
-      let nextLanes = this.isBack
-        ? this.lane.fromLanes[laneID]
-        : this.lane.toLanes[laneID];
-      return nextLanes ? nextLanes : [];
-    } else {
-      return [];
     }
   }
 
   updateChangeRoute(startPoint, lanes, endPoint, decisionSectionEndPoint) {
     console.log(startPoint, lanes, endPoint, decisionSectionEndPoint);
-  }
-
-  focusCamera() {
-    switch (this.activeStep) {
-      case steps.advanceOrBack.id:
-        break;
-      case steps.selectStartPoint.id:
-        if (this.startPoint !== null) {
-          const position = this.waypointsList[this.startPoint].position;
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        }
-        break;
-      case steps.selectLane.id:
-        if (this.lanes.length) {
-          const position = this.laneList[this.lanes[this.lanes.length - 1]]
-            .geometry.parameters.path.points[0];
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        } else if (this.startPoint !== null) {
-          const position = this.waypointsList[this.startPoint].position;
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        }
-        break;
-      case steps.selectEndPoint.id:
-        if (this.endPoint !== null) {
-          const position = this.waypointsList[this.endPoint].position;
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        } else if (this.lanes.length) {
-          const position = this.laneList[this.lanes[this.lanes.length - 1]]
-            .geometry.parameters.path.points[0];
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        }
-        break;
-      case steps.result.id:
-        if (this.startPoint !== null) {
-          const position = this.waypointsList[this.startPoint].position;
-          let newCameraPosition = {
-            x: position.x,
-            y: position.y,
-            z: position.z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        }
-        break;
-      default:
-    }
   }
 
   updateCameraPosition(newCameraPosition) {
