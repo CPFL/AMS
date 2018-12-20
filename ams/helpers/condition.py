@@ -202,6 +202,8 @@ class Condition(object):
     @classmethod
     def on_vehicle_event(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if status is None:
+            return False
         return status.on_event
 
     @classmethod

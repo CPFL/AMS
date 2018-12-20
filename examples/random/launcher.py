@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import signal
 from subprocess import Popen
 from time import sleep
-import traceback
 
 from ams import logger
 
@@ -45,14 +45,14 @@ class Launcher(object):
         # self.popen_light = Popen(command.split(" "))
 
     def __del__(self):
-        self.popen_viewer.terminate()
-        self.popen_vehicle.terminate()
-        self.popen_vehicle1.terminate()
-        self.popen_milee_autoware.terminate()
-        self.popen_milee_autoware_interface.terminate()
-        self.popen_traffic_signal.terminate()
-        # self.popen_shutter.terminate()
-        # self.popen_light.terminate()
+        self.popen_viewer.send_signal(signal.SIGINT)
+        self.popen_vehicle.send_signal(signal.SIGINT)
+        self.popen_vehicle1.send_signal(signal.SIGINT)
+        self.popen_milee_autoware.send_signal(signal.SIGINT)
+        self.popen_milee_autoware_interface.send_signal(signal.SIGINT)
+        self.popen_traffic_signal.send_signal(signal.SIGINT)
+        # self.popen_shutter.send_signal(signal.SIGINT)
+        # self.popen_light.send_signal(signal.SIGINT)
 
     def start(self):
         self.popen_viewer.wait()
