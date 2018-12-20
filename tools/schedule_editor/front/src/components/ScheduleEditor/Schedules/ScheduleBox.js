@@ -1,5 +1,4 @@
 import React from 'react';
-import {connect} from "react-redux";
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -8,8 +7,7 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import ScheduleList from './ScheduleList';
 
-class ScheduleBox extends React.Component {
-
+export default class ScheduleBox extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,20 +21,30 @@ class ScheduleBox extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({listHeight: document.getElementById("ScheduleCard").clientHeight - document.getElementById("ScheduleCardHeader").clientHeight});
-    document.getElementById("ScheduleCard").addEventListener('resize', this.resize, false);
+    this.setState({
+      listHeight:
+        document.getElementById('ScheduleCard').clientHeight -
+        document.getElementById('ScheduleCardHeader').clientHeight
+    });
+    document
+      .getElementById('ScheduleCard')
+      .addEventListener('resize', this.resize, false);
   }
 
   resize() {
-    this.setState({listHeight: document.getElementById("ScheduleCard").clientHeight - document.getElementById("ScheduleCardHeader").clientHeight});
+    this.setState({
+      listHeight:
+        document.getElementById('ScheduleCard').clientHeight -
+        document.getElementById('ScheduleCardHeader').clientHeight
+    });
   }
 
-  addScheduleModalOpen(){
-    this.setState({isOpen: true});
+  addScheduleModalOpen() {
+    this.setState({ isOpen: true });
   }
 
-  closeModal(){
-    this.setState({isOpen: false});
+  closeModal() {
+    this.setState({ isOpen: false });
   }
 
   render() {
@@ -55,12 +63,14 @@ class ScheduleBox extends React.Component {
 
     return (
       <div style={wrapper}>
-        <Card style={{height: '100%'}}
-              id="ScheduleCard"
-        >
+        <Card style={{ height: '100%' }} id="ScheduleCard">
           <CardHeader
             action={
-              <Button variant="outlined" onClick={this.addScheduleModalOpen}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={this.addScheduleModalOpen}
+              >
                 Add Schedule
               </Button>
             }
@@ -68,24 +78,13 @@ class ScheduleBox extends React.Component {
             id="ScheduleCardHeader"
           />
           <CardContent style={contentStyle}>
-            <ScheduleList/>
+            <ScheduleList />
           </CardContent>
         </Card>
-        <Dialog
-          open={this.state.isOpen}
-          onClose={this.closeModal}
-        >
+        <Dialog open={this.state.isOpen} onClose={this.closeModal}>
           Test
         </Dialog>
       </div>
-
     );
   }
 }
-
-const mapState = () => ({});
-
-const mapDispatch = () => ({});
-
-export default connect(mapState, mapDispatch)(ScheduleBox);
-

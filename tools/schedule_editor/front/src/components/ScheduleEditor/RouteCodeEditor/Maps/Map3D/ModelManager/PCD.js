@@ -1,16 +1,14 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 /**
  * ADASMapLoader
  */
 export default class PCD extends THREE.Group {
-
   constructor() {
     super();
     this.pcdList = {};
     this.camera = null;
     this.controls = null;
-
   }
 
   set3DParameter(camera, controls) {
@@ -19,7 +17,7 @@ export default class PCD extends THREE.Group {
   }
 
   addPCD(mesh, name) {
-    mesh.name = "PCD/" + name;
+    mesh.name = 'PCD/' + name;
     mesh.material.size = 0.1;
     mesh.material.color.setHex(0xffffff);
     this.add(mesh);
@@ -40,11 +38,10 @@ export default class PCD extends THREE.Group {
   }
 
   parsePCD(binaryPCDList) {
-
     let loader = new THREE.PCDLoader();
     for (let id in binaryPCDList) {
       if (binaryPCDList.hasOwnProperty(id)) {
-        let mesh = loader.parse(binaryPCDList[id], "load_pcd");
+        let mesh = loader.parse(binaryPCDList[id], 'load_pcd');
         this.addPCD(mesh, id);
       }
     }

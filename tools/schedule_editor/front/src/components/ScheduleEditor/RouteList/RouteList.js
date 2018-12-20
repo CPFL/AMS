@@ -1,5 +1,7 @@
 import React from 'react';
-import {connect} from "react-redux";
+import PropTypes from 'prop-types';
+
+import connect from 'react-redux/es/connect/connect';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -7,8 +9,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 
-export default class RouteList extends React.Component {
-
+class RouteList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -18,23 +19,21 @@ export default class RouteList extends React.Component {
   }
 
   getItems() {
-    const testList = [
-      "55:54>67>130:129",
-      "55:54>67>130>65:77",
-      "55:54>67>130>65>500:499"
-    ];
+    const routeCodeList = this.props.routeCodeList;
     const resList = [];
-    for (const item of testList) {
+    for (const item of routeCodeList) {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
           <ListItemIcon>
-            <DoneIcon/>
+            <DoneIcon />
           </ListItemIcon>
-          <ListItemText primary={item}/>
+          <ListItemText
+            primary={<div style={{ wordBreak: 'break-all' }}>{item}</div>}
+          />
         </ListItem>
-      )
+      );
     }
-    return resList
+    return resList;
   }
 
   selectRouteCode(event, item) {
@@ -47,10 +46,18 @@ export default class RouteList extends React.Component {
       height: '100%'
     };
 
-    return (
-      <List style={routeListStyle}>
-        {this.getItems()}
-      </List>
-    );
+    return <List style={routeListStyle}>{this.getItems()}</List>;
   }
 }
+
+RouteList.propTypes = {
+  routeCodeList: PropTypes.array
+};
+const mapStateSelectEndPoint = state => ({
+  routeCodeList: state.scheduleEditor.getRouteCodeList()
+});
+const mapDispatchSelectEndPoint = () => ({});
+export default connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(RouteList);
