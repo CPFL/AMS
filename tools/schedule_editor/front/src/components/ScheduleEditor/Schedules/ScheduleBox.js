@@ -66,7 +66,11 @@ export default class ScheduleBox extends React.Component {
         <Card style={{ height: '100%' }} id="ScheduleCard">
           <CardHeader
             action={
-              <Button variant="outlined" onClick={this.addScheduleModalOpen}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={this.addScheduleModalOpen}
+              >
                 Add Schedule
               </Button>
             }

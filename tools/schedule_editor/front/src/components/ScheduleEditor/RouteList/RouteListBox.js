@@ -1,20 +1,28 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
+import connect from 'react-redux/es/connect/connect';
+import { bindActionCreators } from 'redux';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+
+import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 
 import RouteList from './RouteList';
 import RouteCodeEditor from '../RouteCodeEditor/RouteCodeEditor';
 
-export default class RouteListBox extends React.Component {
+class RouteListBox extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      listHeight: 0,
-      isOpen: false
+      listHeight: 0
     };
 
     this.routeCodeEditorModalOpen = this.routeCodeEditorModalOpen.bind(this);
@@ -42,11 +50,11 @@ export default class RouteListBox extends React.Component {
   }
 
   routeCodeEditorModalOpen() {
-    this.setState({ isOpen: true });
+    this.props.scheduleEditorActions.setIsAddRouteModalOpen(true);
   }
 
   closeModal() {
-    this.setState({ isOpen: false });
+    this.props.scheduleEditorActions.setIsAddRouteModalOpen(false);
   }
 
   render() {
@@ -68,16 +76,17 @@ export default class RouteListBox extends React.Component {
     };
 
     const modalContent = {
+      position: 'relative',
       height: window.innerHeight * 0.9
     };
-
     return (
       <div style={wrapper}>
         <Card style={CardStyle} id="RouteListCard">
           <CardHeader
             action={
               <Button
-                variant="outlined"
+                variant="contained"
+                color="primary"
                 onClick={this.routeCodeEditorModalOpen}
               >
                 Add Route
@@ -91,11 +100,20 @@ export default class RouteListBox extends React.Component {
           </CardContent>
         </Card>
         <Dialog
-          open={this.state.isOpen}
+          open={this.props.isAddRouteModalOpen}
           onClose={this.closeModal}
           fullWidth={true}
           maxWidth="xl"
         >
+          <DialogTitle id="alert-dialog-slide-title">
+            <IconButton
+              color="inherit"
+              onClick={this.closeModal}
+              aria-label="Close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
           <div style={modalContent}>
             <RouteCodeEditor />
           </div>
@@ -104,3 +122,18 @@ export default class RouteListBox extends React.Component {
     );
   }
 }
+
+RouteListBox.propTypes = {
+  isAddRouteModalOpen: PropTypes.bool,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectEndPoint = state => ({
+  isAddRouteModalOpen: state.scheduleEditor.getIsAddRouteModalOpen()
+});
+const mapDispatchSelectEndPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
+});
+export default connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(RouteListBox);

@@ -2,7 +2,7 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 
 import Map3DManager from './Maps/Map3D/Map3DManager';
-import CreateRouteCodeTabs from './Tabs/CreateRouteCodeTabs';
+import CreateRouteCodeTabs from './Process/CreateRouteCodeProcess';
 
 export default class RouteCodeEditor extends React.Component {
   constructor(props) {
@@ -28,14 +28,14 @@ export default class RouteCodeEditor extends React.Component {
       <div style={wrapper}>
         <Grid container style={{ height: '100%' }}>
           <Grid item xs style={{ position: 'relative' }}>
+            <CreateRouteCodeTabs />
+          </Grid>
+          <Grid item xs style={{ position: 'relative' }}>
             <div style={Map3DWrapper}>
               <div style={{ height: '100%', width: '100%' }}>
                 <Map3DManager />
               </div>
             </div>
-          </Grid>
-          <Grid item xs style={{ position: 'relative' }}>
-            <CreateRouteCodeTabs />
           </Grid>
         </Grid>
       </div>

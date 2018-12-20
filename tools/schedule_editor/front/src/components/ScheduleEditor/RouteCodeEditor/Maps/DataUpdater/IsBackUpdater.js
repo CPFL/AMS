@@ -1,6 +1,7 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+
+import { connect } from 'react-redux';
 
 class IsBackUpdater extends React.Component {
   constructor(props) {
@@ -8,7 +9,6 @@ class IsBackUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.isBack !== undefined) {
       this.props.setIsBack(this.props.isBack);
     }

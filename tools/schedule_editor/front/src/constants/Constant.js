@@ -15,7 +15,11 @@ export const REDUX = {
     SET_START_POINT_AND_LANE_LIST_SCHEDULE_EDITOR:
       'setStartPointAndLaneListScheduleEditor',
     CLEAR_ROUTE_CODE_DATA_SCHEDULE_EDITOR: 'clearRouteCodeDataScheduleEditor',
+    SAVE_ROUTE_CODE_SCHEDULE_EDITOR: 'saveRouteCodeScheduleEditor',
+    SAVE_AND_ANOTHER_SELECT_ROUTE_CODE_SCHEDULE_EDITOR:
+      'saveAndAnotherSelectRouteCodeScheduleEditor',
     RESET_ROUTE_CODE_SCHEDULE_EDITOR: 'resetRouteCodeScheduleEditor',
-    SET_IS_IMPORT_DATA_MODAL_HEADER: 'setIsImportDataModalHeader'
+    SET_IS_IMPORT_DATA_MODAL_HEADER: 'setIsImportDataModalHeader',
+    SET_IS_ADD_ROUTE_MODAL_SCHEDULE_EDITOR: 'setIsAddRouteModalScheduleEditor'
   }
 };

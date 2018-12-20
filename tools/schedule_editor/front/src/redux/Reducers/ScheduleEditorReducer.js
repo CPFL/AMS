@@ -26,6 +26,15 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   ) {
     return state.setStartPointAndLaneList(action.startPoint, action.laneList);
   } else if (
+    action.type === REDUX.ACTION_TYPE.SAVE_ROUTE_CODE_SCHEDULE_EDITOR
+  ) {
+    return state.saveRouteCode(action.routeCode);
+  } else if (
+    action.type ===
+    REDUX.ACTION_TYPE.SAVE_AND_ANOTHER_SELECT_ROUTE_CODE_SCHEDULE_EDITOR
+  ) {
+    return state.saveAndAnotherSelectRouteCode(action.routeCode);
+  } else if (
     action.type === REDUX.ACTION_TYPE.RESET_ROUTE_CODE_SCHEDULE_EDITOR
   ) {
     return state.resetRouteCode();
@@ -37,6 +46,10 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     action.type === REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_HEADER
   ) {
     return state.setIsImportDataModalOpen(action.isImportDataModalOpen);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_SCHEDULE_EDITOR
+  ) {
+    return state.setIsAddRouteModalOpen(action.isAddRouteModalOpen);
   }
 
   return state;

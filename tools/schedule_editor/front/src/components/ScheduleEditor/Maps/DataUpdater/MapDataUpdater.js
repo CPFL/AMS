@@ -1,8 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
 import { connect } from 'react-redux';
 
 import { mapDataSelector } from '../../../../redux/selectors/ScheduleEditorSelector';
-import PropTypes from 'prop-types';
 
 class MapDataUpdater extends React.Component {
   constructor(props) {
@@ -10,7 +11,6 @@ class MapDataUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.mapData !== undefined) {
       this.props.setMapData(this.props.mapData);
     }

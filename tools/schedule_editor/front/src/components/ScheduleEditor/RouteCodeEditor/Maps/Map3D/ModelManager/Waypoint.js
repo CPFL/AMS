@@ -208,11 +208,17 @@ export default class Waypoint extends THREE.Group {
   }
 
   setActiveStep(activeStep) {
+    this.activeStep = activeStep;
     if (this.waypoint !== null && this.lane !== null) {
-      this.activeStep = activeStep;
       this.selectCandidateObject = [];
 
-      if (activeStep === steps.selectStartPoint.id) {
+      if (activeStep === steps.advanceOrBack.id) {
+        this.changeObjectColorToDefault();
+        this.startPoint = null;
+        this.lanes = [];
+        this.endPoint = null;
+        this.selectCandidateObject = [];
+      } else if (activeStep === steps.selectStartPoint.id) {
         this.changeObjectColorToDefault();
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(
@@ -291,19 +297,11 @@ export default class Waypoint extends THREE.Group {
             this.color.selected
           );
         }
-      } else if (activeStep === steps.advanceOrBack.id) {
-        this.changeObjectColorToDefault();
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
       }
     }
   }
 
   updateRouteCode(startPoint, lanes, endPoint) {
-    console.log(startPoint, lanes, endPoint);
-
     if (this.waypoint !== null && this.lane !== null) {
       this.changeObjectColorToDefault();
       this.selectCandidateObject = [];
@@ -311,7 +309,12 @@ export default class Waypoint extends THREE.Group {
       this.lanes = lanes;
       this.endPoint = endPoint !== '' ? endPoint : null;
 
-      if (this.activeStep === steps.selectStartPoint.id) {
+      if (this.activeStep === steps.advanceOrBack.id) {
+        this.startPoint = null;
+        this.lanes = [];
+        this.endPoint = null;
+        this.selectCandidateObject = [];
+      } else if (this.activeStep === steps.selectStartPoint.id) {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(
             this.color.selected
@@ -378,11 +381,20 @@ export default class Waypoint extends THREE.Group {
             this.color.selected
           );
         }
-      } else if (this.activeStep === steps.advanceOrBack.id) {
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
+      } else if (this.activeStep === steps.result.id) {
+        if (this.startPoint !== null) {
+          this.waypointsList[this.startPoint].material.color.set(
+            this.color.selected
+          );
+        }
+        for (let laneID of this.lanes) {
+          this.laneList[laneID].material.color.set(this.color.selected);
+        }
+        if (this.endPoint !== null) {
+          this.waypointsList[this.endPoint].material.color.set(
+            this.color.selected
+          );
+        }
       }
     }
   }
@@ -419,7 +431,6 @@ export default class Waypoint extends THREE.Group {
         lanes = [intersects[0].object.userData.laneCode];
       }
     }
-
     this.setStartPointAndLaneList(startPoint, lanes);
   }
 
@@ -440,9 +451,7 @@ export default class Waypoint extends THREE.Group {
         }
       }
     }
-
     this.setLaneList(lanes);
-    console.log(lanes);
   }
 
   selectEndPoint(mouse) {
@@ -459,7 +468,6 @@ export default class Waypoint extends THREE.Group {
     }
 
     this.setEndPoint(endPoint);
-    console.log(endPoint);
   }
 
   getNextLanes(laneID) {
@@ -473,10 +481,82 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
+  focusCamera() {
+    switch (this.activeStep) {
+      case steps.advanceOrBack.id:
+        break;
+      case steps.selectStartPoint.id:
+        if (this.startPoint !== null) {
+          const position = this.waypointsList[this.startPoint].position;
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
+        break;
+      case steps.selectLane.id:
+        if (this.lanes.length) {
+          console.log(this.laneList[this.lanes[this.lanes.length - 1]]);
+          const position = this.laneList[this.lanes[this.lanes.length - 1]]
+            .geometry.parameters.path.points[0];
+          console.log(position);
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        } else if (this.startPoint !== null) {
+          const position = this.waypointsList[this.startPoint].position;
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
+        break;
+      case steps.selectEndPoint.id:
+        if (this.endPoint !== null) {
+          const position = this.waypointsList[this.endPoint].position;
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        } else if (this.lanes.length) {
+          const position = this.laneList[this.lanes[this.lanes.length - 1]]
+            .geometry.parameters.path.points[0];
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
+        break;
+      case steps.result.id:
+        if (this.startPoint !== null) {
+          const position = this.waypointsList[this.startPoint].position;
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
+        break;
+      default:
+    }
+  }
+
   updateCameraPosition(newCameraPosition) {
     this.camera.position.x = newCameraPosition.x;
     this.camera.position.y = newCameraPosition.y;
-    this.camera.position.z = newCameraPosition.z + 200;
+    this.camera.position.z = newCameraPosition.z + 100;
     this.controls.target.set(
       newCameraPosition.x,
       newCameraPosition.y,

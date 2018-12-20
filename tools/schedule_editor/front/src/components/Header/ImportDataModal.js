@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -11,7 +13,6 @@ import Button from '@material-ui/core/Button';
 import DoneIcon from '@material-ui/icons/Done';
 
 import PCDLoader from '../../io/PCDLoader';
-import PropTypes from 'prop-types';
 
 class ImportDataModal extends React.Component {
   constructor(props) {
@@ -72,7 +73,6 @@ class ImportDataModal extends React.Component {
         fileReader.onload = event => {
           this.lane = JSON.parse(event.target.result);
           this.setState({ laneLoaded: true });
-
           console.log(this.lane);
         };
         fileReader.readAsText(file);
@@ -192,9 +192,7 @@ class ImportDataModal extends React.Component {
           </label>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.handleClose} color="primary">
-            Cancel
-          </Button>
+          <Button onClick={this.handleClose}>Cancel</Button>
           <Button
             onClick={this.importMapData}
             color="primary"
