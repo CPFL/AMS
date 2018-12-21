@@ -16,6 +16,9 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 import connect from 'react-redux/es/connect/connect';
+import CardActions from '@material-ui/core/CardActions/CardActions';
+
+import ScheduleDownloadButton from './ScheduleDownloadButton';
 
 class ScheduleBox extends React.Component {
   constructor(props) {
@@ -34,7 +37,6 @@ class ScheduleBox extends React.Component {
   }
 
   render() {
-
     const wrapper = {
       padding: '5px',
       boxSizing: 'border-box',
@@ -43,7 +45,7 @@ class ScheduleBox extends React.Component {
 
     const contentStyle = {
       boxSizing: 'border-box',
-      height: 'calc(100% - 64px)'
+      height: 'calc(100% - 64px - 52px)'
     };
 
     const modalContent = {
@@ -71,6 +73,9 @@ class ScheduleBox extends React.Component {
           <CardContent style={contentStyle}>
             <ScheduleList />
           </CardContent>
+          <CardActions>
+            <ScheduleDownloadButton />
+          </CardActions>
         </Card>
         <Dialog
           open={this.props.isAddScheduleModalOpen}
@@ -100,13 +105,13 @@ ScheduleBox.propTypes = {
   isAddScheduleModalOpen: PropTypes.bool,
   scheduleEditorActions: PropTypes.object
 };
-const mapStateSelectEndPoint = state => ({
+const mapState = state => ({
   isAddScheduleModalOpen: state.scheduleEditor.getIsAddScheduleModalOpen()
 });
-const mapDispatchSelectEndPoint = dispatch => ({
+const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
 export default connect(
-  mapStateSelectEndPoint,
-  mapDispatchSelectEndPoint
+  mapState,
+  mapDispatch
 )(ScheduleBox);

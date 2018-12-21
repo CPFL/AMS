@@ -8,6 +8,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
+import Button from '@material-ui/core/Button/Button';
 
 class RouteList extends React.Component {
   constructor(props) {
@@ -15,13 +16,18 @@ class RouteList extends React.Component {
     this.state = {
       listHeight: 0
     };
-    this.selectRouteCode.bind(this);
+    this.deleteRouteCode = this.deleteRouteCode.bind(this);
+  }
+
+  deleteRouteCode(event) {
+    console.log(event.target);
   }
 
   getItems() {
     const routeCodeList = this.props.routeCodeList;
     const resList = [];
-    for (const item of routeCodeList) {
+
+    routeCodeList.forEach((item, index) => {
       resList.push(
         <ListItem button onClick={event => this.selectRouteCode(event, item)}>
           <ListItemIcon>
@@ -29,12 +35,22 @@ class RouteList extends React.Component {
           </ListItemIcon>
           <ListItemText
             primary={
-              <div style={{ wordBreak: 'break-all' }}>{item.routeCode}</div>
+              <div style={{ wordBreak: 'break-all' }}>
+                {item.routeCode}
+                <Button
+                  color="secondary"
+                  onClick={this.deleteRouteCode}
+                  value={index}
+                  style={{marginLeft: 'auto'}}
+                >
+                  Delete
+                </Button>
+              </div>
             }
           />
         </ListItem>
       );
-    }
+    });
     return resList;
   }
 
