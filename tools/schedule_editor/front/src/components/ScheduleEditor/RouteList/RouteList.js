@@ -9,6 +9,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
 import Button from '@material-ui/core/Button/Button';
+import { bindActionCreators } from 'redux';
+import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 
 class RouteList extends React.Component {
   constructor(props) {
@@ -16,32 +18,45 @@ class RouteList extends React.Component {
     this.state = {
       listHeight: 0
     };
-    this.deleteRouteCode = this.deleteRouteCode.bind(this);
   }
 
-  deleteRouteCode(event) {
-    console.log(event.target);
+  selectRouteCode(event, routeCode) {
+    console.log(routeCode);
+    this.props.scheduleEditorActions.setSelectRouteCodeDisplayMainViewer(
+      routeCode
+    );
+  }
+
+  deleteRouteCode(event, index) {
+    this.props.scheduleEditorActions.deleteRouteCodeFromRouteCodeListByIndex(
+      index
+    );
   }
 
   getItems() {
     const routeCodeList = this.props.routeCodeList;
     const resList = [];
 
-    routeCodeList.forEach((item, index) => {
+    routeCodeList.forEach((routeCode, index) => {
       resList.push(
-        <ListItem button onClick={event => this.selectRouteCode(event, item)}>
+        <ListItem>
           <ListItemIcon>
             <DoneIcon />
           </ListItemIcon>
           <ListItemText
             primary={
               <div style={{ wordBreak: 'break-all' }}>
-                {item.routeCode}
+                <Button
+                  color="default"
+                  onClick={event => this.selectRouteCode(event, routeCode)}
+                  value={index}
+                >
+                  {routeCode.routeCode}
+                </Button>
                 <Button
                   color="secondary"
-                  onClick={this.deleteRouteCode}
-                  value={index}
-                  style={{marginLeft: 'auto'}}
+                  onClick={event => this.deleteRouteCode(event, index)}
+                  style={{ marginLeft: 'auto' }}
                 >
                   Delete
                 </Button>
@@ -52,10 +67,6 @@ class RouteList extends React.Component {
       );
     });
     return resList;
-  }
-
-  selectRouteCode(event, item) {
-    console.log(item);
   }
 
   render() {
@@ -69,12 +80,15 @@ class RouteList extends React.Component {
 }
 
 RouteList.propTypes = {
-  routeCodeList: PropTypes.array
+  routeCodeList: PropTypes.array,
+  scheduleEditorActions: PropTypes.object
 };
 const mapStateSelectEndPoint = state => ({
   routeCodeList: state.scheduleEditor.getRouteCodeList()
 });
-const mapDispatchSelectEndPoint = () => ({});
+const mapDispatchSelectEndPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
+});
 export default connect(
   mapStateSelectEndPoint,
   mapDispatchSelectEndPoint

@@ -9,8 +9,14 @@ class RouteCodeListUpdater extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.routeCodeList) {
-      this.props.initRouteCodeList(this.props.routeCodeList);
+    if (this.props.scheduleList) {
+      this.props.initScheduleList(this.props.scheduleList);
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.props.scheduleList) {
+      this.props.updateScheduleList(this.props.scheduleList);
     }
   }
 
@@ -19,11 +25,12 @@ class RouteCodeListUpdater extends React.Component {
   }
 }
 RouteCodeListUpdater.propTypes = {
-  routeCodeList: PropTypes.array,
-  initRouteCodeList: PropTypes.func
+  scheduleList: PropTypes.array,
+  initScheduleList: PropTypes.func,
+  updateScheduleList: PropTypes.func
 };
 const mapState = state => ({
-  routeCodeList: state.scheduleEditor.getRouteCodeList()
+  scheduleList: state.scheduleEditor.getScheduleList()
 });
 const mapDispatch = () => ({});
 export default connect(

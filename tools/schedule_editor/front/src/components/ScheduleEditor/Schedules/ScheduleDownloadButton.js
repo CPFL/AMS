@@ -13,7 +13,6 @@ class ScheduleDownloadButton extends React.Component {
 
   downloadSchedule() {
     const outputSchedules = [];
-    console.log(this.props.scheduleList);
     for (const schedule of this.props.scheduleList) {
       outputSchedules.push({
         name: 'send_lane_array',

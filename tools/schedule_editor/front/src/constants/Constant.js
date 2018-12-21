@@ -3,10 +3,6 @@ export const REDUX = {
     //Page
     //ScheduleEditor
     SET_MAP_DATA_SCHEDULE_EDITOR: 'setMapDataScheduleEditor',
-    //Modal
-    SET_IS_IMPORT_DATA_MODAL_OPEN: 'setIsImportDataModalModal',
-    SET_IS_ADD_ROUTE_MODAL_OPEN: 'setIsAddRouteModalOpen',
-    SET_IS_ADD_SCHEDULE_MODAL_OPEN: 'setIsAddScheduleModalOpen',
 
     //Route Code Editor
     SET_ACTIVE_STEP_ROUTE_CODE_EDITOR: 'setActiveStepRouteCodeEditor',
@@ -21,6 +17,11 @@ export const REDUX = {
     SAVE_ROUTE_CODE: 'saveRouteCode',
     SAVE_AND_ANOTHER_SELECT_ROUTE_CODE: 'saveAndAnotherSelectRouteCode',
     RESET_ROUTE_CODE: 'resetRouteCode',
+
+    //Route Code List
+    DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX:
+      'deleteRouteCodeFromRouteCodeListByIndex',
+
     //Schedule Editor
     SET_ACTIVE_STEP_SCHEDULE_EDITOR: 'setActiveStepScheduleEditor',
     SER_CURRENT_ROUTE_CODE_SCHEDULE: 'setCurrentRouteCodeSchedule',
@@ -36,6 +37,23 @@ export const REDUX = {
     SET_CHANGE_ROUTE_IS_BACK: 'setChangeRouteIsBack',
     SET_CHANGE_ROUTE_START_POINT: 'setChangeRouteStartPoint',
     SET_CHANGE_ROUTE_LANE_LIST: 'setChangeRouteLaneList',
-    SET_CHANGE_ROUTE_END_POINT: 'setChangeRouteEndPoint'
+    SET_CHANGE_ROUTE_END_POINT: 'setChangeRouteEndPoint',
+
+    //Route Code List
+    SET_SELECT_ROUTE_CODE_DISPLAY_MAIN_VIEWER:
+      'setSelectRouteCodeDisplayMainViewer',
+
+    //Scedule List
+    DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST:
+      'deleteLatestScheduleFromScheduleList',
+    OPEN_ADD_SCHEDULE_MODAL_AND_EDIT_SCHEDULE:
+      'openAddScheduleModalAndEditSchedule',
+    SET_SELECT_SCHEDULE_DISPLAY_MAIN_VIEWER:
+      'setSelectScheduleDisplayMainViewer',
+
+    //Modal
+    SET_IS_IMPORT_DATA_MODAL_OPEN: 'setIsImportDataModalModal',
+    SET_IS_ADD_ROUTE_MODAL_OPEN: 'setIsAddRouteModalOpen',
+    SET_IS_ADD_SCHEDULE_MODAL_OPEN: 'setIsAddScheduleModalOpen'
   }
 };

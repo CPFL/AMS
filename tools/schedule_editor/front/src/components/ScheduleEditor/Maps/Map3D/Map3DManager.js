@@ -1,4 +1,5 @@
 import React from 'react';
+import { addResizeListener } from 'detect-resize';
 
 import * as THREE from 'three';
 import 'three/OrbitControls';
@@ -10,9 +11,10 @@ import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
 
 import MapDataUpdater from '../DataUpdater/MapDataUpdater';
-import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
-
-import { addResizeListener } from 'detect-resize';
+import SelectRouteCodeDisplayMainViewerUpdater from '../DataUpdater/SelectRouteCodeDisplayMainViewerUpdater';
+import RouteCodeListUpdater from '../DataUpdater/RouteCodeListUpdater';
+import SelectScheduleDisplayMainViewerUpdater from '../DataUpdater/SelectScheduleDisplayMainViewerUpdater';
+import ScheduleListUpdater from '../DataUpdater/ScheduleListUpdater';
 
 export default class Map3DManager extends React.Component {
   constructor(props) {
@@ -134,6 +136,10 @@ export default class Map3DManager extends React.Component {
     this.scene.add(this.PCDManager);
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
     this.scene.add(this.waypointsModelManager);
+
+    this.waypointsModelManager.updateRouteCodeList(this.routeCodeList);
+    this.waypointsModelManager.updateScheduleList(this.scheduleList);
+
   }
 
   render() {
@@ -148,14 +154,50 @@ export default class Map3DManager extends React.Component {
         this.waypointsModelManager.clear();
       }
     };
-    const updateRouteCode = (startPoint, lanes, endPoint) => {
-      this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    const initRouteCodeList = routeCodeList => {
+      this.routeCodeList = routeCodeList;
+    };
+    const initScheduleList = scheduleList => {
+      this.scheduleList = scheduleList;
+    };
+    const updateSelectRouteCodeDisplayMainViewer = selectRouteCodeDisplayMainViewer => {
+      this.waypointsModelManager.updateSelectRouteCodeDisplayMainViewer(
+        selectRouteCodeDisplayMainViewer
+      );
+    };
+    const updateRouteCodeList = routeCodeList => {
+      this.waypointsModelManager.updateRouteCodeList(routeCodeList);
+    };
+    const updateSelectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer => {
+      this.waypointsModelManager.updateSelectScheduleDisplayMainViewer(
+        selectScheduleDisplayMainViewer
+      );
+    };
+    const updateScheduleList = scheduleList => {
+      this.waypointsModelManager.updateScheduleList(scheduleList);
     };
 
     return (
       <div id="map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater setMapData={setMapData} />
-        <RouteCodeUpdater updateRouteCode={updateRouteCode} />
+        <SelectRouteCodeDisplayMainViewerUpdater
+          updateSelectRouteCodeDisplayMainViewer={
+            updateSelectRouteCodeDisplayMainViewer
+          }
+        />
+        <RouteCodeListUpdater
+          initRouteCodeList={initRouteCodeList}
+          updateRouteCodeList={updateRouteCodeList}
+        />
+        <SelectScheduleDisplayMainViewerUpdater
+          updateSelectScheduleDisplayMainViewer={
+            updateSelectScheduleDisplayMainViewer
+          }
+        />
+        <ScheduleListUpdater
+          initScheduleList={initScheduleList}
+          updateScheduleList={updateScheduleList}
+        />
       </div>
     );
   }

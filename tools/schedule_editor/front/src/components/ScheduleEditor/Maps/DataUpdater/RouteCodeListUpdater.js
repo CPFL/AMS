@@ -14,13 +14,20 @@ class RouteCodeListUpdater extends React.Component {
     }
   }
 
+  componentDidUpdate() {
+    if (this.props.routeCodeList) {
+      this.props.updateRouteCodeList(this.props.routeCodeList);
+    }
+  }
+
   render() {
     return <div />;
   }
 }
 RouteCodeListUpdater.propTypes = {
   routeCodeList: PropTypes.array,
-  initRouteCodeList: PropTypes.func
+  initRouteCodeList: PropTypes.func,
+  updateRouteCodeList: PropTypes.func
 };
 const mapState = state => ({
   routeCodeList: state.scheduleEditor.getRouteCodeList()

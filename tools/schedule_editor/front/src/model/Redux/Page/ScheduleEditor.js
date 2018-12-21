@@ -79,6 +79,8 @@ const ScheduleEditorRecord = new Record({
 
   //route code list
   routeCodeList: null,
+  selectRouteCodeDisplayMainViewer: null,
+  selectScheduleDisplayMainViewer: null,
 
   //schedule list
   scheduleList: null,
@@ -123,6 +125,9 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
       //route code list
       routeCodeList: List(),
+      selectRouteCodeDisplayMainViewer: new RouteCodeRecord(),
+      selectScheduleDisplayMainViewer: new RouteCodeRecord(),
+
       //schedule list
       scheduleList: List(),
       lastRoute: new RouteCodeRecord(),
@@ -227,45 +232,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       .set('isBack', false);
   }
 
-  //Change Route
-  setChangeRouteActiveStepNext(changeRouteActiveStep) {
-    changeRouteActiveStep = changeRouteActiveStep + 1;
-
-    return this.set('changeRouteActiveStep', changeRouteActiveStep);
-  }
-
-  setChangeRouteActiveStepPrevious(changeRouteActiveStep) {
-    changeRouteActiveStep = changeRouteActiveStep - 1;
-    if (changeRouteActiveStep < 0) {
-      changeRouteActiveStep = 0;
-    }
-    return this.set('changeRouteActiveStep', changeRouteActiveStep);
-  }
-
-  setChangeRouteActiveStepReset() {
-    return this.set('changeRouteActiveStep', 0);
-  }
-
-  setChangeRouteIsBack(changeRouteIsBack) {
-    return this.set('changeRouteIsBack', changeRouteIsBack);
-  }
-
-  setChangeRouteStartPoint(changeRouteStartPoint) {
-    return this.set('changeRouteStartPoint', changeRouteStartPoint);
-  }
-
-  setChangeRouteLaneList(changeRouteLaneList) {
-    return this.set('changeRouteLaneList', List(changeRouteLaneList));
-  }
-
-  setChangeRouteEndPoint(changeRouteEndPoint) {
-    return this.set('changeRouteEndPoint', changeRouteEndPoint);
-  }
-
-  setDecisionSectionEndPoint(decisionSectionEndPoint) {
-    return this.set('decisionSectionEndPoint', decisionSectionEndPoint);
-  }
-
   //Schedule Editor
   setActiveStepScheduleEditor(activeStepScheduleEditor) {
     return this.set('activeStepScheduleEditor', activeStepScheduleEditor);
@@ -278,21 +244,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     } else {
       currentRouteCode = new RouteCodeRecord();
     }
-
-    const RouteCodeList = this.get('routeCodeList').toJS();
-    const nextSelectableRouteCodeList = [];
-    for (const routeCode of RouteCodeList) {
-      const endPoint = currentRouteCode.endPoint;
-      const routeStartPoint = routeCode.startPoint;
-      if (endPoint === routeStartPoint) {
-        nextSelectableRouteCodeList.push(routeCode);
-      }
-    }
-    console.log(nextSelectableRouteCodeList);
-    return this.set('currentRouteCodeSchedule', currentRouteCode).set(
-      'nextSelectableRouteCodeList',
-      List(nextSelectableRouteCodeList)
-    );
+    return this.set('currentRouteCodeSchedule', currentRouteCode);
   }
 
   setCheckedSendEngage(checkedSendEngage) {
@@ -341,6 +293,163 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     }
   }
 
+  //Change Route
+  setChangeRouteActiveStepNext(changeRouteActiveStep) {
+    changeRouteActiveStep = changeRouteActiveStep + 1;
+
+    return this.set('changeRouteActiveStep', changeRouteActiveStep);
+  }
+
+  setChangeRouteActiveStepPrevious(changeRouteActiveStep) {
+    changeRouteActiveStep = changeRouteActiveStep - 1;
+    if (changeRouteActiveStep < 0) {
+      changeRouteActiveStep = 0;
+    }
+    return this.set('changeRouteActiveStep', changeRouteActiveStep);
+  }
+
+  setChangeRouteActiveStepReset() {
+    return this.set('changeRouteActiveStep', 0);
+  }
+
+  setChangeRouteIsBack(changeRouteIsBack) {
+    return this.set('changeRouteIsBack', changeRouteIsBack);
+  }
+
+  setChangeRouteStartPoint(changeRouteStartPoint) {
+    return this.set('changeRouteStartPoint', changeRouteStartPoint);
+  }
+
+  setChangeRouteLaneList(changeRouteLaneList) {
+    return this.set('changeRouteLaneList', List(changeRouteLaneList));
+  }
+
+  setChangeRouteEndPoint(changeRouteEndPoint) {
+    return this.set('changeRouteEndPoint', changeRouteEndPoint);
+  }
+
+  setDecisionSectionEndPoint(decisionSectionEndPoint) {
+    return this.set('decisionSectionEndPoint', decisionSectionEndPoint);
+  }
+
+  //Route Code List
+  deleteRouteCodeFromRouteCodeListByIndex(index) {
+    return this.set('routeCodeList', this.get('routeCodeList').delete(index));
+  }
+
+  setSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
+    console.log(selectRouteCodeDisplayMainViewer);
+    return this.set(
+      'selectRouteCodeDisplayMainViewer',
+      new RouteCodeRecord(selectRouteCodeDisplayMainViewer)
+    );
+  }
+
+  //Schedule List
+  deleteLatestScheduleFromScheduleList() {
+    const scheduleList = this.get('scheduleList');
+    if (scheduleList.size > 0) {
+      if (scheduleList.size === 1) {
+        return this.set('scheduleList', scheduleList.pop())
+          .set('lastRoute', new RouteCodeRecord())
+          .set('activeStepScheduleEditor', 'selectRouteCode')
+          .set('currentRouteCodeSchedule', new RouteCodeRecord())
+          .set('checkedSendEngage', false)
+          .set('waitTime', 0)
+          .set('currentEditChangeRouteList', List())
+          .set('isAddScheduleModalOpen', false);
+      } else {
+        const secondLatestSchedule = scheduleList.get(-2);
+        const lastRoute = new RouteCodeRecord()
+          .set('routeCode', secondLatestSchedule.routeCode)
+          .set('startPoint', secondLatestSchedule.startPoint)
+          .set('laneList', secondLatestSchedule.laneList)
+          .set('endPoint', secondLatestSchedule.endPoint)
+          .set('isBack', secondLatestSchedule.isBack);
+        return this.set('scheduleList', scheduleList.pop())
+          .set('lastRoute', lastRoute)
+          .set('activeStepScheduleEditor', 'selectRouteCode')
+          .set('currentRouteCodeSchedule', new RouteCodeRecord())
+          .set('checkedSendEngage', false)
+          .set('waitTime', 0)
+          .set('currentEditChangeRouteList', List())
+          .set('isAddScheduleModalOpen', false);
+      }
+    }
+    return this;
+  }
+
+  openAddScheduleModalAndEditSchedule() {
+    const scheduleList = this.get('scheduleList');
+
+    if (scheduleList.size === 1) {
+      const latestSchedule = scheduleList.get(-1);
+      const currentRoute = new RouteCodeRecord()
+        .set('routeCode', latestSchedule.routeCode)
+        .set('startPoint', latestSchedule.startPoint)
+        .set('laneList', latestSchedule.laneList)
+        .set('endPoint', latestSchedule.endPoint)
+        .set('isBack', latestSchedule.isBack);
+      return this.set('isAddScheduleModalOpen', true)
+        .set('activeStepScheduleEditor', 'selectRouteCode')
+        .set('selectableRouteCodeList', 'selectRouteCode')
+        .set('currentRouteCodeSchedule', currentRoute)
+        .set('checkedSendEngage', latestSchedule.checkedSendEngage)
+        .set('waitTime', latestSchedule.waitTime)
+        .set('currentEditChangeRouteList', List())
+        .set('selectableRouteCodeList', this.get('routeCodeList'))
+        .set('lastRoute', new RouteCodeRecord())
+        .set('scheduleList', scheduleList.pop());
+    } else if (scheduleList.size > 1) {
+      const latestSchedule = scheduleList.get(-1);
+      const secondLatestSchedule = scheduleList.get(-2);
+
+      const currentRoute = new RouteCodeRecord()
+        .set('routeCode', latestSchedule.routeCode)
+        .set('startPoint', latestSchedule.startPoint)
+        .set('laneList', latestSchedule.laneList)
+        .set('endPoint', latestSchedule.endPoint)
+        .set('isBack', latestSchedule.isBack);
+
+      const lastRoute = new RouteCodeRecord()
+        .set('routeCode', secondLatestSchedule.routeCode)
+        .set('startPoint', secondLatestSchedule.startPoint)
+        .set('laneList', secondLatestSchedule.laneList)
+        .set('endPoint', secondLatestSchedule.endPoint)
+        .set('isBack', secondLatestSchedule.isBack);
+
+      const RouteCodeList = this.get('routeCodeList').toJS();
+      const selectableRouteCodeList = [];
+      for (const routeCode of RouteCodeList) {
+        const endPoint = lastRoute.endPoint;
+        const routeStartPoint = routeCode.startPoint;
+        if (endPoint === routeStartPoint) {
+          selectableRouteCodeList.push(routeCode);
+        }
+      }
+
+      return this.set('isAddScheduleModalOpen', true)
+        .set('activeStepScheduleEditor', 'selectRouteCode')
+        .set('selectableRouteCodeList', 'selectRouteCode')
+        .set('currentRouteCodeSchedule', currentRoute)
+        .set('checkedSendEngage', latestSchedule.checkedSendEngage)
+        .set('waitTime', latestSchedule.waitTime)
+        .set('currentEditChangeRouteList', List())
+        .set('selectableRouteCodeList', List(selectableRouteCodeList))
+        .set('lastRoute', lastRoute)
+        .set('scheduleList', scheduleList.pop());
+    }
+
+    return this;
+  }
+
+  setSelectScheduleDisplayMainViewer(selectScheduleDisplayMainViewer) {
+    return this.set(
+      'selectScheduleDisplayMainViewer',
+      new RouteCodeRecord(selectScheduleDisplayMainViewer)
+    );
+  }
+
   //3D Map
   setMapData(pcd, waypoint, lane) {
     return this.set('pcd', pcd)
@@ -374,7 +483,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
           selectableRouteCodeList.push(routeCode);
         }
       }
-      console.log(selectableRouteCodeList);
       return this.set('isAddScheduleModalOpen', isAddScheduleModalOpen).set(
         'selectableRouteCodeList',
         List(selectableRouteCodeList)
@@ -435,10 +543,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.get('selectableRouteCodeList').toJS();
   }
 
-  getNextSelectableRouteCode() {
-    return this.get('nextSelectableRouteCodeList').toJS();
-  }
-
   getCurrentRouteCodeSchedule() {
     return this.get('currentRouteCodeSchedule').toJS();
   }
@@ -458,6 +562,14 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   //Route List
   getRouteCodeList() {
     return this.get('routeCodeList').toJS();
+  }
+
+  getSelectRouteCodeDisplayMainViewer() {
+    return this.get('selectRouteCodeDisplayMainViewer');
+  }
+
+  getSelectScheduleDisplayMainViewer() {
+    return this.get('selectScheduleDisplayMainViewer');
   }
 
   //Schedule List
