@@ -219,47 +219,43 @@ export default class Waypoint extends THREE.Group {
 
   updateSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
     console.log(selectRouteCodeDisplayMainViewer);
-    const startPoint = selectRouteCodeDisplayMainViewer.startPoint;
-    const lanes = selectRouteCodeDisplayMainViewer.laneList;
-    const endPoint = selectRouteCodeDisplayMainViewer.endPoint;
-    if (
-      this.waypoint &&
-      this.lane &&
-      startPoint &&
-      lanes.length > 0 &&
-      endPoint
-    ) {
+
+    if (this.waypoint && this.lane) {
+      const startPoint = selectRouteCodeDisplayMainViewer.startPoint;
+      const lanes = selectRouteCodeDisplayMainViewer.laneList;
+      const endPoint = selectRouteCodeDisplayMainViewer.endPoint;
       this.changeAllObjectColorToDefault();
+      if (startPoint && lanes.length > 0 && endPoint) {
+        this.selectRouteCodeDisplayMainViewer = selectRouteCodeDisplayMainViewer;
 
-      this.selectRouteCodeDisplayMainViewer = selectRouteCodeDisplayMainViewer;
+        this.waypointsList[startPoint].material.color.set(this.color.selected);
+        for (let laneID of lanes) {
+          this.laneList[laneID].material.color.set(this.color.selected);
+        }
+        this.waypointsList[endPoint].material.color.set(this.color.selected);
 
-      this.waypointsList[startPoint].material.color.set(this.color.selected);
-      for (let laneID of lanes) {
-        this.laneList[laneID].material.color.set(this.color.selected);
-      }
-      this.waypointsList[endPoint].material.color.set(this.color.selected);
-
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[endPoint].x,
-        y: this.waypoint.waypoints[endPoint].y,
-        z: this.waypoint.waypoints[endPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
-      this.nextSelectableRouteList = [];
-      for (const routeCode of this.routeCodeList) {
-        const routeStartPoint = routeCode.startPoint;
-        if (endPoint === routeStartPoint) {
-          routeCode.laneList.forEach((laneID, index) => {
-            if (index > 0) {
-              this.laneList[laneID].material.color.set(
-                this.color.selectCandidate
-              );
-            }
-          });
-          this.waypointsList[routeCode.endPoint].material.color.set(
-            this.color.selectCandidate
-          );
-          this.nextSelectableRouteList.push(routeCode);
+        const newCameraPosition = {
+          x: this.waypoint.waypoints[endPoint].x,
+          y: this.waypoint.waypoints[endPoint].y,
+          z: this.waypoint.waypoints[endPoint].z
+        };
+        this.updateCameraPosition(newCameraPosition);
+        this.nextSelectableRouteList = [];
+        for (const routeCode of this.routeCodeList) {
+          const routeStartPoint = routeCode.startPoint;
+          if (endPoint === routeStartPoint) {
+            routeCode.laneList.forEach((laneID, index) => {
+              if (index > 0) {
+                this.laneList[laneID].material.color.set(
+                  this.color.selectCandidate
+                );
+              }
+            });
+            this.waypointsList[routeCode.endPoint].material.color.set(
+              this.color.selectCandidate
+            );
+            this.nextSelectableRouteList.push(routeCode);
+          }
         }
       }
     }
@@ -267,43 +263,41 @@ export default class Waypoint extends THREE.Group {
 
   updateSelectScheduleDisplayMainViewer(selectScheduleDisplayMainViewer) {
     console.log(selectScheduleDisplayMainViewer);
-    const startPoint = selectScheduleDisplayMainViewer.startPoint;
-    const lanes = selectScheduleDisplayMainViewer.laneList;
-    const endPoint = selectScheduleDisplayMainViewer.endPoint;
-    if (
-      this.waypoint &&
-      this.lane &&
-      startPoint &&
-      lanes.length > 0 &&
-      endPoint
-    ) {
+    if (this.waypoint && this.lane) {
+      const startPoint = selectScheduleDisplayMainViewer.startPoint;
+      const lanes = selectScheduleDisplayMainViewer.laneList;
+      const endPoint = selectScheduleDisplayMainViewer.endPoint;
       this.changeAllObjectColorToDefault();
-      this.selectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer;
+      if (startPoint && lanes.length > 0 && endPoint) {
+        this.selectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer;
 
-      for (const schedule of this.scheduleList) {
-        const tempStartPoint = schedule.startPoint;
-        const tempLanes = schedule.laneList;
-        const tempEndPoint = schedule.endPoint;
+        for (const schedule of this.scheduleList) {
+          const tempStartPoint = schedule.startPoint;
+          const tempLanes = schedule.laneList;
+          const tempEndPoint = schedule.endPoint;
 
-        this.waypointsList[tempStartPoint].material.color.set(this.color.other);
-        for (let laneID of tempLanes) {
-          this.laneList[laneID].material.color.set(this.color.other);
+          this.waypointsList[tempStartPoint].material.color.set(
+            this.color.other
+          );
+          for (let laneID of tempLanes) {
+            this.laneList[laneID].material.color.set(this.color.other);
+          }
+          this.waypointsList[tempEndPoint].material.color.set(this.color.other);
         }
-        this.waypointsList[tempEndPoint].material.color.set(this.color.other);
-      }
 
-      this.waypointsList[startPoint].material.color.set(this.color.selected);
-      for (let laneID of lanes) {
-        this.laneList[laneID].material.color.set(this.color.selected);
-      }
-      this.waypointsList[endPoint].material.color.set(this.color.selected);
+        this.waypointsList[startPoint].material.color.set(this.color.selected);
+        for (let laneID of lanes) {
+          this.laneList[laneID].material.color.set(this.color.selected);
+        }
+        this.waypointsList[endPoint].material.color.set(this.color.selected);
 
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[endPoint].x,
-        y: this.waypoint.waypoints[endPoint].y,
-        z: this.waypoint.waypoints[endPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
+        const newCameraPosition = {
+          x: this.waypoint.waypoints[endPoint].x,
+          y: this.waypoint.waypoints[endPoint].y,
+          z: this.waypoint.waypoints[endPoint].z
+        };
+        this.updateCameraPosition(newCameraPosition);
+      }
     }
   }
 

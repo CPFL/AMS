@@ -154,6 +154,13 @@ export function deleteRouteCodeFromRouteCodeListByIndex(index) {
   };
 }
 
+export function addRouteCodeByText(textRouteCode) {
+  return {
+    type: REDUX.ACTION_TYPE.ADD_ROUTE_CODE_BY_TEXT,
+    textRouteCode: textRouteCode
+  };
+}
+
 export function setSelectRouteCodeDisplayMainViewer(
   selectRouteCodeDisplayMainViewer
 ) {
@@ -197,6 +204,13 @@ export function setIsAddRouteModalOpen(isAddRouteModalOpen) {
   return {
     type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_OPEN,
     isAddRouteModalOpen: isAddRouteModalOpen
+  };
+}
+
+export function setIsAddRouteByTextModalOpen(isAddRouteByTextModalOpen) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_BY_TEXT_MODAL_OPEN,
+    isAddRouteByTextModalOpen: isAddRouteByTextModalOpen
   };
 }
 

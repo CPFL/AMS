@@ -94,6 +94,8 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     return state.setSelectRouteCodeDisplayMainViewer(
       action.selectRouteCodeDisplayMainViewer
     );
+  } else if (action.type === REDUX.ACTION_TYPE.ADD_ROUTE_CODE_BY_TEXT) {
+    return state.addRouteCodeByText(action.textRouteCode);
   }
   //Schedule List
   else if (
@@ -116,6 +118,10 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     return state.setIsImportDataModalOpen(action.isImportDataModalOpen);
   } else if (action.type === REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_OPEN) {
     return state.setIsAddRouteModalOpen(action.isAddRouteModalOpen);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_BY_TEXT_MODAL_OPEN
+  ) {
+    return state.setIsAddRouteByTextModalOpen(action.isAddRouteByTextModalOpen);
   } else if (action.type === REDUX.ACTION_TYPE.SET_IS_ADD_SCHEDULE_MODAL_OPEN) {
     return state.setIsAddScheduleModalOpen(action.isAddScheduleModalOpen);
   }

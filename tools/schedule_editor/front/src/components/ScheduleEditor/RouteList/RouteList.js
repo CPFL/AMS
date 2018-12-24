@@ -21,7 +21,6 @@ class RouteList extends React.Component {
   }
 
   selectRouteCode(event, routeCode) {
-    console.log(routeCode);
     this.props.scheduleEditorActions.setSelectRouteCodeDisplayMainViewer(
       routeCode
     );

@@ -18,6 +18,7 @@ import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorAct
 
 import RouteList from './RouteList';
 import RouteCodeEditor from './RouteCodeEditor/RouteCodeEditor';
+import InputRouteCodeByText from './InputRouteCodeByText';
 
 class RouteListBox extends React.Component {
   constructor(props) {
@@ -25,6 +26,7 @@ class RouteListBox extends React.Component {
 
     this.openAddRouteModal = this.openAddRouteModal.bind(this);
     this.closeAddRouteModal = this.closeAddRouteModal.bind(this);
+    this.openAddRouteByTextModal = this.openAddRouteByTextModal.bind(this);
   }
 
   openAddRouteModal() {
@@ -35,8 +37,11 @@ class RouteListBox extends React.Component {
     this.props.scheduleEditorActions.setIsAddRouteModalOpen(false);
   }
 
-  render() {
+  openAddRouteByTextModal() {
+    this.props.scheduleEditorActions.setIsAddRouteByTextModalOpen(true);
+  }
 
+  render() {
     const wrapper = {
       padding: '5px',
       boxSizing: 'border-box',
@@ -61,14 +66,25 @@ class RouteListBox extends React.Component {
         <Card style={CardStyle} id="RouteListCard">
           <CardHeader
             action={
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={this.openAddRouteModal}
-              >
-                <AddIcon style={{ color: 'white', marginRight: '5px' }} />
-                Add Route
-              </Button>
+              <div>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={this.openAddRouteModal}
+                >
+                  <AddIcon style={{ color: 'white', marginRight: '5px' }} />
+                  Add Route
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={this.openAddRouteByTextModal}
+                  style={{ marginLeft: '5px' }}
+                >
+                  <AddIcon style={{ color: 'white', marginRight: '5px' }} />
+                  Add Route By Text
+                </Button>
+              </div>
             }
             title="Route List"
             id="RouteListCardHeader"
@@ -96,6 +112,7 @@ class RouteListBox extends React.Component {
             <RouteCodeEditor />
           </div>
         </Dialog>
+        <InputRouteCodeByText />
       </div>
     );
   }

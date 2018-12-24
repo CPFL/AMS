@@ -94,6 +94,7 @@ const ScheduleEditorRecord = new Record({
   //Modal
   isImportDataModalOpen: true,
   isAddRouteModalOpen: false,
+  isAddRouteByTextModalOpen: false,
   isAddScheduleModalOpen: false
 });
 
@@ -139,6 +140,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       //Modal
       isImportDataModalOpen: true,
       isAddRouteModalOpen: false,
+      isAddRouteByTextModalOpen: false,
       isAddScheduleModalOpen: false
     });
   }
@@ -345,6 +347,20 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     );
   }
 
+  addRouteCodeByText(textRouteCode) {
+    const routeCodeRecord = new RouteCodeRecord()
+      .set('startPoint', textRouteCode.startPoint)
+      .set('laneList', textRouteCode.laneList)
+      .set('endPoint', textRouteCode.endPoint)
+      .set('isBack', textRouteCode.isBack)
+      .set('routeCode', textRouteCode.routeCode);
+    const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
+    return this.set('routeCodeList', routeCodeList).set(
+      'isAddRouteByTextModalOpen',
+      false
+    );
+  }
+
   //Schedule List
   deleteLatestScheduleFromScheduleList() {
     const scheduleList = this.get('scheduleList');
@@ -464,6 +480,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setIsAddRouteModalOpen(isAddRouteModalOpen) {
     return this.set('isAddRouteModalOpen', isAddRouteModalOpen);
+  }
+
+  setIsAddRouteByTextModalOpen(isAddRouteByTextModalOpen) {
+    return this.set('isAddRouteByTextModalOpen', isAddRouteByTextModalOpen);
   }
 
   setIsAddScheduleModalOpen(isAddScheduleModalOpen) {
@@ -592,6 +612,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   getIsAddRouteModalOpen() {
     return this.get('isAddRouteModalOpen');
+  }
+
+  getIsAddRouteByTextModalOpen() {
+    return this.get('isAddRouteByTextModalOpen');
   }
 
   getIsAddScheduleModalOpen() {
