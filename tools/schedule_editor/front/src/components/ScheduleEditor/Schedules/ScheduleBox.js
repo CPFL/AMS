@@ -6,49 +6,34 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import ScheduleList from './ScheduleList';
+import AddIcon from '@material-ui/icons/Add';
 
-export default class ScheduleBox extends React.Component {
+import ScheduleEditProcess from './ScheduleEditor/ScheduleEditor';
+import DialogTitle from '@material-ui/core/DialogTitle/DialogTitle';
+import IconButton from '@material-ui/core/IconButton/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import PropTypes from 'prop-types';
+import { bindActionCreators } from 'redux';
+import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
+import connect from 'react-redux/es/connect/connect';
+
+class ScheduleBox extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      listHeight: 0,
-      isOpen: false
-    };
 
-    this.addScheduleModalOpen = this.addScheduleModalOpen.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.resize = this.resize.bind(this);
+    this.openAddScheduleModal = this.openAddScheduleModal.bind(this);
+    this.closeAddScheduleModal = this.closeAddScheduleModal.bind(this);
   }
 
-  componentDidMount() {
-    this.setState({
-      listHeight:
-        document.getElementById('ScheduleCard').clientHeight -
-        document.getElementById('ScheduleCardHeader').clientHeight
-    });
-    document
-      .getElementById('ScheduleCard')
-      .addEventListener('resize', this.resize, false);
+  openAddScheduleModal() {
+    this.props.scheduleEditorActions.setIsAddScheduleModalOpen(true);
   }
 
-  resize() {
-    this.setState({
-      listHeight:
-        document.getElementById('ScheduleCard').clientHeight -
-        document.getElementById('ScheduleCardHeader').clientHeight
-    });
-  }
-
-  addScheduleModalOpen() {
-    this.setState({ isOpen: true });
-  }
-
-  closeModal() {
-    this.setState({ isOpen: false });
+  closeAddScheduleModal() {
+    this.props.scheduleEditorActions.setIsAddScheduleModalOpen(false);
   }
 
   render() {
-    const cardContentHeight = this.state.listHeight;
 
     const wrapper = {
       padding: '5px',
@@ -58,7 +43,12 @@ export default class ScheduleBox extends React.Component {
 
     const contentStyle = {
       boxSizing: 'border-box',
-      height: cardContentHeight
+      height: 'calc(100% - 64px)'
+    };
+
+    const modalContent = {
+      position: 'relative',
+      height: window.innerHeight * 0.9
     };
 
     return (
@@ -69,8 +59,9 @@ export default class ScheduleBox extends React.Component {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={this.addScheduleModalOpen}
+                onClick={this.openAddScheduleModal}
               >
+                <AddIcon style={{ color: 'white', marginRight: '5px' }} />
                 Add Schedule
               </Button>
             }
@@ -81,10 +72,41 @@ export default class ScheduleBox extends React.Component {
             <ScheduleList />
           </CardContent>
         </Card>
-        <Dialog open={this.state.isOpen} onClose={this.closeModal}>
-          Test
+        <Dialog
+          open={this.props.isAddScheduleModalOpen}
+          onClose={this.closeAddScheduleModal}
+          fullWidth={true}
+          maxWidth="xl"
+        >
+          <DialogTitle id="alert-dialog-slide-title">
+            <IconButton
+              color="inherit"
+              onClick={this.closeAddScheduleModal}
+              aria-label="Close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <div style={modalContent}>
+            <ScheduleEditProcess />
+          </div>
         </Dialog>
       </div>
     );
   }
 }
+
+ScheduleBox.propTypes = {
+  isAddScheduleModalOpen: PropTypes.bool,
+  scheduleEditorActions: PropTypes.object
+};
+const mapStateSelectEndPoint = state => ({
+  isAddScheduleModalOpen: state.scheduleEditor.getIsAddScheduleModalOpen()
+});
+const mapDispatchSelectEndPoint = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
+});
+export default connect(
+  mapStateSelectEndPoint,
+  mapDispatchSelectEndPoint
+)(ScheduleBox);

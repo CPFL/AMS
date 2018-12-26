@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { routeCodeSelector } from '../../../../../redux/selectors/ScheduleEditorSelector';
+import { routeCodeSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class RouteCodeUpdater extends React.Component {
   constructor(props) {
@@ -12,7 +12,6 @@ class RouteCodeUpdater extends React.Component {
 
   componentDidMount() {
     const routeCode = this.props.routeCode;
-    console.log(routeCode);
     if (
       routeCode.startPoint !== null &&
       routeCode.laneList !== null &&

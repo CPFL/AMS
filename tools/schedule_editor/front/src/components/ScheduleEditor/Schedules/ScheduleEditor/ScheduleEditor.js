@@ -1,10 +1,10 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 
+import ScheduleEditProcess from './ScheduleEditProcess';
 import Map3DManager from './Maps/Map3D/Map3DManager';
-import CreateRouteCodeTabs from './Process/CreateRouteCodeProcess';
 
-export default class RouteCodeEditor extends React.Component {
+export default class ScheduleEditor extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -27,12 +27,12 @@ export default class RouteCodeEditor extends React.Component {
     return (
       <div style={wrapper}>
         <Grid container style={{ height: '100%' }}>
-          <Grid item xs style={{ position: 'relative' }}>
-            <CreateRouteCodeTabs />
+          <Grid item xs={7} style={{ position: 'relative' }}>
+            <ScheduleEditProcess />
           </Grid>
-          <Grid item xs style={{ position: 'relative' }}>
+          <Grid item xs={5} style={{ position: 'relative' }}>
             <div style={Map3DWrapper}>
-              <div style={{ height: '100%', width: '100%' }}>
+              <div style={{ height: '99%', width: '99%' }}>
                 <Map3DManager />
               </div>
             </div>
