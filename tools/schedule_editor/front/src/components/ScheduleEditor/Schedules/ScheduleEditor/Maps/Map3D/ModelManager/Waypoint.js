@@ -245,8 +245,8 @@ export default class Waypoint extends THREE.Group {
         );
       }
     }
-    if(this.nextSelectableRouteList){
-      for(const routeCode of this.nextSelectableRouteList){
+    if (this.nextSelectableRouteList) {
+      for (const routeCode of this.nextSelectableRouteList) {
         if (routeCode.startPoint) {
           this.waypointsList[routeCode.startPoint].material.color.set(
             this.color.default
