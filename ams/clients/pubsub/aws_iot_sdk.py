@@ -47,6 +47,10 @@ class ArgsSetters(object):
         self.args.configure_mqtt_operation_timeout = copy(locals())
         self.args.configure_mqtt_operation_timeout.pop("self")
 
+    def set_args_of_configureDrainingFrequency(self, frequencyInHz=2):
+        self.args.configure_draining_frequency = copy(locals())
+        self.args.configure_draining_frequency.pop("self")
+
     def set_args_of_configureAutoReconnectBackoffTime(
             self, baseReconnectQuietTimeSecond, maxReconnectQuietTimeSecond, stableConnectionTimeSecond):
         self.args.configure_auto_reconnect_back_off_time = copy(locals())
@@ -133,6 +137,10 @@ class PubSubClient(ArgsSetters):
             self.args.aws_iot_mqtt_client["clientID"] = client_id
             client["instance"] = AWSIoTMQTTClient(**self.args.aws_iot_mqtt_client)
             client["instance"].configureEndpoint(**self.args.configure_endpoint)
+            client["instance"].configureDrainingFrequency(CONST.DEFAULT_DRAINING_FREQUENCY)
+
+            if "configure_draining_frequency" in self.args.keys():
+                client["instance"].configureDrainingFrequency(**self.args.configure_draining_frequency)
             if "configure_credentials" in self.args.keys():
                 client["instance"].configureCredentials(**self.args.configure_credentials)
             elif "configure_iam_credentials" in self.args.keys():
