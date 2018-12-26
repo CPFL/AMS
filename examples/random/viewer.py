@@ -4,6 +4,7 @@
 from os import listdir
 from os.path import realpath
 
+from setproctitle import setproctitle
 from flask import Flask, jsonify, render_template, send_from_directory
 
 from ams.clients import MapsClient
@@ -69,4 +70,5 @@ def get_pcd_file(filename):
 
 
 if __name__ == '__main__':
+    setproctitle("ams_viewer")
     app.run(host="localhost", port=5000, use_reloader=True, debug=True)

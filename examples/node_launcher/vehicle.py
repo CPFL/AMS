@@ -3,6 +3,8 @@
 
 import json
 
+from setproctitle import setproctitle
+
 from ams import logger
 from ams.helpers import Topic
 from ams.clients import MapsClient
@@ -13,6 +15,8 @@ from clients.helper import get_manager_client, get_redis_client, get_paho_client
 
 
 if __name__ == '__main__':
+
+    setproctitle("ams_vehicle")
 
     parser.add_argument(
         "-SMP", "--state_machine_path", type=str, default=None, help="state machine resource path")
