@@ -5,6 +5,8 @@ import signal
 from subprocess import Popen
 from time import sleep
 
+from setproctitle import setproctitle
+
 from ams import logger
 
 
@@ -59,6 +61,7 @@ class Launcher(object):
 
 
 if __name__ == '__main__':
+    setproctitle("ams_launcher")
     launcher = Launcher()
     try:
         launcher.start()

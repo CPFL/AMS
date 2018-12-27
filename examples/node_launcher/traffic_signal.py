@@ -3,6 +3,8 @@
 
 import json
 
+from setproctitle import setproctitle
+
 from ams.helpers import Topic
 from ams.nodes import TrafficSignal
 
@@ -11,6 +13,8 @@ from clients.helper import get_manager_client, get_redis_client, get_paho_client
 
 
 if __name__ == '__main__':
+
+    setproctitle("ams_traffic_signal")
 
     parser.add_argument(
         "-SMP", "--state_machine_path", type=str, default=None, help="state machine resource path")
