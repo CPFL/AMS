@@ -336,7 +336,24 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   //Route Code List
   deleteRouteCodeFromRouteCodeListByIndex(index) {
-    return this.set('routeCodeList', this.get('routeCodeList').delete(index));
+    const deleteRecord = this.get('routeCodeList')
+      .get(index)
+      .toJS();
+    const selectedRouteCodeDisplayMainViewer = this.get(
+      'selectRouteCodeDisplayMainViewer'
+    ).toJS();
+
+    console.log(deleteRecord, selectedRouteCodeDisplayMainViewer);
+    if (
+      deleteRecord.routeCode === selectedRouteCodeDisplayMainViewer.routeCode
+    ) {
+      return this.set(
+        'routeCodeList',
+        this.get('routeCodeList').delete(index)
+      ).set('selectRouteCodeDisplayMainViewer', new RouteCodeRecord());
+    } else {
+      return this.set('routeCodeList', this.get('routeCodeList').delete(index));
+    }
   }
 
   setSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
@@ -365,6 +382,15 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   deleteLatestScheduleFromScheduleList() {
     const scheduleList = this.get('scheduleList');
     if (scheduleList.size > 0) {
+      const lastSchedule = scheduleList.get(-1).toJS();
+      const selectScheduleDisplayMainViewer = this.get(
+        'selectScheduleDisplayMainViewer'
+      ).toJS();
+      const newSelectScheduleDisplayMainViewer =
+        lastSchedule.routeCode === selectScheduleDisplayMainViewer.routeCode
+          ? new RouteCodeRecord()
+          : new RouteCodeRecord(selectScheduleDisplayMainViewer);
+
       if (scheduleList.size === 1) {
         return this.set('scheduleList', scheduleList.pop())
           .set('lastRoute', new RouteCodeRecord())
@@ -373,7 +399,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
           .set('checkedSendEngage', false)
           .set('waitTime', 0)
           .set('currentEditChangeRouteList', List())
-          .set('isAddScheduleModalOpen', false);
+          .set('isAddScheduleModalOpen', false)
+          .set(
+            'selectScheduleDisplayMainViewer',
+            newSelectScheduleDisplayMainViewer
+          );
       } else {
         const secondLatestSchedule = scheduleList.get(-2);
         const lastRoute = new RouteCodeRecord()
@@ -389,7 +419,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
           .set('checkedSendEngage', false)
           .set('waitTime', 0)
           .set('currentEditChangeRouteList', List())
-          .set('isAddScheduleModalOpen', false);
+          .set('isAddScheduleModalOpen', false)
+          .set(
+            'selectScheduleDisplayMainViewer',
+            newSelectScheduleDisplayMainViewer
+          );
       }
     }
     return this;
@@ -585,11 +619,11 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   getSelectRouteCodeDisplayMainViewer() {
-    return this.get('selectRouteCodeDisplayMainViewer');
+    return this.get('selectRouteCodeDisplayMainViewer').toJS();
   }
 
   getSelectScheduleDisplayMainViewer() {
-    return this.get('selectScheduleDisplayMainViewer');
+    return this.get('selectScheduleDisplayMainViewer').toJS();
   }
 
   //Schedule List

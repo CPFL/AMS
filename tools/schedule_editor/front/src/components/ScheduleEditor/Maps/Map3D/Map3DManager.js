@@ -180,14 +180,14 @@ export default class Map3DManager extends React.Component {
     return (
       <div id="map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater setMapData={setMapData} />
+        <RouteCodeListUpdater
+          initRouteCodeList={initRouteCodeList}
+          updateRouteCodeList={updateRouteCodeList}
+        />
         <SelectRouteCodeDisplayMainViewerUpdater
           updateSelectRouteCodeDisplayMainViewer={
             updateSelectRouteCodeDisplayMainViewer
           }
-        />
-        <RouteCodeListUpdater
-          initRouteCodeList={initRouteCodeList}
-          updateRouteCodeList={updateRouteCodeList}
         />
         <SelectScheduleDisplayMainViewerUpdater
           updateSelectScheduleDisplayMainViewer={
