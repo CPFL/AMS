@@ -296,6 +296,7 @@ export default class Waypoint extends THREE.Group {
       for (const routeCode of this.routeCodeList) {
         const routeStartPoint = routeCode.startPoint;
         if (endPoint === routeStartPoint) {
+          /*
           this.waypointsList[routeCode.startPoint].material.color.set(
             this.color.selectCandidate
           );
@@ -304,6 +305,14 @@ export default class Waypoint extends THREE.Group {
               this.color.selectCandidate
             );
           }
+          */
+          routeCode.laneList.forEach((laneID, index) => {
+            if (index > 0) {
+              this.laneList[laneID].material.color.set(
+                this.color.selectCandidate
+              );
+            }
+          });
           this.waypointsList[routeCode.endPoint].material.color.set(
             this.color.selectCandidate
           );
