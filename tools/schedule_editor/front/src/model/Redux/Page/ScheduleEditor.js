@@ -1,4 +1,4 @@
-import { Record, List, Map } from 'immutable';
+import { Record, List } from 'immutable';
 
 export const steps = {
   advanceOrBack: {

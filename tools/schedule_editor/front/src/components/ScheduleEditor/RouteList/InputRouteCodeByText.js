@@ -173,7 +173,7 @@ class InputRouteCodeByText extends React.Component {
               label="Input Route Code"
               margin="dense"
               onChange={this.setTextRouteCode}
-              style={{ width: '200px' }}
+              style={{ width: '400px' }}
             />
           </div>
         </DialogContent>

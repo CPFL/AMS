@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-import { steps } from '../../../../../model/Redux/Page/ScheduleEditor';
-
 export default class Waypoint extends THREE.Group {
   constructor() {
     super();

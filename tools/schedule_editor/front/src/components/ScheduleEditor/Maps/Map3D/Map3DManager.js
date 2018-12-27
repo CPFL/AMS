@@ -139,7 +139,6 @@ export default class Map3DManager extends React.Component {
 
     this.waypointsModelManager.updateRouteCodeList(this.routeCodeList);
     this.waypointsModelManager.updateScheduleList(this.scheduleList);
-
   }
 
   render() {

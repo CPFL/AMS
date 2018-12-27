@@ -11,7 +11,8 @@ class SelectRouteCodeDisplayMainViewerUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    const selectRouteCodeDisplayMainViewer = this.props.selectRouteCodeDisplayMainViewer;
+    const selectRouteCodeDisplayMainViewer = this.props
+      .selectRouteCodeDisplayMainViewer;
     if (
       selectRouteCodeDisplayMainViewer.startPoint != null &&
       selectRouteCodeDisplayMainViewer.laneList != null &&

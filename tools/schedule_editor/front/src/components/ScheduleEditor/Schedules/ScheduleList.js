@@ -56,7 +56,9 @@ class ScheduleList extends React.Component {
   }
 
   selectSchedule(event, schedule) {
-    this.props.scheduleEditorActions.setSelectScheduleDisplayMainViewer(schedule);
+    this.props.scheduleEditorActions.setSelectScheduleDisplayMainViewer(
+      schedule
+    );
     console.log(schedule);
   }
 
