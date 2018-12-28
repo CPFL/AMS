@@ -30,11 +30,13 @@ class ScheduleDownloadButton extends React.Component {
         }
       }
     }
-    this.handleDownload(JSON.stringify(outputSchedules, null, 2));
+    this.handleDownload(outputSchedules);
   }
 
   handleDownload(content) {
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([JSON.stringify(content, null, 2)], {
+      type: 'application/json'
+    });
 
     document.getElementById('download').href = window.URL.createObjectURL(blob);
   }

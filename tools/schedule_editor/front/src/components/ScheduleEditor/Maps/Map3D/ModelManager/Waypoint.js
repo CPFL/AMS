@@ -213,6 +213,22 @@ export default class Waypoint extends THREE.Group {
         }
       }
     }
+
+    if (this.scheduleList) {
+      for (const schedule of this.scheduleList) {
+        const tempStartPoint = schedule.startPoint;
+        const tempLanes = schedule.laneList;
+        const tempEndPoint = schedule.endPoint;
+
+        this.waypointsList[tempStartPoint].material.color.set(
+          this.color.default
+        );
+        for (let laneID of tempLanes) {
+          this.laneList[laneID].material.color.set(this.color.default);
+        }
+        this.waypointsList[tempEndPoint].material.color.set(this.color.default);
+      }
+    }
   }
 
   updateSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
