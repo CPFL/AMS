@@ -45,7 +45,7 @@ def get_aws_iot_client(host, port, path_ca, path_private_key, path_cert):
     try:
         import AWSIoTPythonSDK.MQTTLib
         PUBSUBClient = get_pubsub_client_class(AWSIoTPythonSDK.MQTTLib)
-        pubsub_client = PUBSUBClient(num_of_clients=6)
+        pubsub_client = PUBSUBClient()
         pubsub_client.set_args_of_AWSIoTMQTTClient(str(uuid()))
         pubsub_client.set_args_of_configureEndpoint(host, port)
         pubsub_client.set_args_of_configureCredentials(
