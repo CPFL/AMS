@@ -959,6 +959,76 @@
       ]
     },
 
+
+    {
+      "event": "loop",
+      "from": "WaitingEvent",
+      "to": "RestartingSchedule",
+      "hooks": [
+        {
+          "function": "start_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "MISSION_COMPLETE"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RestartingSchedule",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "end_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "restart_vehicle_schedule",
+          "args": ["kvs_client", "target_vehicle"]
+        },
+        {
+          "function": "update_and_set_vehicle_pose",
+          "args": ["kvs_client", "maps_client", "target_vehicle"]
+        },
+        {
+          "function": "publish_state_cmd",
+          "args": ["pubsub_client", "target_vehicle", "target_autoware", "GOTO_WAIT_ORDER"]
+        },
+        {
+          "function": "publish_vehicle_status",
+          "args": ["pubsub_client", "kvs_client", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "on_vehicle_event",
+          "args": ["kvs_client", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "decision_maker_state_is_expected",
+          "args": ["kvs_client", "target_vehicle", "WAIT_ORDER"]
+        }
+      ]
+    },
+
+
     {
       "event": "end_node",
       "from": "WaitingEvent",
