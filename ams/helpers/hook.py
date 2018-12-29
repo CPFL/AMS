@@ -631,6 +631,7 @@ class Hook(object):
             logger.warning("No vehicle schedule")
             return False
         vehicle_status.schedule_id = vehicle_schedule.id
+        vehicle_status.event_id = vehicle_schedule.events[0].id
         return cls.set_status(kvs_client, target_vehicle, vehicle_status)
 
     @classmethod
