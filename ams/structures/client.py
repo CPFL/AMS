@@ -25,7 +25,8 @@ pubsub = {
         },
         "AWS_IOT_SDK": {
             "MODULE_NAME": "AWSIoTPythonSDK.MQTTLib",
-            "DEFAULT_PROTOCOL": None
+            "DEFAULT_PROTOCOL": None,
+            "DEFAULT_DRAINING_FREQUENCY": 20.0
         },
         "AWS_IOT_BOTO3": {
             "MODULE_NAME": "boto3",
