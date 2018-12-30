@@ -5,8 +5,8 @@ const mapData = state => state.scheduleEditor.getMapData();
 const startPoint = state => state.scheduleEditor.getStartPoint();
 const laneList = state => state.scheduleEditor.getLaneList();
 const endPoint = state => state.scheduleEditor.getEndPoint();
-const selectRouteCodeDisplayMainViewer = state =>
-  state.scheduleEditor.getSelectRouteCodeDisplayMainViewer();
+const selectedDisplayRouteMainViewer = state =>
+  state.scheduleEditor.getSelectedDisplayRouteMainViewer();
 const selectScheduleDisplayMainViewer = state =>
   state.scheduleEditor.getSelectScheduleDisplayMainViewer();
 const currentRouteCodeSchedule = state =>
@@ -29,10 +29,10 @@ export const routeCodeSelector = createDeepEqualSelector(
   }
 );
 
-export const selectRouteCodeDisplayMainViewerSelector = createDeepEqualSelector(
-  [selectRouteCodeDisplayMainViewer],
-  selectRouteCodeDisplayMainViewer => {
-    return selectRouteCodeDisplayMainViewer;
+export const selectedDisplayRouteMainViewerSelector = createDeepEqualSelector(
+  [selectedDisplayRouteMainViewer],
+  selectedDisplayRouteMainViewer => {
+    return selectedDisplayRouteMainViewer;
   }
 );
 
