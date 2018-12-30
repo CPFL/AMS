@@ -7,7 +7,7 @@ from ams import VERSION, logger
 from ams.helpers import Target, Event, Route, Simulator
 from ams.structures import (
     CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
-    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Hook(object):
@@ -829,3 +829,10 @@ class Hook(object):
         kvs_client.delete(key)
         return True
 
+    @classmethod
+    def set_user_goal_at_random(cls, kvs_client, target, goal_location_candidates):
+        import random
+        goal_location = random.choice(goal_location_candidates)
+        status = cls.get_status(kvs_client, target, User.Status)
+        status.goal_location = goal_location
+        cls.set_status(kvs_client, target, status)

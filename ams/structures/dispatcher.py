@@ -29,7 +29,8 @@ const.update({
     "EVENT": {
         "END_NODE": "end_node",
         "CHANGE_SCHEDULE": "change_schedule",
-        "RETURN_TO_WAITING_EVENT": "return_to_waiting_event"
+        "RETURN_TO_WAITING_EVENT": "return_to_waiting_event",
+        "NOTICE": "notice"
     },
     "TRANSPORTATION": {
         "EVENT": {
