@@ -1,0 +1,22 @@
+{
+  "config": {
+    "target_self": {
+      "group": "user",
+      "id": "u_random1"
+    },
+    "target_dispatcher": {
+      "group": "dispatcher",
+      "id": "d_random1"
+    }
+  },
+  "status": {
+    "target_vehicle": null,
+    "start_location": {
+      "lane_code": "8883_8897",
+      "waypoint_id": "8887"
+    },
+    "goal_location": null,
+    "state": null,
+    "updated_at": 0
+  }
+}
