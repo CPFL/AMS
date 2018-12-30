@@ -226,16 +226,44 @@ class Hook(object):
 
     @classmethod
     def get_route_code_from_lane_array_id(cls, kvs_client, target, lane_array_id):
-        relation_keys = cls.get_relation_keys(kvs_client, target, "route_code_lane_array_id")
+        relation_keys = cls.get_relation_keys(kvs_client, target, "lane_array_id_route_code")
         route_code = None
         for relation_key in relation_keys:
             relation_key_lane_array_id, relation_key_route_code = relation_key.split(
                 CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
             if relation_key_lane_array_id == str(lane_array_id):
                 route_code = relation_key_route_code
-            else:
-                kvs_client.delete(relation_key)
+
         return route_code
+
+    @classmethod
+    def delete_disuse_route_code_lane_array_id_relations(cls, kvs_client, target, lane_array_id, route_code):
+        delete_keys = [
+            cls.get_relation_key(target, "route_code_lane_array_id", route_code, str(lane_array_id))]
+
+        lane_array_id_relation_keys = cls.get_relation_keys(kvs_client, target, "lane_array_id_route_code")
+        route_code_relation_keys = cls.get_relation_keys(kvs_client, target, "route_code_lane_array_id")
+
+        for relation_key in lane_array_id_relation_keys:
+            relation_key_lane_array_id, relation_key_route_code = relation_key.split(
+                CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
+            if relation_key_route_code == route_code and relation_key_lane_array_id != str(lane_array_id):
+                delete_keys.append(relation_key)
+            else:
+                if relation_key_route_code != route_code:
+                    route_code_relation_key = cls.get_relation_key(
+                        target, "route_code_lane_array_id", relation_key_route_code, relation_key_lane_array_id)
+                    if route_code_relation_key not in route_code_relation_keys:
+                        delete_keys.append(relation_key)
+
+        for relation_key in route_code_relation_keys:
+            relation_key_route_code, relation_key_lane_array_id = relation_key.split(
+                CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
+            if relation_key_route_code == route_code and relation_key_lane_array_id != str(lane_array_id):
+                delete_keys.append(relation_key)
+
+        for delete_key in delete_keys:
+            kvs_client.delete(delete_key)
 
     @classmethod
     def set_config(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
@@ -344,7 +372,7 @@ class Hook(object):
 
     @classmethod
     def set_route_code_lane_array_id_relation(cls, kvs_client, target, route_code, lane_array_id):
-        return cls.set_relation(kvs_client, target, "route_code_lane_array_id", str(lane_array_id), route_code) * \
+        return cls.set_relation(kvs_client, target, "lane_array_id_route_code", str(lane_array_id), route_code) * \
                cls.set_relation(kvs_client, target, "route_code_lane_array_id", route_code, str(lane_array_id))
 
     @classmethod
@@ -542,6 +570,8 @@ class Hook(object):
     def generate_route_point(cls, kvs_client, target, vehicle_location):
         route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, vehicle_location.lane_array_id)
         if route_code is not None:
+            cls.delete_disuse_route_code_lane_array_id_relations(
+                kvs_client, target, vehicle_location.lane_array_id, route_code)
             return RoutePoint.new_data(
                 route_code=route_code,
                 index=vehicle_location.waypoint_index
@@ -799,7 +829,3 @@ class Hook(object):
         kvs_client.delete(key)
         return True
 
-    @classmethod
-    def delete_relation(cls, kvs_client, target_owner, relation_name, from_id):
-        for key in cls.get_relation_keys(kvs_client, target_owner, relation_name, from_id):
-            kvs_client.delete(key)
