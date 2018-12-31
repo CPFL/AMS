@@ -7,7 +7,7 @@ from ams import AttrDict, logger
 from ams.helpers import Topic, Event, Hook, Condition, Publisher
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.structures import (
-    EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface, TrafficSignal, TrafficSignalController
+    EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface, TrafficSignal, TrafficSignalController, User
 )
 
 
@@ -69,6 +69,15 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=target_dispatcher,
             to_target=target_vehicle,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
+            use_wild_card=True
+        )
+
+    @classmethod
+    def get_user_event_topic(cls, target_dispatcher, target_user):
+        return Topic.get_topic(
+            from_target=target_dispatcher,
+            to_target=target_user,
             categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
             use_wild_card=True
         )
@@ -268,6 +277,15 @@ class Subscriber(object):
                 Vehicle.CONST.STATE.REPLACING_SCHEDULE_FAILED
             ]:
                 Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
+
+    @classmethod
+    def on_user_event_message(cls, _client, user_data, _topic, event_message):
+        event = event_message.body.event
+        if event.name == Dispatcher.CONST.EVENT.NOTICE:
+            status = Hook.get_status(user_data["kvs_client"], user_data["target_user"], User.Status)
+            status.target_vehicle = list(filter(lambda x: x.group == Vehicle.CONST.NODE_NAME, event.targets))[0]
+            Hook.set_status(user_data["kvs_client"], user_data["target_user"], status)
+        Hook.set_event(user_data["kvs_client"], user_data["target_user"], event)
 
     @classmethod
     def on_stop_signal_message(cls, _client, user_data, _topic, stop_signal_message):

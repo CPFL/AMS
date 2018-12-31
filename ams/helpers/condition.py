@@ -3,7 +3,7 @@
 
 from ams import logger
 from ams.helpers import Hook, Event, Target
-from ams.structures import Vehicle, TrafficSignal
+from ams.structures import Vehicle, TrafficSignal, User
 
 
 class Condition(object):
@@ -74,6 +74,10 @@ class Condition(object):
     @classmethod
     def traffic_signal_state_timeout(cls, kvs_client, target, timeout=5):
         return cls.node_state_timeout(kvs_client, target, TrafficSignal.Status, timeout)
+
+    @classmethod
+    def user_state_timeout(cls, kvs_client, target, timeout=5):
+        return cls.node_state_timeout(kvs_client, target, User.Status, timeout)
 
     @classmethod
     def schedule_exists(cls, kvs_client, target):
@@ -276,3 +280,8 @@ class Condition(object):
     def traffic_signal_next_light_color_updated(cls, kvs_client, target):
         status = Hook.get_status(kvs_client, target, TrafficSignal.Status)
         return None not in [status.next_light_color, status.next_update_time]
+
+    @classmethod
+    def user_hired_vehicle(cls, kvs_client, target):
+        status = Hook.get_status(kvs_client, target, User.Status)
+        return status.target_vehicle is not None
