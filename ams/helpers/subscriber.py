@@ -386,13 +386,14 @@ class Subscriber(object):
                         if StateMachineHelper.update_state(state_machine_data, event.name):
                             new_vehicle_status = Hook.get_status(
                                 user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-                            if new_vehicle_status is not None and vehicle_status.state == new_vehicle_status.state:
+                            if new_vehicle_status is not None:
                                 new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                                 new_vehicle_status.updated_at = Event.get_time()
                                 Hook.set_status(
                                     user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                                logger.info("Vehicle Event: {}, State: {} -> {}".format(
-                                    event.name, vehicle_status.state, new_vehicle_status.state))
+                                logger.info("Vehicle({}) Event: {}, State: {} -> {}".format(
+                                    user_data["target_vehicle"].id, event.name,
+                                    vehicle_status.state, new_vehicle_status.state))
                                 return
 
                 event = None
@@ -403,25 +404,28 @@ class Subscriber(object):
                     if StateMachineHelper.update_state(state_machine_data, event.name):
                         new_vehicle_status = Hook.get_status(
                             user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-                        if new_vehicle_status is not None and vehicle_status.state == new_vehicle_status.state:
+                        if new_vehicle_status is not None:
                             new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                             new_vehicle_status.updated_at = Event.get_time()
                             Hook.set_status(
                                 user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                            logger.info("Vehicle Event: {}, State: {} -> {}".format(
-                                event.name, vehicle_status.state, new_vehicle_status.state))
+                            logger.info("Vehicle({}) Event: {}, State: {} -> {}".format(
+                                user_data["target_vehicle"].id, event.name,
+                                vehicle_status.state, new_vehicle_status.state))
                             return
 
                 update_flag = StateMachineHelper.update_state(state_machine_data, None)
                 if vehicle_status.state is None or update_flag:
                     new_vehicle_status = Hook.get_status(
                         user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-                    if new_vehicle_status is not None and vehicle_status.state == new_vehicle_status.state:
+                    if new_vehicle_status is not None:
                         new_vehicle_status.state = StateMachineHelper.get_state(state_machine_data)
                         new_vehicle_status.updated_at = Event.get_time()
-                        Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                        logger.info("Vehicle Event: {}, State: {} -> {}".format(
-                            None, vehicle_status.state, new_vehicle_status.state))
+                        Hook.set_status(
+                            user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
+                        logger.info("Vehicle({}) Event: {}, State: {} -> {}".format(
+                            user_data["target_vehicle"].id, None, vehicle_status.state, new_vehicle_status.state))
+                        return
 
     @classmethod
     def on_decision_maker_state_publish(cls, _client, user_data, _topic, ros_message_object):

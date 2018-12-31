@@ -639,6 +639,8 @@ class Hook(object):
     @classmethod
     def start_vehicle_schedule(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return False
         vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
         if vehicle_schedule is None:
             logger.warning("No vehicle schedule")
@@ -656,6 +658,8 @@ class Hook(object):
     @classmethod
     def restart_vehicle_schedule(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return False
         vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
         if vehicle_schedule is None:
             logger.warning("No vehicle schedule")
