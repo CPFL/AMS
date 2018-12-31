@@ -139,10 +139,12 @@ class Test(unittest.TestCase):
             key = "/test/keys/manager/*"
             value = self.manager_client_for_test_keys.keys(key)
             expected = ["/test/keys/manager/1", "/test/keys/manager/2"]
-            self.assertEqual(expected, value)
+            self.assertEqual(len(expected), len(value))
+            self.assertEqual(set(expected), set(value))
 
         if self.redis_client_for_test_keys is not None:
             key = "/test/keys/redis/*"
             value = self.redis_client_for_test_keys.keys(key)
             expected = ["/test/keys/redis/1", "/test/keys/redis/2"]
-            self.assertEqual(expected, value)
+            self.assertEqual(len(expected), len(value))
+            self.assertEqual(set(expected), set(value))
