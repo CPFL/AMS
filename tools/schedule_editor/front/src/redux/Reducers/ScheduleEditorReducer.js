@@ -39,13 +39,6 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.CLEAR_ROUTE_CODE_DATA) {
     return state.clearRouteCodeData();
   }
-  //Route Code List
-  else if (
-    action.type ===
-    REDUX.ACTION_TYPE.DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX
-  ) {
-    return state.deleteRouteCodeFromRouteCodeListByIndex(action.index);
-  }
   // Schedule Editor
   else if (action.type === REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR) {
     return state.setActiveStepScheduleEditor(action.activeStepScheduleEditor);
@@ -83,6 +76,12 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     return state.setChangeRouteStartPoint(action.startPoint);
   }
   //Route Code List
+  else if (
+    action.type ===
+    REDUX.ACTION_TYPE.ADD_CONTINUE_ROUTE
+  ) {
+    return state.addContinueRoute(action.previousRoute);
+  }
   else if (
     action.type ===
     REDUX.ACTION_TYPE.DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX

@@ -310,10 +310,18 @@ export default class Waypoint extends THREE.Group {
       this.endPoint = endPoint !== '' ? endPoint : null;
 
       if (this.activeStep === steps.advanceOrBack.id) {
-        this.startPoint = null;
-        this.lanes = [];
-        this.endPoint = null;
-        this.selectCandidateObject = [];
+        if (this.startPoint !== null) {
+          this.waypointsList[this.startPoint].material.color.set(
+            this.color.selected
+          );
+          const position = this.waypointsList[this.startPoint].position;
+          let newCameraPosition = {
+            x: position.x,
+            y: position.y,
+            z: position.z
+          };
+          this.updateCameraPosition(newCameraPosition);
+        }
       } else if (this.activeStep === steps.selectStartPoint.id) {
         if (this.startPoint !== null) {
           this.waypointsList[this.startPoint].material.color.set(
@@ -554,7 +562,7 @@ export default class Waypoint extends THREE.Group {
   updateCameraPosition(newCameraPosition) {
     this.camera.position.x = newCameraPosition.x;
     this.camera.position.y = newCameraPosition.y;
-    this.camera.position.z = newCameraPosition.z + 100;
+    this.camera.position.z = newCameraPosition.z + 50;
     this.controls.target.set(
       newCameraPosition.x,
       newCameraPosition.y,

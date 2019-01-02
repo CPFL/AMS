@@ -36,6 +36,7 @@ export const REDUX = {
     SET_CHANGE_ROUTE_END_POINT: 'setChangeRouteEndPoint',
 
     //Route Code List
+    ADD_CONTINUE_ROUTE: 'addContinueRoute',
     DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX:
       'deleteRouteCodeFromRouteCodeListByIndex',
     SET_SELECT_ROUTE_CODE_DISPLAY_MAIN_VIEWER:
