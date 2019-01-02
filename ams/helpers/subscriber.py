@@ -121,7 +121,6 @@ class Subscriber(object):
             from_target=target_dispatcher,
             to_target=target_vehicle,
             categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE,
-            use_wild_card=True
         )
 
     @classmethod
@@ -183,11 +182,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_vehicle_status_topic(cls, target_vehicle):
+    def get_vehicle_status_topic(cls, target_vehicle, target_dispatcher):
         return Topic.get_topic(
             from_target=target_vehicle,
-            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
-            use_wild_card=True
+            to_target=target_dispatcher,
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS
         )
 
     @classmethod
