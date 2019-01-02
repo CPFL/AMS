@@ -650,3 +650,15 @@ class Route(object):
         if end_index < route_point.index:
             return -length
         return length
+
+    @classmethod
+    def route_code_in_route_code(cls, inner_route_code, outer_route_code, lanes):
+        inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+        outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
+        try:
+            _ = list(filter(
+                lambda x: outer_waypoint_ids[x:x+len(inner_waypoint_ids)] == inner_waypoint_ids,
+                [i for i, v in enumerate(outer_waypoint_ids) if v == inner_waypoint_ids[0]]))[0]
+            return True
+        except IndexError:
+            return False
