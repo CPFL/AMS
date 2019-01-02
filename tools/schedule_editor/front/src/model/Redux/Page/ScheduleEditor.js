@@ -78,16 +78,11 @@ const ScheduleEditorRecord = new Record({
 
   //create Change Route
   changeRouteActiveStep: 0,
-  changeRouteStartPoint: '',
-  changeRouteLaneList: null,
-  changeRouteEndPoint: '',
-  changeRouteIsBack: null,
+  routeCodeAfterChangeRoute: null,
 
   //route code list
   routeCodeList: null,
   selectedDisplayRouteMainViewer: null,
-  selectRouteCodeDisplayMainViewer: null,
-  selectScheduleDisplayMainViewer: null,
 
   //schedule list
   scheduleList: null,
@@ -134,8 +129,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       //route code list
       routeCodeList: List(),
       selectedDisplayRouteMainViewer: new selectedDisplayRouteMainViewerRecord(),
-      selectRouteCodeDisplayMainViewer: new RouteCodeRecord(),
-      selectScheduleDisplayMainViewer: new RouteCodeRecord(),
 
       //schedule list
       scheduleList: List(),
@@ -322,24 +315,8 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.set('changeRouteActiveStep', 0);
   }
 
-  setChangeRouteIsBack(changeRouteIsBack) {
-    return this.set('changeRouteIsBack', changeRouteIsBack);
-  }
-
-  setChangeRouteStartPoint(changeRouteStartPoint) {
-    return this.set('changeRouteStartPoint', changeRouteStartPoint);
-  }
-
-  setChangeRouteLaneList(changeRouteLaneList) {
-    return this.set('changeRouteLaneList', List(changeRouteLaneList));
-  }
-
-  setChangeRouteEndPoint(changeRouteEndPoint) {
-    return this.set('changeRouteEndPoint', changeRouteEndPoint);
-  }
-
-  setDecisionSectionEndPoint(decisionSectionEndPoint) {
-    return this.set('decisionSectionEndPoint', decisionSectionEndPoint);
+  setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
+    return this.set('routeCodeAfterChangeRoute', routeCodeAfterChangeRoute);
   }
 
   //Route Code List
@@ -614,20 +591,8 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.get('changeRouteActiveStep');
   }
 
-  getChangeRouteIsBack() {
-    return this.get('changeRouteIsBack');
-  }
-
-  getChangeRouteStartPoint() {
-    return this.get('changeRouteStartPoint');
-  }
-
-  getChangeRouteLaneList() {
-    return this.get('changeRouteLaneList').toJS();
-  }
-
-  getChangeRouteEndPoint() {
-    return this.get('changeRouteEndPoint');
+  getRouteCodeAfterChangeRoute() {
+    return this.get('routeCodeAfterChangeRoute');
   }
 
   //Schedule Editor
@@ -662,10 +627,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   getSelectedDisplayRouteMainViewer() {
     return this.get('selectedDisplayRouteMainViewer').toJS();
-  }
-
-  getSelectScheduleDisplayMainViewer() {
-    return this.get('selectScheduleDisplayMainViewer').toJS();
   }
 
   //Schedule List

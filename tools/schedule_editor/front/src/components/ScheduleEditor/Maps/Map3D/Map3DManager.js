@@ -12,7 +12,6 @@ import Waypoint from './ModelManager/Waypoint';
 
 import MapDataUpdater from '../DataUpdater/MapDataUpdater';
 import SelectedDisplayRouteMainViewerUpdater from '../DataUpdater/SelectedDisplayRouteMainViewerUpdater';
-import SelectScheduleDisplayMainViewerUpdater from '../DataUpdater/SelectScheduleDisplayMainViewerUpdater';
 
 export default class Map3DManager extends React.Component {
   constructor(props) {
@@ -153,11 +152,6 @@ export default class Map3DManager extends React.Component {
         selectedDisplayRouteMainViewer
       );
     };
-    const updateSelectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer => {
-      this.waypointsModelManager.updateSelectScheduleDisplayMainViewer(
-        selectScheduleDisplayMainViewer
-      );
-    };
 
     return (
       <div id="map_canvas" style={{ width: '100%', height: '100%' }}>
@@ -165,11 +159,6 @@ export default class Map3DManager extends React.Component {
         <SelectedDisplayRouteMainViewerUpdater
           updateSelectedDisplayRouteMainViewer={
             updateSelectedDisplayRouteMainViewer
-          }
-        />
-        <SelectScheduleDisplayMainViewerUpdater
-          updateSelectScheduleDisplayMainViewer={
-            updateSelectScheduleDisplayMainViewer
           }
         />
       </div>
