@@ -18,8 +18,8 @@ if __name__ == '__main__':
 
     setproctitle("ams_autoware")
 
-    parser.add_argument(
-        "-SMP", "--state_machine_path", type=str, default=None, help="state machine resource path")
+    parser.add_argument("-SMP", "--state_machine_path", type=str, default=None, help="state machine resource path")
+    parser.add_argument("-IF", "--identifiable_flag", type=bool, default=False, help="use identifiable flag")
     args = parser.parse_args()
 
     if args.kvs_client_type == "manager":
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     Topic.domain = args.topic_domain
 
-    autoware = Autoware(initials["config"], initials["status"], args.state_machine_path)
+    autoware = Autoware(initials["config"], initials["status"], args.state_machine_path, args.identifiable_flag)
     autoware.set_rate(args.event_loop_rate)
     autoware.set_clients(kvs_client, pubsub_client, maps_client)
     autoware.start()
