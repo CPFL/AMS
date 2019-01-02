@@ -194,7 +194,7 @@ class Condition(object):
     def on_vehicle_schedule(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         schedule = Hook.get_schedule(kvs_client, target_vehicle)
-        if schedule is None:
+        if None in [status, schedule]:
             return False
 
         event_ids = list(map(lambda x: x.id, schedule.events))
