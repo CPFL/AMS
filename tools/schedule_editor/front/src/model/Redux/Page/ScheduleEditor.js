@@ -344,12 +344,14 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   //Route Code List
   addContinueRoute(previousRoute) {
-    console.log(previousRoute);
     const startPoint = previousRoute.endPoint;
     const laneList = previousRoute.laneList;
     return this.set('isAddRouteModalOpen', true)
       .set('startPoint', startPoint)
-      .set('laneList', List([laneList.pop()]));
+      .set('laneList', List([laneList.pop()]))
+      .set('endPoint', '')
+      .set('isBack', false)
+      .set('activeStep', steps.advanceOrBack.id);
   }
 
   deleteRouteCodeFromRouteCodeListByIndex(index) {
