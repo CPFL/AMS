@@ -473,8 +473,8 @@ class Route(object):
 
         if reverse:
             for route_id in shortest_routes:
-                shortest_routes[route_id]["start_waypoint_id"] = shortest_routes[route_id]["goal_waypoint_id"]
-                shortest_routes[route_id]["goal_waypoint_id"] = start["waypoint_id"]
+                shortest_routes[route_id]["waypoint_ids"][0] = shortest_routes[route_id]["waypoint_ids"][-1]
+                shortest_routes[route_id]["waypoint_ids"][-1] = start["waypoint_id"]
         else:
             for route_id in shortest_routes:
                 shortest_routes[route_id]["lane_codes"].reverse()

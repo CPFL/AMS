@@ -193,6 +193,33 @@ class Test(unittest.TestCase):
         }
         self.assertEqual(expected, value)
 
+        start = {
+            "waypoint_id": "10125",
+            "lane_code": "10121_8973"
+        }
+        goals = [
+            {
+                "goal_id": "test2",
+                "waypoint_id": "9910",
+                "lane_code": "9908_9930"
+            }
+        ]
+        value = Route.get_shortest_routes(
+            start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function, reverse=True)
+        expected = {
+            'test2': {
+                'waypoint_ids': ['9910', '10125'],
+                'lane_codes': [
+                    '9908_9930', '9930_9935', '9935_9054', '9054_9059', '9059_10067', '10067_10106', '10106_10121',
+                    '10121_8973'
+                ],
+                'goal_id': 'test2',
+                'cost': 111.40983212987508
+            }
+        }
+        self.assertEqual(expected, value)
+
+
     def test_generate_route_code_from_polyline(self):
         lanes, to_lanes, from_lanes = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
