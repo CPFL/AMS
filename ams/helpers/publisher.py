@@ -310,7 +310,10 @@ class Publisher(object):
 
     @classmethod
     def publish_route_code(cls, pubsub_client, kvs_client, target_vehicle, target_autoware):
-        event_id = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status).event_id
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return
+        event_id = vehicle_status.event_id
         if event_id is not None:
             event = Event.get_event_by_id(Hook.get_schedule(kvs_client, target_vehicle).events, event_id)
             if event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
