@@ -18,6 +18,10 @@ class Kvs(object):
         return key.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[-1]
 
     @staticmethod
+    def get_key_from_timestamped_key(timestamped_key):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(timestamped_key.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[:-1])
+
+    @staticmethod
     def delete_old_keys_and_get_latest_key(keys, delete_function):
         sorted_keys = sorted(keys, key=lambda x: int(Kvs.get_key_timestamp(x)))
         try:

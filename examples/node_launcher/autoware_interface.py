@@ -39,7 +39,7 @@ if __name__ == '__main__':
     if args.use_ros_flag:
         from std_msgs.msg import String, Int32
         from geometry_msgs.msg import PoseStamped
-        from autoware_msgs.msg import VehicleLocation, LaneArray, traffic_light
+        from autoware_msgs.msg import VehicleLocation, LaneArray
 
         from clients.helper import get_ros_client
 
@@ -87,4 +87,3 @@ if __name__ == '__main__':
         del maps_client
         del ros_client
         del autoware_interface
-
