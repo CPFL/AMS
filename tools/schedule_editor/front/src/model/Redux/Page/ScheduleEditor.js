@@ -220,8 +220,8 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       .set('routeCode', routeCode);
 
     const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
-    return this.set('startPoint', '')
-      .set('laneList', List())
+    return this.set('startPoint', this.get('endPoint'))
+      .set('laneList', List([this.get('laneList').get(-1)]))
       .set('endPoint', '')
       .set('isBack', false)
       .set('activeStep', steps.advanceOrBack.id)
@@ -320,6 +320,17 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   //Route Code List
+  addContinueRoute(previousRoute) {
+    const startPoint = previousRoute.endPoint;
+    const laneList = previousRoute.laneList;
+    return this.set('isAddRouteModalOpen', true)
+      .set('startPoint', startPoint)
+      .set('laneList', List([laneList.pop()]))
+      .set('endPoint', '')
+      .set('isBack', false)
+      .set('activeStep', steps.advanceOrBack.id);
+  }
+
   deleteRouteCodeFromRouteCodeListByIndex(index) {
     const deleteRecord = this.get('routeCodeList')
       .get(index)

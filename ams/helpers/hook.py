@@ -7,7 +7,7 @@ from ams import VERSION, logger
 from ams.helpers import Target, Event, Route, Simulator
 from ams.structures import (
     CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
-    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Hook(object):
@@ -226,16 +226,44 @@ class Hook(object):
 
     @classmethod
     def get_route_code_from_lane_array_id(cls, kvs_client, target, lane_array_id):
-        relation_keys = cls.get_relation_keys(kvs_client, target, "route_code_lane_array_id")
+        relation_keys = cls.get_relation_keys(kvs_client, target, "lane_array_id_route_code")
         route_code = None
         for relation_key in relation_keys:
             relation_key_lane_array_id, relation_key_route_code = relation_key.split(
                 CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
             if relation_key_lane_array_id == str(lane_array_id):
                 route_code = relation_key_route_code
-            else:
-                kvs_client.delete(relation_key)
+
         return route_code
+
+    @classmethod
+    def delete_disuse_route_code_lane_array_id_relations(cls, kvs_client, target, lane_array_id, route_code):
+        delete_keys = [
+            cls.get_relation_key(target, "route_code_lane_array_id", route_code, str(lane_array_id))]
+
+        lane_array_id_relation_keys = cls.get_relation_keys(kvs_client, target, "lane_array_id_route_code")
+        route_code_relation_keys = cls.get_relation_keys(kvs_client, target, "route_code_lane_array_id")
+
+        for relation_key in lane_array_id_relation_keys:
+            relation_key_lane_array_id, relation_key_route_code = relation_key.split(
+                CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
+            if relation_key_route_code == route_code and relation_key_lane_array_id != str(lane_array_id):
+                delete_keys.append(relation_key)
+            else:
+                if relation_key_route_code != route_code:
+                    route_code_relation_key = cls.get_relation_key(
+                        target, "route_code_lane_array_id", relation_key_route_code, relation_key_lane_array_id)
+                    if route_code_relation_key not in route_code_relation_keys:
+                        delete_keys.append(relation_key)
+
+        for relation_key in route_code_relation_keys:
+            relation_key_route_code, relation_key_lane_array_id = relation_key.split(
+                CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
+            if relation_key_route_code == route_code and relation_key_lane_array_id != str(lane_array_id):
+                delete_keys.append(relation_key)
+
+        for delete_key in delete_keys:
+            kvs_client.delete(delete_key)
 
     @classmethod
     def set_config(cls, kvs_client, target, value, get_key=None, timestamp_string=None):
@@ -344,7 +372,7 @@ class Hook(object):
 
     @classmethod
     def set_route_code_lane_array_id_relation(cls, kvs_client, target, route_code, lane_array_id):
-        return cls.set_relation(kvs_client, target, "route_code_lane_array_id", str(lane_array_id), route_code) * \
+        return cls.set_relation(kvs_client, target, "lane_array_id_route_code", str(lane_array_id), route_code) * \
                cls.set_relation(kvs_client, target, "route_code_lane_array_id", route_code, str(lane_array_id))
 
     @classmethod
@@ -542,6 +570,8 @@ class Hook(object):
     def generate_route_point(cls, kvs_client, target, vehicle_location):
         route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, vehicle_location.lane_array_id)
         if route_code is not None:
+            cls.delete_disuse_route_code_lane_array_id_relations(
+                kvs_client, target, vehicle_location.lane_array_id, route_code)
             return RoutePoint.new_data(
                 route_code=route_code,
                 index=vehicle_location.waypoint_index
@@ -609,6 +639,8 @@ class Hook(object):
     @classmethod
     def start_vehicle_schedule(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return False
         vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
         if vehicle_schedule is None:
             logger.warning("No vehicle schedule")
@@ -626,6 +658,8 @@ class Hook(object):
     @classmethod
     def restart_vehicle_schedule(cls, kvs_client, target_vehicle):
         vehicle_status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return False
         vehicle_schedule = cls.get_schedule(kvs_client, target_vehicle)
         if vehicle_schedule is None:
             logger.warning("No vehicle schedule")
@@ -800,6 +834,9 @@ class Hook(object):
         return True
 
     @classmethod
-    def delete_relation(cls, kvs_client, target_owner, relation_name, from_id):
-        for key in cls.get_relation_keys(kvs_client, target_owner, relation_name, from_id):
-            kvs_client.delete(key)
+    def set_user_goal_at_random(cls, kvs_client, target, goal_location_candidates):
+        import random
+        goal_location = random.choice(goal_location_candidates)
+        status = cls.get_status(kvs_client, target, User.Status)
+        status.goal_location = goal_location
+        cls.set_status(kvs_client, target, status)
