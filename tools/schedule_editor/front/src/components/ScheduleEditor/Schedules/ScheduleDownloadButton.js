@@ -46,7 +46,7 @@ class ScheduleDownloadButton extends React.Component {
       <div style={{ marginLeft: 'auto' }}>
         <Button
           id="download"
-          download="schedule.txt"
+          download="schedule.json"
           href="#"
           color="primary"
           onClick={this.downloadSchedule}
