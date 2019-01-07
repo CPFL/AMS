@@ -28,7 +28,7 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
         this.props.changeRouteActiveStep
       );
     } else {
-      alert('Route Code is not selected!');
+      alert('Start point is not selected!');
     }
   }
 
@@ -36,7 +36,7 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
     const [currentRouteCode] = this.props.selectableChangeRouteList.filter(
       routeCode => routeCode.routeCode === event.target.value
     );
-    this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(
+    this.props.scheduleEditorActions.setCurrentRouteCodeSchedule(
       currentRouteCode
     );
   }

@@ -150,9 +150,11 @@ class CreateScheduleComponent extends React.Component {
                     color="primary"
                     size="small"
                     onClick={() => {
-                      this.props.scheduleEditorActions.setActiveStepScheduleEditor(
-                        'changeRouteEditor'
-                      );
+                      if (this.props.currentRouteCodeSchedule.routeCode) {
+                        this.props.scheduleEditorActions.setActiveStepScheduleEditor(
+                          'changeRouteEditor'
+                        );
+                      }
                     }}
                   >
                     <AddIcon

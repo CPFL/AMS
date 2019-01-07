@@ -38,7 +38,8 @@ const RouteCodeRecord = new Record({
   startPoint: '',
   laneList: [],
   endPoint: '',
-  isBack: false
+  isBack: false,
+  waypointList: List()
 });
 
 const ScheduleRecord = new Record({
@@ -79,6 +80,9 @@ const ScheduleEditorRecord = new Record({
   //create Change Route
   changeRouteActiveStep: 0,
   routeCodeAfterChangeRoute: null,
+  decisionSectionEndPoint: null,
+  selectableChangeRouteList: null,
+  selectableDecisionSectionEndPointList: null,
 
   //route code list
   routeCodeList: null,
@@ -109,6 +113,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       startPoint: '',
       laneList: List(),
       endPoint: '',
+
       // create schedule
       activeStepScheduleEditor: 'selectRouteCode',
       selectableRouteCodeList: List(),
@@ -120,11 +125,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
       //create Change Route
       changeRouteActiveStep: 0,
-      changeRouteStartPoint: '',
-      changeRouteLaneList: null,
-      changeRouteEndPoint: '',
-      changeRouteIsBack: null,
-      decisionSectionEndPoint: null,
+      routeCodeAfterChangeRoute: new RouteCodeRecord(),
+      decisionSectionEndPoint: '',
+      selectableChangeRouteList: List(),
+      selectableDecisionSectionEndPointList: List(),
 
       //route code list
       routeCodeList: List(),
@@ -138,6 +142,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       pcd: {},
       waypoint: {},
       lane: {},
+
       //Modal
       isImportDataModalOpen: true,
       isAddRouteModalOpen: false,
@@ -194,13 +199,45 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       .set('activeStep', steps.advanceOrBack.id);
   }
 
+  getRouteCodeWaypointList(startPoint, laneList, endPoint) {
+    let selectedRouteCodeWaypoints = [];
+    const allLane = this.get('lane').lanes;
+    const startLaneWaypoints = allLane[laneList[0]].waypointIDs;
+    const startPointIndex = startLaneWaypoints.indexOf(startPoint);
+    const endLaneWaypoints = allLane[laneList[laneList.length - 1]].waypointIDs;
+    const endPointIndex =
+      endLaneWaypoints.length - endLaneWaypoints.indexOf(endPoint);
+    for (const lane of laneList) {
+      selectedRouteCodeWaypoints = selectedRouteCodeWaypoints.concat(
+        allLane[lane].waypointIDs
+      );
+    }
+    selectedRouteCodeWaypoints.splice(0, startPointIndex);
+    selectedRouteCodeWaypoints.splice(
+      selectedRouteCodeWaypoints.length - endPointIndex + 1,
+      selectedRouteCodeWaypoints.length
+    );
+    return selectedRouteCodeWaypoints;
+  }
+
   saveRouteCode(routeCode) {
+    const startPoint = this.get('startPoint');
+    const laneList = this.get('laneList').toJS();
+    const endPoint = this.get('endPoint');
+    const isBack = this.get('isBack');
+    const waypointList = this.getRouteCodeWaypointList(
+      startPoint,
+      laneList,
+      endPoint
+    );
+
     const routeCodeRecord = new RouteCodeRecord()
-      .set('startPoint', this.get('startPoint'))
-      .set('laneList', this.get('laneList').toJS())
-      .set('endPoint', this.get('endPoint'))
-      .set('isBack', this.get('isBack'))
-      .set('routeCode', routeCode);
+      .set('startPoint', startPoint)
+      .set('laneList', laneList)
+      .set('endPoint', endPoint)
+      .set('isBack', isBack)
+      .set('routeCode', routeCode)
+      .set('waypointList', waypointList);
     const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
     return this.set('startPoint', '')
       .set('laneList', List())
@@ -212,12 +249,23 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   saveAndAnotherSelectRouteCode(routeCode) {
+    const startPoint = this.get('startPoint');
+    const laneList = this.get('laneList').toJS();
+    const endPoint = this.get('endPoint');
+    const isBack = this.get('isBack');
+    const waypointList = this.getRouteCodeWaypointList(
+      startPoint,
+      laneList,
+      endPoint
+    );
+
     const routeCodeRecord = new RouteCodeRecord()
-      .set('startPoint', this.get('startPoint'))
-      .set('laneList', this.get('laneList').toJS())
-      .set('endPoint', this.get('endPoint'))
-      .set('isBack', this.get('isBack'))
-      .set('routeCode', routeCode);
+      .set('startPoint', startPoint)
+      .set('laneList', laneList)
+      .set('endPoint', endPoint)
+      .set('isBack', isBack)
+      .set('routeCode', routeCode)
+      .set('waypointList', waypointList);
 
     const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
     return this.set('startPoint', this.get('endPoint'))
@@ -237,7 +285,37 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   //Schedule Editor
   setActiveStepScheduleEditor(activeStepScheduleEditor) {
-    return this.set('activeStepScheduleEditor', activeStepScheduleEditor);
+    if (activeStepScheduleEditor === 'changeRouteEditor') {
+      const selectedRouteCodeWaypoints = this.get(
+        'currentRouteCodeSchedule'
+      ).toJS().waypointList;
+      console.log(selectedRouteCodeWaypoints);
+      if (selectedRouteCodeWaypoints.length > 10) {
+        selectedRouteCodeWaypoints.splice(0, 5);
+        selectedRouteCodeWaypoints.splice(
+          selectedRouteCodeWaypoints.length - 5,
+          selectedRouteCodeWaypoints.length
+        );
+
+        const routeCodeList = this.get('routeCodeList');
+        const selectableChangeRouteList = [];
+
+        for (const routeCode of routeCodeList) {
+          for (const waypoint of selectedRouteCodeWaypoints) {
+            if (routeCode.startPoint === waypoint) {
+              selectableChangeRouteList.push(routeCode);
+            }
+          }
+        }
+        console.log(selectableChangeRouteList);
+        return this.set(
+          'activeStepScheduleEditor',
+          activeStepScheduleEditor
+        ).set('selectableChangeRouteList', List(selectableChangeRouteList));
+      }
+    } else {
+      return this.set('activeStepScheduleEditor', activeStepScheduleEditor);
+    }
   }
 
   setCurrentRouteCodeSchedule(currentRouteCodeSchedule) {
@@ -299,7 +377,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   //Change Route
   setChangeRouteActiveStepNext(changeRouteActiveStep) {
     changeRouteActiveStep = changeRouteActiveStep + 1;
-
     return this.set('changeRouteActiveStep', changeRouteActiveStep);
   }
 
@@ -316,7 +393,27 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
-    return this.set('routeCodeAfterChangeRoute', routeCodeAfterChangeRoute);
+    const selectableDecisionSectionEndPointList = [];
+    const routeCodeAfterChangeRouteWaypointList =
+      routeCodeAfterChangeRoute.waypointList;
+    const scheduleRouteCodeWaypointList = this.get(
+      'currentRouteCodeSchedule'
+    ).toJS().waypointList;
+    for (const waypoint of routeCodeAfterChangeRouteWaypointList) {
+      if (scheduleRouteCodeWaypointList.includes(waypoint)) {
+        selectableDecisionSectionEndPointList.push(waypoint);
+      } else {
+        break;
+      }
+    }
+    console.log(
+      routeCodeAfterChangeRoute,
+      selectableDecisionSectionEndPointList
+    );
+    return this.set('routeCodeAfterChangeRoute', routeCodeAfterChangeRoute).set(
+      'selectableDecisionSectionEndPointList',
+      selectableDecisionSectionEndPointList
+    );
   }
 
   //Route Code List
@@ -354,7 +451,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   setSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
-    console.log(selectRouteCodeDisplayMainViewer);
     return this.set(
       'selectedDisplayRouteMainViewer',
       new selectedDisplayRouteMainViewerRecord()
@@ -368,12 +464,23 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   addRouteCodeByText(textRouteCode) {
+    const startPoint = textRouteCode.startPoint;
+    const laneList = textRouteCode.laneList;
+    const endPoint = textRouteCode.endPoint;
+    const isBack = textRouteCode.isBack;
+    const waypointList = this.getRouteCodeWaypointList(
+      startPoint,
+      laneList,
+      endPoint
+    );
+
     const routeCodeRecord = new RouteCodeRecord()
-      .set('startPoint', textRouteCode.startPoint)
-      .set('laneList', textRouteCode.laneList)
-      .set('endPoint', textRouteCode.endPoint)
-      .set('isBack', textRouteCode.isBack)
-      .set('routeCode', textRouteCode.routeCode);
+      .set('startPoint', startPoint)
+      .set('laneList', laneList)
+      .set('endPoint', endPoint)
+      .set('isBack', isBack)
+      .set('routeCode', textRouteCode.routeCode)
+      .set('waypointList', waypointList);
     const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
     return this.set('routeCodeList', routeCodeList).set(
       'isAddRouteByTextModalOpen',
@@ -604,6 +711,10 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   getRouteCodeAfterChangeRoute() {
     return this.get('routeCodeAfterChangeRoute');
+  }
+
+  getSelectableChangeRouteList() {
+    return this.get('selectableChangeRouteList').toJS();
   }
 
   //Schedule Editor
