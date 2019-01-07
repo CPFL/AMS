@@ -101,7 +101,9 @@ class KVSClient(ArgsSetters):
             self.__client.delete(k)
 
     def keys(self, pattern="*"):
-        return list(map(lambda x: x.decode("utf-8"), self.__client.keys(pattern)))
+        return list(set(map(
+            lambda x: Kvs.get_key_from_timestamped_key(x.decode("utf-8")),
+            self.__client.keys(pattern))))
 
     def disconnect(self):
         if self.args.strict_redis.connection_pool is not None:

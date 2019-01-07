@@ -6,7 +6,7 @@ import yaml
 from ams import VERSION, AttrDict
 from ams.helpers import Topic, Hook, Event
 from ams.structures import (
-    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Publisher(object):
@@ -225,6 +225,10 @@ class Publisher(object):
     @classmethod
     def publish_traffic_signal_status(cls, pubsub_client, kvs_client, from_target, to_target):
         cls.publish_status(pubsub_client, kvs_client, from_target, to_target, TrafficSignal)
+
+    @classmethod
+    def publish_user_status(cls, pubsub_client, kvs_client, target_user, target_dispatcher):
+        cls.publish_status(pubsub_client, kvs_client, target_user, target_dispatcher, User)
 
     @classmethod
     def publish_vehicle_geotopic(cls, pubsub_client, target_vehicle, vehicle_status):
