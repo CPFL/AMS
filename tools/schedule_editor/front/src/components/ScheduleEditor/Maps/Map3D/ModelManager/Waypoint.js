@@ -15,11 +15,8 @@ export default class Waypoint extends THREE.Group {
     this.controls = null;
 
     //Colored Object List
-    this.selectRouteCodeDisplayMainViewer = null;
+    this.selectedRouteCode = null;
     this.nextSelectableRouteList = [];
-    this.selectScheduleDisplayMainViewer = null;
-
-    this.routeCodeList = null;
     this.scheduleList = null;
 
     this.raycaster = new THREE.Raycaster();
@@ -172,28 +169,20 @@ export default class Waypoint extends THREE.Group {
     this.arrowHelper = {};
   }
 
-  updateRouteCodeList(routeCodeList) {
-    this.routeCodeList = routeCodeList;
-  }
-
-  updateScheduleList(scheduleList) {
-    this.scheduleList = scheduleList;
-  }
-
-  changeAllObjectColorToDefault() {
-    if (this.selectRouteCodeDisplayMainViewer) {
-      if (this.selectRouteCodeDisplayMainViewer.startPoint) {
+  changeRouteCodeColorToDefault() {
+    if (this.selectedRouteCode) {
+      if (this.selectedRouteCode.startPoint) {
         this.waypointsList[
-          this.selectRouteCodeDisplayMainViewer.startPoint
+          this.selectedRouteCode.startPoint
         ].material.color.set(this.color.default);
       }
-      for (const laneID of this.selectRouteCodeDisplayMainViewer.laneList) {
+      for (const laneID of this.selectedRouteCode.laneList) {
         this.laneList[laneID].material.color.set(this.color.default);
       }
-      if (this.selectRouteCodeDisplayMainViewer.endPoint) {
-        this.waypointsList[
-          this.selectRouteCodeDisplayMainViewer.endPoint
-        ].material.color.set(this.color.default);
+      if (this.selectedRouteCode.endPoint) {
+        this.waypointsList[this.selectedRouteCode.endPoint].material.color.set(
+          this.color.default
+        );
       }
     }
     if (this.nextSelectableRouteList) {
@@ -231,16 +220,28 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  updateSelectRouteCodeDisplayMainViewer(selectRouteCodeDisplayMainViewer) {
-    console.log(selectRouteCodeDisplayMainViewer);
+  updateSelectedDisplayRouteMainViewer(selectedDisplayRouteMainViewer) {
+    console.log(selectedDisplayRouteMainViewer);
+    this.changeRouteCodeColorToDefault();
+    if (selectedDisplayRouteMainViewer.type === 'routeCode') {
+      this.updateMainViewerRouteCode(selectedDisplayRouteMainViewer);
+    } else if (selectedDisplayRouteMainViewer.type === 'schedule') {
+      this.updateMainViewerSchedule(selectedDisplayRouteMainViewer);
+    }
+  }
+
+  updateMainViewerRouteCode(selectedDisplayRouteMainViewer) {
+    console.log(selectedDisplayRouteMainViewer);
 
     if (this.waypoint && this.lane) {
-      const startPoint = selectRouteCodeDisplayMainViewer.startPoint;
-      const lanes = selectRouteCodeDisplayMainViewer.laneList;
-      const endPoint = selectRouteCodeDisplayMainViewer.endPoint;
-      this.changeAllObjectColorToDefault();
+      const selectedRouteCode = selectedDisplayRouteMainViewer.selectRoute;
+      const startPoint = selectedRouteCode.startPoint;
+      const lanes = selectedRouteCode.laneList;
+      const endPoint = selectedRouteCode.endPoint;
+      const routeCodeList = selectedDisplayRouteMainViewer.routeList;
       if (startPoint && lanes.length > 0 && endPoint) {
-        this.selectRouteCodeDisplayMainViewer = selectRouteCodeDisplayMainViewer;
+        this.selectedRouteCode = selectedRouteCode;
+        this.routeCodeList = routeCodeList;
 
         this.waypointsList[startPoint].material.color.set(this.color.selected);
         for (let laneID of lanes) {
@@ -255,7 +256,7 @@ export default class Waypoint extends THREE.Group {
         };
         this.updateCameraPosition(newCameraPosition);
         this.nextSelectableRouteList = [];
-        for (const routeCode of this.routeCodeList) {
+        for (const routeCode of routeCodeList) {
           const routeStartPoint = routeCode.startPoint;
           if (endPoint === routeStartPoint) {
             routeCode.laneList.forEach((laneID, index) => {
@@ -275,16 +276,15 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  updateSelectScheduleDisplayMainViewer(selectScheduleDisplayMainViewer) {
-    console.log(selectScheduleDisplayMainViewer);
+  updateMainViewerSchedule(selectedDisplayRouteMainViewer) {
+    console.log(selectedDisplayRouteMainViewer);
     if (this.waypoint && this.lane) {
-      const startPoint = selectScheduleDisplayMainViewer.startPoint;
-      const lanes = selectScheduleDisplayMainViewer.laneList;
-      const endPoint = selectScheduleDisplayMainViewer.endPoint;
-      this.changeAllObjectColorToDefault();
+      const selectRoute = selectedDisplayRouteMainViewer.selectRoute;
+      const startPoint = selectRoute.startPoint;
+      const lanes = selectRoute.laneList;
+      const endPoint = selectRoute.endPoint;
       if (startPoint && lanes.length > 0 && endPoint) {
-        this.selectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer;
-
+        this.scheduleList = selectedDisplayRouteMainViewer.routeList;
         for (const schedule of this.scheduleList) {
           const tempStartPoint = schedule.startPoint;
           const tempLanes = schedule.laneList;

@@ -26,6 +26,10 @@ class RouteList extends React.Component {
     );
   }
 
+  addContinueRoute(event, routeCode) {
+    this.props.scheduleEditorActions.addContinueRoute(routeCode);
+  }
+
   deleteRouteCode(event, index) {
     this.props.scheduleEditorActions.deleteRouteCodeFromRouteCodeListByIndex(
       index
@@ -36,6 +40,7 @@ class RouteList extends React.Component {
     const routeCodeList = this.props.routeCodeList;
     const resList = [];
 
+    console.log(routeCodeList);
     routeCodeList.forEach((routeCode, index) => {
       resList.push(
         <ListItem>
@@ -44,21 +49,29 @@ class RouteList extends React.Component {
           </ListItemIcon>
           <ListItemText
             primary={
-              <div style={{ wordBreak: 'break-all' }}>
+              <div>
                 <Button
                   color="default"
                   onClick={event => this.selectRouteCode(event, routeCode)}
                   value={index}
+                  style={{ wordBreak: 'break-all' }}
                 >
                   {routeCode.routeCode}
                 </Button>
-                <Button
-                  color="secondary"
-                  onClick={event => this.deleteRouteCode(event, index)}
-                  style={{ marginLeft: 'auto' }}
-                >
-                  Delete
-                </Button>
+                <div style={{ marginLeft: 'auto' }}>
+                  <Button
+                    color="primary"
+                    onClick={event => this.addContinueRoute(event, routeCode)}
+                  >
+                    Add Continue Route
+                  </Button>
+                  <Button
+                    color="secondary"
+                    onClick={event => this.deleteRouteCode(event, index)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
             }
           />
