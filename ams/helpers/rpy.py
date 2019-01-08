@@ -16,7 +16,6 @@ class Rpy(object):
         return Structure.new_data(roll=roll, pitch=pitch, yaw=yaw)
 
     validate_rpy = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_inverted_radian(radian):

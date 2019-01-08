@@ -16,7 +16,6 @@ class Location(object):
         )
 
     validate_location = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def new_locations(locations):

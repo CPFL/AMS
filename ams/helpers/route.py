@@ -38,7 +38,6 @@ class Route(object):
         )
 
     validate_route = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @classmethod
     def new_point_route(cls, waypoint_id, lane_code):
