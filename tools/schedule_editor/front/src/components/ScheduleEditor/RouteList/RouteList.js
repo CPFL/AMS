@@ -40,7 +40,6 @@ class RouteList extends React.Component {
     const routeCodeList = this.props.routeCodeList;
     const resList = [];
 
-    console.log(routeCodeList);
     routeCodeList.forEach((routeCode, index) => {
       resList.push(
         <ListItem>

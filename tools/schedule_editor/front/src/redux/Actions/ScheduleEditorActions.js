@@ -125,24 +125,21 @@ export function saveSchedule() {
 
 //Change Route Editor
 
-export function setChangeRouteActiveStepNext(changeRouteActiveStep) {
+export function setChangeRouteActiveStepNext() {
   return {
-    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT,
-    changeRouteActiveStep: changeRouteActiveStep
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT
   };
 }
 
-export function setChangeRouteActiveStepPrevious(changeRouteActiveStep) {
+export function setChangeRouteActiveStepPrevious() {
   return {
-    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS,
-    changeRouteActiveStep: changeRouteActiveStep
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS
   };
 }
 
-export function setChangeRouteActiveStepReset(changeRouteActiveStep) {
+export function setChangeRouteActiveStepReset() {
   return {
-    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET,
-    changeRouteActiveStep: changeRouteActiveStep
+    type: REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET
   };
 }
 
@@ -150,6 +147,13 @@ export function setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
   return {
     type: REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE,
     routeCodeAfterChangeRoute: routeCodeAfterChangeRoute
+  };
+}
+
+export function setDecisionSectionEndPoint(decisionSectionEndPoint) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_DECISION_SECTION_END_POINT,
+    decisionSectionEndPoint: decisionSectionEndPoint
   };
 }
 

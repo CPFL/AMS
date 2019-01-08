@@ -13,7 +13,6 @@ class SelectedDisplayRouteMainViewerUpdater extends React.Component {
   componentDidUpdate() {
     const selectedDisplayRouteMainViewer = this.props
       .selectedDisplayRouteMainViewer;
-    console.log(selectedDisplayRouteMainViewer);
     if (selectedDisplayRouteMainViewer) {
       this.props.updateSelectedDisplayRouteMainViewer(
         selectedDisplayRouteMainViewer

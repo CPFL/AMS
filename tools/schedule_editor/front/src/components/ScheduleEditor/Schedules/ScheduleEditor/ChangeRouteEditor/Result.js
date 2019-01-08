@@ -17,19 +17,10 @@ class SelectDecisionSectionEndPoint extends React.Component {
   constructor(props) {
     super(props);
     this.confirm = this.confirm.bind(this);
-    this.back = this.back.bind(this);
   }
 
-  confirm() {
-    if (this.props.decisionSectionRouteCode) {
-      this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
-    } else {
-      alert('Decision Section End Point is not selected!');
-    }
-  }
-
-  back() {
-    this.props.scheduleEditorActions.setChangeRouteActiveStepPrevious();
+  save() {
+    this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
   }
 
   render() {
@@ -39,20 +30,25 @@ class SelectDecisionSectionEndPoint extends React.Component {
         <CardContent>
           <Typography variant="subtitle1">
             <strong>
-              Decision Section Route Code:
+              Route Code After Changed:
+              {this.props.routeCodeAfterChangeRoute}
+            </strong>
+          </Typography>
+          <Typography variant="subtitle1">
+            <strong>
+              Decision Section End Point ID:
               {this.props.decisionSectionRouteCode.routeCode}
             </strong>
           </Typography>
         </CardContent>
         <CardActions>
           <div style={{ marginLeft: 'auto' }}>
-            <Button onClick={this.back}>Back</Button>
             <Button
               color="primary"
               onClick={this.confirm}
               style={{ marginLeft: '5px' }}
             >
-              Confirm
+              Save
             </Button>
           </div>
         </CardActions>
@@ -62,11 +58,13 @@ class SelectDecisionSectionEndPoint extends React.Component {
 }
 
 SelectDecisionSectionEndPoint.propTypes = {
+  routeCodeAfterChangeRoute: PropTypes.object,
   decisionSectionRouteCode: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
+  routeCodeAfterChangeRoute: state.scheduleEditor.getRouteCodeAfterChangeRoute(),
   decisionSectionRouteCode: state.scheduleEditor.getDecisionSectionRouteCode()
 });
 const mapDispatch = dispatch => ({

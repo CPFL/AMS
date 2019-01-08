@@ -221,7 +221,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateSelectedDisplayRouteMainViewer(selectedDisplayRouteMainViewer) {
-    console.log(selectedDisplayRouteMainViewer);
     this.changeRouteCodeColorToDefault();
     if (selectedDisplayRouteMainViewer.type === 'routeCode') {
       this.updateMainViewerRouteCode(selectedDisplayRouteMainViewer);
@@ -231,7 +230,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateMainViewerRouteCode(selectedDisplayRouteMainViewer) {
-    console.log(selectedDisplayRouteMainViewer);
 
     if (this.waypoint && this.lane) {
       const selectedRouteCode = selectedDisplayRouteMainViewer.selectRoute;
@@ -277,7 +275,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateMainViewerSchedule(selectedDisplayRouteMainViewer) {
-    console.log(selectedDisplayRouteMainViewer);
     if (this.waypoint && this.lane) {
       const selectRoute = selectedDisplayRouteMainViewer.selectRoute;
       const startPoint = selectRoute.startPoint;

@@ -9,6 +9,8 @@ const selectedDisplayRouteMainViewer = state =>
   state.scheduleEditor.getSelectedDisplayRouteMainViewer();
 const currentRouteCodeSchedule = state =>
   state.scheduleEditor.getCurrentRouteCodeSchedule();
+const routeCodeAfterChangeRoute = state =>
+  state.scheduleEditor.getRouteCodeAfterChangeRoute();
 
 const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual);
 
@@ -40,3 +42,11 @@ export const currentRouteCodeScheduleSelector = createDeepEqualSelector(
     return currentRouteCodeSchedule;
   }
 );
+
+export const routeCodeAfterChangeRouteSelector = createDeepEqualSelector(
+  [routeCodeAfterChangeRoute],
+  routeCodeAfterChangeRoute => {
+    return routeCodeAfterChangeRoute;
+  }
+);
+
