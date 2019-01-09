@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import unittest
-from Queue import Queue
+from queue import Queue
 import threading
 
 from ams import get_structure_superclass
@@ -37,7 +37,7 @@ class Test(unittest.TestCase):
     def tearDown(self):
         logging.disable(logging.NOTSET)
 
-    def test_thread_safe_validator(self):
+    def test_validate_data_thread_safe(self):
         test_validator = Validator()
         error_results = Queue()
 
