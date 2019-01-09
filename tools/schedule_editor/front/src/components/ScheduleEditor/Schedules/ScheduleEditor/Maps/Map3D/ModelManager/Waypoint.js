@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { steps } from '../../../../../../../model/Redux/Page/ScheduleEditor';
 
 export default class Waypoint extends THREE.Group {
   constructor() {
@@ -20,6 +21,9 @@ export default class Waypoint extends THREE.Group {
     this.scheduleList = null;
     this.routeCodeList = null;
     this.nextSelectableRouteList = null;
+    this.routeCodeAfterChangeRoute = null;
+    this.selectableDecisionSectionEndPointList = null;
+    this.decisionSectionRouteCode = null;
 
     this.setStartPointAndLaneList = null;
     this.setLaneList = null;
@@ -33,7 +37,10 @@ export default class Waypoint extends THREE.Group {
       default: '#d5cdce',
       selectCandidate: '#ff0016',
       selected: '#00FF00',
-      decided: '#1121ff'
+      decided: '#1121ff',
+      changeRoute: '#fffb04',
+      selectableDecisionSection: '#ff5900',
+      decisionSectionRouteCode: '#3cfbff'
     };
   }
 
@@ -177,6 +184,91 @@ export default class Waypoint extends THREE.Group {
     this.arrowHelper = {};
   }
 
+  colorScheduleList() {
+    if (this.scheduleList) {
+      for (const schedule of this.scheduleList) {
+        const startPoint = schedule.startPoint;
+        const lanes = schedule.laneList;
+        const endPoint = schedule.endPoint;
+
+        if (startPoint && lanes.length > 0 && endPoint) {
+          this.waypointsList[startPoint].material.color.set(this.color.decided);
+          for (let laneID of lanes) {
+            this.laneList[laneID].material.color.set(this.color.decided);
+          }
+          this.waypointsList[endPoint].material.color.set(this.color.decided);
+        }
+      }
+    }
+  }
+
+  colorSelectRouteCode() {
+    if (this.selectRouteCode) {
+      const startPoint = this.selectRouteCode.startPoint;
+      const lanes = this.selectRouteCode.laneList;
+      const endPoint = this.selectRouteCode.endPoint;
+      this.waypointsList[startPoint].material.color.set(this.color.selected);
+      for (let laneID of lanes) {
+        this.laneList[laneID].material.color.set(this.color.selected);
+      }
+      this.waypointsList[endPoint].material.color.set(this.color.selected);
+
+      this.nextSelectableRouteList = [];
+      for (const routeCode of this.routeCodeList) {
+        const routeStartPoint = routeCode.startPoint;
+        if (endPoint === routeStartPoint) {
+          routeCode.laneList.forEach((laneID, index) => {
+            if (index > 0) {
+              this.laneList[laneID].material.color.set(
+                this.color.selectCandidate
+              );
+            }
+          });
+          this.waypointsList[routeCode.endPoint].material.color.set(
+            this.color.selectCandidate
+          );
+          this.nextSelectableRouteList.push(routeCode);
+        }
+      }
+    }
+  }
+
+  colorRouteCodeAfterChangeRoute() {
+    if (this.routeCodeAfterChangeRoute) {
+      this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.changeRoute);
+      });
+    }
+  }
+
+  colorSelectableDecisionSectionEndPointList() {
+    if (this.selectableDecisionSectionEndPointList) {
+      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(
+          this.color.selectableDecisionSection
+        );
+      });
+    }
+  }
+
+  colorDecisionSectionRouteCode() {
+    if (this.decisionSectionRouteCode) {
+      this.decisionSectionRouteCode.waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(
+          this.color.decisionSectionRouteCode
+        );
+      });
+    }
+  }
+
+  changeAllObjectColorToDefault() {
+    this.changeScheduleListColorToDefault();
+    this.changeCurrentRouteCodeColorToDefault();
+    this.changeRouteCodeAfterChangeRouteColorToDefault();
+    this.changeSelectableDecisionSectionEndPointListColorToDefault();
+    this.changeDecisionSectionRouteCodeColorToDefault();
+  }
+
   changeScheduleListColorToDefault() {
     if (this.scheduleList) {
       for (const schedule of this.scheduleList) {
@@ -195,38 +287,6 @@ export default class Waypoint extends THREE.Group {
         }
       }
     }
-  }
-
-  initScheduleList(scheduleList) {
-    if (scheduleList && this.waypoint && this.lane) {
-      this.changeScheduleListColorToDefault();
-      this.scheduleList = scheduleList;
-
-      for (const schedule of scheduleList) {
-        const startPoint = schedule.startPoint;
-        const lanes = schedule.laneList;
-        const endPoint = schedule.endPoint;
-
-        if (startPoint && lanes.length > 0 && endPoint) {
-          this.waypointsList[startPoint].material.color.set(this.color.decided);
-          for (let laneID of lanes) {
-            this.laneList[laneID].material.color.set(this.color.decided);
-          }
-          this.waypointsList[endPoint].material.color.set(this.color.decided);
-
-          const newCameraPosition = {
-            x: this.waypoint.waypoints[endPoint].x,
-            y: this.waypoint.waypoints[endPoint].y,
-            z: this.waypoint.waypoints[endPoint].z
-          };
-          this.updateCameraPosition(newCameraPosition);
-        }
-      }
-    }
-  }
-
-  initRouteCodeList(routeCodeList) {
-    this.routeCodeList = routeCodeList;
   }
 
   changeCurrentRouteCodeColorToDefault() {
@@ -264,6 +324,175 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
+  changeRouteCodeAfterChangeRouteColorToDefault() {
+    if (this.routeCodeAfterChangeRoute) {
+      this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.default);
+      });
+    }
+  }
+
+  changeSelectableDecisionSectionEndPointListColorToDefault() {
+    if(this.selectableDecisionSectionEndPointList) {
+      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.default);
+      });
+    }
+  }
+
+  changeDecisionSectionRouteCodeColorToDefault() {
+    if (this.decisionSectionRouteCode) {
+      this.decisionSectionRouteCode.waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.default);
+      });
+    }
+  }
+
+  setCallback(setDecisionSectionEndPoint) {
+    this.setDecisionSectionEndPoint = setDecisionSectionEndPoint;
+  }
+
+  selectObject(mouse) {
+    if (this.waypoint !== null && this.lane !== null) {
+      switch (this.changeRouteActiveStep) {
+        case 1: {
+          this.selectDecisionSectionEndPoint(mouse);
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+
+  selectDecisionSectionEndPoint(mouse) {
+    this.raycaster.setFromCamera(mouse, this.camera);
+    let intersects = this.raycaster.intersectObjects(
+      this.selectCandidateObject
+    );
+
+    if (intersects.length > 0) {
+      this.setDecisionSectionEndPoint(intersects[0].object.userData.waypointID);
+    }
+  }
+
+  setChangeRouteActiveStep(changeRouteActiveStep) {
+    this.changeRouteActiveStep = changeRouteActiveStep;
+    console.log(this.changeRouteActiveStep);
+    if (this.waypoint !== null && this.lane !== null) {
+      this.selectCandidateObject = [];
+      this.changeAllObjectColorToDefault();
+      switch (this.changeRouteActiveStep) {
+        case 0: {
+          this.initSelectRouteCodeAfterChangeRouteStep();
+          break;
+        }
+        case 1: {
+          this.initSelectDecisionSectionEndPointStep();
+          break;
+        }
+        default: {
+          //this.initSelectDecisionSectionEndPointStep();
+          break;
+        }
+      }
+    }
+  }
+
+  initSelectRouteCodeAfterChangeRouteStep() {
+    if (this.routeCodeAfterChangeRoute) {
+      console.log(this.routeCodeAfterChangeRoute);
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
+      this.colorRouteCodeAfterChangeRoute();
+
+      const endPoint = this.routeCodeAfterChangeRoute.endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
+  }
+
+  initSelectDecisionSectionEndPointStep() {
+    if (this.selectableDecisionSectionEndPointList) {
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
+      this.colorRouteCodeAfterChangeRoute();
+      this.colorSelectableDecisionSectionEndPointList();
+      this.colorDecisionSectionRouteCode();
+
+      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
+        this.selectCandidateObject.push(this.waypointsList[waypoint]);
+      });
+      const endPoint = this.selectableDecisionSectionEndPointList[
+        this.selectableDecisionSectionEndPointList.length - 1
+      ];
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
+  }
+
+  /*
+  initResult() {
+    if (
+      this.selectableDecisionSectionEndPointList &&
+      this.routeCodeAfterChangeRoute
+    ) {
+      this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.changeRoute);
+      });
+
+      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(
+          this.color.selectableDecisionSection
+        );
+      });
+
+      const endPoint = this.routeCodeAfterChangeRoute.endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
+  }
+  */
+
+  initScheduleList(scheduleList) {
+    if (scheduleList.length > 0 && this.waypoint && this.lane) {
+      this.changeAllObjectColorToDefault();
+      this.scheduleList = scheduleList;
+
+      this.colorScheduleList();
+
+      const endPoint = scheduleList[scheduleList.length - 1].endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
+  }
+
+  initRouteCodeList(routeCodeList) {
+    this.routeCodeList = routeCodeList;
+  }
+
+  setSelectableDecisionSectionEndPointList(
+    selectableDecisionSectionEndPointList
+  ) {
+    this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
+  }
+
   updateCurrentRouteCode(selectRouteCode) {
     const startPoint = selectRouteCode.startPoint;
     const lanes = selectRouteCode.laneList;
@@ -275,55 +504,59 @@ export default class Waypoint extends THREE.Group {
       lanes.length > 0 &&
       endPoint
     ) {
-      this.changeCurrentRouteCodeColorToDefault();
-
+      this.changeAllObjectColorToDefault();
       this.selectRouteCode = selectRouteCode;
-
-      this.waypointsList[startPoint].material.color.set(this.color.selected);
-      for (let laneID of lanes) {
-        this.laneList[laneID].material.color.set(this.color.selected);
-      }
-      this.waypointsList[endPoint].material.color.set(this.color.selected);
-
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
       const newCameraPosition = {
         x: this.waypoint.waypoints[endPoint].x,
         y: this.waypoint.waypoints[endPoint].y,
         z: this.waypoint.waypoints[endPoint].z
       };
       this.updateCameraPosition(newCameraPosition);
-
-      this.nextSelectableRouteList = [];
-      for (const routeCode of this.routeCodeList) {
-        const routeStartPoint = routeCode.startPoint;
-        if (endPoint === routeStartPoint) {
-          /*
-          this.waypointsList[routeCode.startPoint].material.color.set(
-            this.color.selectCandidate
-          );
-          for (let laneID of routeCode.laneList) {
-            this.laneList[laneID].material.color.set(
-              this.color.selectCandidate
-            );
-          }
-          */
-          routeCode.laneList.forEach((laneID, index) => {
-            if (index > 0) {
-              this.laneList[laneID].material.color.set(
-                this.color.selectCandidate
-              );
-            }
-          });
-          this.waypointsList[routeCode.endPoint].material.color.set(
-            this.color.selectCandidate
-          );
-          this.nextSelectableRouteList.push(routeCode);
-        }
-      }
     }
   }
 
-  updateChangeRoute(startPoint, lanes, endPoint, decisionSectionEndPoint) {
-    console.log(startPoint, lanes, endPoint, decisionSectionEndPoint);
+  updateRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
+    if (this.waypoint && this.lane && routeCodeAfterChangeRoute.routeCode) {
+      this.changeAllObjectColorToDefault();
+
+      this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
+
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
+      this.colorRouteCodeAfterChangeRoute();
+
+      const endPoint = routeCodeAfterChangeRoute.endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
+  }
+
+  updateDecisionSectionRouteCode(decisionSectionRouteCode) {
+    if (this.waypoint && this.lane && decisionSectionRouteCode.routeCode) {
+      this.changeAllObjectColorToDefault();
+
+      this.decisionSectionRouteCode = decisionSectionRouteCode;
+
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
+      this.colorRouteCodeAfterChangeRoute();
+      this.colorSelectableDecisionSectionEndPointList();
+      this.colorDecisionSectionRouteCode();
+
+      const decisionSectionEndPoint = decisionSectionRouteCode.endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[decisionSectionEndPoint].x,
+        y: this.waypoint.waypoints[decisionSectionEndPoint].y,
+        z: this.waypoint.waypoints[decisionSectionEndPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    }
   }
 
   updateCameraPosition(newCameraPosition) {
