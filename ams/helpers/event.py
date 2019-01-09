@@ -34,7 +34,6 @@ class Event(object):
         return Structures.new_data(events)
 
     validate_event = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_id():

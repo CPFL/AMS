@@ -24,7 +24,7 @@ def get_structure_superclass(template, schema):
     class SuperClass(Validator):
         def __init__(self):
             self.__template = attr_template
-            super().__init__(_schema)
+            super(SuperClass, self).__init__(_schema)
 
         @staticmethod
         def get_template():
@@ -40,12 +40,10 @@ def get_structure_superclass(template, schema):
                     element = AttrDict.set_recursively(_element)
                     data.append(element)
                 if not validator.validate({"list": data}):
-                    logger.error(logger.pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             else:
                 data = AttrDict.set_recursively(kwargs)
                 if not validator.validate(data):
-                    logger.error(logger.pformat({"errors": validator.validate_errors(), "data": data}))
                     raise ValueError
             return data
 
@@ -59,10 +57,6 @@ def get_structure_superclass(template, schema):
             if isinstance(template, list):
                 _data = {"list": data}
             return validator.validate(_data)
-
-        @staticmethod
-        def get_errors():
-            return validator.validate_errors()
 
     return SuperClass
 

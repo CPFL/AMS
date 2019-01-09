@@ -167,3 +167,6 @@ class Route(object):
     def calculate_distance_from_route_point_to_inner_route(self, route_point, inner_route_code):
         return Helper.calculate_distance_from_route_point_to_inner_route(
             route_point, inner_route_code, self.__lane.get_lanes(), self.__waypoint.get_waypoints())
+
+    def route_code_in_route_code(self, inner_route_code, outer_route_code):
+        return Helper.route_code_in_route_code(inner_route_code, outer_route_code, self.__lane.get_lanes())
