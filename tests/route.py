@@ -255,6 +255,22 @@ class Test(unittest.TestCase):
         )
         self.assertEqual(12.00029999395704, value)
 
+    def test_route_code_in_route_code(self):
+        lanes, _, _ = Lane.load("./res/maps/lane.json")
+        value = Route.route_code_in_route_code(
+            inner_route_code="10496:10471>9686:9686",
+            outer_route_code="10471:10471>9686:9686:9686<9673:9673:9673>9988:9988",
+            lanes=lanes
+        )
+        self.assertEqual(True, value)
+
+        value = Route.route_code_in_route_code(
+            inner_route_code="10471:10471>9686:9686:9686<9673:9673:9673>9988:9988",
+            outer_route_code="10496:10471>9686:9686",
+            lanes=lanes
+        )
+        self.assertEqual(False, value)
+
     def test_calculate_distance_from_route_point_to_inner_route(self):
         lanes, _, _ = Lane.load("./res/maps/lane.json")
         waypoints = Waypoint.load("./res/maps/waypoint.json")
