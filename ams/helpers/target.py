@@ -26,7 +26,6 @@ class Target(object):
             return node.target
 
     validate_target = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def new_targets(targets):

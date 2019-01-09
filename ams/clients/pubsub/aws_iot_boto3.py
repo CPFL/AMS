@@ -36,7 +36,6 @@ class PubSubClient(object):
     def publish(self, topic, message, structure=None, qos=0, retain=False, wait=False):
         if structure is not None:
             if not structure.validate_data(message):
-                logger.error(pformat({"errors": structure.get_errors(), "message": message}))
                 raise ValueError
         self.__client.publish(topic=topic, qos=qos, payload=Topic.serialize(message, self.__dumps))
 

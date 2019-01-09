@@ -16,7 +16,6 @@ class Orientation(object):
         return Structure.new_data(quaternion=Quaternion.new_data(**quaternion), rpy=Rpy.new_data(**rpy))
 
     validate_orientation = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_inverted(orientation):
