@@ -472,8 +472,8 @@ class Route(object):
 
         if reverse:
             for route_id in shortest_routes:
-                shortest_routes[route_id]["start_waypoint_id"] = shortest_routes[route_id]["goal_waypoint_id"]
-                shortest_routes[route_id]["goal_waypoint_id"] = start["waypoint_id"]
+                shortest_routes[route_id]["waypoint_ids"][0] = shortest_routes[route_id]["waypoint_ids"][-1]
+                shortest_routes[route_id]["waypoint_ids"][-1] = start["waypoint_id"]
         else:
             for route_id in shortest_routes:
                 shortest_routes[route_id]["lane_codes"].reverse()
@@ -649,3 +649,16 @@ class Route(object):
         if end_index < route_point.index:
             return -length
         return length
+
+    @classmethod
+    def route_code_in_route_code(cls, inner_route_code, outer_route_code, lanes):
+        if inner_route_code == outer_route_code:
+            return True
+        inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+        outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
+        if len(outer_waypoint_ids) < len(inner_waypoint_ids):
+            return False
+        for i in range(0, len(outer_waypoint_ids)-len(inner_waypoint_ids)):
+            if inner_waypoint_ids == outer_waypoint_ids[i:i+len(inner_waypoint_ids)]:
+                return True
+        return False

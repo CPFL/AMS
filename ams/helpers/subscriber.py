@@ -4,7 +4,7 @@
 import yaml
 
 from ams import AttrDict, logger
-from ams.helpers import Topic, Event, Hook, Condition, Publisher
+from ams.helpers import Topic, Event, Hook, Condition, Publisher, Target
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.structures import (
     EventLoop, Autoware, Vehicle, Dispatcher, AutowareInterface, TrafficSignal, TrafficSignalController, User
@@ -30,6 +30,66 @@ class Subscriber(object):
             categories=EventLoop.CONST.TOPIC.CATEGORIES.REQUEST_GET_STATUS,
             use_wild_card=True
         )
+
+    @classmethod
+    def get_current_pose_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.CURRENT_POSE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_vehicle_location_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_decision_maker_state_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.DECISION_MAKER_STATE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_lane_array_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_state_cmd_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STATE_CMD
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_stop_waypoint_index_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
 
     @classmethod
     def get_route_code_message_topic(cls, target_vehicle, target_autoware):
@@ -61,7 +121,6 @@ class Subscriber(object):
             from_target=target_dispatcher,
             to_target=target_vehicle,
             categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE,
-            use_wild_card=True
         )
 
     @classmethod
@@ -123,11 +182,11 @@ class Subscriber(object):
         )
 
     @classmethod
-    def get_vehicle_status_topic(cls, target_vehicle):
+    def get_vehicle_status_topic(cls, target_vehicle, target_dispatcher):
         return Topic.get_topic(
             from_target=target_vehicle,
-            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS,
-            use_wild_card=True
+            to_target=target_dispatcher,
+            categories=Vehicle.CONST.TOPIC.CATEGORIES.STATUS
         )
 
     @classmethod
@@ -183,9 +242,11 @@ class Subscriber(object):
         set_flag = Hook.set_route_code_lane_array_id_relation(
             user_data["kvs_client"], user_data["target_autoware"], route_code, lane_array.id)
         if set_flag:
-            user_data["ros_client"].publish(
-                AutowareInterface.CONST.TOPIC.LANE_ARRAY, AttrDict.get_dict(lane_array),
-                user_data["lane_array_structure"])
+            if user_data["identifiable"]:
+                rostopic = cls.get_lane_array_rostopic(user_data["target_autoware"])
+            else:
+                rostopic = cls.get_lane_array_rostopic()
+            user_data["ros_client"].publish(rostopic, AttrDict.get_dict(lane_array), user_data["lane_array_structure"])
 
     @classmethod
     def on_lane_array(cls, _client, user_data, _topic, lane_array):
@@ -226,8 +287,11 @@ class Subscriber(object):
 
     @classmethod
     def on_state_cmd_publish(cls, _client, user_data, _topic, state_cmd):
-        user_data["ros_client"].publish(
-            AutowareInterface.CONST.TOPIC.STATE_CMD, state_cmd, user_data["state_cmd_structure"])
+        if user_data["identifiable"]:
+            rostopic = cls.get_state_cmd_rostopic(user_data["target_autoware"])
+        else:
+            rostopic = cls.get_state_cmd_rostopic()
+        user_data["ros_client"].publish(rostopic, state_cmd, user_data["state_cmd_structure"])
 
     @classmethod
     def on_stop_waypoint_index(cls, _client, user_data, _topic, stop_waypoint_index):
@@ -239,9 +303,11 @@ class Subscriber(object):
         stop_waypoint_index = {
             "data": route_point_message.body.index
         }
-        user_data["ros_client"].publish(
-            AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX, stop_waypoint_index,
-            user_data["stop_waypoint_index_structure"])
+        if user_data["identifiable"]:
+            rostopic = cls.get_stop_waypoint_index_rostopic(user_data["target_autoware"])
+        else:
+            rostopic = cls.get_stop_waypoint_index_rostopic()
+        user_data["ros_client"].publish(rostopic, stop_waypoint_index, user_data["stop_waypoint_index_structure"])
 
     @classmethod
     def on_vehicle_schedule_message(cls, _client, user_data, _topic, schedule_message):

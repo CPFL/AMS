@@ -17,12 +17,16 @@ class Autoware(EventLoop):
     Message = Structure.Message
     ROSMessage = Structure.ROSMessage
 
-    def __init__(self, config, status, state_machine_path=None):
+    def __init__(self, config, status, state_machine_path=None, identifiable=False):
         super(Autoware, self).__init__(config, status)
 
         self.user_data["target_autoware"] = self.config.target_self
+        self.user_data["identifiable"] = identifiable
 
-        topic = AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        if identifiable:
+            topic = Subscriber.get_lane_array_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_lane_array_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_lane_array,
@@ -30,7 +34,10 @@ class Autoware(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = AutowareInterface.CONST.TOPIC.STATE_CMD
+        if identifiable:
+            topic = Subscriber.get_state_cmd_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_state_cmd_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_state_cmd,
@@ -38,7 +45,10 @@ class Autoware(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        if identifiable:
+            topic = Subscriber.get_stop_waypoint_index_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_stop_waypoint_index_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_stop_waypoint_index,
@@ -103,14 +113,14 @@ class Autoware(EventLoop):
 
             Publisher.publish_ros_current_pose(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             Publisher.publish_ros_vehicle_location(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             Publisher.publish_ros_decision_maker_state(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             sleep(max(0, self.dt - (time()-start_time)))
