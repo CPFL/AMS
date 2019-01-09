@@ -105,7 +105,7 @@ class Test(unittest.TestCase):
 
         if self.redis_client_for_test_set is not None:
             key = "/test/set/redis"
-            value = "manager_data"
+            value = "redis_data"
             ret = self.redis_client_for_test_set.set(key, value)
             self.assertEqual(True, ret)
             self.assertEqual(value, self.redis_client_for_test_set.get(key))
@@ -117,8 +117,8 @@ class Test(unittest.TestCase):
             self.assertEqual(value, self.manager_client_for_test_get.get(key))
 
         if self.redis_client_for_test_get is not None:
-            key = "/test/set/redis"
-            value = "manager_data"
+            key = "/test/get/redis"
+            value = "redis_data"
             self.assertEqual(value, self.redis_client_for_test_get.get(key))
 
     def test_delete(self):

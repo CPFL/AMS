@@ -140,7 +140,6 @@ class PubSubClient(ArgsSetters):
     def publish(self, topic, message, structure=None, qos=0, retain=False, wait=False):
         if structure is not None:
             if not structure.validate_data(message):
-                logger.error(pformat({"errors": structure.get_errors(), "message": message}))
                 raise ValueError
 
         payload = Topic.serialize(message, self.__dumps)

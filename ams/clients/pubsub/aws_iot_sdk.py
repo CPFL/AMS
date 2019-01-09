@@ -161,7 +161,6 @@ class PubSubClient(ArgsSetters):
     def publish(self, topic, message, structure=None, qos=0, retain=False, wait=False):
         if structure is not None:
             if not structure.validate_data(message):
-                logger.error(pformat({"errors": structure.get_errors(), "message": message}))
                 raise ValueError
 
         pool = get_enable_pool(self.__client_pool)

@@ -42,7 +42,6 @@ class Spot(object):
         self.__spots[spot_id].events = events
 
     validate_spot = Structure.validate_data
-    get_errors = Structure.get_errors
 
     def get_spot_ids(self):
         return list(self.__spots.keys())

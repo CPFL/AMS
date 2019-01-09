@@ -4,12 +4,72 @@
 import yaml
 
 from ams import VERSION, AttrDict
-from ams.helpers import Topic, Hook, Event
+from ams.helpers import Topic, Hook, Event, Target
 from ams.structures import (
     Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Publisher(object):
+
+    @classmethod
+    def get_current_pose_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.CURRENT_POSE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_vehicle_location_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_decision_maker_state_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.DECISION_MAKER_STATE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_lane_array_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_state_cmd_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STATE_CMD
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_stop_waypoint_index_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.get_code(target_autoware)
+            ])
+        return rostopic
 
     @classmethod
     def get_current_pose_topic(cls, target_autoware, target_vehicle):
@@ -123,26 +183,39 @@ class Publisher(object):
         )
 
     @classmethod
-    def publish_ros_current_pose(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def publish_ros_current_pose(cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_current_pose(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.CURRENT_POSE, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_current_pose_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_current_pose_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
     @classmethod
-    def publish_ros_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def publish_ros_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_vehicle_location(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.VEHICLE_LOCATION, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_vehicle_location_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_vehicle_location_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
     @classmethod
-    def publish_ros_decision_maker_state(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def publish_ros_decision_maker_state(
+            cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_decision_maker_state(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.DECISION_MAKER_STATE, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_decision_maker_state_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_decision_maker_state_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
@@ -237,7 +310,10 @@ class Publisher(object):
 
     @classmethod
     def publish_route_code(cls, pubsub_client, kvs_client, target_vehicle, target_autoware):
-        event_id = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status).event_id
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return
+        event_id = vehicle_status.event_id
         if event_id is not None:
             event = Event.get_event_by_id(Hook.get_schedule(kvs_client, target_vehicle).events, event_id)
             if event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
