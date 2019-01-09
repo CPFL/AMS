@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
+import { decisionSectionRouteCodeSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
+
 class DecisionSectionRouteCodeUpdater extends React.Component {
   constructor(props) {
     super(props);
@@ -35,7 +37,7 @@ DecisionSectionRouteCodeUpdater.propTypes = {
 };
 
 const mapState = state => ({
-  decisionSectionRouteCode: state.scheduleEditor.getDecisionSectionRouteCode()
+  decisionSectionRouteCode: decisionSectionRouteCodeSelector(state)
 });
 const mapDispatch = () => ({});
 export default connect(

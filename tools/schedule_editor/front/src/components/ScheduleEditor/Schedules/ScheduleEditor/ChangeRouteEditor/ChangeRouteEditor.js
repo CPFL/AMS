@@ -20,7 +20,7 @@ class ChangeRouteEditor extends React.Component {
         component: <SelectRouteCodeAfterChangeRoute />
       },
       {
-        name: 'Select Decision Section End Point ',
+        name: 'Select Decision Section Route Code',
         component: <SelectDecisionSectionEndPoint />
       },
       {

@@ -27,8 +27,8 @@ export const REDUX = {
     SAVE_SCHEDULE: 'saveSchedule',
     // Change Route Editor
     SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT: 'setChangeRouteActiveStepNext',
-    SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepNext',
-    SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepNext',
+    SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepPrevious',
+    SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepReset',
     SET_ROUTE_CODE_AFTER_CHANGE_ROUTE: 'setRouteCodeAfterChangeRoute',
     SET_DECISION_SECTION_END_POINT: 'setDecisionSectionEndPoint',
 

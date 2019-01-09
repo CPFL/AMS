@@ -387,6 +387,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setChangeRouteActiveStepPrevious() {
     let changeRouteActiveStep = this.get('changeRouteActiveStep') - 1;
+    console.log(changeRouteActiveStep);
     if (changeRouteActiveStep < 0) {
       changeRouteActiveStep = 0;
     }
@@ -411,10 +412,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
         break;
       }
     }
-    console.log(
-      routeCodeAfterChangeRoute,
-      selectableDecisionSectionEndPointList
-    );
     return this.set(
       'routeCodeAfterChangeRoute',
       new RouteCodeRecord(routeCodeAfterChangeRoute)
@@ -425,7 +422,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   setDecisionSectionEndPoint(decisionSectionEndPoint) {
-    console.log(decisionSectionEndPoint);
     const routeCodeAfterChangeRoute = this.get('routeCodeAfterChangeRoute');
     const decisionSectionStartPoint = routeCodeAfterChangeRoute.startPoint;
     const allLanes = this.get('lane').lanes;
@@ -471,7 +467,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       .set('isBack', decisionSectionIsBack)
       .set('routeCode', decisionSectionRouteCode)
       .set('waypointList', decisionSectionWaypointList);
-    console.log(decisionSectionRouteCodeRecord.toJS());
     return this.set('decisionSectionRouteCode', decisionSectionRouteCodeRecord);
   }
 

@@ -150,7 +150,6 @@ class InputRouteCodeByText extends React.Component {
       }
     }
 
-    console.log(errorMessages);
     return isValidate;
   }
 

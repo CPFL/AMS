@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { routeCodeAfterChangeRouteSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
+import { changeRouteActiveStepSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class ChangeRouteActiveStepUpdater extends React.Component {
   constructor(props) {
@@ -11,14 +11,14 @@ class ChangeRouteActiveStepUpdater extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.changeRouteActiveStep) {
+    if (this.props.changeRouteActiveStep >= 0) {
       this.props.setChangeRouteActiveStep(this.props.changeRouteActiveStep);
     }
   }
 
   componentDidUpdate() {
     console.log(this.props);
-    if (this.props.changeRouteActiveStep) {
+    if (this.props.changeRouteActiveStep >= 0) {
       this.props.setChangeRouteActiveStep(this.props.changeRouteActiveStep);
     }
   }
@@ -33,7 +33,7 @@ ChangeRouteActiveStepUpdater.propTypes = {
 };
 
 const mapState = state => ({
-  changeRouteActiveStep: state.scheduleEditor.getChangeRouteActiveStep()
+  changeRouteActiveStep: changeRouteActiveStepSelector(state)
 });
 const mapDispatch = () => ({});
 export default connect(

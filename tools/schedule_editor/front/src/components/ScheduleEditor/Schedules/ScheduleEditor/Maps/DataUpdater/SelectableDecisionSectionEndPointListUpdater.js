@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 
-import { routeCodeAfterChangeRouteSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
+import { selectableDecisionSectionEndPointListSelector } from '../../../../../../redux/selectors/ScheduleEditorSelector';
 
 class SelectableDecisionSectionEndPointListUpdater extends React.Component {
   constructor(props) {
@@ -37,7 +37,7 @@ SelectableDecisionSectionEndPointListUpdater.propTypes = {
 };
 
 const mapState = state => ({
-  selectableDecisionSectionEndPointList: state.scheduleEditor.getSelectableDecisionSectionEndPointList()
+  selectableDecisionSectionEndPointList: selectableDecisionSectionEndPointListSelector(state)
 });
 const mapDispatch = () => ({});
 export default connect(

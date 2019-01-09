@@ -37,7 +37,6 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
       routeCode => routeCode.routeCode === event.target.value
     );
 
-    console.log(routeCodeAfterChangeRoute);
     if (routeCodeAfterChangeRoute) {
       this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(
         routeCodeAfterChangeRoute
