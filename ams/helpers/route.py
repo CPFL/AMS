@@ -653,6 +653,8 @@ class Route(object):
 
     @classmethod
     def route_code_in_route_code(cls, inner_route_code, outer_route_code, lanes):
+        if inner_route_code == outer_route_code:
+            return True
         inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
         outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
         if len(outer_waypoint_ids) < len(inner_waypoint_ids):
