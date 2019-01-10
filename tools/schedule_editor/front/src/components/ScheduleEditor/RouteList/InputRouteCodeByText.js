@@ -63,9 +63,6 @@ class InputRouteCodeByText extends React.Component {
       }
     });
 
-    console.log(startPoint, laneList, endPoint, isBack);
-    console.log(textRouteCode);
-
     if (this.validateResult(startPoint, laneList, endPoint, isBack)) {
       this.props.scheduleEditorActions.addRouteCodeByText({
         startPoint: startPoint,
@@ -153,7 +150,6 @@ class InputRouteCodeByText extends React.Component {
       }
     }
 
-    console.log(errorMessages);
     return isValidate;
   }
 

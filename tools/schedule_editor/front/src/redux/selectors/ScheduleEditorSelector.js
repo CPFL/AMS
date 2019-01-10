@@ -2,21 +2,35 @@ import { createSelectorCreator, defaultMemoize } from 'reselect';
 import isEqual from 'lodash.isequal';
 
 const mapData = state => state.scheduleEditor.getMapData();
+
+//Route Code Editor
 const startPoint = state => state.scheduleEditor.getStartPoint();
 const laneList = state => state.scheduleEditor.getLaneList();
 const endPoint = state => state.scheduleEditor.getEndPoint();
-const selectRouteCodeDisplayMainViewer = state =>
-  state.scheduleEditor.getSelectRouteCodeDisplayMainViewer();
-const selectScheduleDisplayMainViewer = state =>
-  state.scheduleEditor.getSelectScheduleDisplayMainViewer();
+
+//Main Viewer
+const selectedDisplayRouteMainViewer = state =>
+  state.scheduleEditor.getSelectedDisplayRouteMainViewer();
+
+//Change Route
+const changeRouteActiveStep = state =>
+  state.scheduleEditor.getChangeRouteActiveStep();
 const currentRouteCodeSchedule = state =>
   state.scheduleEditor.getCurrentRouteCodeSchedule();
+const routeCodeAfterChangeRoute = state =>
+  state.scheduleEditor.getRouteCodeAfterChangeRoute();
+const selectableDecisionSectionEndPointList = state =>
+  state.scheduleEditor.getSelectableDecisionSectionEndPointList();
+const decisionSectionRouteCode = state =>
+  state.scheduleEditor.getDecisionSectionRouteCode();
 
 const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual);
 
 export const mapDataSelector = createDeepEqualSelector([mapData], mapData => {
   return mapData;
 });
+
+//Route Code Editor
 
 export const routeCodeSelector = createDeepEqualSelector(
   [startPoint, laneList, endPoint],
@@ -29,23 +43,48 @@ export const routeCodeSelector = createDeepEqualSelector(
   }
 );
 
-export const selectRouteCodeDisplayMainViewerSelector = createDeepEqualSelector(
-  [selectRouteCodeDisplayMainViewer],
-  selectRouteCodeDisplayMainViewer => {
-    return selectRouteCodeDisplayMainViewer;
+//Main Viewer
+
+export const selectedDisplayRouteMainViewerSelector = createDeepEqualSelector(
+  [selectedDisplayRouteMainViewer],
+  selectedDisplayRouteMainViewer => {
+    return selectedDisplayRouteMainViewer;
   }
 );
 
-export const selectScheduleDisplayMainViewerSelector = createDeepEqualSelector(
-  [selectScheduleDisplayMainViewer],
-  selectScheduleDisplayMainViewer => {
-    return selectScheduleDisplayMainViewer;
-  }
-);
+//Change Route
 
 export const currentRouteCodeScheduleSelector = createDeepEqualSelector(
   [currentRouteCodeSchedule],
   currentRouteCodeSchedule => {
     return currentRouteCodeSchedule;
+  }
+);
+
+export const changeRouteActiveStepSelector = createDeepEqualSelector(
+  [changeRouteActiveStep],
+  changeRouteActiveStep => {
+    return changeRouteActiveStep;
+  }
+);
+
+export const routeCodeAfterChangeRouteSelector = createDeepEqualSelector(
+  [routeCodeAfterChangeRoute],
+  routeCodeAfterChangeRoute => {
+    return routeCodeAfterChangeRoute;
+  }
+);
+
+export const selectableDecisionSectionEndPointListSelector = createDeepEqualSelector(
+  [selectableDecisionSectionEndPointList],
+  selectableDecisionSectionEndPointList => {
+    return selectableDecisionSectionEndPointList;
+  }
+);
+
+export const decisionSectionRouteCodeSelector = createDeepEqualSelector(
+  [decisionSectionRouteCode],
+  decisionSectionRouteCode => {
+    return decisionSectionRouteCode;
   }
 );
