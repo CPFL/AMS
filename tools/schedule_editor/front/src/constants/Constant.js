@@ -19,7 +19,7 @@ export const REDUX = {
     RESET_ROUTE_CODE: 'resetRouteCode',
 
     //Schedule Editor
-    SET_ACTIVE_STEP_SCHEDULE_EDITOR: 'setActiveStepScheduleEditor',
+    SET_SCHEDULE_EDITOR_ACTIVE_STEP: 'setScheduleEditorActiveStep',
     SER_CURRENT_ROUTE_CODE_SCHEDULE: 'setCurrentRouteCodeSchedule',
     SET_CHECKED_SEND_ENGAGE: 'setCheckedSendEngage',
     SET_WAIT_TIME: 'setWaitTime',
@@ -31,7 +31,7 @@ export const REDUX = {
     SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepReset',
     SET_ROUTE_CODE_AFTER_CHANGE_ROUTE: 'setRouteCodeAfterChangeRoute',
     SET_DECISION_SECTION_END_POINT: 'setDecisionSectionEndPoint',
-
+    SAVE_CHANGE_ROUTE: 'saveChangeRoute',
     //Route Code List
     ADD_CONTINUE_ROUTE: 'addContinueRoute',
     DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX:

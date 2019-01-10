@@ -151,7 +151,7 @@ class CreateScheduleComponent extends React.Component {
                     size="small"
                     onClick={() => {
                       if (this.props.currentRouteCodeSchedule.routeCode) {
-                        this.props.scheduleEditorActions.setActiveStepScheduleEditor(
+                        this.props.scheduleEditorActions.setScheduleEditorActiveStep(
                           'changeRouteEditor'
                         );
                       }
@@ -199,7 +199,7 @@ CreateScheduleComponent.propTypes = {
   scheduleEditorActions: PropTypes.object
 };
 const mapStateCreateSchedule = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor(),
+  scheduleEditorActiveStep: state.scheduleEditor.getScheduleEditorActiveStep(),
   selectableRouteCode: state.scheduleEditor.getSelectableRouteCode(),
   currentRouteCodeSchedule: state.scheduleEditor.getCurrentRouteCodeSchedule(),
   checkedSendEngage: state.scheduleEditor.getCheckedSendEngage(),

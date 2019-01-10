@@ -76,10 +76,6 @@ export const SelectStartPoint = connect(
   mapDispatchSelectStartPoint
 )(SelectStartPointComponent);
 
-
-
-
-
 class SelectLaneComponent extends React.Component {
   constructor(props) {
     super(props);

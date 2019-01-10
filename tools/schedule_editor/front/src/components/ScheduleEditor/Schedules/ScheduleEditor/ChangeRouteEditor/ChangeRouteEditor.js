@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 
 import SelectRouteCodeAfterChangeRoute from './SelectRouteCodeAfterChangeRoute';
 import SelectDecisionSectionEndPoint from './SelectDecisionSectionEndPoint';
+import Result from './Result';
 
 class ChangeRouteEditor extends React.Component {
   constructor(props) {
@@ -25,7 +26,7 @@ class ChangeRouteEditor extends React.Component {
       },
       {
         name: 'Result',
-        component: 'Test'
+        component: <Result />
       }
     ];
   }

@@ -16,11 +16,19 @@ import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEdi
 class SelectDecisionSectionEndPoint extends React.Component {
   constructor(props) {
     super(props);
-    this.confirm = this.confirm.bind(this);
+    this.save = this.save.bind(this);
+    this.back = this.back.bind(this);
   }
 
   save() {
-    this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
+    this.props.scheduleEditorActions.saveChangeRoute(
+      this.props.routeCodeAfterChangeRoute,
+      this.props.decisionSectionRouteCode
+    );
+  }
+
+  back() {
+    this.props.scheduleEditorActions.setChangeRouteActiveStepPrevious();
   }
 
   render() {
@@ -31,7 +39,7 @@ class SelectDecisionSectionEndPoint extends React.Component {
           <Typography variant="subtitle1">
             <strong>
               Route Code After Changed:
-              {this.props.routeCodeAfterChangeRoute}
+              {this.props.routeCodeAfterChangeRoute.routeCode}
             </strong>
           </Typography>
           <Typography variant="subtitle1">
@@ -43,9 +51,10 @@ class SelectDecisionSectionEndPoint extends React.Component {
         </CardContent>
         <CardActions>
           <div style={{ marginLeft: 'auto' }}>
+            <Button onClick={this.back}>Back</Button>
             <Button
               color="primary"
-              onClick={this.confirm}
+              onClick={this.save}
               style={{ marginLeft: '5px' }}
             >
               Save

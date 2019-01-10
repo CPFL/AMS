@@ -392,7 +392,7 @@ export default class Waypoint extends THREE.Group {
           break;
         }
         default: {
-          //this.initSelectDecisionSectionEndPointStep();
+          this.initResult();
           break;
         }
       }
@@ -439,21 +439,16 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  /*
   initResult() {
     if (
-      this.selectableDecisionSectionEndPointList &&
+      this.decisionSectionRouteCode &&
       this.routeCodeAfterChangeRoute
     ) {
-      this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
-        this.waypointsList[waypoint].material.color.set(this.color.changeRoute);
-      });
-
-      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
-        this.waypointsList[waypoint].material.color.set(
-          this.color.selectableDecisionSection
-        );
-      });
+      this.colorScheduleList();
+      this.colorSelectRouteCode();
+      this.colorRouteCodeAfterChangeRoute();
+      this.colorSelectableDecisionSectionEndPointList();
+      this.colorDecisionSectionRouteCode();
 
       const endPoint = this.routeCodeAfterChangeRoute.endPoint;
       const newCameraPosition = {
@@ -464,7 +459,6 @@ export default class Waypoint extends THREE.Group {
       this.updateCameraPosition(newCameraPosition);
     }
   }
-  */
 
   initScheduleList(scheduleList) {
     if (scheduleList.length > 0 && this.waypoint && this.lane) {
