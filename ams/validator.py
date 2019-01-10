@@ -10,14 +10,13 @@ from ams import logger
 
 
 class Validator(object):
+
+    __manager = Manager()
+
     def __init__(self, schema):
         self.__schema = schema
         self.validator = cv(schema)
-        self.__manager = Manager()
         self.__lock = self.__manager.Lock()
-
-    def __del__(self):
-        self.__manager.shutdown()
 
     def schema(self):
         return self.__schema
