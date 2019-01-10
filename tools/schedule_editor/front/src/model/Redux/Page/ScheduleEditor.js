@@ -517,7 +517,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   addRouteCodeByText(textRouteCodeList) {
-    console.log(textRouteCodeList);
     let routeCodeList = this.get('routeCodeList');
     for (const textRouteCode of textRouteCodeList) {
       const startPoint = textRouteCode.startPoint;
@@ -541,7 +540,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       routeCodeList = routeCodeList.push(routeCodeRecord);
     }
 
-    console.log(routeCodeList);
     return this.set('routeCodeList', routeCodeList).set(
       'isAddRouteByTextModalOpen',
       false

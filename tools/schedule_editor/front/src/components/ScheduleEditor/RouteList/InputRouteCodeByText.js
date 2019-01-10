@@ -73,11 +73,6 @@ class InputRouteCodeByText extends React.Component {
       }
     }
 
-    console.log(
-      addRouteCodeList,
-      formatErrorRouteCodeList,
-      validationFalseRouteCodeList
-    );
     this.showErrorMessage(
       formatErrorRouteCodeList,
       validationFalseRouteCodeList
@@ -174,7 +169,6 @@ class InputRouteCodeByText extends React.Component {
       }
     }
 
-    console.log(errorMessages, startPoint);
     return isValidate;
   }
 
