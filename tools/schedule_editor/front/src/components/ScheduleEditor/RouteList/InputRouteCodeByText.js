@@ -27,7 +27,7 @@ class InputRouteCodeByText extends React.Component {
     this.closeAddRouteByTextModal = this.closeAddRouteByTextModal.bind(this);
     this.setTextRouteCode = this.setTextRouteCode.bind(this);
 
-    this.checkAndInput = this.checkAndInput.bind(this);
+    this.addRouteCode = this.addRouteCode.bind(this);
   }
 
   closeAddRouteByTextModal() {
@@ -37,10 +37,57 @@ class InputRouteCodeByText extends React.Component {
     this.setState({ textRouteCode: event.target.value });
   }
 
-  checkAndInput() {
-    const textRouteCode = this.state.textRouteCode;
-    let isBack = false,
-      directionCharacter = advanceCharacter;
+  addRouteCode() {
+    const textRouteCodeList = this.state.textRouteCode.split(',');
+    const addRouteCodeList = [];
+    const formatErrorRouteCodeList = [];
+    const validationFalseRouteCodeList = [];
+
+    for (const textRouteCode of textRouteCodeList) {
+      let [isBack, directionCharacter] = this.checkInput(textRouteCode);
+
+      if (directionCharacter) {
+        const [startPoint, laneString, endPoint] = textRouteCode.split(':');
+        const lanePointList = laneString.split(directionCharacter);
+        const laneList = [];
+
+        lanePointList.forEach((point, index) => {
+          if (lanePointList[index + 1]) {
+            laneList.push(point + '_' + lanePointList[index + 1]);
+          }
+        });
+
+        if (this.validateResult(startPoint, laneList, endPoint, isBack)) {
+          addRouteCodeList.push({
+            startPoint: startPoint,
+            laneList: laneList,
+            endPoint: endPoint,
+            isBack: isBack,
+            routeCode: textRouteCode
+          });
+        } else {
+          validationFalseRouteCodeList.push(textRouteCode);
+        }
+      } else {
+        formatErrorRouteCodeList.push(textRouteCode);
+      }
+    }
+
+    console.log(
+      addRouteCodeList,
+      formatErrorRouteCodeList,
+      validationFalseRouteCodeList
+    );
+    this.showErrorMessage(
+      formatErrorRouteCodeList,
+      validationFalseRouteCodeList
+    );
+    this.props.scheduleEditorActions.addRouteCodeByText(addRouteCodeList);
+  }
+
+  checkInput(textRouteCode) {
+    let isBack = undefined,
+      directionCharacter = undefined;
     if (
       textRouteCode.match(/[1-9][0-9]*:[1-9][0-9]*(>[1-9][0-9]*)+:[1-9][0-9]*/)
     ) {
@@ -48,32 +95,9 @@ class InputRouteCodeByText extends React.Component {
     } else if (
       textRouteCode.match(/[1-9][0-9]*:[1-9][0-9]*(<[1-9][0-9]*)+:[1-9][0-9]*/)
     ) {
-      [isBack, directionCharacter] = [false, backCharacter];
-    } else {
-      alert('Format Error');
-      return;
+      [isBack, directionCharacter] = [true, backCharacter];
     }
-    const [startPoint, laneString, endPoint] = textRouteCode.split(':');
-    const lanePointList = laneString.split(directionCharacter);
-    const laneList = [];
-
-    lanePointList.forEach((point, index) => {
-      if (lanePointList[index + 1]) {
-        laneList.push(point + '_' + lanePointList[index + 1]);
-      }
-    });
-
-    if (this.validateResult(startPoint, laneList, endPoint, isBack)) {
-      this.props.scheduleEditorActions.addRouteCodeByText({
-        startPoint: startPoint,
-        laneList: laneList,
-        endPoint: endPoint,
-        isBack: isBack,
-        routeCode: textRouteCode
-      });
-    } else {
-      alert('Validation is false');
-    }
+    return [isBack, directionCharacter];
   }
 
   validateResult(startPoint, laneList, endPoint, isBack) {
@@ -150,7 +174,33 @@ class InputRouteCodeByText extends React.Component {
       }
     }
 
+    console.log(errorMessages, startPoint);
     return isValidate;
+  }
+
+  showErrorMessage(formatErrorRouteCodeList, validationFalseRouteCodeList) {
+    let errorMessage = '';
+
+    if (formatErrorRouteCodeList.length > 0) {
+      errorMessage = 'Format Error:';
+      for (const routeCode of formatErrorRouteCodeList) {
+        errorMessage += '\n' + routeCode;
+      }
+    }
+
+    if (validationFalseRouteCodeList.length > 0) {
+      if (errorMessage) {
+        errorMessage += '\n\n';
+      }
+      errorMessage += 'Validation Error:';
+      for (const routeCode of validationFalseRouteCodeList) {
+        errorMessage += '\n' + routeCode;
+      }
+    }
+
+    if (errorMessage) {
+      alert(errorMessage);
+    }
   }
 
   render() {
@@ -180,7 +230,7 @@ class InputRouteCodeByText extends React.Component {
           <Button
             color="primary"
             variant="contained"
-            onClick={this.checkAndInput}
+            onClick={this.addRouteCode}
           >
             Confirm
           </Button>
