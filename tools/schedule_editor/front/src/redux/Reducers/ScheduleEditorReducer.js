@@ -74,6 +74,8 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET
   ) {
     return state.setChangeRouteActiveStepReset();
+  } else if (action.type === REDUX.ACTION_TYPE.CANCEL_SELECT_CHANGE_ROUTE) {
+    return state.cancelSelectChangeRoute();
   } else if (
     action.type === REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE
   ) {

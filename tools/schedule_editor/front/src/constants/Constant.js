@@ -29,6 +29,7 @@ export const REDUX = {
     SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT: 'setChangeRouteActiveStepNext',
     SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepPrevious',
     SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepReset',
+    CANCEL_SELECT_CHANGE_ROUTE: 'cancelSelectChangeRoute',
     SET_ROUTE_CODE_AFTER_CHANGE_ROUTE: 'setRouteCodeAfterChangeRoute',
     SET_DECISION_SECTION_END_POINT: 'setDecisionSectionEndPoint',
     SAVE_CHANGE_ROUTE: 'saveChangeRoute',

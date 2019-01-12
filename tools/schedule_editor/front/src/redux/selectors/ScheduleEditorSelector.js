@@ -15,6 +15,8 @@ const selectedDisplayRouteMainViewer = state =>
 //Change Route
 const changeRouteActiveStep = state =>
   state.scheduleEditor.getChangeRouteActiveStep();
+const scheduleEditorActiveStep = state =>
+  state.scheduleEditor.getScheduleEditorActiveStep();
 const currentRouteCodeSchedule = state =>
   state.scheduleEditor.getCurrentRouteCodeSchedule();
 const routeCodeAfterChangeRoute = state =>
@@ -61,10 +63,13 @@ export const currentRouteCodeScheduleSelector = createDeepEqualSelector(
   }
 );
 
-export const changeRouteActiveStepSelector = createDeepEqualSelector(
-  [changeRouteActiveStep],
-  changeRouteActiveStep => {
-    return changeRouteActiveStep;
+export const scheduleEditorActiveStepSelector = createDeepEqualSelector(
+  [scheduleEditorActiveStep, changeRouteActiveStep],
+  (scheduleEditorActiveStep, changeRouteActiveStep) => {
+    return {
+      scheduleEditorActiveStep: scheduleEditorActiveStep,
+      changeRouteActiveStep: changeRouteActiveStep
+    };
   }
 );
 

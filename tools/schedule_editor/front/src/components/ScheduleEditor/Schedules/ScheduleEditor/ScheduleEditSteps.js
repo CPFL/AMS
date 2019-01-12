@@ -20,6 +20,7 @@ import PropTypes from 'prop-types';
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
 
 import ChangeRouteList from './ChangeRouteList';
+import { scheduleEditorSteps } from '../../../../model/Redux/Page/ScheduleEditor';
 
 class CreateScheduleComponent extends React.Component {
   constructor(props) {
@@ -152,7 +153,7 @@ class CreateScheduleComponent extends React.Component {
                     onClick={() => {
                       if (this.props.currentRouteCodeSchedule.routeCode) {
                         this.props.scheduleEditorActions.setScheduleEditorActiveStep(
-                          'changeRouteEditor'
+                          scheduleEditorSteps.changeRouteEditor.id
                         );
                       }
                     }}

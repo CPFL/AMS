@@ -12,6 +12,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography/Typography';
 
 import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import { changeRouteSteps } from "../../../../../model/Redux/Page/ScheduleEditor";
 
 class SelectDecisionSectionEndPoint extends React.Component {
   constructor(props) {
@@ -34,7 +35,7 @@ class SelectDecisionSectionEndPoint extends React.Component {
   render() {
     return (
       <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
-        <CardHeader title="Select Decision Section End Point" />
+        <CardHeader title={changeRouteSteps[this.props.changeRouteActiveStep].name} />
         <CardContent>
           <Typography variant="subtitle1">
             <strong>
@@ -67,12 +68,14 @@ class SelectDecisionSectionEndPoint extends React.Component {
 }
 
 SelectDecisionSectionEndPoint.propTypes = {
+  changeRouteActiveStep: PropTypes.number,
   routeCodeAfterChangeRoute: PropTypes.object,
   decisionSectionRouteCode: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
+  changeRouteActiveStep: state.scheduleEditor.getChangeRouteActiveStep(),
   routeCodeAfterChangeRoute: state.scheduleEditor.getRouteCodeAfterChangeRoute(),
   decisionSectionRouteCode: state.scheduleEditor.getDecisionSectionRouteCode()
 });

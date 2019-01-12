@@ -33,6 +33,30 @@ export const steps = {
   }
 };
 
+export const scheduleEditorSteps = {
+  selectRouteCode: {
+    id: 'selectRouteCode'
+  },
+  changeRouteEditor: {
+    id: 'changeRouteEditor'
+  }
+};
+
+export const changeRouteSteps = [
+  {
+    id: 'selectRouteCodeAfterChangeRoute',
+    name: 'select Route Code After Change Route'
+  },
+  {
+    id: 'SelectDecisionSectionRouteCode',
+    name: 'Select Decision Section Route Code'
+  },
+  {
+    id: 'Result',
+    name: 'Result'
+  }
+];
+
 const RouteCodeRecord = new Record({
   routeCode: '',
   startPoint: '',
@@ -398,27 +422,44 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.set('changeRouteActiveStep', 0);
   }
 
+  cancelSelectChangeRoute() {
+    return this.set('changeRouteActiveStep', 0)
+      .set('routeCodeAfterChangeRoute', new RouteCodeRecord())
+      .set('decisionSectionRouteCode', new RouteCodeRecord())
+      .set('selectableChangeRouteList', List())
+      .set('selectableDecisionSectionEndPointList', List())
+      .set('scheduleEditorActiveStep', 'selectRouteCode');
+  }
+
   setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
-    const selectableDecisionSectionEndPointList = [];
-    const routeCodeAfterChangeRouteWaypointList =
-      routeCodeAfterChangeRoute.waypointList;
-    const scheduleRouteCodeWaypointList = this.get(
-      'currentRouteCodeSchedule'
-    ).toJS().waypointList;
-    for (const waypoint of routeCodeAfterChangeRouteWaypointList) {
-      if (scheduleRouteCodeWaypointList.includes(waypoint)) {
-        selectableDecisionSectionEndPointList.push(waypoint);
-      } else {
-        break;
+    if (routeCodeAfterChangeRoute) {
+      const selectableDecisionSectionEndPointList = [];
+      const routeCodeAfterChangeRouteWaypointList =
+        routeCodeAfterChangeRoute.waypointList;
+      const scheduleRouteCodeWaypointList = this.get(
+        'currentRouteCodeSchedule'
+      ).toJS().waypointList;
+      for (const waypoint of routeCodeAfterChangeRouteWaypointList) {
+        if (scheduleRouteCodeWaypointList.includes(waypoint)) {
+          selectableDecisionSectionEndPointList.push(waypoint);
+        } else {
+          break;
+        }
       }
+      return this.set(
+        'routeCodeAfterChangeRoute',
+        new RouteCodeRecord(routeCodeAfterChangeRoute)
+      )
+        .set(
+          'selectableDecisionSectionEndPointList',
+          selectableDecisionSectionEndPointList
+        )
+        .set('decisionSectionRouteCode', new RouteCodeRecord());
+    } else {
+      return this.set('routeCodeAfterChangeRoute', new RouteCodeRecord())
+        .set('selectableDecisionSectionEndPointList', List())
+        .set('decisionSectionRouteCode', new RouteCodeRecord());
     }
-    return this.set(
-      'routeCodeAfterChangeRoute',
-      new RouteCodeRecord(routeCodeAfterChangeRoute)
-    ).set(
-      'selectableDecisionSectionEndPointList',
-      selectableDecisionSectionEndPointList
-    );
   }
 
   setDecisionSectionEndPoint(decisionSectionEndPoint) {

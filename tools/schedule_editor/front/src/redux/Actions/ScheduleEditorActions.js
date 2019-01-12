@@ -143,6 +143,12 @@ export function setChangeRouteActiveStepReset() {
   };
 }
 
+export function cancelSelectChangeRoute() {
+  return {
+    type: REDUX.ACTION_TYPE.CANCEL_SELECT_CHANGE_ROUTE
+  };
+}
+
 export function setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
   return {
     type: REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE,
