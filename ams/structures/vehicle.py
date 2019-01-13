@@ -27,6 +27,12 @@ const.update({
     "NODE_NAME": "vehicle",
     "ROLE_NAME": "vehicle",
     "TOPIC": topic,
+    "EVENT": {
+        "SEND_LANE_ARRAY": "send_lane_array",
+        "SEND_ENGAGE": "send_engage",
+        "SEND_GOTO_WAIT_ORDER": "send_goto_wait_order",
+        "OPERATE_STOP": "operate_stop"
+    },
     "STATE": {
         "WAIT_SCHEDULE": "WaitSchedule",
         "WAITING_EVENT": "WaitingEvent",
