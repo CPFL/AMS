@@ -481,6 +481,24 @@ class Route(object):
         return shortest_routes
 
     @classmethod
+    def search_multi_destinations_shortest_route_array(
+            cls, locations, lanes, to_lanes, from_lanes, waypoints,
+            cost_function, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        route_array = []
+        for i in range(0, len(locations)-1):
+            start = locations[i]
+            goals = [locations[i+1]]
+            goals[0]["goal_id"] = 0
+            shortest_routes = cls.search_shortest_routes(
+                start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function, cost_limit, reverse)
+            if 0 == len(shortest_routes):
+                return None
+            route_array.append(shortest_routes[0])
+            route_array[-1].pop("goal_id")
+            route_array[-1].pop("cost")
+        return route_array
+
+    @classmethod
     def generate_filtered_network(cls, lane_codes, lanes, to_lanes, from_lanes):
         filtered_lanes = dict(filter(lambda x: x[0] in lane_codes, lanes.items()))
 

@@ -10,6 +10,7 @@ from ams.structures import Targets as Structures
 class Target(object):
 
     CONST = TARGET
+    Structure = Structure
 
     @staticmethod
     def new_target(group, _id=None):
@@ -46,6 +47,10 @@ class Target(object):
     @staticmethod
     def get_same_group_targets_in_targets(group, targets):
         return list(filter(lambda x: x is not None and x.group == group, targets))
+
+    @staticmethod
+    def target_in_targets(target, targets):
+        return 0 < len(list(filter(lambda x: Target.is_same(x, target), targets)))
 
     @staticmethod
     def encode(target):
