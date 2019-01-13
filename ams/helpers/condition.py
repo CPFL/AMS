@@ -2,8 +2,8 @@
 # coding: utf-8
 
 from ams import logger
-from ams.helpers import Hook, Event, Target
-from ams.structures import Vehicle, TrafficSignal, User
+from ams.helpers import Hook, Event, Target, Location
+from ams.structures import Vehicle, TrafficSignal, Dispatcher, User, Autoware, CLIENT
 
 
 class Condition(object):

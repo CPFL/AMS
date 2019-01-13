@@ -6,7 +6,7 @@ import yaml
 from ams import VERSION, AttrDict
 from ams.helpers import Topic, Hook, Event, Target
 from ams.structures import (
-    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User, CLIENT)
 
 
 class Publisher(object):
