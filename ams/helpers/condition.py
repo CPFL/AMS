@@ -9,6 +9,10 @@ from ams.structures import Vehicle, TrafficSignal, User
 class Condition(object):
 
     @classmethod
+    def status_initialized(cls, kvs_client, target, structure, sub_target=None):
+        return Hook.get_status(kvs_client, target, structure, sub_target) is None
+
+    @classmethod
     def received_lane_array_exists(cls, kvs_client, target_autoware):
         received_lane_array = Hook.get_received_lane_array(kvs_client, target_autoware)
         return received_lane_array is not None
@@ -53,8 +57,18 @@ class Condition(object):
     @classmethod
     def vehicle_located(cls, kvs_client, target_vehicle):
         vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
-        if vehicle_status is not None:
-            return vehicle_status.location is not None
+        if vehicle_status is None:
+            return None
+        return vehicle_status.location is not None
+
+    @classmethod
+    def relevant_vehicle_located(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            logger.warning("dispatcher_status({}) is None".format(Target.encode(target_vehicle)))
+            return None
+        if dispatcher_status.vehicle_status is not None:
+            return dispatcher_status.vehicle_status.location is not None
         return False
 
     @classmethod
@@ -107,6 +121,14 @@ class Condition(object):
     @classmethod
     def received_schedule_initialized(cls, kvs_client, target):
         return Hook.get_received_schedule(kvs_client, target) is None
+
+    @classmethod
+    def applied_schedule_initialized(cls, kvs_client, from_target, to_target):
+        return Hook.get_applied_schedule(kvs_client, from_target, to_target) is None
+
+    @classmethod
+    def generated_schedule_initialized(cls, kvs_client, from_target, to_target):
+        return Hook.get_generated_schedule(kvs_client, from_target, to_target) is None
 
     @classmethod
     def vehicle_received_schedule_initialized(cls, kvs_client, target_vehicle):
@@ -186,6 +208,17 @@ class Condition(object):
         return False
 
     @classmethod
+    def relevant_vehicle_state_is_expected(cls, kvs_client, target_dispatcher, target_vehicle, expected):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            logger.warning("dispatcher_status() is None".format(Target.encode(target_vehicle)))
+            return None
+        if dispatcher_status.vehicle_status is None:
+            logger.warning("dispatcher_status.vehicle_status() is None".format(Target.encode(target_vehicle)))
+            return None
+        return dispatcher_status.vehicle_status.state == expected
+
+    @classmethod
     def vehicle_config_exists(cls, kvs_client, target_vehicle):
         vehicle_config = Hook.get_config(kvs_client, target_vehicle, Vehicle.Config)
         return vehicle_config is not None
@@ -228,6 +261,18 @@ class Condition(object):
         return True
 
     @classmethod
+    def vehicle_schedule_applied(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, target_vehicle)
+        if dispatcher_status is None:
+            return False
+        if dispatcher_status.vehicle_status is None:
+            return False
+        generated_vehicle_schedule = Hook.get_generated_schedule(kvs_client, target_dispatcher, target_vehicle)
+        if generated_vehicle_schedule is None:
+            return False
+        return dispatcher_status.vehicle_status.schedule_id == generated_vehicle_schedule.id
+
+    @classmethod
     def traffic_signal_schedule_replaceable(cls, kvs_client, target_traffic_signal):
         status = Hook.get_status(kvs_client, target_traffic_signal, TrafficSignal.Status)
         received_schedule = Hook.get_received_schedule(kvs_client, target_traffic_signal)
@@ -266,6 +311,10 @@ class Condition(object):
         return cls.received_schedule_initialized(kvs_client, target)
 
     @classmethod
+    def applied_vehicle_schedule_replaced(cls, kvs_client, target_dispatcher, target_vehicle):
+        return cls.generated_schedule_initialized(kvs_client, target_dispatcher, target_vehicle)
+
+    @classmethod
     def vehicle_schedule_changed(cls, kvs_client, target_vehicle):
         return cls.schedule_replaced(kvs_client, target_vehicle)
 
@@ -285,3 +334,121 @@ class Condition(object):
     def user_hired_vehicle(cls, kvs_client, target):
         status = Hook.get_status(kvs_client, target, User.Status)
         return status.target_vehicle is not None
+
+    @classmethod
+    def vehicle_related_to_user_exists(cls, kvs_client, target_dispatcher, target_user):
+        config = Hook.get_config(kvs_client, target_dispatcher, Dispatcher.Config)
+        for target_vehicle in config.target_vehicles:
+            status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, target_vehicle)
+            if status is not None and status.user_statuses is not None:
+                filtered_user_statuses = list(filter(
+                    lambda x: Target.is_same(target_user, x.target),
+                    status.user_statuses))
+                if 1 == len(filtered_user_statuses):
+                    return True
+            applied_schedule = Hook.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+            if None not in [applied_schedule, status.vehicle_status]:
+                if status.vehicle_status.event_id is not None:
+                    index = Event.get_event_index_by_event_id(applied_schedule.events, status.vehicle_status.event_id)
+                    if any(map(
+                            lambda x: Target.target_in_targets(target_user, x.targets),
+                            applied_schedule.events[index:])):
+                        return True
+        return False
+
+    @classmethod
+    def vehicle_schedule_has_all_user_events(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, target_vehicle)
+        if dispatcher_status is None:
+            return None
+        if None in [dispatcher_status.vehicle_status, dispatcher_status.user_statuses]:
+            return None
+        if dispatcher_status.vehicle_status.location is None:
+            return None
+        if 0 == len(dispatcher_status.user_statuses):
+            return True
+        applied_vehicle_schedule = Hook.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+        if applied_vehicle_schedule is None:
+            logger.info("applied_vehicle_schedule is None")
+            return False
+        index = Event.get_event_index_by_event_id(
+            applied_vehicle_schedule.events, dispatcher_status.vehicle_status.event_id)
+        user_statuses = list(filter(
+            lambda us: not any(filter(
+                lambda e: Target.target_in_targets(us["target"], e.targets),
+                applied_vehicle_schedule.events[index:])),
+            dispatcher_status.user_statuses))
+        return 0 == len(user_statuses)
+
+    @classmethod
+    def vehicle_is_waiting_event_shift(cls, kvs_client, target_vehicle):
+        status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        schedule = Hook.get_schedule(kvs_client, target_vehicle)
+        if None in [status, schedule]:
+            return None
+        if status.event_id is None:
+            return False
+        return Event.get_event_by_id(schedule.events, status.event_id).name == Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT
+
+    @classmethod
+    def relevant_vehicle_is_waiting_event_shift(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        applied_schedule = Hook.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+        if None in [dispatcher_status, applied_schedule]:
+            return False
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status is None:
+            return False
+        if vehicle_status.event_id is None:
+            return False
+        event = Event.get_event_by_id(applied_schedule.events, vehicle_status.event_id)
+        if event is None:
+            return False
+        event_name = Event.get_event_by_id(applied_schedule.events, vehicle_status.event_id).name
+        return event_name == Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT
+
+    @classmethod
+    def vehicle_state_in_user_status_is_expected(cls, kvs_client, target_user, expected):
+        status = Hook.get_status(kvs_client, target_user, User.Status)
+        if status is None:
+            return None
+        if status.vehicle_info is None:
+            return False
+        # logger.info("status.vehicle_info.state == expected: {} == {}".format(status.vehicle_info.state, expected))
+        return status.vehicle_info.state == expected
+
+    @classmethod
+    def goal_location_in_user_status_is_initialized(cls, kvs_client, target_user):
+        status = Hook.get_status(kvs_client, target_user, User.Status)
+        if status is None:
+            return None
+        return status.goal_location is None
+
+    @classmethod
+    def user_status_in_transportation_finished_initialized(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        event_id = dispatcher_status.vehicle_status.event_id
+        target_user = Target.new_target(*event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
+        return cls.status_initialized(kvs_client, target_dispatcher, User.Status, sub_target=target_user)
+
+    @classmethod
+    def transportation_finished_user_status_exists_in_user_statuses(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        event_id = dispatcher_status.vehicle_status.event_id
+        target_user = Target.new_target(*event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
+        user_statuses = Hook.get_user_statuses(kvs_client, target_dispatcher, target_vehicle)
+        return any([
+            0 < len(list(filter(lambda x: Target.is_same(target_user, x["target"]), user_statuses))),
+            0 < len(list(filter(lambda x: Target.is_same(target_user, x["target"]), dispatcher_status.user_statuses)))
+        ])
+
+    @classmethod
+    def vehicle_schedule_id_with_dispatcher_initialized(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        return dispatcher_status.vehicle_status.schedule_id is None

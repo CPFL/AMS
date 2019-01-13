@@ -13,6 +13,11 @@ from ams.structures import (
 class Hook(object):
 
     @classmethod
+    def get_target_from_key(cls, key):
+        group, _id = key.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[0:2]
+        return Target.new_target(group, _id)
+
+    @classmethod
     def get_config_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
             Target.encode(target),
@@ -778,6 +783,21 @@ class Hook(object):
             cls.set_status(kvs_client, target_vehicle, status)
 
     @classmethod
+    def shift_to_next_vehicle_event(cls, kvs_client, target_vehicle):
+        status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        schedule = cls.get_schedule(kvs_client, target_vehicle)
+        if None in [status, schedule]:
+            return
+        status.on_event = False
+        next_event = Event.get_next_event_by_current_event_id(schedule.events, status.event_id)
+        if next_event is None:
+            status.schedule_id = None
+            status.event_id = None
+        else:
+            status.event_id = next_event.id
+        cls.set_status(kvs_client, target_vehicle, status)
+
+    @classmethod
     def end_vehicle_event(cls, kvs_client, target_vehicle):
         status = cls.get_status(kvs_client, target_vehicle, Vehicle.Status)
         if status is None:
@@ -921,3 +941,153 @@ class Hook(object):
         status = cls.get_status(kvs_client, target, User.Status)
         status.goal_location = goal_location
         cls.set_status(kvs_client, target, status)
+
+    @classmethod
+    def get_traffic_signal_status_keys(cls, kvs_client):
+        key_pattern = cls.get_status_key(Target.new_target(TrafficSignal.CONST.NODE_NAME))
+        return kvs_client.keys(key_pattern)
+
+    @classmethod
+    def get_traffic_signal_statuses_on_vehicle_route(cls, kvs_client, maps_client, target_dispatcher, target_vehicle):
+        traffic_signal_status_keys = cls.get_traffic_signal_status_keys(kvs_client)
+
+        filtered_traffic_signal_status_keys = []
+        vehicle_status = cls.get_vehicle_status(kvs_client, target_dispatcher, target_vehicle)
+        if vehicle_status is not None:
+            if vehicle_status.route_point is not None:
+                for traffic_signal_status_key in traffic_signal_status_keys:
+                    route_code = cls.get_target_from_key(traffic_signal_status_key).id
+                    if maps_client.route.route_code_in_route_code(route_code, vehicle_status.route_point.route_code):
+                        if 0.0 < maps_client.route.calculate_distance_from_route_point_to_inner_route(
+                                vehicle_status.route_point, route_code):
+                            filtered_traffic_signal_status_keys.append(traffic_signal_status_key)
+
+        traffic_statuses = []
+        for traffic_signal_status_key in filtered_traffic_signal_status_keys:
+            traffic_signal_status = cls.get_status(kvs_client, traffic_signal_status_key, TrafficSignal.Status)
+            if traffic_signal_status is not None:
+                traffic_statuses.append({
+                    "target": cls.get_target_from_key(traffic_signal_status_key),
+                    "status": traffic_signal_status
+                })
+        return traffic_statuses
+
+    @classmethod
+    def reduce_user_status(cls, kvs_client, target_user):
+        status = cls.get_status(kvs_client, target_user, User.Status)
+        vehicle_info = cls.get_vehicle_info(kvs_client, target_user)
+        if None in [status, vehicle_info]:
+            return
+        status.vehicle_info = vehicle_info
+        cls.set_status(kvs_client, target_user, status)
+
+    @classmethod
+    def reduce_dispatcher_status(cls, kvs_client, maps_client, target_dispatcher, target_vehicle):
+        dispatcher_status = cls.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return False
+        vehicle_status = cls.get_vehicle_status(kvs_client, target_dispatcher, target_vehicle)
+        if vehicle_status is None:
+            return False
+        dispatcher_status.vehicle_status = vehicle_status
+        if vehicle_status.route_point is not None:
+            dispatcher_status.traffic_signal_statuses = cls.get_traffic_signal_statuses_on_vehicle_route(
+                kvs_client, maps_client, target_dispatcher, target_vehicle)
+        dispatcher_status.user_statuses = cls.get_user_statuses(kvs_client, target_dispatcher, target_vehicle)
+        return Hook.set_status(kvs_client, target_dispatcher, dispatcher_status, sub_target=target_vehicle)
+
+    @classmethod
+    def relate_user_to_vehicle(cls, kvs_client, maps_client, target_dispatcher, target_user):
+        user_status = cls.get_status(kvs_client, target_dispatcher, User.Status, sub_target=target_user)
+        dispatcher_config = cls.get_config(kvs_client, target_dispatcher, Dispatcher.Config)
+
+        goals = []
+        goal_ext_costs = {}
+        for target_vehicle in dispatcher_config.target_vehicles:
+            applied_vehicle_schedule = cls.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+            vehicle_status = cls.get_vehicle_status(kvs_client, target_dispatcher, target_vehicle)
+            if vehicle_status is not None:
+                if applied_vehicle_schedule is not None:
+                    filtered_events = list(filter(
+                        lambda x: "route_code" in x and x.route_code is not None, applied_vehicle_schedule.events))
+                    if 0 < len(filtered_events):
+                        final_route = Route.decode(filtered_events[-1].route_code)
+                        goals.append({
+                            "goal_id": target_vehicle.id,
+                            "waypoint_id": final_route.waypoint_ids[-1],
+                            "lane_code": final_route.lane_codes[-1]
+                        })
+                        # todo: estimate time of schedule end
+                        goal_ext_costs[target_vehicle.id] = 600.0*(
+                                len(applied_vehicle_schedule.events) - 1 -
+                                Event.get_event_index_by_event_id(
+                                    applied_vehicle_schedule.events, vehicle_status.event_id)
+                        )
+                else:
+                    if vehicle_status.location is not None:
+                        goals.append(vehicle_status.location)
+                        goals[-1]["goal_id"] = target_vehicle.id
+                        goal_ext_costs[target_vehicle.id] = 0.0
+
+        shortest_routes = maps_client.route.search_shortest_routes(user_status.start_location, goals, reverse=True)
+        if 0 == len(shortest_routes):
+            logger.warning("There are no vehicles can be dispatched.")
+            return
+
+        shortest_route = min(shortest_routes.items(), key=lambda x: x[1]["cost"] + goal_ext_costs[x[1]["goal_id"]])[1]
+        target_vehicle = Target.new_target(Vehicle.CONST.NODE_NAME, shortest_route["goal_id"])
+
+        user_statuses = cls.get_user_statuses(kvs_client, target_dispatcher, target_vehicle)
+        if user_statuses is None:
+            return
+        if not any(map(lambda x: Target.is_same(x["target"], target_user), user_statuses)):
+            user_statuses.append({
+                "target": target_user,
+                "status": user_status
+            })
+        cls.set_user_statuses(kvs_client, target_dispatcher, target_vehicle, user_statuses)
+        return
+
+    @classmethod
+    def add_user_status_to_user_statuses(cls, kvs_client, target_dispatcher, target_vehicle, target_user):
+        user_status = cls.get_status(kvs_client, target_dispatcher, User.Status, target_user)
+        user_statuses = cls.get_user_statuses(kvs_client, target_dispatcher, target_vehicle)
+        if None in [user_status, user_statuses]:
+            return
+        if not any(map(lambda x: Target.is_same(x["target"], target_user), user_statuses)):
+            return
+        user_statuses = list(filter(lambda x: not Target.is_same(x["target"], target_user), user_statuses))
+        user_statuses.append({
+            "target": target_user,
+            "status": user_status
+        })
+        cls.set_user_statuses(kvs_client, target_dispatcher, target_vehicle, user_statuses)
+        return
+
+    @classmethod
+    def initialize_status(cls, kvs_client, target, sub_target=None):
+        return cls.set_status(kvs_client, target, None, sub_target=sub_target)
+
+    @classmethod
+    def initialize_user_status_in_transportation_finished(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = cls.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        event_id = dispatcher_status.vehicle_status.event_id
+        target_user = Target.new_target(*event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
+        cls.initialize_status(kvs_client, target_dispatcher, sub_target=target_user)
+
+    @classmethod
+    def remove_transportation_finished_user_status_from_user_statuses(
+            cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = cls.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        event_id = dispatcher_status.vehicle_status.event_id
+        target_user = Target.new_target(*event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
+
+        user_statuses = cls.get_user_statuses(kvs_client, target_dispatcher, target_vehicle)
+        filtered_user_statuses = list(filter(lambda x: not Target.is_same(target_user, x["target"]), user_statuses))
+        if cls.set_user_statuses(kvs_client, target_dispatcher, target_vehicle, filtered_user_statuses):
+            dispatcher_status.user_statuses = filtered_user_statuses
+            cls.set_status(kvs_client, target_dispatcher, dispatcher_status, sub_target=target_vehicle)
