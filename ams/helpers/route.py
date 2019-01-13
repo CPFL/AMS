@@ -378,7 +378,7 @@ class Route(object):
         return is_directly_reach if not reverse else not is_directly_reach
 
     @classmethod
-    def get_shortest_routes(
+    def search_shortest_routes(
             cls, start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function,
             cost_limit=ROUTE.COST_LIMIT, reverse=False):
         """
@@ -592,7 +592,7 @@ class Route(object):
 
         routes = []
         for start in starts:
-            routes.extend(cls.get_shortest_routes(
+            routes.extend(cls.search_shortest_routes(
                 start, goals, filtered_lanes, filtered_to_lanes, filtered_from_lanes, waypoints, lane_cost_function
             ).values())
 
