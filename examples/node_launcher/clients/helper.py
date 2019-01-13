@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import traceback
-import multiprocessing
 from uuid import uuid4 as uuid
 
 from ams import logger
@@ -10,6 +9,7 @@ from ams.clients import get_kvs_client_class, get_pubsub_client_class
 
 
 def get_manager_client():
+    import multiprocessing
     KVSClient = get_kvs_client_class(multiprocessing)
     kvs_client = KVSClient()
     return kvs_client

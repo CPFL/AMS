@@ -422,6 +422,7 @@ class Subscriber(object):
                         Hook.initialize_received_stop_signal,
                         Hook.start_vehicle_schedule,
                         Hook.restart_vehicle_schedule,
+                        Hook.reset_vehicle_event_id,
                         Hook.replace_schedule,
                         Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
