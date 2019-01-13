@@ -26,6 +26,13 @@ class Hook(object):
             ["status"])
 
     @classmethod
+    def get_vehicle_info_key(cls, target, sub_target=None):
+        return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
+            [Target.encode(target)] +
+            ([] if sub_target is None else [Target.encode(sub_target)]) +
+            ["vehicle_info"])
+
+    @classmethod
     def get_vehicle_location_key(cls, target):
         return Target.encode(target) + Autoware.CONST.TOPIC.VEHICLE_LOCATION
 
@@ -345,6 +352,11 @@ class Hook(object):
         return kvs_client.set(key, value, get_key, timestamp_string)
 
     @classmethod
+    def set_vehicle_info(cls, kvs_client, target, value, timestamp_string=None, sub_target=None):
+        key = cls.get_vehicle_info_key(target, sub_target)
+        return kvs_client.set(key, value, timestamp_string=timestamp_string)
+
+    @classmethod
     def set_vehicle_location(cls, kvs_client, target, value):
         key = cls.get_vehicle_location_key(target)
         return kvs_client.set(key, value)
@@ -477,6 +489,18 @@ class Hook(object):
     @classmethod
     def initialize_received_stop_signal(cls, kvs_client, target):
         return cls.set_received_stop_signal(kvs_client, target, None)
+
+    @classmethod
+    def initialize_vehicle_info(cls, kvs_client, target, sub_target=None):
+        cls.set_vehicle_info(kvs_client, target, None, sub_target=sub_target)
+
+    @classmethod
+    def get_vehicle_info(cls, kvs_client, target, sub_target=None):
+        key = cls.get_vehicle_info_key(target, sub_target)
+        value = kvs_client.get(key)
+        if value is not None:
+            value = Vehicle.Info.new_data(**value)
+        return value
 
     @classmethod
     def get_vehicle_location(cls, kvs_client, target):

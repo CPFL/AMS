@@ -191,6 +191,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_vehicle_info_message_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.VEHICLE_INFO
+        )
+
+    @classmethod
     def publish_ros_current_pose(cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_current_pose(kvs_client, target_autoware))
         if message is not None:
@@ -387,3 +395,20 @@ class Publisher(object):
             }
         })
         pubsub_client.publish(topic, schedule_message)
+
+    @classmethod
+    def publish_vehicle_info_message(cls, pubsub_client, kvs_client, from_target, to_target):
+        vehicle_info = Hook.get_vehicle_info(kvs_client, from_target, sub_target=to_target)
+        if vehicle_info is None:
+            return
+        topic = cls.get_vehicle_info_message_topic(from_target, to_target)
+        message = Dispatcher.Message.VehicleInfo.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION
+            },
+            "body": vehicle_info
+        })
+        pubsub_client.publish(topic, message)
+
