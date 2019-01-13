@@ -129,6 +129,14 @@ class Subscriber(object):
             from_target=target_dispatcher,
             to_target=target_vehicle,
             categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
+        )
+
+    @classmethod
+    def get_dispatcher_event_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
             use_wild_card=True
         )
 
@@ -137,8 +145,7 @@ class Subscriber(object):
         return Topic.get_topic(
             from_target=target_dispatcher,
             to_target=target_user,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT,
-            use_wild_card=True
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT
         )
 
     @classmethod
@@ -248,20 +255,32 @@ class Subscriber(object):
 
     @classmethod
     def on_request_get_config_message(cls, _client, user_data, topic, request_config_message):
+        target_self = Topic.get_to_target(topic)
+        if EventLoop.CONST.REQUEST_MESSAGE_TIMEOUT <= Event.get_time() - request_config_message.header.time:
+            logger.info("{} request_get_config_message timeout: {}".format(
+                Target.encode(target_self), request_config_message))
+            return
         response_topic = Topic.get_response_topic(topic)
-        message = Hook.get_response_config_message(
-            user_data["kvs_client"], Topic.get_to_target(topic), request_config_message)
+        message = Hook.get_response_config_message(user_data["kvs_client"], target_self, request_config_message)
         user_data["pubsub_client"].publish(response_topic, message)
 
     @classmethod
     def on_request_get_status_message(cls, _client, user_data, topic, request_status_message):
+        target_self = Topic.get_to_target(topic)
+        if EventLoop.CONST.REQUEST_MESSAGE_TIMEOUT <= Event.get_time() - request_status_message.header.time:
+            logger.info("{} request_get_status_message timeout: {}".format(
+                Target.encode(target_self), request_status_message))
+            return
         response_topic = Topic.get_response_topic(topic)
-        message = Hook.get_response_status_message(
-            user_data["kvs_client"], Topic.get_to_target(topic), request_status_message)
+        message = Hook.get_response_status_message(user_data["kvs_client"], target_self, request_status_message)
         user_data["pubsub_client"].publish(response_topic, message)
 
     @classmethod
     def on_route_code_message_publish_lane_array(cls, _client, user_data, _topic, route_code_message):
+        if Vehicle.CONST.ROUTE_CODE_MESSAGE_TIMEOUT <= Event.get_time() - route_code_message.header.time:
+            logger.info("{} route_code timeout: {}".format(
+                Target.encode(user_data["target_autoware_interface"]), route_code_message))
+            return
         route_code = route_code_message.body
         lane_array = user_data["maps_client"].route.generate_lane_array(route_code)
         set_flag = Hook.set_route_code_lane_array_id_relation(
@@ -348,35 +367,31 @@ class Subscriber(object):
 
     @classmethod
     def on_vehicle_event_message(cls, _client, user_data, _topic, event_message):
+        if Dispatcher.CONST.VEHICLE_EVENT_MESSAGE_TIMEOUT < Event.get_time() - event_message.header.time:
+            logger.info("{} event_message timeout: {}".format(
+                Target.encode(user_data["target_vehicle"]), event_message))
+            return
         if event_message.body.target != user_data["target_vehicle"]:
             return
-        status = Hook.get_status(user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
-        event = event_message.body.event
-        if event.name == Dispatcher.CONST.EVENT.END_NODE:
-            if status is not None and status.state in [
-                Vehicle.CONST.STATE.WAITING_EVENT,
-            ]:
-                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
-        elif event.name == Dispatcher.CONST.EVENT.CHANGE_SCHEDULE:
-            if status is not None and status.state in [
-                Vehicle.CONST.STATE.WAITING_EVENT
-            ]:
-                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
-        elif event.name == Dispatcher.CONST.EVENT.RETURN_TO_WAITING_EVENT:
-            if status is not None and status.state in [
-                Vehicle.CONST.STATE.REPLACING_SCHEDULE_SUCCEEDED,
-                Vehicle.CONST.STATE.REPLACING_SCHEDULE_FAILED
-            ]:
-                Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event)
+        Hook.set_event(user_data["kvs_client"], user_data["target_vehicle"], event_message.body.event)
+
+    @classmethod
+    def on_dispatcher_event_message(cls, _client, user_data, _topic, event_message):
+        if Dispatcher.CONST.EVENT_MESSAGE_TIMEOUT < Event.get_time() - event_message.header.time:
+            logger.info("{} event_message timeout: {}".format(
+                Target.encode(user_data["target_dispatcher"]), event_message))
+            return
+        if event_message.body.target != user_data["target_dispatcher"]:
+            return
+        Hook.set_event(user_data["kvs_client"], user_data["target_dispatcher"], event_message.body.event)
 
     @classmethod
     def on_user_event_message(cls, _client, user_data, _topic, event_message):
-        event = event_message.body.event
-        if event.name == Dispatcher.CONST.EVENT.NOTICE:
-            status = Hook.get_status(user_data["kvs_client"], user_data["target_user"], User.Status)
-            status.target_vehicle = list(filter(lambda x: x.group == Vehicle.CONST.NODE_NAME, event.targets))[0]
-            Hook.set_status(user_data["kvs_client"], user_data["target_user"], status)
-        Hook.set_event(user_data["kvs_client"], user_data["target_user"], event)
+        if Dispatcher.CONST.USER_EVENT_MESSAGE_TIMEOUT < Event.get_time() - event_message.header.time:
+            logger.info("{} event_message timeout: {}".format(
+                Target.encode(user_data["target_user"]), event_message))
+            return
+        Hook.set_event(user_data["kvs_client"], user_data["target_user"], event_message.body.event)
 
     @classmethod
     def on_vehicle_info_message(cls, _client, user_data, _topic, vehicle_info_message):
@@ -427,7 +442,9 @@ class Subscriber(object):
                 user_data["kvs_client"], user_data["target_vehicle"])
             vehicle_status.route_point = Hook.get_route_point(
                 user_data["kvs_client"], user_data["target_vehicle"])
-            if Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], vehicle_status):
+            if Hook.set_status(
+                    user_data["kvs_client"], user_data["target_vehicle"], vehicle_status,
+                    timestamp_string=Kvs.get_timestamp_string(decision_maker_state_message.header.time)):
                 resource = StateMachineHelper.load_resource(user_data["state_machine_path"])
                 state_machine_data = StateMachineHelper.create_data(resource)
                 variables = {
@@ -489,8 +506,8 @@ class Subscriber(object):
                                 new_vehicle_status.updated_at = Event.get_time()
                                 Hook.set_status(
                                     user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                                logger.info("Vehicle({}) Event: {}, State: {} -> {}".format(
-                                    user_data["target_vehicle"].id, event.name,
+                                logger.info("{} Event: {}({}), State: {} -> {}".format(
+                                    Target.encode(user_data["target_vehicle"]), event.name, event.id,
                                     vehicle_status.state, new_vehicle_status.state))
                                 return
 
@@ -507,8 +524,8 @@ class Subscriber(object):
                             new_vehicle_status.updated_at = Event.get_time()
                             Hook.set_status(
                                 user_data["kvs_client"], user_data["target_vehicle"], new_vehicle_status)
-                            logger.info("Vehicle({}) Event: {}, State: {} -> {}".format(
-                                user_data["target_vehicle"].id, event.name,
+                            logger.info("{} Event: {}({}), State: {} -> {}".format(
+                                Target.encode(user_data["target_vehicle"]), event.name, event.id,
                                 vehicle_status.state, new_vehicle_status.state))
                             return
 
@@ -661,6 +678,10 @@ class Subscriber(object):
 
     @classmethod
     def on_traffic_signal_event_message(cls, _client, user_data, _topic, event_message):
+        if TrafficSignalController.CONST.EVENT_MESSAGE_TIMEOUT < Event.get_time() - event_message.header.time:
+            logger.info("{} event_message timeout: {}".format(
+                Target.encode(user_data["target_traffic_signal"]), event_message))
+            return
         if event_message.body.target != user_data["target_traffic_signal"]:
             return
         status = Hook.get_status(user_data["kvs_client"], user_data["target_traffic_signal"], TrafficSignal.Status)

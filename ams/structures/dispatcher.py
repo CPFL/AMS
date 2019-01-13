@@ -31,6 +31,9 @@ const.update({
         "CHANGE_SCHEDULE": "change_schedule",
         "RETURN_TO_WAITING_EVENT": "return_to_waiting_event",
     },
+    "EVENT_MESSAGE_TIMEOUT": 10.0,
+    "VEHICLE_EVENT_MESSAGE_TIMEOUT": 1.0,
+    "USER_EVENT_MESSAGE_TIMEOUT": 5.0
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)

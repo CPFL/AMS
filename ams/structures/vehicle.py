@@ -44,7 +44,8 @@ const.update({
     },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
-    "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0
+    "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0,
+    "ROUTE_CODE_MESSAGE_TIMEOUT": 5.0
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)
