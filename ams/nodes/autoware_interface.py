@@ -16,6 +16,7 @@ class AutowareInterface(EventLoop):
     def __init__(self, config, ros_msgs=None, identifiable=False):
         super(AutowareInterface, self).__init__(config)
 
+        self.user_data["target_autoware_interface"] = self.config.target_self
         self.user_data["target_autoware"] = self.config.target_autoware
         self.user_data["target_vehicle"] = self.config.target_vehicle
         self.user_data["lane_array_structure"] = ros_msgs["LaneArray"]
@@ -79,7 +80,7 @@ class AutowareInterface(EventLoop):
             topic = Subscriber.get_decision_maker_state_rostopic()
         self.ros_subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_decision_maker_state_publish,
+            "callback": Subscriber.on_decision_maker_state_publish_decision_maker_state_message,
             "structure": ros_msgs["String"],
             "user_data": self.user_data,
             "rate": 1.0

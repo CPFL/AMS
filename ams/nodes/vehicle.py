@@ -66,8 +66,8 @@ class Vehicle(EventLoop):
         topic = Subscriber.get_decision_maker_state_topic(self.config.target_autoware, self.config.target_self)
         self.subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_decision_maker_state_update_state,
-            "structure": Autoware.ROSMessage.DecisionMakerState,
+            "callback": Subscriber.on_decision_maker_state_message_update_state,
+            "structure": AutowareInterface.Message.DecisionMakerState,
             "user_data": self.user_data
         }
 

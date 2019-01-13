@@ -104,6 +104,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_decision_maker_state_message_topic(cls, target_autoware, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_autoware,
+            to_target=target_vehicle,
+            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.DECISION_MAKER_STATE
+        )
+
+    @classmethod
     def get_state_cmd_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
@@ -256,6 +264,21 @@ class Publisher(object):
                 "version": VERSION
             },
             "body": route_point
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
+    def publish_decision_maker_state_message(
+            cls, pubsub_client, kvs_client, target_autoware_interface, target_autoware, target_vehicle):
+        decision_maker_state = Hook.get_decision_maker_state(kvs_client, target_autoware_interface)
+        topic = cls.get_decision_maker_state_message_topic(target_autoware, target_vehicle)
+        message = AutowareInterface.Message.DecisionMakerState.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION,
+            },
+            "body": decision_maker_state
         })
         pubsub_client.publish(topic, message)
 
