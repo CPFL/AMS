@@ -36,7 +36,6 @@ const.update({
         "OPERATE_STOP": "operate_stop"
     },
     "STATE": {
-        "WAIT_SCHEDULE": "WaitSchedule",
         "WAITING_EVENT": "WaitingEvent",
         "WAITING_SCHEDULE": "WaitingSchedule",
         "REPLACING_SCHEDULE": "ReplacingSchedule",
