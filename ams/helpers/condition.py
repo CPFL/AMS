@@ -386,6 +386,32 @@ class Condition(object):
         return 0 == len(user_statuses)
 
     @classmethod
+    def vehicle_arrived_at_user_start_location(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status.event_id is None:
+            return False
+        event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        return all([
+            Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START == event_id_parts[0],
+            Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
+
+    @classmethod
+    def vehicle_arrived_at_user_goal_location(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status.event_id is None:
+            return False
+        event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        return all([
+            Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_GOAL == event_id_parts[0],
+            Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
+
+    @classmethod
     def vehicle_is_waiting_event_shift(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         schedule = Hook.get_schedule(kvs_client, target_vehicle)
