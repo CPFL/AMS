@@ -252,8 +252,8 @@ class Condition(object):
     def vehicle_schedule_replaceable(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
-        if received_schedule is None:
-            return False
+        if None in [status, received_schedule]:
+            return None
 
         received_schedule_event_ids = list(map(lambda x: x.id, received_schedule.events))
         if status.event_id not in received_schedule_event_ids:
@@ -338,7 +338,7 @@ class Condition(object):
     @classmethod
     def user_hired_vehicle(cls, kvs_client, target):
         status = Hook.get_status(kvs_client, target, User.Status)
-        return status.target_vehicle is not None
+        return status.vehicle_info is not None
 
     @classmethod
     def vehicle_related_to_user_exists(cls, kvs_client, target_dispatcher, target_user):
