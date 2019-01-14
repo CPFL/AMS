@@ -72,8 +72,8 @@ class Condition(object):
         return False
 
     @classmethod
-    def node_state_timeout(cls, kvs_client, target, structure, timeout):
-        status = Hook.get_status(kvs_client, target, structure)
+    def node_state_timeout(cls, kvs_client, target, structure, timeout, sub_target=None):
+        status = Hook.get_status(kvs_client, target, structure, sub_target=sub_target)
         if status is None:
             return False
         timeout_flag = timeout < Event.get_time() - status.updated_at
@@ -84,6 +84,11 @@ class Condition(object):
     @classmethod
     def vehicle_state_timeout(cls, kvs_client, target, timeout=5):
         return cls.node_state_timeout(kvs_client, target, Vehicle.Status, timeout)
+
+    @classmethod
+    def dispatcher_state_timeout(cls, kvs_client, target_dispatcher, target_vehicle, timeout=5):
+        return cls.node_state_timeout(
+            kvs_client, target_dispatcher, Dispatcher.Status, timeout, sub_target=target_vehicle)
 
     @classmethod
     def traffic_signal_state_timeout(cls, kvs_client, target, timeout=5):
