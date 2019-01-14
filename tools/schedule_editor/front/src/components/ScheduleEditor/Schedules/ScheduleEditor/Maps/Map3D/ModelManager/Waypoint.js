@@ -199,6 +199,22 @@ export default class Waypoint extends THREE.Group {
           }
           this.waypointsList[endPoint].material.color.set(this.color.decided);
         }
+
+        for (const changeRoute of schedule.changeRouteList) {
+          const startPoint = changeRoute.routeCodeAfterChangeRoute.startPoint;
+          const lanes = changeRoute.routeCodeAfterChangeRoute.laneList;
+          const endPoint = changeRoute.routeCodeAfterChangeRoute.endPoint;
+
+          if (startPoint && lanes.length > 0 && endPoint) {
+            this.waypointsList[startPoint].material.color.set(
+              this.color.decided
+            );
+            for (let laneID of lanes) {
+              this.laneList[laneID].material.color.set(this.color.decided);
+            }
+            this.waypointsList[endPoint].material.color.set(this.color.decided);
+          }
+        }
       }
     }
   }
@@ -285,6 +301,21 @@ export default class Waypoint extends THREE.Group {
           this.waypointsList[schedule.endPoint].material.color.set(
             this.color.default
           );
+        }
+        for (const changeRoute of schedule.changeRouteList) {
+          const startPoint = changeRoute.routeCodeAfterChangeRoute.startPoint;
+          const lanes = changeRoute.routeCodeAfterChangeRoute.laneList;
+          const endPoint = changeRoute.routeCodeAfterChangeRoute.endPoint;
+
+          if (startPoint && lanes.length > 0 && endPoint) {
+            this.waypointsList[startPoint].material.color.set(
+              this.color.default
+            );
+            for (let laneID of lanes) {
+              this.laneList[laneID].material.color.set(this.color.default);
+            }
+            this.waypointsList[endPoint].material.color.set(this.color.default);
+          }
         }
       }
     }
@@ -394,13 +425,11 @@ export default class Waypoint extends THREE.Group {
 
   setScheduleEditorActiveStep(scheduleEditorActiveStep) {
     this.scheduleEditorActiveStep = scheduleEditorActiveStep;
-    console.log(this.scheduleEditorActiveStep);
     this._changeAllObjectColorToDefault();
     this._updateViewer();
   }
 
   _updateViewer() {
-    console.log(this.scheduleEditorActiveStep);
     if (this.waypoint && this.lane && this.scheduleEditorActiveStep) {
       this.selectCandidateObject = [];
       switch (this.scheduleEditorActiveStep.scheduleEditorActiveStep) {
@@ -409,7 +438,6 @@ export default class Waypoint extends THREE.Group {
           break;
         }
         case scheduleEditorSteps.changeRouteEditor.id: {
-          console.log(this.scheduleEditorActiveStep.changeRouteActiveStep);
           switch (this.scheduleEditorActiveStep.changeRouteActiveStep) {
             case 0: {
               this.updateSelectRouteCodeAfterChangeRouteStep();
@@ -424,7 +452,6 @@ export default class Waypoint extends THREE.Group {
               break;
             }
             default: {
-              console.log(this.scheduleEditorActiveStep.changeRouteActiveStep);
               break;
             }
           }
@@ -452,7 +479,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateSelectRouteCodeAfterChangeRouteStep() {
-    console.log(this.routeCodeAfterChangeRoute);
     this._colorScheduleList();
     this._colorSelectRouteCode();
     this._colorRouteCodeAfterChangeRoute();

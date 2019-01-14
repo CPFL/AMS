@@ -51,6 +51,37 @@ class ScheduleList extends React.Component {
           />
         </ListItem>
       );
+
+      for (const changeRoute of schedule.changeRouteList) {
+        resList.push(
+          <ListItem
+            button
+            onClick={event => this.selectSchedule(event, schedule)}
+          >
+            <ListItemIcon>
+              <DoneIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <div>
+                  <Typography variant="subheading">
+                    <div style={{ wordBreak: 'break-all' }}>
+                      Route Code After Change Route:{' '}
+                      {changeRoute.routeCodeAfterChangeRoute.routeCode}
+                    </div>
+                  </Typography>
+                  <Typography variant="subheading">
+                    <div style={{ wordBreak: 'break-all' }}>
+                      Decision Section Route Code:{' '}
+                      {changeRoute.decisionSectionRouteCode.routeCode}
+                    </div>
+                  </Typography>
+                </div>
+              }
+            />
+          </ListItem>
+        );
+      }
     }
     return resList;
   }
