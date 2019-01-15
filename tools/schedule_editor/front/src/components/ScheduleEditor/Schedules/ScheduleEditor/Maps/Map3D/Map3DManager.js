@@ -17,6 +17,10 @@ import MapDataUpdater from '../DataUpdater/MapDataUpdater';
 import ScheduleListUpdater from '../DataUpdater/ScheduleListUpdater';
 import RouteCodeListUpdater from '../DataUpdater/RouteCodeListUpdater';
 import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
+import RouteCodeAfterChangeRouteUpdater from '../DataUpdater/RouteCodeAfterChangeRouteUpdater';
+import ScheduleEditorActiveStepUpdater from '../DataUpdater/ScheduleEditorActiveStepUpdater';
+import SelectableDecisionSectionEndPointListUpdater from '../DataUpdater/SelectableDecisionSectionEndPointListUpdater';
+import DecisionSectionRouteCodeUpdater from '../DataUpdater/DecisionSectionRouteCodeUpdater';
 
 import * as ScheduleEditorActions from '../../../../../../redux/Actions/ScheduleEditorActions';
 
@@ -38,6 +42,10 @@ class Map3DManager extends React.Component {
     this.mapData = null;
     this.routeCode = null;
     this.scheduleList = null;
+    this.selectableDecisionSectionEndPointList = null;
+    this.routeCodeAfterChangeRoute = null;
+    this.decisionSectionRouteCode = null;
+    this.scheduleEditorActiveStep = null;
 
     this.initialCameraPosition = { x: 0, y: 0, z: 0 };
 
@@ -66,7 +74,7 @@ class Map3DManager extends React.Component {
     this.renderer.forceContextLoss();
     this.renderer.context = this.renderer.domElement = this.renderer = null;
 
-    this.container = this.camera = this.scene = this.controls = this.stats = this.PCDManager = this.waypointsModelManager = this.mapData = this.scheduleList = null;
+    this.container = this.camera = this.scene = this.controls = this.stats = this.PCDManager = this.waypointsModelManager = this.mapData = this.scheduleList = this.routeCodeAfterChangeRoute = null;
     removeResizeListener(
       document.getElementById('route_code_map_canvas'),
       this.resize
@@ -175,6 +183,9 @@ class Map3DManager extends React.Component {
     this.scene.add(this.PCDManager);
 
     this.waypointsModelManager.set3DParameter(this.camera, this.controls);
+    this.waypointsModelManager.setCallback(
+      this.props.scheduleEditorActions.setDecisionSectionEndPoint
+    );
     this.scene.add(this.waypointsModelManager);
 
     this.PCDManager.setPCDMapFromBinary(this.mapData.pcd);
@@ -189,9 +200,19 @@ class Map3DManager extends React.Component {
     } else {
       this.waypointsModelManager.clear();
     }
-    this.waypointsModelManager.initRouteCodeList(this.routeCodeList);
-    this.waypointsModelManager.updateCurrentRouteCode(this.routeCode);
-    this.waypointsModelManager.initScheduleList(this.scheduleList);
+
+    this.waypointsModelManager.init(
+      this.scheduleList,
+      this.routeCodeList,
+      this.routeCode,
+      this.routeCodeAfterChangeRoute,
+      this.selectableDecisionSectionEndPointList,
+      this.decisionSectionRouteCode
+    );
+
+    this.waypointsModelManager.setScheduleEditorActiveStep(
+      this.scheduleEditorActiveStep
+    );
   }
 
   render() {
@@ -210,6 +231,23 @@ class Map3DManager extends React.Component {
     const initScheduleList = scheduleList => {
       this.scheduleList = scheduleList;
     };
+
+    const initSelectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList => {
+      this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
+    };
+
+    const initRouteCodeAfterChangeRoute = routeCodeAfterChangeRoute => {
+      this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
+    };
+
+    const initDecisionSectionRouteCode = decisionSectionRouteCode => {
+      this.decisionSectionRouteCode = decisionSectionRouteCode;
+    };
+
+    const initScheduleEditorActiveStep = scheduleEditorActiveStep => {
+      this.scheduleEditorActiveStep = scheduleEditorActiveStep;
+    };
+
     const setMapData = mapData => {
       this.PCDManager.setPCDMapFromBinary(mapData.pcd);
       if (
@@ -226,6 +264,30 @@ class Map3DManager extends React.Component {
       this.waypointsModelManager.updateCurrentRouteCode(routeCode);
     };
 
+    const updateRouteCodeAfterChangeRoute = routeCodeAfterChangeRoute => {
+      this.waypointsModelManager.updateRouteCodeAfterChangeRoute(
+        routeCodeAfterChangeRoute
+      );
+    };
+
+    const setSelectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList => {
+      this.waypointsModelManager.setSelectableDecisionSectionEndPointList(
+        selectableDecisionSectionEndPointList
+      );
+    };
+
+    const updateDecisionSectionRouteCode = decisionSectionRouteCode => {
+      this.waypointsModelManager.updateDecisionSectionRouteCode(
+        decisionSectionRouteCode
+      );
+    };
+
+    const setScheduleEditorActiveStep = scheduleEditorActiveStep => {
+      this.waypointsModelManager.setScheduleEditorActiveStep(
+        scheduleEditorActiveStep
+      );
+    };
+
     return (
       <div id="route_code_map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater initMapData={initMapData} setMapData={setMapData} />
@@ -233,8 +295,28 @@ class Map3DManager extends React.Component {
           initRouteCode={initRouteCode}
           updateRouteCode={updateCurrentRouteCode}
         />
+        <RouteCodeAfterChangeRouteUpdater
+          initRouteCodeAfterChangeRoute={initRouteCodeAfterChangeRoute}
+          updateRouteCodeAfterChangeRoute={updateRouteCodeAfterChangeRoute}
+        />
         <ScheduleListUpdater initScheduleList={initScheduleList} />
         <RouteCodeListUpdater initRouteCodeList={initRouteCodeList} />
+        <ScheduleEditorActiveStepUpdater
+          initScheduleEditorActiveStep={initScheduleEditorActiveStep}
+          setScheduleEditorActiveStep={setScheduleEditorActiveStep}
+        />
+        <SelectableDecisionSectionEndPointListUpdater
+          initSelectableDecisionSectionEndPointList={
+            initSelectableDecisionSectionEndPointList
+          }
+          setSelectableDecisionSectionEndPointList={
+            setSelectableDecisionSectionEndPointList
+          }
+        />
+        <DecisionSectionRouteCodeUpdater
+          initDecisionSectionRouteCode={initDecisionSectionRouteCode}
+          updateDecisionSectionRouteCode={updateDecisionSectionRouteCode}
+        />
       </div>
     );
   }

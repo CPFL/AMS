@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import connect from 'react-redux/es/connect/connect';
 
-import { SelectRouteCode, Result } from './ScheduleEditSteps';
+import CreateSchedule from './ScheduleEditSteps';
 import ChangeRouteEditor from './ChangeRouteEditor/ChangeRouteEditor';
 
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
@@ -13,22 +13,13 @@ class ScheduleEditProcess extends React.Component {
     super(props);
 
     this.component = {
-      selectRouteCode: <SelectRouteCode />,
-      changeRouteEditor: <ChangeRouteEditor />,
-      result: <Result />
-      /*
-      SelectChangeRoute: {
-        component: <SelectChangeRoute />
-      },
-      result: {
-        component: <Result />
-      }
-      */
+      selectRouteCode: <CreateSchedule />,
+      changeRouteEditor: <ChangeRouteEditor />
     };
   }
 
   getSteps() {
-    return this.component[this.props.activeStepSchedule];
+    return this.component[this.props.scheduleEditorActiveStep];
   }
 
   render() {
@@ -42,12 +33,12 @@ class ScheduleEditProcess extends React.Component {
 }
 
 ScheduleEditProcess.propTypes = {
-  activeStepSchedule: PropTypes.string,
+  scheduleEditorActiveStep: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor()
+  scheduleEditorActiveStep: state.scheduleEditor.getScheduleEditorActiveStep()
 });
 const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)

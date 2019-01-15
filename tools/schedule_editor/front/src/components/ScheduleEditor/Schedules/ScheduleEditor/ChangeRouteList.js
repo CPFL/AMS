@@ -8,6 +8,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import DoneIcon from '@material-ui/icons/Done';
+import Typography from '@material-ui/core/Typography';
 
 class ChangeRouteList extends React.Component {
   constructor(props) {
@@ -20,7 +21,6 @@ class ChangeRouteList extends React.Component {
 
   getItems() {
     let currentEditChangeRouoteList = this.props.currentEditChangeRouteList;
-    currentEditChangeRouoteList = ['test', 'test2', 'test4'];
 
     const resList = [];
     for (const item of currentEditChangeRouoteList) {
@@ -30,7 +30,18 @@ class ChangeRouteList extends React.Component {
             <DoneIcon />
           </ListItemIcon>
           <ListItemText
-            primary={<div style={{ wordBreak: 'break-all' }}>{item}</div>}
+            primary={
+              <div>
+                <Typography component="span" color="textPrimary">
+                  Route Code After Change Route:{' '}
+                  {item.routeCodeAfterChangeRoute.routeCode}
+                </Typography>
+                <Typography component="span" color="textPrimary">
+                  Decision Section Route Code:{' '}
+                  {item.decisionSectionRouteCode.routeCode}
+                </Typography>
+              </div>
+            }
           />
         </ListItem>
       );

@@ -29,6 +29,16 @@ class ScheduleDownloadButton extends React.Component {
           });
         }
       }
+      for (const changeRoute of schedule.changeRouteList) {
+        outputSchedules.push({
+          name: 'change_route',
+          second: changeRoute.decisionSectionRouteCode.routeCode
+        });
+        outputSchedules.push({
+          name: 'send_lane_array',
+          second: changeRoute.routeCodeAfterChangeRoute.routeCode
+        });
+      }
     }
     this.handleDownload(outputSchedules);
   }
@@ -46,7 +56,7 @@ class ScheduleDownloadButton extends React.Component {
       <div style={{ marginLeft: 'auto' }}>
         <Button
           id="download"
-          download="schedule.txt"
+          download="schedule.json"
           href="#"
           color="primary"
           onClick={this.downloadSchedule}

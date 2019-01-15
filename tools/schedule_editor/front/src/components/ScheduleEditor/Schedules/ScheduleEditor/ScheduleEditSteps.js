@@ -14,14 +14,16 @@ import CardActions from '@material-ui/core/CardActions/CardActions';
 import MenuItem from '@material-ui/core/MenuItem';
 import Button from '@material-ui/core/Button/Button';
 import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Typography from '@material-ui/core/Typography';
 
 import PropTypes from 'prop-types';
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
 
 import ChangeRouteList from './ChangeRouteList';
+import { scheduleEditorSteps } from '../../../../model/Redux/Page/ScheduleEditor';
 
-class SelectRouteCodeComponent extends React.Component {
+class CreateScheduleComponent extends React.Component {
   constructor(props) {
     super(props);
 
@@ -145,22 +147,44 @@ class SelectRouteCodeComponent extends React.Component {
             <Card style={changeRouteListCardStyle}>
               <CardHeader
                 action={
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    onClick={() => {
-                      this.props.scheduleEditorActions.setActiveStepScheduleEditor(
-                        'changeRouteEditor'
-                      );
-                    }}
-                  >
-                    <AddIcon
-                      style={{ color: 'white', marginRight: '5px' }}
-                      fontSize="small"
-                    />
-                    Add Change Route
-                  </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => {
+                        console.log(this.props.currentRouteCodeSchedule);
+                        if (this.props.currentRouteCodeSchedule.routeCode) {
+                          this.props.scheduleEditorActions.setScheduleEditorActiveStep(
+                            scheduleEditorSteps.changeRouteEditor.id
+                          );
+                        }
+                      }}
+                    >
+                      <AddIcon
+                        style={{ color: 'white', marginRight: '5px' }}
+                        fontSize="small"
+                      />
+                      Add Change Route
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      onClick={() => {
+                        if (this.props.currentRouteCodeSchedule.routeCode) {
+                          this.props.scheduleEditorActions.deleteLatestChangeRoute();
+                        }
+                      }}
+                      style={{ marginLeft: '5px' }}
+                    >
+                      <DeleteIcon
+                        style={{ color: 'white', marginRight: '5px' }}
+                        fontSize="small"
+                      />
+                      Delete Latest Route
+                    </Button>
+                  </div>
                 }
                 title={
                   <Typography variant="subtitle1" gutterBottom>
@@ -188,7 +212,7 @@ class SelectRouteCodeComponent extends React.Component {
     );
   }
 }
-SelectRouteCodeComponent.propTypes = {
+CreateScheduleComponent.propTypes = {
   activeStepSchedule: PropTypes.string,
   selectableRouteCode: PropTypes.array,
   currentRouteCodeSchedule: PropTypes.object,
@@ -196,94 +220,17 @@ SelectRouteCodeComponent.propTypes = {
   waitTime: PropTypes.number,
   scheduleEditorActions: PropTypes.object
 };
-const mapStateSelectRouteCode = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor(),
+const mapStateCreateSchedule = state => ({
+  scheduleEditorActiveStep: state.scheduleEditor.getScheduleEditorActiveStep(),
   selectableRouteCode: state.scheduleEditor.getSelectableRouteCode(),
   currentRouteCodeSchedule: state.scheduleEditor.getCurrentRouteCodeSchedule(),
   checkedSendEngage: state.scheduleEditor.getCheckedSendEngage(),
   waitTime: state.scheduleEditor.getWaitTime()
 });
-const mapDispatchSelectRouteCode = dispatch => ({
+const mapDispatchCreateSchedule = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
-export const SelectRouteCode = connect(
-  mapStateSelectRouteCode,
-  mapDispatchSelectRouteCode
-)(SelectRouteCodeComponent);
-
-class ResultComponent extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.back = this.back.bind(this);
-    this.reselect = this.reselect.bind(this);
-  }
-
-  reselect() {
-    //this.props.scheduleEditorActions.resetRouteCode();
-  }
-
-  back() {
-    //this.props.scheduleEditorActions.backStep(steps.result.previousStep);
-  }
-
-  render() {
-    return (
-      <Card style={{ width: '100%', minHeight: '100px' }}>
-        <CardHeader title="Result" />
-        <CardContent>Test</CardContent>
-        <CardActions>
-          <div style={{ marginLeft: 'auto' }}>
-            <Button variant="outlined" onClick={this.back}>
-              Back
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => {
-                //this.save(routeCode);
-              }}
-              style={{ marginLeft: '5px' }}
-            >
-              Save
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => {
-                //this.saveAndAnotherSelect(routeCode);
-              }}
-              style={{ marginLeft: '5px' }}
-            >
-              Save And Select Another
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={this.reselect}
-              style={{ marginLeft: '5px' }}
-            >
-              Reselect
-            </Button>
-          </div>
-        </CardActions>
-      </Card>
-    );
-  }
-}
-
-ResultComponent.propTypes = {
-  activeStepSchedule: PropTypes.string,
-  scheduleEditorActions: PropTypes.object
-};
-const mapStateResult = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor()
-});
-const mapDispatchResult = dispatch => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
-});
-
-export const Result = connect(
-  mapStateResult,
-  mapDispatchResult
-)(ResultComponent);
+export default connect(
+  mapStateCreateSchedule,
+  mapDispatchCreateSchedule
+)(CreateScheduleComponent);

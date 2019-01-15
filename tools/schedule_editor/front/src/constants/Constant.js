@@ -19,30 +19,30 @@ export const REDUX = {
     RESET_ROUTE_CODE: 'resetRouteCode',
 
     //Schedule Editor
-    SET_ACTIVE_STEP_SCHEDULE_EDITOR: 'setActiveStepScheduleEditor',
+    SET_SCHEDULE_EDITOR_ACTIVE_STEP: 'setScheduleEditorActiveStep',
     SER_CURRENT_ROUTE_CODE_SCHEDULE: 'setCurrentRouteCodeSchedule',
     SET_CHECKED_SEND_ENGAGE: 'setCheckedSendEngage',
     SET_WAIT_TIME: 'setWaitTime',
     SET_CURRENT_EDIT_CHANGE_ROUTE_LIST: 'setCurrentEditChangeRouteList',
+    DELETE_LATEST_CHANGE_ROUTE: 'deleteLatestChangeRoute',
     SAVE_SCHEDULE: 'saveSchedule',
     // Change Route Editor
     SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT: 'setChangeRouteActiveStepNext',
-    SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepNext',
-    SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepNext',
-
-    SET_CHANGE_ROUTE_IS_BACK: 'setChangeRouteIsBack',
-    SET_CHANGE_ROUTE_START_POINT: 'setChangeRouteStartPoint',
-    SET_CHANGE_ROUTE_LANE_LIST: 'setChangeRouteLaneList',
-    SET_CHANGE_ROUTE_END_POINT: 'setChangeRouteEndPoint',
-
+    SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepPrevious',
+    SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepReset',
+    CANCEL_SELECT_CHANGE_ROUTE: 'cancelSelectChangeRoute',
+    SET_ROUTE_CODE_AFTER_CHANGE_ROUTE: 'setRouteCodeAfterChangeRoute',
+    SET_DECISION_SECTION_END_POINT: 'setDecisionSectionEndPoint',
+    SAVE_CHANGE_ROUTE: 'saveChangeRoute',
     //Route Code List
+    ADD_CONTINUE_ROUTE: 'addContinueRoute',
     DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX:
       'deleteRouteCodeFromRouteCodeListByIndex',
     SET_SELECT_ROUTE_CODE_DISPLAY_MAIN_VIEWER:
       'setSelectRouteCodeDisplayMainViewer',
     ADD_ROUTE_CODE_BY_TEXT: 'addRouteCodeByText',
 
-    //Scedule List
+    //Schedule List
     DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST:
       'deleteLatestScheduleFromScheduleList',
     OPEN_ADD_SCHEDULE_MODAL_AND_EDIT_SCHEDULE:

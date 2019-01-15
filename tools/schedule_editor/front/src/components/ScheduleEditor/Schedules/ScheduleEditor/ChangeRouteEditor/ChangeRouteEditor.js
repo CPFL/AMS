@@ -1,5 +1,4 @@
 import React from 'react';
-import { bindActionCreators } from 'redux';
 import connect from 'react-redux/es/connect/connect';
 
 import Stepper from '@material-ui/core/Stepper';
@@ -7,9 +6,12 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 
 import PropTypes from 'prop-types';
-import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
 
-import { SelectStartPoint } from './CreateChangeRouteProcess';
+import SelectRouteCodeAfterChangeRoute from './SelectRouteCodeAfterChangeRoute';
+import SelectDecisionSectionRouteCode from './SelectDecisionSectionRouteCode';
+import Result from './Result';
+
+import { changeRouteSteps } from '../../../../../model/Redux/Page/ScheduleEditor';
 
 class ChangeRouteEditor extends React.Component {
   constructor(props) {
@@ -17,24 +19,13 @@ class ChangeRouteEditor extends React.Component {
 
     this.steps = [
       {
-        name: 'select Start Point',
-        component: <SelectStartPoint />
+        component: <SelectRouteCodeAfterChangeRoute />
       },
       {
-        name: 'Select Lane',
-        component: 'Test'
+        component: <SelectDecisionSectionRouteCode />
       },
       {
-        name: 'Select End Point',
-        component: 'Test'
-      },
-      {
-        name: 'Select Decision Section end point',
-        component: 'Test'
-      },
-      {
-        name: 'Result',
-        component: 'Test'
+        component: <Result />
       }
     ];
   }
@@ -47,7 +38,7 @@ class ChangeRouteEditor extends React.Component {
     return (
       <div>
         <Stepper activeStep={this.props.changeRouteActiveStep}>
-          {this.steps.map(step => {
+          {changeRouteSteps.map(step => {
             return (
               <Step key={step.name}>
                 <StepLabel>{step.name}</StepLabel>
@@ -61,15 +52,12 @@ class ChangeRouteEditor extends React.Component {
   }
 }
 ChangeRouteEditor.propTypes = {
-  changeRouteActiveStep: PropTypes.number,
-  scheduleEditorActions: PropTypes.object
+  changeRouteActiveStep: PropTypes.number
 };
 const mapStateSelectRouteCode = state => ({
   changeRouteActiveStep: state.scheduleEditor.getChangeRouteActiveStep()
 });
-const mapDispatchSelectRouteCode = dispatch => ({
-  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
-});
+const mapDispatchSelectRouteCode = () => ({});
 export default connect(
   mapStateSelectRouteCode,
   mapDispatchSelectRouteCode
