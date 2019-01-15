@@ -117,6 +117,13 @@ export function setCurrentEditChangeRouteList(currentEditChangeRouteList) {
   };
 }
 
+export function deleteLatestChangeRoute() {
+  return {
+    type: REDUX.ACTION_TYPE.DELETE_LATEST_CHANGE_ROUTE
+  };
+}
+
+
 export function saveSchedule() {
   return {
     type: REDUX.ACTION_TYPE.SAVE_SCHEDULE

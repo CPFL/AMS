@@ -14,6 +14,7 @@ import CardActions from '@material-ui/core/CardActions/CardActions';
 import MenuItem from '@material-ui/core/MenuItem';
 import Button from '@material-ui/core/Button/Button';
 import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Typography from '@material-ui/core/Typography';
 
 import PropTypes from 'prop-types';
@@ -146,24 +147,44 @@ class CreateScheduleComponent extends React.Component {
             <Card style={changeRouteListCardStyle}>
               <CardHeader
                 action={
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    onClick={() => {
-                      if (this.props.currentRouteCodeSchedule.routeCode) {
-                        this.props.scheduleEditorActions.setScheduleEditorActiveStep(
-                          scheduleEditorSteps.changeRouteEditor.id
-                        );
-                      }
-                    }}
-                  >
-                    <AddIcon
-                      style={{ color: 'white', marginRight: '5px' }}
-                      fontSize="small"
-                    />
-                    Add Change Route
-                  </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      onClick={() => {
+                        console.log(this.props.currentRouteCodeSchedule);
+                        if (this.props.currentRouteCodeSchedule.routeCode) {
+                          this.props.scheduleEditorActions.setScheduleEditorActiveStep(
+                            scheduleEditorSteps.changeRouteEditor.id
+                          );
+                        }
+                      }}
+                    >
+                      <AddIcon
+                        style={{ color: 'white', marginRight: '5px' }}
+                        fontSize="small"
+                      />
+                      Add Change Route
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      onClick={() => {
+                        if (this.props.currentRouteCodeSchedule.routeCode) {
+                          this.props.scheduleEditorActions.deleteLatestChangeRoute();
+                        }
+                      }}
+                      style={{ marginLeft: '5px' }}
+                    >
+                      <DeleteIcon
+                        style={{ color: 'white', marginRight: '5px' }}
+                        fontSize="small"
+                      />
+                      Delete Latest Route
+                    </Button>
+                  </div>
                 }
                 title={
                   <Typography variant="subtitle1" gutterBottom>

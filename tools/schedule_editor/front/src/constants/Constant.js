@@ -24,6 +24,7 @@ export const REDUX = {
     SET_CHECKED_SEND_ENGAGE: 'setCheckedSendEngage',
     SET_WAIT_TIME: 'setWaitTime',
     SET_CURRENT_EDIT_CHANGE_ROUTE_LIST: 'setCurrentEditChangeRouteList',
+    DELETE_LATEST_CHANGE_ROUTE: 'deleteLatestChangeRoute',
     SAVE_SCHEDULE: 'saveSchedule',
     // Change Route Editor
     SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT: 'setChangeRouteActiveStepNext',

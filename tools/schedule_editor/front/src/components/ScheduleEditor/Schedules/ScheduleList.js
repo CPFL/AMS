@@ -22,11 +22,29 @@ class ScheduleList extends React.Component {
     const resList = [];
     for (const schedule of scheduleList) {
       let sendEngageText = '';
+      const changeRouteListText = [];
       if (schedule.checkedSendEngage) {
         sendEngageText = (
           <Typography variant="subheading">
-            Send Engage: {schedule.waitTime} Second
+            Send Engage: {schedule.waitTime} Second Later
           </Typography>
+        );
+      }
+      for (const changeRoute of schedule.changeRouteList) {
+        changeRouteListText.push(
+          <div style={{ marginTop: '5px', marginLeft: '15px' }}>
+            <Typography variant="subheading">
+              <div style={{ wordBreak: 'break-all' }}>
+                Change Route: {changeRoute.decisionSectionRouteCode.routeCode}
+              </div>
+            </Typography>
+            <Typography variant="subheading">
+              <div style={{ wordBreak: 'break-all' }}>
+                Send Lane Array:{' '}
+                {changeRoute.routeCodeAfterChangeRoute.routeCode}
+              </div>
+            </Typography>
+          </div>
         );
       }
       resList.push(
@@ -46,42 +64,12 @@ class ScheduleList extends React.Component {
                   </div>
                 </Typography>
                 {sendEngageText}
+                {changeRouteListText}
               </div>
             }
           />
         </ListItem>
       );
-
-      for (const changeRoute of schedule.changeRouteList) {
-        resList.push(
-          <ListItem
-            button
-            onClick={event => this.selectSchedule(event, schedule)}
-          >
-            <ListItemIcon>
-              <DoneIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <div>
-                  <Typography variant="subheading">
-                    <div style={{ wordBreak: 'break-all' }}>
-                      Route Code After Change Route:{' '}
-                      {changeRoute.routeCodeAfterChangeRoute.routeCode}
-                    </div>
-                  </Typography>
-                  <Typography variant="subheading">
-                    <div style={{ wordBreak: 'break-all' }}>
-                      Decision Section Route Code:{' '}
-                      {changeRoute.decisionSectionRouteCode.routeCode}
-                    </div>
-                  </Typography>
-                </div>
-              }
-            />
-          </ListItem>
-        );
-      }
     }
     return resList;
   }
