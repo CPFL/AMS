@@ -23,7 +23,6 @@ export const REDUX = {
     SER_CURRENT_ROUTE_CODE_SCHEDULE: 'setCurrentRouteCodeSchedule',
     SET_CHECKED_SEND_ENGAGE: 'setCheckedSendEngage',
     SET_WAIT_TIME: 'setWaitTime',
-    SET_CURRENT_EDIT_CHANGE_ROUTE_LIST: 'setCurrentEditChangeRouteList',
     DELETE_LATEST_CHANGE_ROUTE: 'deleteLatestChangeRoute',
     SAVE_SCHEDULE: 'saveSchedule',
     // Change Route Editor

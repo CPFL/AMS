@@ -101,7 +101,6 @@ const ScheduleEditorRecord = new Record({
   // create schedule
   scheduleEditorActiveStep: '',
   selectableRouteCodeList: null,
-  nextSelectableRouteCodeList: null,
   currentRouteCodeSchedule: null,
   checkedSendEngage: false,
   waitTime: 0,
@@ -147,7 +146,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       // create schedule
       scheduleEditorActiveStep: 'selectRouteCode',
       selectableRouteCodeList: List(),
-      nextSelectableRouteCodeList: List(),
       currentRouteCodeSchedule: new RouteCodeRecord(),
       checkedSendEngage: false,
       waitTime: 0,
@@ -356,12 +354,20 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setCurrentRouteCodeSchedule(currentRouteCodeSchedule) {
     let currentRouteCode = null;
+    const previousRouteCode = this.get('currentRouteCodeSchedule');
     if (currentRouteCodeSchedule) {
       currentRouteCode = new RouteCodeRecord(currentRouteCodeSchedule);
     } else {
       currentRouteCode = new RouteCodeRecord();
     }
-    return this.set('currentRouteCodeSchedule', currentRouteCode);
+    if (currentRouteCodeSchedule.routeCode !== previousRouteCode.routeCode) {
+      return this.set('currentRouteCodeSchedule', currentRouteCode)
+        .set('checkedSendEngage', false)
+        .set('waitTime', 0)
+        .set('currentEditChangeRouteList', List());
+    } else {
+      return this;
+    }
   }
 
   setCheckedSendEngage(checkedSendEngage) {
@@ -370,10 +376,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setWaitTime(waitTime) {
     return this.set('waitTime', waitTime);
-  }
-
-  setCurrentEditChangeRouteList(currentEditChangeRouteList) {
-    return this.set('currentEditChangeRouteList', currentEditChangeRouteList);
   }
 
   deleteLatestChangeRoute() {
@@ -782,10 +784,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       'selectedDisplayRouteMainViewer',
       new selectedDisplayRouteMainViewerRecord()
         .set('type', 'schedule')
-        .set(
-          'selectRoute',
-          new RouteCodeRecord(selectScheduleDisplayMainViewer)
-        )
+        .set('selectRoute', new ScheduleRecord(selectScheduleDisplayMainViewer))
         .set('routeList', this.get('scheduleList'))
     );
   }

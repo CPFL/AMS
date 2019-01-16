@@ -51,12 +51,6 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
     return state.setCheckedSendEngage(action.checkedSendEngage);
   } else if (action.type === REDUX.ACTION_TYPE.SET_WAIT_TIME) {
     return state.setWaitTime(action.waitTime);
-  } else if (
-    action.type === REDUX.ACTION_TYPE.SET_CURRENT_EDIT_CHANGE_ROUTE_LIST
-  ) {
-    return state.setCurrentEditChangeRouteList(
-      action.currentEditChangeRouteList
-    );
   } else if (action.type === REDUX.ACTION_TYPE.DELETE_LATEST_CHANGE_ROUTE) {
     return state.deleteLatestChangeRoute();
   } else if (action.type === REDUX.ACTION_TYPE.SAVE_SCHEDULE) {

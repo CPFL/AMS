@@ -110,19 +110,11 @@ export function setWaitTime(waitTime) {
   };
 }
 
-export function setCurrentEditChangeRouteList(currentEditChangeRouteList) {
-  return {
-    type: REDUX.ACTION_TYPE.SET_CURRENT_EDIT_CHANGE_ROUTE_LIST,
-    currentEditChangeRouteList: currentEditChangeRouteList
-  };
-}
-
 export function deleteLatestChangeRoute() {
   return {
     type: REDUX.ACTION_TYPE.DELETE_LATEST_CHANGE_ROUTE
   };
 }
-
 
 export function saveSchedule() {
   return {
