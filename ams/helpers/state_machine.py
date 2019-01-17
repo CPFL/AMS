@@ -62,7 +62,7 @@ class StateMachine(object):
                 conditions_result = True
             else:
                 conditions_result = all(map(
-                    lambda x: not x[1] if x[0] else x[1],
+                    lambda x: (not x[1] if x[0] else x[1]) if x[1] is not None else False,
                     map(
                         lambda y: (
                             y["not"] if "not" in y else False,
