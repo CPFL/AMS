@@ -666,7 +666,7 @@ class Hook(object):
                 index=vehicle_location.waypoint_index
             )
         else:
-            logger.info(
+            logger.warning(
                 "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
 
