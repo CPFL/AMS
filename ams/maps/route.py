@@ -140,6 +140,16 @@ class Route(object):
             self.__waypoint.get_waypoints(),
             self.__getRouteCost, cost_limit, reverse)
 
+    def search_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        return self.search_shortest_routes(start, goals, cost_limit, reverse)
+
+    def search_multi_destinations_shortest_route_array(self, locations, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        return Helper.search_multi_destinations_shortest_route_array(
+            locations,
+            self.__lane.get_lanes(), self.__lane.get_to_lanes(), self.__lane.get_from_lanes(),
+            self.__waypoint.get_waypoints(),
+            self.__getRouteCost, cost_limit, reverse)
+
     def add_length_to_routes(self, routes):
         for route_id in routes:
             routes[route_id]["length"] = self.get_route_length(routes[route_id])
