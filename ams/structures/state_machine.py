@@ -32,7 +32,17 @@ template = {
                 }
             ]
         }
-    ]
+    ],
+    "states": {
+        "s0": {
+            "hooks": [
+                {
+                    "function": "c0",
+                    "args": ["v1"]
+                }
+            ]
+        }
+    }
 }
 
 arg_schema = {
@@ -114,6 +124,20 @@ transition_schema = {
     }
 }
 
+state_schema = {
+    "hooks": {
+        "type": "list",
+        "schema": {
+            "type": "dict",
+            "schema": hook_schema,
+            "nullable": False,
+            "minlength": 1
+        },
+        "required": True,
+        "nullable": True
+    }
+}
+
 schema = {
     "initial_state": {
         "type": "string",
@@ -134,6 +158,17 @@ schema = {
             "minlength": 1
         },
         "required": True,
+        "nullable": False
+    },
+    "states": {
+        "type": "dict",
+        "valueschema": {
+            "type": "dict",
+            "schema": state_schema,
+            "nullable": False,
+            "minlength": 1
+        },
+        "required": False,
         "nullable": False
     }
 }
