@@ -284,7 +284,6 @@ class Hook(object):
                 CLIENT.KVS.KEY_PATTERN_DELIMITER)[3:5]
             if relation_key_lane_array_id == str(lane_array_id):
                 route_code = relation_key_route_code
-
         return route_code
 
     @classmethod
@@ -938,7 +937,6 @@ class Hook(object):
             status.next_light_color = next_event.name
             status.next_update_time = next_event.period.start
             Hook.set_status(kvs_client, target_traffic_signal, status)
-
 
     @classmethod
     def delete_config(cls, kvs_client, target):
