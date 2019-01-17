@@ -15,24 +15,24 @@ class Hook(object):
     @classmethod
     def get_config_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target),
+            Target.encode(target),
             "config"])
 
     @classmethod
     def get_status_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target),
+            Target.encode(target),
             "status"])
 
     @classmethod
     def get_vehicle_location_key(cls, target):
-        return Target.get_code(target) + Autoware.CONST.TOPIC.VEHICLE_LOCATION
+        return Target.encode(target) + Autoware.CONST.TOPIC.VEHICLE_LOCATION
 
     @classmethod
     def get_current_pose_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
-                Target.get_code(target),
+                Target.encode(target),
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.CURRENT_POSE)
 
     @classmethod
@@ -44,40 +44,40 @@ class Hook(object):
 
     @classmethod
     def get_lane_array_key(cls, target):
-        return Target.get_code(target) + AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        return Target.encode(target) + AutowareInterface.CONST.TOPIC.LANE_ARRAY
 
     @classmethod
     def get_decision_maker_state_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
-                Target.get_code(target),
+                Target.encode(target),
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.DECISION_MAKER_STATE)
 
     @classmethod
     def get_state_cmd_key(cls, target):
-        return Target.get_code(target) + AutowareInterface.CONST.TOPIC.STATE_CMD
+        return Target.encode(target) + AutowareInterface.CONST.TOPIC.STATE_CMD
 
     @classmethod
     def get_route_point_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
-                Target.get_code(target),
+                Target.encode(target),
             ] + AutowareInterface.CONST.TOPIC.CATEGORIES.ROUTE_POINT)
 
     @classmethod
     def get_stop_waypoint_index_key(cls, target):
-        return Target.get_code(target) + AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        return Target.encode(target) + AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
 
     @classmethod
     def get_schedule_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target),
+            Target.encode(target),
             "schedule"])
 
     @classmethod
     def get_event_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target),
+            Target.encode(target),
             "event"])
 
     @classmethod
@@ -90,7 +90,7 @@ class Hook(object):
     @classmethod
     def get_received_stop_signal_key(cls, target):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target),
+            Target.encode(target),
             "stop_signal"
         ])
 
@@ -98,8 +98,8 @@ class Hook(object):
     def get_transportation_config_key(cls, target_dispatcher, target_vehicle):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
-                Target.get_code(target_dispatcher),
-                Target.get_code(target_vehicle)
+                Target.encode(target_dispatcher),
+                Target.encode(target_vehicle)
             ] + Dispatcher.CONST.TOPIC.CATEGORIES.TRANSPORTATION_CONFIG
         )
 
@@ -107,23 +107,23 @@ class Hook(object):
     def get_transportation_status_key(cls, target_dispatcher, target_vehicle):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join(
             [
-                Target.get_code(target_dispatcher),
-                Target.get_code(target_vehicle)
+                Target.encode(target_dispatcher),
+                Target.encode(target_vehicle)
             ] + Dispatcher.CONST.TOPIC.CATEGORIES.TRANSPORTATION_STATUS)
 
     @classmethod
     def get_relation_key(cls, target_owner, relation_name, from_id, to_id):
         return CLIENT.KVS.KEY_PATTERN_DELIMITER.join([
-            Target.get_code(target_owner), relation_name, from_id, to_id])
+            Target.encode(target_owner), relation_name, from_id, to_id])
 
     @classmethod
     def get_relation_keys(cls, kvs_client, target_owner, relation_name, from_id=None):
         if from_id is not None:
             return kvs_client.keys(
-                CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_owner), relation_name, from_id, "*"]))
+                CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.encode(target_owner), relation_name, from_id, "*"]))
         else:
             return kvs_client.keys(
-                CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.get_code(target_owner), relation_name, "*"]))
+                CLIENT.KVS.KEY_PATTERN_DELIMITER.join([Target.encode(target_owner), relation_name, "*"]))
 
     @classmethod
     def get_config(cls, kvs_client, target, structure=None):

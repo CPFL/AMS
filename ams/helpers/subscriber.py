@@ -37,7 +37,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 
@@ -47,7 +47,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 
@@ -57,7 +57,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 
@@ -67,7 +67,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 
@@ -77,7 +77,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 
@@ -87,7 +87,7 @@ class Subscriber(object):
         if target_autoware is not None:
             return Topic.CONST.DELIMITER.join([
                 rostopic,
-                Target.get_code(target_autoware)
+                Target.encode(target_autoware)
             ])
         return rostopic
 

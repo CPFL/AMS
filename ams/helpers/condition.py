@@ -64,7 +64,7 @@ class Condition(object):
             return False
         timeout_flag = timeout < Event.get_time() - status.updated_at
         if timeout_flag:
-            logger.warning("Node({}) state({}) timeout".format(Target.get_code(target), status.state))
+            logger.warning("Node({}) state({}) timeout".format(Target.encode(target), status.state))
         return timeout_flag
 
     @classmethod

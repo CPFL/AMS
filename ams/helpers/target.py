@@ -48,8 +48,12 @@ class Target(object):
         return list(filter(lambda x: x is not None and x.group == group, targets))
 
     @staticmethod
-    def get_code(target):
+    def encode(target):
         return TARGET.DELIMITER.join([
             target.group if target.group is not None else "",
             target.id if target.id is not None else ""
         ])
+
+    @staticmethod
+    def decode(target_code):
+        return Target.new_target(*target_code.split(TARGET.DELIMITER))

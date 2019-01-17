@@ -133,8 +133,8 @@ class Route(object):
                 sliced_goal_waypoint_id = waypoint_ids[i]
         return route
 
-    def get_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
-        return Helper.get_shortest_routes(
+    def search_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        return Helper.search_shortest_routes(
             start, goals,
             self.__lane.get_lanes(), self.__lane.get_to_lanes(), self.__lane.get_from_lanes(),
             self.__waypoint.get_waypoints(),
