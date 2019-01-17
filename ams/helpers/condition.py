@@ -394,6 +394,8 @@ class Condition(object):
         if vehicle_status.event_id is None:
             return False
         event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        if len(event_id_parts) < 2:
+            return False
         return all([
             Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START == event_id_parts[0],
             Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
@@ -407,6 +409,8 @@ class Condition(object):
         if vehicle_status.event_id is None:
             return False
         event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        if len(event_id_parts) < 2:
+            return False
         return all([
             Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_GOAL == event_id_parts[0],
             Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
