@@ -205,7 +205,7 @@ export default class Waypoint extends THREE.Group {
           const waypointList =
             changeRoute.routeCodeAfterChangeRoute.waypointList;
           if (waypointList) {
-            schedule.waypointList.forEach(waypoint => {
+            waypointList.forEach(waypoint => {
               this.waypointsList[waypoint].material.color.set(
                 this.color.default
               );
@@ -213,54 +213,30 @@ export default class Waypoint extends THREE.Group {
           }
         }
       }
+    }
 
-      if (this.selectScheduleRouteCode) {
-        if (this.selectScheduleRouteCode.startPoint) {
-          this.waypointsList[
-            this.selectScheduleRouteCode.startPoint
-          ].material.color.set(this.color.default);
-        }
-        for (const laneID of this.selectScheduleRouteCode.laneList) {
-          this.laneList[laneID].material.color.set(this.color.default);
-        }
-        if (this.selectScheduleRouteCode.endPoint) {
-          this.waypointsList[
-            this.selectScheduleRouteCode.endPoint
-          ].material.color.set(this.color.default);
-        }
-        for (const changeRoute of this.selectScheduleRouteCode
-          .changeRouteList) {
-          changeRoute.routeCodeAfterChangeRoute.waypointList.forEach(
-            waypoint => {
-              this.waypointsList[waypoint].material.color.set(
-                this.color.default
-              );
-            }
-          );
-          changeRoute.decisionSectionRouteCode.waypointList.forEach(
-            waypoint => {
-              this.waypointsList[waypoint].material.color.set(
-                this.color.default
-              );
-            }
-          );
-        }
+    if (this.selectScheduleRouteCode) {
+      if (this.selectScheduleRouteCode.startPoint) {
+        this.waypointsList[
+          this.selectScheduleRouteCode.startPoint
+        ].material.color.set(this.color.default);
       }
-      /*
-      for (const schedule of this.scheduleList) {
-        const tempStartPoint = schedule.startPoint;
-        const tempLanes = schedule.laneList;
-        const tempEndPoint = schedule.endPoint;
-
-        this.waypointsList[tempStartPoint].material.color.set(
-          this.color.default
-        );
-        for (let laneID of tempLanes) {
-          this.laneList[laneID].material.color.set(this.color.default);
-        }
-        this.waypointsList[tempEndPoint].material.color.set(this.color.default);
+      for (const laneID of this.selectScheduleRouteCode.laneList) {
+        this.laneList[laneID].material.color.set(this.color.default);
       }
-      */
+      if (this.selectScheduleRouteCode.endPoint) {
+        this.waypointsList[
+          this.selectScheduleRouteCode.endPoint
+        ].material.color.set(this.color.default);
+      }
+      for (const changeRoute of this.selectScheduleRouteCode.changeRouteList) {
+        changeRoute.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(this.color.default);
+        });
+        changeRoute.decisionSectionRouteCode.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(this.color.default);
+        });
+      }
     }
   }
 

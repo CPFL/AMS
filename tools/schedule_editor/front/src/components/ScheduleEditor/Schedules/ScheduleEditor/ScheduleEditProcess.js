@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import connect from 'react-redux/es/connect/connect';
 
-import CreateSchedule from './ScheduleEditSteps';
+import CreateSchedule from './CreateSchedule';
 import ChangeRouteEditor from './ChangeRouteEditor/ChangeRouteEditor';
 
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';

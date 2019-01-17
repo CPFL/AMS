@@ -360,7 +360,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     } else {
       currentRouteCode = new RouteCodeRecord();
     }
-    if (currentRouteCodeSchedule.routeCode !== previousRouteCode.routeCode) {
+    if (currentRouteCode.get('routeCode') !== previousRouteCode.routeCode) {
       return this.set('currentRouteCodeSchedule', currentRouteCode)
         .set('checkedSendEngage', false)
         .set('waitTime', 0)
