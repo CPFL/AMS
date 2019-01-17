@@ -2,8 +2,8 @@
 # coding: utf-8
 
 from ams import logger
-from ams.helpers import Hook, Event, Target, Location
-from ams.structures import Vehicle, TrafficSignal, Dispatcher, User, Autoware, CLIENT
+from ams.helpers import Hook, Event, Target
+from ams.structures import Vehicle, TrafficSignal, Dispatcher, User, CLIENT
 
 
 class Condition(object):
@@ -72,8 +72,8 @@ class Condition(object):
         return False
 
     @classmethod
-    def node_state_timeout(cls, kvs_client, target, structure, timeout):
-        status = Hook.get_status(kvs_client, target, structure)
+    def node_state_timeout(cls, kvs_client, target, structure, timeout, sub_target=None):
+        status = Hook.get_status(kvs_client, target, structure, sub_target=sub_target)
         if status is None:
             return False
         timeout_flag = timeout < Event.get_time() - status.updated_at
@@ -84,6 +84,11 @@ class Condition(object):
     @classmethod
     def vehicle_state_timeout(cls, kvs_client, target, timeout=5):
         return cls.node_state_timeout(kvs_client, target, Vehicle.Status, timeout)
+
+    @classmethod
+    def dispatcher_state_timeout(cls, kvs_client, target_dispatcher, target_vehicle, timeout=5):
+        return cls.node_state_timeout(
+            kvs_client, target_dispatcher, Dispatcher.Status, timeout, sub_target=target_vehicle)
 
     @classmethod
     def traffic_signal_state_timeout(cls, kvs_client, target, timeout=5):
@@ -247,8 +252,8 @@ class Condition(object):
     def vehicle_schedule_replaceable(cls, kvs_client, target_vehicle):
         status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
         received_schedule = Hook.get_received_schedule(kvs_client, target_vehicle)
-        if received_schedule is None:
-            return False
+        if None in [status, received_schedule]:
+            return None
 
         received_schedule_event_ids = list(map(lambda x: x.id, received_schedule.events))
         if status.event_id not in received_schedule_event_ids:
@@ -333,7 +338,7 @@ class Condition(object):
     @classmethod
     def user_hired_vehicle(cls, kvs_client, target):
         status = Hook.get_status(kvs_client, target, User.Status)
-        return status.target_vehicle is not None
+        return status.vehicle_info is not None
 
     @classmethod
     def vehicle_related_to_user_exists(cls, kvs_client, target_dispatcher, target_user):
@@ -379,6 +384,32 @@ class Condition(object):
                 applied_vehicle_schedule.events[index:])),
             dispatcher_status.user_statuses))
         return 0 == len(user_statuses)
+
+    @classmethod
+    def vehicle_arrived_at_user_start_location(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status.event_id is None:
+            return False
+        event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        return all([
+            Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START == event_id_parts[0],
+            Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
+
+    @classmethod
+    def vehicle_arrived_at_user_goal_location(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return None
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status.event_id is None:
+            return False
+        event_id_parts = vehicle_status.event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        return all([
+            Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_GOAL == event_id_parts[0],
+            Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT == event_id_parts[1]])
 
     @classmethod
     def vehicle_is_waiting_event_shift(cls, kvs_client, target_vehicle):
