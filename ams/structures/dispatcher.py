@@ -18,6 +18,7 @@ topic["CATEGORIES"].update({
     "SCHEDULE": ["schedule"],
     "EVENT": ["event"],
     "STOP_SIGNAL": ["stop_signal"],
+    "VEHICLE_INFO": ["vehicle", "info"]
 })
 
 const = {}
@@ -372,6 +373,7 @@ class Message(EventLoop.Message):
     Schedule = ScheduleMessage
     Event = EventMessage
     Signal = SignalMessage
+    VehicleInfo = Vehicle.Message.Info
 
 
 class Dispatcher(EventLoop):

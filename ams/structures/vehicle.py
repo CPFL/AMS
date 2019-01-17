@@ -150,6 +150,37 @@ class Status(get_structure_superclass(status_template, status_schema)):
     Pose = Pose
 
 
+info_template = {
+    "target": Target.get_template(),
+    "state": "s0",
+    "location": Location.get_template()
+}
+
+info_schema = {
+    "target": {
+        "type": "dict",
+        "schema": Target.get_schema(),
+        "required": True,
+        "nullable": True
+    },
+    "state": {
+        "type": "string",
+        "required": True,
+        "nullable": True
+    },
+    "location": {
+        "type": "dict",
+        "schema": Location.get_schema(),
+        "required": True,
+        "nullable": True
+    }
+}
+
+
+class Info(get_structure_superclass(info_template, info_schema)):
+    Location = Location
+
+
 config_message_template = {
     "header": MessageHeader.get_template(),
     "body": Config.get_template()
@@ -250,15 +281,42 @@ class RoutePointMessage(get_structure_superclass(route_point_message_template, r
     RoutePoint = RoutePoint
 
 
+info_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": Info.get_template()
+}
+
+info_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": Info.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class InfoMessage(get_structure_superclass(info_message_template, info_message_schema)):
+    Info = Info
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     RouteCode = RouteCodeMessage
     RoutePoint = RoutePointMessage
+    Info = InfoMessage
 
 
 class Vehicle(EventLoop):
     CONST = CONST
     Config = Config
     Status = Status
+    Info = Info
     Message = Message
