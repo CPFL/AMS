@@ -472,6 +472,7 @@ class Subscriber(object):
                         Hook.restart_vehicle_schedule,
                         Hook.reset_vehicle_event_id,
                         Hook.replace_schedule,
+                        Hook.shift_to_next_vehicle_event,
                         Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
                         Publisher.publish_state_cmd,
@@ -489,8 +490,9 @@ class Subscriber(object):
                         Condition.vehicle_location_is_ahead_event_route,
                         Condition.vehicle_location_is_on_event_route,
                         Condition.vehicle_location_is_behind_event_route,
-                        Condition.vehicle_state_timeout,
-                        Condition.vehicle_schedule_changed
+                        Condition.vehicle_schedule_changed,
+                        Condition.vehicle_is_waiting_event_shift,
+                        Condition.vehicle_state_timeout
                     ],
                     variables
                 )
@@ -657,6 +659,40 @@ class Subscriber(object):
                 user_data["pubsub_client"], user_data["kvs_client"], user_data["target_autoware_interface"],
                 user_data["target_autoware"], user_data["target_vehicle"])
 
+    @classmethod
+    def on_user_status_message_update_user_statuses(cls, _client, user_data, topic, user_status_message):
+        target_user = Topic.get_from_target(topic)
+        dispatcher_config = Hook.get_config(user_data["kvs_client"], user_data["target_dispatcher"], Dispatcher.Config)
+        if not Target.target_in_targets(target_user, dispatcher_config.target_users):
+            logger.warning("{} Unknown user: {}".format(
+                Target.encode(user_data["target_dispatcher"]),
+                Target.encode(target_user)))
+            return
+
+        if Condition.status_initialized(
+                user_data["kvs_client"], user_data["target_dispatcher"], User.Status, sub_target=target_user):
+            if user_status_message.body.state != User.CONST.STATE.CALLING:
+                logger.warning("{} User({}) state({}) is not {}".format(
+                    Target.encode(user_data["target_dispatcher"]), Target.encode(target_user),
+                    user_status_message.body.state, User.CONST.STATE.CALLING))
+                return
+
+        if not Hook.set_status(
+                user_data["kvs_client"], user_data["target_dispatcher"], user_status_message.body,
+                sub_target=target_user, timestamp_string=Kvs.get_timestamp_string(user_status_message.header.time)):
+            logger.warning("{} cannot set user_status")
+            return
+
+        if user_status_message.body.vehicle_info is None:
+            if not Condition.vehicle_related_to_user_exists(
+                    user_data["kvs_client"], user_data["target_dispatcher"], target_user):
+                Hook.relate_user_to_vehicle(
+                    user_data["kvs_client"], user_data["maps_client"],
+                    user_data["target_dispatcher"], target_user)
+        else:
+            Hook.add_user_status_to_user_statuses(
+                user_data["kvs_client"], user_data["target_dispatcher"],
+                user_status_message.body.vehicle_info.target, target_user)
 
     @classmethod
     def on_traffic_signal_event_message(cls, _client, user_data, _topic, event_message):

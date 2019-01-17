@@ -30,6 +30,11 @@ const.update({
         "END_NODE": "end_node",
         "CHANGE_SCHEDULE": "change_schedule",
         "RETURN_TO_WAITING_EVENT": "return_to_waiting_event",
+        "SHIFT_EVENT": "shift_event",
+        "SET_GOAL": "set_goal",
+    },
+    "STATE": {
+        "END": "End"
     },
     "EVENT_MESSAGE_TIMEOUT": 10.0,
     "VEHICLE_EVENT_MESSAGE_TIMEOUT": 1.0,

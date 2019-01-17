@@ -4,7 +4,7 @@
 from math import modf
 
 from ams import VERSION, logger
-from ams.helpers import Target, Event, Route, Simulator
+from ams.helpers import Target, Event, Route, Simulator, Location
 from ams.structures import (
     CLIENT, MessageHeader, Pose, RoutePoint, Schedule,
     Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
@@ -656,6 +656,136 @@ class Hook(object):
         cls.set_generated_schedule(kvs_client, target_dispatcher, target_vehicle, generated_schedule)
 
     @classmethod
+    def generate_vehicle_schedule_from_user_statuses(cls, kvs_client, maps_client, target_dispatcher, target_vehicle):
+        dispatcher_status = cls.get_status(kvs_client, target_dispatcher, Dispatcher.Status, target_vehicle)
+        if dispatcher_status is None:
+            logger.warning("dispatcher_status is None")
+            return
+        if None in [dispatcher_status.vehicle_status, dispatcher_status.user_statuses]:
+            logger.warning("None in [dispatcher_status.vehicle_status, dispatcher_status.user_statuses]")
+            return
+        if dispatcher_status.vehicle_status.location is None:
+            logger.warning("dispatcher_status.vehicle_status.location is None")
+            return
+        applied_vehicle_schedule = cls.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+
+        generated_vehicle_schedule_events = []
+        if applied_vehicle_schedule is not None:
+            index = 0
+            vehicle_event_id = dispatcher_status.vehicle_status.event_id
+            if vehicle_event_id is not None:
+                index = Event.get_event_index_by_event_id(applied_vehicle_schedule.events, vehicle_event_id)
+            applied_vehicle_schedule_without_old_events = applied_vehicle_schedule.events[index:]
+            generated_vehicle_schedule_events.extend(applied_vehicle_schedule_without_old_events)
+
+        if applied_vehicle_schedule is None:
+            user_statuses = dispatcher_status.user_statuses
+        else:
+            user_statuses = list(filter(
+                lambda us: not any(filter(
+                    lambda e: Target.target_in_targets(us["target"], e.targets),
+                    applied_vehicle_schedule.events)),
+                dispatcher_status.user_statuses))
+        if 0 < len(user_statuses):
+            vehicle_location = None
+            if applied_vehicle_schedule is not None:
+                filtered_events = list(filter(
+                    lambda x: "route_code" in x and x.route_code is not None, applied_vehicle_schedule.events))
+                if 0 < len(filtered_events):
+                    final_route = Route.decode(filtered_events[-1].route_code)
+                    vehicle_location = Location.Structure.new_data(**{
+                        "waypoint_id": final_route.waypoint_ids[-1],
+                        "lane_code": final_route.lane_codes[-1]
+                    })
+            if vehicle_location is None:
+                if dispatcher_status.vehicle_status.route_point is not None:
+                    latest_lane_code_waypoint_id_relation = maps_client.route.generate_lane_code_waypoint_id_relations(
+                        dispatcher_status.vehicle_status.route_point.route_code)[-1]
+                    vehicle_location = Location.Structure.new_data(**{
+                        "lane_code": latest_lane_code_waypoint_id_relation["lane_code"],
+                        "waypoint_id": latest_lane_code_waypoint_id_relation["waypoint_ids"][-1]
+                    })
+            if vehicle_location is None:
+                vehicle_location = dispatcher_status.vehicle_status.location
+
+            if vehicle_location is None:
+                return
+
+            target_user = user_statuses[0]["target"]
+            user_status = user_statuses[0]["status"]
+            user_start_location = Location.Structure.new_data(**{
+                "waypoint_id": user_status.start_location.waypoint_id,
+                "lane_code": user_status.start_location.lane_code
+            })
+            user_goal_location = Location.Structure.new_data(**{
+                "waypoint_id": user_status.goal_location.waypoint_id,
+                "lane_code": user_status.goal_location.lane_code
+            })
+
+            locations = [vehicle_location]
+            if not Location.same_locations(vehicle_location, user_start_location):
+                locations.append(user_start_location)
+            locations.append(user_goal_location)
+
+            route_array = maps_client.route.search_multi_destinations_shortest_route_array(locations)
+
+            target_user_code = Target.encode(target_user)
+            route_codes = list(map(lambda x: Route.encode(x), route_array))
+            if not Location.same_locations(vehicle_location, user_start_location):
+                generated_vehicle_schedule_events.extend([
+                    Event.new_event(
+                        targets=[],
+                        name=Vehicle.CONST.EVENT.SEND_LANE_ARRAY,
+                        route_code=route_codes.pop(0)),
+                    Event.new_event(
+                        targets=[],
+                        name=Vehicle.CONST.EVENT.SEND_ENGAGE),
+                    Event.new_event(
+                        _id=Vehicle.CONST.EVENT_ID_PARTS.DELIMITER.join([
+                            Vehicle.CONST.EVENT_ID_PARTS.AFTER_MOVE_TO_USER_START,
+                            Vehicle.CONST.EVENT.SEND_GOTO_WAIT_ORDER,
+                            target_user_code]),
+                        targets=[],
+                        name=Vehicle.CONST.EVENT.SEND_GOTO_WAIT_ORDER)])
+            generated_vehicle_schedule_events.extend([
+                Event.new_event(
+                    _id=Vehicle.CONST.EVENT_ID_PARTS.DELIMITER.join([
+                        Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START,
+                        Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT,
+                        target_user_code]),
+                    targets=[target_user],
+                    name=Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT),
+                Event.new_event(
+                    _id=Vehicle.CONST.EVENT_ID_PARTS.DELIMITER.join([
+                        Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START,
+                        Vehicle.CONST.EVENT.SEND_LANE_ARRAY,
+                        target_user_code]),
+                    targets=[target_user],
+                    name=Vehicle.CONST.EVENT.SEND_LANE_ARRAY,
+                    route_code=route_codes.pop(0)),
+                Event.new_event(
+                    _id=Vehicle.CONST.EVENT_ID_PARTS.DELIMITER.join([
+                        Vehicle.CONST.EVENT_ID_PARTS.AFTER_MOVE_TO_USER_GOAL,
+                        Vehicle.CONST.EVENT.SEND_GOTO_WAIT_ORDER,
+                        target_user_code]),
+                    targets=[target_user],
+                    name=Vehicle.CONST.EVENT.SEND_GOTO_WAIT_ORDER),
+                Event.new_event(
+                    _id=Vehicle.CONST.EVENT_ID_PARTS.DELIMITER.join([
+                        Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_GOAL,
+                        Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT,
+                        target_user_code]),
+                    targets=[target_user],
+                    name=Vehicle.CONST.EVENT.WAIT_EVENT_SHIFT),
+            ])
+
+        generated_vehicle_schedule = Schedule.new_data(**{
+            "id": Event.get_id(),
+            "events": generated_vehicle_schedule_events
+        })
+        cls.set_generated_schedule(kvs_client, target_dispatcher, target_vehicle, generated_vehicle_schedule)
+
+    @classmethod
     def generate_route_point(cls, kvs_client, target, vehicle_location):
         route_code = cls.get_route_code_from_lane_array_id(kvs_client, target, vehicle_location.lane_array_id)
         if route_code is not None:
@@ -666,7 +796,7 @@ class Hook(object):
                 index=vehicle_location.waypoint_index
             )
         else:
-            logger.info(
+            logger.warning(
                 "cannot generate route_point for vehicle_location: {}".format(logger.pformat(vehicle_location)))
         return None
 
@@ -1072,6 +1202,61 @@ class Hook(object):
             "status": user_status
         })
         cls.set_user_statuses(kvs_client, target_dispatcher, target_vehicle, user_statuses)
+        return
+
+    @classmethod
+    def update_vehicle_info_for_user(cls, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = cls.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
+        if dispatcher_status is None:
+            return
+        vehicle_status = dispatcher_status.vehicle_status
+        if vehicle_status is None:
+            return
+        vehicle_event_id = vehicle_status.event_id
+        if vehicle_event_id is None:
+            return
+
+        state = None
+        current_target_user = None
+        vehicle_event_id_parts = vehicle_event_id.split(Vehicle.CONST.EVENT_ID_PARTS.DELIMITER)
+        if Vehicle.CONST.EVENT_ID_PARTS.AFTER_MOVE_TO_USER_START == vehicle_event_id_parts[0]:
+            state = Vehicle.CONST.STATE.ON_ROUTE_TO_USER
+        if Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_START == vehicle_event_id_parts[0]:
+            state = Vehicle.CONST.STATE.AT_USER_START_LOCATION
+        if Vehicle.CONST.EVENT_ID_PARTS.AFTER_MOVE_TO_USER_GOAL == vehicle_event_id_parts[0]:
+            if "\n" + Autoware.CONST.DECISION_MAKER_STATE.DRIVING not in vehicle_status.decision_maker_state.data:
+                state = Vehicle.CONST.STATE.AT_USER_START_LOCATION
+            else:
+                state = Vehicle.CONST.STATE.ON_ROUTE_OF_USER
+        if Vehicle.CONST.EVENT_ID_PARTS.WAIT_AT_USER_GOAL == vehicle_event_id_parts[0]:
+            state = Vehicle.CONST.STATE.AT_USER_GOAL_LOCATION
+
+        # logger.info("{} vehicle_info.state: {}".format(Target.encode(target_vehicle), state))
+        if state is not None:
+            location = vehicle_status.location
+            current_target_user = Target.new_target(
+                *vehicle_status.event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
+            vehicle_info = Vehicle.Info.new_data(**{
+                "target": target_vehicle,
+                "state": state,
+                "location": location
+            })
+            cls.set_vehicle_info(kvs_client, target_dispatcher, vehicle_info, sub_target=current_target_user)
+
+        applied_schedule = cls.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
+        if applied_schedule is None:
+            return
+        event_index = Event.get_event_index_by_event_id(applied_schedule.events, vehicle_event_id)
+        target_users = Event.generate_same_group_targets(applied_schedule.events[event_index:], User.CONST.NODE_NAME)
+        if current_target_user is not None:
+            target_users = list(filter(lambda x: not Target.is_same(current_target_user, x), target_users))
+        for target_user in target_users:
+            vehicle_info = Vehicle.Info.new_data(**{
+                "target": target_vehicle,
+                "state": None,
+                "location": None
+            })
+            cls.set_vehicle_info(kvs_client, target_dispatcher, vehicle_info, sub_target=target_user)
         return
 
     @classmethod

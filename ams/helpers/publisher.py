@@ -160,11 +160,11 @@ class Publisher(object):
         )
 
     @classmethod
-    def get_status_topic(cls, from_target, to_target):
+    def get_status_topic(cls, from_target, to_target, sub_target=None):
         return Topic.get_topic(
             from_target=from_target,
             to_target=to_target,
-            categories=["status"]
+            categories=["status"] + ([] if sub_target is None else [Target.encode(sub_target)])
         )
 
     @classmethod
@@ -307,11 +307,11 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
-    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure):
-        status = Hook.get_status(kvs_client, from_target, structure.Status)
+    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure, sub_target=None):
+        status = Hook.get_status(kvs_client, from_target, structure.Status, sub_target=sub_target)
         if status is None:
             return
-        topic = cls.get_status_topic(from_target, to_target)
+        topic = cls.get_status_topic(from_target, to_target, sub_target)
         message = structure.Message.Status.new_data(**{
             "header": {
                 "id": Event.get_id(),
