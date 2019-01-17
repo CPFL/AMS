@@ -104,6 +104,14 @@ class Publisher(object):
         )
 
     @classmethod
+    def get_decision_maker_state_message_topic(cls, target_autoware, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_autoware,
+            to_target=target_vehicle,
+            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.DECISION_MAKER_STATE
+        )
+
+    @classmethod
     def get_state_cmd_topic(cls, target_vehicle, target_autoware):
         return Topic.get_topic(
             from_target=target_vehicle,
@@ -167,19 +175,19 @@ class Publisher(object):
         )
 
     @classmethod
-    def get_transportation_status_message_topic(cls, target_dispatcher, target_vehicle):
-        return Topic.get_topic(
-            from_target=target_dispatcher,
-            to_target=target_vehicle,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.TRANSPORTATION_STATUS
-        )
-
-    @classmethod
     def get_schedule_message_topic(cls, from_target, to_target):
         return Topic.get_topic(
             from_target=from_target,
             to_target=to_target,
             categories=Dispatcher.CONST.TOPIC.CATEGORIES.SCHEDULE
+        )
+
+    @classmethod
+    def get_event_message_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT
         )
 
     @classmethod
@@ -260,6 +268,21 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
+    def publish_decision_maker_state_message(
+            cls, pubsub_client, kvs_client, target_autoware_interface, target_autoware, target_vehicle):
+        decision_maker_state = Hook.get_decision_maker_state(kvs_client, target_autoware_interface)
+        topic = cls.get_decision_maker_state_message_topic(target_autoware, target_vehicle)
+        message = AutowareInterface.Message.DecisionMakerState.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION,
+            },
+            "body": decision_maker_state
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
     def publish_config(cls, pubsub_client, kvs_client, from_target, to_target, structure):
         config = Hook.get_config(kvs_client, from_target, structure.Config)
         if config is None:
@@ -316,7 +339,7 @@ class Publisher(object):
         event_id = vehicle_status.event_id
         if event_id is not None:
             event = Event.get_event_by_id(Hook.get_schedule(kvs_client, target_vehicle).events, event_id)
-            if event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
+            if event.name == Vehicle.CONST.EVENT.SEND_LANE_ARRAY:
                 if event.route_code is not None:
                     topic = cls.get_route_code_topic(target_vehicle, target_autoware)
                     message = {
@@ -346,20 +369,6 @@ class Publisher(object):
             "body": Hook.generate_vehicle_stop_route_point(kvs_client, maps_client, target_vehicle)
         }
         pubsub_client.publish(topic, message)
-
-    @classmethod
-    def publish_transportation_status_message(
-            cls, pubsub_client, target_dispatcher, target_vehicle, transportation_status):
-        topic = cls.get_transportation_status_message_topic(target_dispatcher, target_vehicle)
-        transportation_status_message = Dispatcher.Message.TransportationStatus.new_data(**{
-            "header": {
-                "id": Event.get_id(),
-                "time": Event.get_time(),
-                "version": VERSION
-            },
-            "body": transportation_status,
-        })
-        pubsub_client.publish(topic, transportation_status_message)
 
     @classmethod
     def publish_schedule_message(cls, pubsub_client, from_target, to_target, schedule, schedule_target=None):

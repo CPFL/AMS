@@ -14,7 +14,6 @@ class Dispatcher(EventLoop):
 
     Config = Structure.Config
     Status = Structure.Status
-    TransportationConfig = Structure.TransportationConfig
     Message = Structure.Message
 
     def __init__(self, config, status, state_machine_path=None):
@@ -22,10 +21,17 @@ class Dispatcher(EventLoop):
 
         self.user_data["state_machine_path"] = state_machine_path
         self.user_data["target_dispatcher"] = self.config.target_self
-        self.user_data["targets"] = self.config.targets
 
-        for target in self.config.target_vehicles:
-            topic = Subscriber.get_vehicle_status_topic(target)
+        topic = Subscriber.get_dispatcher_event_topic(Target.new_target("owner", owner_id), self.config.target_self)
+        self.subscribers[topic] = {
+            "topic": topic,
+            "callback": Subscriber.on_dispatcher_event_message,
+            "structure": Dispatcher.Message.Event,
+            "user_data": self.user_data
+        }
+
+        for target_vehicle in self.config.target_vehicles:
+            topic = Subscriber.get_vehicle_status_topic(target_vehicle, self.config.target_self)
             self.subscribers[topic] = {
                 "topic": topic,
                 "callback": Subscriber.on_vehicle_status_message,
@@ -33,23 +39,9 @@ class Dispatcher(EventLoop):
                 "user_data": self.user_data
             }
 
-            topic = Subscriber.get_vehicle_config_topic(target)
-            self.subscribers[topic] = {
-                "topic": topic,
-                "callback": Subscriber.on_vehicle_config_message,
-                "structure": Vehicle.Message.Config,
-                "user_data": self.user_data
-            }
 
         self.state_machine_path = state_machine_path
 
     def loop(self):
-        resource = StateMachineHelper.load_resource(self.state_machine_path),
-        self.user_data["state_machine"] = StateMachineHelper.create_data(resource)
-        self.user_data["state_machine"]["variables"].update(self.user_data)
-        StateMachineHelper.attach(
-            self.user_data["state_machine"],
-            []
-        )
         while True:
             sleep(self.dt)

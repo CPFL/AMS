@@ -1,0 +1,53 @@
+{
+  "config": {
+    "target_self": {
+      "group": "dispatcher",
+      "id": "entre_demo"
+    },
+    "target_vehicles": [
+      {
+        "group": "vehicle",
+        "id": "logiee_s"
+      }
+    ],
+    "vehicle_schedules": [
+      {
+        "id": "default",
+        "events": [
+          {
+            "id": "event_0",
+            "name": "send_lane_array",
+            "route_code": "2:2>15>47:47"
+          },
+          {
+            "id": "event_1",
+            "name": "send_engage"
+          },
+          {
+            "id": "event_2",
+            "name": "send_goto_wait_order"
+          },
+          {
+            "id": "event_3",
+            "name": "send_lane_array",
+            "route_code": "47:47>0>2:2"
+          },
+          {
+            "id": "event_4",
+            "name": "send_engage"
+          },
+          {
+            "id": "event_5",
+            "name": "loop"
+          }
+        ]
+      }
+    ]
+  },
+  "status": {
+    "state": "Start",
+    "updated_at": 0.0,
+    "vehicle_status": null,
+    "traffic_signal_statuses": null
+  }
+}

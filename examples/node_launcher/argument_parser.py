@@ -7,7 +7,7 @@ parser.add_argument("-IFP", "--initials_file_path", type=str, required=True, hel
 
 parser.add_argument("-TD", "--topic_domain", type=str, default="ams", help="topic domain")
 
-parser.add_argument("-URF", "--use_ros_flag", type=bool, default=False, help="use ros flag")
+parser.add_argument("-URF", "--use_ros_flag", action="store_true", help="use ros flag")
 parser.add_argument("-ELR", "--event_loop_rate", type=float, default=1.0, help="event_loop rate (Hz)")
 
 parser.add_argument("-KH", "--kvs_host", type=str, default="localhost", help="kvs host")
@@ -31,3 +31,4 @@ parser.add_argument(
     "-WJP", "--waypoint_json_path", type=str, default="./static/maps/waypoint.json", help="waypoint.json file path")
 parser.add_argument(
     "-LJP", "--lane_json_path", type=str, default="./static/maps/lane.json", help="lane.json file path")
+parser.add_argument("-IF", "--identifiable_flag", action="store_true", help="use identifiable flag")

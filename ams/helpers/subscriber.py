@@ -240,7 +240,7 @@ class Subscriber(object):
         route_code = route_code_message.body
         lane_array = user_data["maps_client"].route.generate_lane_array(route_code)
         set_flag = Hook.set_route_code_lane_array_id_relation(
-            user_data["kvs_client"], user_data["target_autoware"], route_code, lane_array.id)
+            user_data["kvs_client"], user_data["target_autoware_interface"], route_code, lane_array.id)
         if set_flag:
             if user_data["identifiable"]:
                 rostopic = cls.get_lane_array_rostopic(user_data["target_autoware"])
@@ -377,7 +377,7 @@ class Subscriber(object):
         vehicle_location = Autoware.ROSMessage.VehicleLocation.new_data(**yaml.load(str(ros_message_object)))
         if vehicle_location.waypoint_index != -1:
             route_point = Hook.generate_route_point(
-                user_data["kvs_client"], user_data["target_autoware"], vehicle_location)
+                user_data["kvs_client"], user_data["target_autoware_interface"], vehicle_location)
             if route_point is not None:
                 Publisher.publish_route_point(
                     user_data["pubsub_client"], user_data["target_autoware"], user_data["target_vehicle"], route_point)
@@ -387,11 +387,11 @@ class Subscriber(object):
         Hook.set_decision_maker_state(user_data["kvs_client"], user_data["target_vehicle"], decision_maker_state)
 
     @classmethod
-    def on_decision_maker_state_update_state(cls, _client, user_data, _topic, decision_maker_state):
+    def on_decision_maker_state_message_update_state(cls, _client, user_data, _topic, decision_maker_state_message):
         vehicle_status = Hook.get_status(
             user_data["kvs_client"], user_data["target_vehicle"], Vehicle.Status)
         if vehicle_status is not None:
-            vehicle_status.decision_maker_state = decision_maker_state
+            vehicle_status.decision_maker_state = decision_maker_state_message.body
             vehicle_status.current_pose = Hook.get_current_pose(
                 user_data["kvs_client"], user_data["target_vehicle"])
             vehicle_status.route_point = Hook.get_route_point(
@@ -422,6 +422,7 @@ class Subscriber(object):
                         Hook.initialize_received_stop_signal,
                         Hook.start_vehicle_schedule,
                         Hook.restart_vehicle_schedule,
+                        Hook.reset_vehicle_event_id,
                         Hook.replace_schedule,
                         Publisher.publish_vehicle_status,
                         Publisher.publish_route_code,
@@ -499,6 +500,16 @@ class Subscriber(object):
         topic = Publisher.get_decision_maker_state_topic(user_data["target_autoware"], user_data["target_vehicle"])
         user_data["pubsub_client"].publish(topic, decision_maker_state)
 
+    @classmethod
+    def on_decision_maker_state_publish_decision_maker_state_message(
+            cls, _client, user_data, _topic, ros_message_object):
+        decision_maker_state = Autoware.ROSMessage.DecisionMakerState.new_data(**yaml.load(str(ros_message_object)))
+        if Hook.set_decision_maker_state(
+                user_data["kvs_client"], user_data["target_autoware_interface"], decision_maker_state):
+            Publisher.publish_decision_maker_state_message(
+                user_data["pubsub_client"], user_data["kvs_client"], user_data["target_autoware_interface"],
+                user_data["target_autoware"], user_data["target_vehicle"])
+ 
     @classmethod
     def on_user_status_message(cls, _client, user_data, topic, user_status_message):
         user_data["target_user"] = Topic.get_from_target(topic)
