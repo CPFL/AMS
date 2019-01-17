@@ -31,16 +31,28 @@ const.update({
         "SEND_LANE_ARRAY": "send_lane_array",
         "SEND_ENGAGE": "send_engage",
         "SEND_GOTO_WAIT_ORDER": "send_goto_wait_order",
+        "WAIT_EVENT_SHIFT": "wait_event_shift",
+        "SHIFT_EVENT": "shift_event",
         "OPERATE_STOP": "operate_stop"
     },
     "STATE": {
-        "WAIT_SCHEDULE": "WaitSchedule",
         "WAITING_EVENT": "WaitingEvent",
         "WAITING_SCHEDULE": "WaitingSchedule",
         "REPLACING_SCHEDULE": "ReplacingSchedule",
         "REPLACING_SCHEDULE_SUCCEEDED": "ReplacingScheduleSucceeded",
         "REPLACING_SCHEDULE_FAILED": "ReplacingScheduleFailed",
-        "END": "End"
+        "END": "End",
+        "ON_ROUTE_TO_USER": "on_route_to_user",
+        "AT_USER_START_LOCATION": "at_user_start_location",
+        "ON_ROUTE_OF_USER": "on_route_of_user",
+        "AT_USER_GOAL_LOCATION": "at_user_goal_location"
+    },
+    "EVENT_ID_PARTS": {
+        "DELIMITER": "/",
+        "AFTER_MOVE_TO_USER_START": "after_move_to_user_start",
+        "WAIT_AT_USER_START": "wait_at_user_start",
+        "AFTER_MOVE_TO_USER_GOAL": "after_move_to_user_goal",
+        "WAIT_AT_USER_GOAL": "wait_at_user_goal"
     },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
