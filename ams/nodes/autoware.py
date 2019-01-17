@@ -6,7 +6,6 @@ from time import time, sleep
 from ams.helpers import Hook, Condition, Publisher, Subscriber
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.nodes.event_loop import EventLoop
-from ams.structures import AutowareInterface
 from ams.structures import Autoware as Structure
 
 

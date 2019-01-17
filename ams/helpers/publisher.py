@@ -6,7 +6,7 @@ import yaml
 from ams import VERSION, AttrDict
 from ams.helpers import Topic, Hook, Event, Target
 from ams.structures import (
-    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User, CLIENT)
+    Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Publisher(object):
@@ -429,50 +429,6 @@ class Publisher(object):
     def publish_generated_vehicle_schedule(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
         generated_vehicle_schedule = Hook.get_generated_schedule(kvs_client, target_dispatcher, target_vehicle)
         cls.publish_schedule_message(pubsub_client, target_dispatcher, target_vehicle, generated_vehicle_schedule)
-
-    @classmethod
-    def publish_vehicle_info_to_user_in_need(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
-        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
-        if dispatcher_status is None:
-            return
-        applied_schedule = Hook.get_applied_schedule(kvs_client, target_dispatcher, target_vehicle)
-        if applied_schedule is None:
-            return
-        for target_user, user_status in map(
-                lambda x: (x["target"], x["status"]),
-                filter(lambda y: y["status"].state == User.CONST.STATE.CALLING, dispatcher_status.user_statuses)):
-            if any(filter(lambda e: Target.target_in_targets(target_user, e.targets), applied_schedule.events)):
-                Hook.generate_vehicle_info_for_user(kvs_client, target_dispatcher, target_vehicle, target_user)
-                cls.publish_vehicle_info_message(pubsub_client, kvs_client, target_dispatcher, target_user)
-        return
-
-    @classmethod
-    def publish_get_on_to_user(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
-        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
-        if dispatcher_status is None:
-            return
-        vehicle_status = dispatcher_status.vehicle_status
-        if vehicle_status is None:
-            return
-        target_user = Target.new_target(*vehicle_status.event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
-        cls.publish_event_message(pubsub_client, target_dispatcher, target_user, Event.new_event(
-            name=Dispatcher.CONST.EVENT.GET_ON,
-            targets=[target_vehicle]
-        ))
-
-    @classmethod
-    def publish_get_off_to_user(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
-        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, sub_target=target_vehicle)
-        if dispatcher_status is None:
-            return
-        vehicle_status = dispatcher_status.vehicle_status
-        if vehicle_status is None:
-            return
-        target_user = Target.new_target(*vehicle_status.event_id.split(CLIENT.KVS.KEY_PATTERN_DELIMITER)[2:4])
-        cls.publish_event_message(pubsub_client, target_dispatcher, target_user, Event.new_event(
-            name=Dispatcher.CONST.EVENT.GET_OFF,
-            targets=[target_vehicle]
-        ))
 
     @classmethod
     def publish_shift_event(cls, pubsub_client, from_target, to_target):

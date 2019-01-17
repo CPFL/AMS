@@ -579,15 +579,11 @@ class Subscriber(object):
                         Hook.generate_vehicle_schedule_from_user_statuses,
                         Hook.replace_applied_schedule,
                         Hook.update_vehicle_info_for_user,
-                        Hook.remove_unused_user_status_from_user_statuses,
                         Hook.initialize_user_status_in_transportation_finished,
                         Hook.remove_transportation_finished_user_status_from_user_statuses,
                         Publisher.publish_dispatcher_status,
                         Publisher.publish_change_vehicle_schedule_event_message,
                         Publisher.publish_generated_vehicle_schedule,
-                        Publisher.publish_vehicle_info_to_user_in_need,
-                        Publisher.publish_get_on_to_user,
-                        Publisher.publish_get_off_to_user,
                         Publisher.publish_shift_event,
                         Publisher.publish_vehicle_info_message_to_user,
                         Condition.relevant_vehicle_located,
@@ -660,21 +656,7 @@ class Subscriber(object):
             Publisher.publish_decision_maker_state_message(
                 user_data["pubsub_client"], user_data["kvs_client"], user_data["target_autoware_interface"],
                 user_data["target_autoware"], user_data["target_vehicle"])
- 
-    @classmethod
-    def on_user_status_message(cls, _client, user_data, topic, user_status_message):
-        user_data["target_user"] = Topic.get_from_target(topic)
-        Hook.set_status(user_data["kvs_client"], user_data["target_user"], user_status_message.body)
 
-    @classmethod
-    def on_vehicle_config_message(cls, _client, user_data, topic, vehicle_config_message):
-        user_data["target_vehicle"] = Topic.get_from_target(topic)
-        Hook.set_config(user_data["kvs_client"], user_data["target_vehicle"], vehicle_config_message.body)
-
-    @classmethod
-    def on_vehicle_status_message(cls, _client, user_data, topic, vehicle_status_message):
-        user_data["target_vehicle"] = Topic.get_from_target(topic)
-        Hook.set_status(user_data["kvs_client"], user_data["target_vehicle"], vehicle_status_message.body)
 
     @classmethod
     def on_traffic_signal_event_message(cls, _client, user_data, _topic, event_message):

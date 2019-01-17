@@ -23,7 +23,11 @@ const.update(event_loop_const)
 const.update({
     "NODE_NAME": "autoware_interface",
     "ROLE_NAME": "autoware_interface",
-    "TOPIC": topic
+    "TOPIC": topic,
+    "KEY_PARTS": {
+        "LANE_ARRAY_ID_ROUTE_CODE": "lane_array_id_route_code",
+        "ROUTE_CODE_LANE_ARRAY_ID": "route_code_lane_array_id"
+    }
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)
