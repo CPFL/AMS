@@ -12,26 +12,35 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography/Typography';
 
 import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import { changeRouteSteps } from "../../../../../model/Redux/Page/ScheduleEditor";
 
 class SelectDecisionSectionEndPoint extends React.Component {
   constructor(props) {
     super(props);
-    this.confirm = this.confirm.bind(this);
+    this.save = this.save.bind(this);
+    this.back = this.back.bind(this);
   }
 
   save() {
-    this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
+    this.props.scheduleEditorActions.saveChangeRoute(
+      this.props.routeCodeAfterChangeRoute,
+      this.props.decisionSectionRouteCode
+    );
+  }
+
+  back() {
+    this.props.scheduleEditorActions.setChangeRouteActiveStepPrevious();
   }
 
   render() {
     return (
       <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
-        <CardHeader title="Select Decision Section End Point" />
+        <CardHeader title={changeRouteSteps[this.props.changeRouteActiveStep].name} />
         <CardContent>
           <Typography variant="subtitle1">
             <strong>
               Route Code After Changed:
-              {this.props.routeCodeAfterChangeRoute}
+              {this.props.routeCodeAfterChangeRoute.routeCode}
             </strong>
           </Typography>
           <Typography variant="subtitle1">
@@ -43,9 +52,10 @@ class SelectDecisionSectionEndPoint extends React.Component {
         </CardContent>
         <CardActions>
           <div style={{ marginLeft: 'auto' }}>
+            <Button onClick={this.back}>Back</Button>
             <Button
               color="primary"
-              onClick={this.confirm}
+              onClick={this.save}
               style={{ marginLeft: '5px' }}
             >
               Save
@@ -58,12 +68,14 @@ class SelectDecisionSectionEndPoint extends React.Component {
 }
 
 SelectDecisionSectionEndPoint.propTypes = {
+  changeRouteActiveStep: PropTypes.number,
   routeCodeAfterChangeRoute: PropTypes.object,
   decisionSectionRouteCode: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
+  changeRouteActiveStep: state.scheduleEditor.getChangeRouteActiveStep(),
   routeCodeAfterChangeRoute: state.scheduleEditor.getRouteCodeAfterChangeRoute(),
   decisionSectionRouteCode: state.scheduleEditor.getDecisionSectionRouteCode()
 });

@@ -14,11 +14,13 @@ import Select from '@material-ui/core/Select/Select';
 import MenuItem from '@material-ui/core/MenuItem/MenuItem';
 
 import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import { changeRouteSteps } from '../../../../../model/Redux/Page/ScheduleEditor';
 
 class SelectRouteCodeAfterChangeRoute extends React.Component {
   constructor(props) {
     super(props);
     this.confirm = this.confirm.bind(this);
+    this.back = this.back.bind(this);
     this.setSelectRouteCode = this.setSelectRouteCode.bind(this);
   }
 
@@ -28,6 +30,10 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
     } else {
       alert('Route Code is not selected!');
     }
+  }
+
+  back() {
+    this.props.scheduleEditorActions.cancelSelectChangeRoute();
   }
 
   setSelectRouteCode(event) {
@@ -41,6 +47,8 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
       this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(
         routeCodeAfterChangeRoute
       );
+    } else {
+      this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(null);
     }
   }
 
@@ -64,9 +72,14 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
   }
 
   render() {
+    console.log(changeRouteSteps);
+    console.log(this.props.changeRouteActiveStep);
+    console.log(changeRouteSteps[this.props.changeRouteActiveStep].name);
     return (
       <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
-        <CardHeader title="Select Route Code After Changed" />
+        <CardHeader
+          title={changeRouteSteps[this.props.changeRouteActiveStep].name}
+        />
         <CardContent>
           <InputLabel htmlFor="route-code">Route Code</InputLabel>
           <Select
@@ -82,6 +95,7 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
         </CardContent>
         <CardActions>
           <div style={{ marginLeft: 'auto' }}>
+            <Button onClick={this.back}>Back</Button>
             <Button
               color="primary"
               onClick={this.confirm}

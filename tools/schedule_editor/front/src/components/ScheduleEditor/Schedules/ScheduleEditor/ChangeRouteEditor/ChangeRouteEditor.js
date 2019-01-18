@@ -8,7 +8,10 @@ import StepLabel from '@material-ui/core/StepLabel';
 import PropTypes from 'prop-types';
 
 import SelectRouteCodeAfterChangeRoute from './SelectRouteCodeAfterChangeRoute';
-import SelectDecisionSectionEndPoint from './SelectDecisionSectionEndPoint';
+import SelectDecisionSectionRouteCode from './SelectDecisionSectionRouteCode';
+import Result from './Result';
+
+import { changeRouteSteps } from '../../../../../model/Redux/Page/ScheduleEditor';
 
 class ChangeRouteEditor extends React.Component {
   constructor(props) {
@@ -16,16 +19,13 @@ class ChangeRouteEditor extends React.Component {
 
     this.steps = [
       {
-        name: 'select Route Code After Change Route',
         component: <SelectRouteCodeAfterChangeRoute />
       },
       {
-        name: 'Select Decision Section Route Code',
-        component: <SelectDecisionSectionEndPoint />
+        component: <SelectDecisionSectionRouteCode />
       },
       {
-        name: 'Result',
-        component: 'Test'
+        component: <Result />
       }
     ];
   }
@@ -38,7 +38,7 @@ class ChangeRouteEditor extends React.Component {
     return (
       <div>
         <Stepper activeStep={this.props.changeRouteActiveStep}>
-          {this.steps.map(step => {
+          {changeRouteSteps.map(step => {
             return (
               <Step key={step.name}>
                 <StepLabel>{step.name}</StepLabel>

@@ -12,8 +12,9 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography/Typography';
 
 import * as ScheduleEditorActions from '../../../../../redux/Actions/ScheduleEditorActions';
+import { changeRouteSteps } from '../../../../../model/Redux/Page/ScheduleEditor';
 
-class SelectDecisionSectionEndPoint extends React.Component {
+class SelectDecisionSectionRouteCode extends React.Component {
   constructor(props) {
     super(props);
     this.confirm = this.confirm.bind(this);
@@ -21,7 +22,7 @@ class SelectDecisionSectionEndPoint extends React.Component {
   }
 
   confirm() {
-    if (this.props.decisionSectionRouteCode) {
+    if (this.props.decisionSectionRouteCode.routeCode) {
       this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
     } else {
       alert('Decision Section End Point is not selected!');
@@ -35,7 +36,9 @@ class SelectDecisionSectionEndPoint extends React.Component {
   render() {
     return (
       <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
-        <CardHeader title="Select Decision Section End Point" />
+        <CardHeader
+          title={changeRouteSteps[this.props.changeRouteActiveStep].name}
+        />
         <CardContent>
           <Typography variant="subtitle1">
             <strong>
@@ -61,12 +64,14 @@ class SelectDecisionSectionEndPoint extends React.Component {
   }
 }
 
-SelectDecisionSectionEndPoint.propTypes = {
+SelectDecisionSectionRouteCode.propTypes = {
+  changeRouteActiveStep: PropTypes.number,
   decisionSectionRouteCode: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
+  changeRouteActiveStep: state.scheduleEditor.getChangeRouteActiveStep(),
   decisionSectionRouteCode: state.scheduleEditor.getDecisionSectionRouteCode()
 });
 const mapDispatch = dispatch => ({
@@ -75,4 +80,4 @@ const mapDispatch = dispatch => ({
 export default connect(
   mapState,
   mapDispatch
-)(SelectDecisionSectionEndPoint);
+)(SelectDecisionSectionRouteCode);

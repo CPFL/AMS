@@ -19,7 +19,7 @@ class ScheduleEditProcess extends React.Component {
   }
 
   getSteps() {
-    return this.component[this.props.activeStepSchedule];
+    return this.component[this.props.scheduleEditorActiveStep];
   }
 
   render() {
@@ -33,12 +33,12 @@ class ScheduleEditProcess extends React.Component {
 }
 
 ScheduleEditProcess.propTypes = {
-  activeStepSchedule: PropTypes.string,
+  scheduleEditorActiveStep: PropTypes.string,
   scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor()
+  scheduleEditorActiveStep: state.scheduleEditor.getScheduleEditorActiveStep()
 });
 const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)

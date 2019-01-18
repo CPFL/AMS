@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { steps } from '../../../../../../../model/Redux/Page/ScheduleEditor';
+import { scheduleEditorSteps } from '../../../../../../../model/Redux/Page/ScheduleEditor';
 
 export default class Waypoint extends THREE.Group {
   constructor() {
@@ -17,6 +17,7 @@ export default class Waypoint extends THREE.Group {
 
     this.activeStep = null;
 
+    this.scheduleEditorActiveStep = null;
     this.selectRouteCode = null;
     this.scheduleList = null;
     this.routeCodeList = null;
@@ -184,7 +185,7 @@ export default class Waypoint extends THREE.Group {
     this.arrowHelper = {};
   }
 
-  colorScheduleList() {
+  _colorScheduleList() {
     if (this.scheduleList) {
       for (const schedule of this.scheduleList) {
         const startPoint = schedule.startPoint;
@@ -202,8 +203,8 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  colorSelectRouteCode() {
-    if (this.selectRouteCode) {
+  _colorSelectRouteCode() {
+    if (this.selectRouteCode.routeCode) {
       const startPoint = this.selectRouteCode.startPoint;
       const lanes = this.selectRouteCode.laneList;
       const endPoint = this.selectRouteCode.endPoint;
@@ -233,15 +234,15 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  colorRouteCodeAfterChangeRoute() {
-    if (this.routeCodeAfterChangeRoute) {
+  _colorRouteCodeAfterChangeRoute() {
+    if (this.routeCodeAfterChangeRoute.waypointList) {
       this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(this.color.changeRoute);
       });
     }
   }
 
-  colorSelectableDecisionSectionEndPointList() {
+  _colorSelectableDecisionSectionEndPointList() {
     if (this.selectableDecisionSectionEndPointList) {
       this.selectableDecisionSectionEndPointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(
@@ -251,8 +252,8 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  colorDecisionSectionRouteCode() {
-    if (this.decisionSectionRouteCode) {
+  _colorDecisionSectionRouteCode() {
+    if (this.decisionSectionRouteCode.waypointList) {
       this.decisionSectionRouteCode.waypointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(
           this.color.decisionSectionRouteCode
@@ -261,15 +262,15 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  changeAllObjectColorToDefault() {
-    this.changeScheduleListColorToDefault();
-    this.changeCurrentRouteCodeColorToDefault();
-    this.changeRouteCodeAfterChangeRouteColorToDefault();
-    this.changeSelectableDecisionSectionEndPointListColorToDefault();
-    this.changeDecisionSectionRouteCodeColorToDefault();
+  _changeAllObjectColorToDefault() {
+    this._changeScheduleListColorToDefault();
+    this._changeCurrentRouteCodeColorToDefault();
+    this._changeRouteCodeAfterChangeRouteColorToDefault();
+    this._changeSelectableDecisionSectionEndPointListColorToDefault();
+    this._changeDecisionSectionRouteCodeColorToDefault();
   }
 
-  changeScheduleListColorToDefault() {
+  _changeScheduleListColorToDefault() {
     if (this.scheduleList) {
       for (const schedule of this.scheduleList) {
         if (schedule.startPoint) {
@@ -289,8 +290,8 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  changeCurrentRouteCodeColorToDefault() {
-    if (this.selectRouteCode) {
+  _changeCurrentRouteCodeColorToDefault() {
+    if (this.selectRouteCode.routeCode) {
       if (this.selectRouteCode.startPoint) {
         this.waypointsList[this.selectRouteCode.startPoint].material.color.set(
           this.color.default
@@ -324,24 +325,24 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  changeRouteCodeAfterChangeRouteColorToDefault() {
-    if (this.routeCodeAfterChangeRoute) {
+  _changeRouteCodeAfterChangeRouteColorToDefault() {
+    if (this.routeCodeAfterChangeRoute.waypointList) {
       this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(this.color.default);
       });
     }
   }
 
-  changeSelectableDecisionSectionEndPointListColorToDefault() {
-    if(this.selectableDecisionSectionEndPointList) {
+  _changeSelectableDecisionSectionEndPointListColorToDefault() {
+    if (this.selectableDecisionSectionEndPointList) {
       this.selectableDecisionSectionEndPointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(this.color.default);
       });
     }
   }
 
-  changeDecisionSectionRouteCodeColorToDefault() {
-    if (this.decisionSectionRouteCode) {
+  _changeDecisionSectionRouteCodeColorToDefault() {
+    if (this.decisionSectionRouteCode.waypointList) {
       this.decisionSectionRouteCode.waypointList.forEach(waypoint => {
         this.waypointsList[waypoint].material.color.set(this.color.default);
       });
@@ -354,18 +355,33 @@ export default class Waypoint extends THREE.Group {
 
   selectObject(mouse) {
     if (this.waypoint !== null && this.lane !== null) {
-      switch (this.changeRouteActiveStep) {
-        case 1: {
-          this.selectDecisionSectionEndPoint(mouse);
+      switch (this.scheduleEditorActiveStep.scheduleEditorActiveStep) {
+        case scheduleEditorSteps.selectRouteCode.id: {
           break;
         }
-        default:
+        case scheduleEditorSteps.changeRouteEditor.id: {
+          switch (this.scheduleEditorActiveStep.changeRouteActiveStep) {
+            case 0: {
+              break;
+            }
+            case 1: {
+              this._selectDecisionSectionEndPoint(mouse);
+              break;
+            }
+            case 2: {
+              break;
+            }
+            default: {
+              break;
+            }
+          }
           break;
+        }
       }
     }
   }
 
-  selectDecisionSectionEndPoint(mouse) {
+  _selectDecisionSectionEndPoint(mouse) {
     this.raycaster.setFromCamera(mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(
       this.selectCandidateObject
@@ -376,36 +392,72 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  setChangeRouteActiveStep(changeRouteActiveStep) {
-    this.changeRouteActiveStep = changeRouteActiveStep;
-    console.log(this.changeRouteActiveStep);
-    if (this.waypoint !== null && this.lane !== null) {
+  setScheduleEditorActiveStep(scheduleEditorActiveStep) {
+    this.scheduleEditorActiveStep = scheduleEditorActiveStep;
+    console.log(this.scheduleEditorActiveStep);
+    this._changeAllObjectColorToDefault();
+    this._updateViewer();
+  }
+
+  _updateViewer() {
+    console.log(this.scheduleEditorActiveStep);
+    if (this.waypoint && this.lane && this.scheduleEditorActiveStep) {
       this.selectCandidateObject = [];
-      this.changeAllObjectColorToDefault();
-      switch (this.changeRouteActiveStep) {
-        case 0: {
-          this.initSelectRouteCodeAfterChangeRouteStep();
+      switch (this.scheduleEditorActiveStep.scheduleEditorActiveStep) {
+        case scheduleEditorSteps.selectRouteCode.id: {
+          this.updateSelectRouteCodeStep();
           break;
         }
-        case 1: {
-          this.initSelectDecisionSectionEndPointStep();
-          break;
-        }
-        default: {
-          //this.initSelectDecisionSectionEndPointStep();
+        case scheduleEditorSteps.changeRouteEditor.id: {
+          console.log(this.scheduleEditorActiveStep.changeRouteActiveStep);
+          switch (this.scheduleEditorActiveStep.changeRouteActiveStep) {
+            case 0: {
+              this.updateSelectRouteCodeAfterChangeRouteStep();
+              break;
+            }
+            case 1: {
+              this.updateSelectDecisionSectionEndPointStep();
+              break;
+            }
+            case 2: {
+              this.updateResult();
+              break;
+            }
+            default: {
+              console.log(this.scheduleEditorActiveStep.changeRouteActiveStep);
+              break;
+            }
+          }
           break;
         }
       }
     }
   }
 
-  initSelectRouteCodeAfterChangeRouteStep() {
-    if (this.routeCodeAfterChangeRoute) {
-      console.log(this.routeCodeAfterChangeRoute);
-      this.colorScheduleList();
-      this.colorSelectRouteCode();
-      this.colorRouteCodeAfterChangeRoute();
+  updateSelectRouteCodeStep() {
+    if (this.selectRouteCode.routeCode) {
+      this._colorScheduleList();
+      this._colorSelectRouteCode();
 
+      const endPoint = this.selectRouteCode.endPoint;
+      const newCameraPosition = {
+        x: this.waypoint.waypoints[endPoint].x,
+        y: this.waypoint.waypoints[endPoint].y,
+        z: this.waypoint.waypoints[endPoint].z
+      };
+      this.updateCameraPosition(newCameraPosition);
+    } else {
+      this._colorScheduleList();
+    }
+  }
+
+  updateSelectRouteCodeAfterChangeRouteStep() {
+    console.log(this.routeCodeAfterChangeRoute);
+    this._colorScheduleList();
+    this._colorSelectRouteCode();
+    this._colorRouteCodeAfterChangeRoute();
+
+    if (this.routeCodeAfterChangeRoute.routeCode) {
       const endPoint = this.routeCodeAfterChangeRoute.endPoint;
       const newCameraPosition = {
         x: this.waypoint.waypoints[endPoint].x,
@@ -416,17 +468,18 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  initSelectDecisionSectionEndPointStep() {
-    if (this.selectableDecisionSectionEndPointList) {
-      this.colorScheduleList();
-      this.colorSelectRouteCode();
-      this.colorRouteCodeAfterChangeRoute();
-      this.colorSelectableDecisionSectionEndPointList();
-      this.colorDecisionSectionRouteCode();
+  updateSelectDecisionSectionEndPointStep() {
+    this._colorScheduleList();
+    this._colorSelectRouteCode();
+    this._colorRouteCodeAfterChangeRoute();
+    this._colorSelectableDecisionSectionEndPointList();
+    this._colorDecisionSectionRouteCode();
 
-      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
-        this.selectCandidateObject.push(this.waypointsList[waypoint]);
-      });
+    this.selectableDecisionSectionEndPointList.forEach(waypoint => {
+      this.selectCandidateObject.push(this.waypointsList[waypoint]);
+    });
+
+    if (this.selectableDecisionSectionEndPointList) {
       const endPoint = this.selectableDecisionSectionEndPointList[
         this.selectableDecisionSectionEndPointList.length - 1
       ];
@@ -439,22 +492,14 @@ export default class Waypoint extends THREE.Group {
     }
   }
 
-  /*
-  initResult() {
-    if (
-      this.selectableDecisionSectionEndPointList &&
-      this.routeCodeAfterChangeRoute
-    ) {
-      this.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
-        this.waypointsList[waypoint].material.color.set(this.color.changeRoute);
-      });
+  updateResult() {
+    this._colorScheduleList();
+    this._colorSelectRouteCode();
+    this._colorRouteCodeAfterChangeRoute();
+    this._colorSelectableDecisionSectionEndPointList();
+    this._colorDecisionSectionRouteCode();
 
-      this.selectableDecisionSectionEndPointList.forEach(waypoint => {
-        this.waypointsList[waypoint].material.color.set(
-          this.color.selectableDecisionSection
-        );
-      });
-
+    if (this.routeCodeAfterChangeRoute.endPoint) {
       const endPoint = this.routeCodeAfterChangeRoute.endPoint;
       const newCameraPosition = {
         x: this.waypoint.waypoints[endPoint].x,
@@ -464,27 +509,21 @@ export default class Waypoint extends THREE.Group {
       this.updateCameraPosition(newCameraPosition);
     }
   }
-  */
 
-  initScheduleList(scheduleList) {
-    if (scheduleList.length > 0 && this.waypoint && this.lane) {
-      this.changeAllObjectColorToDefault();
-      this.scheduleList = scheduleList;
-
-      this.colorScheduleList();
-
-      const endPoint = scheduleList[scheduleList.length - 1].endPoint;
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[endPoint].x,
-        y: this.waypoint.waypoints[endPoint].y,
-        z: this.waypoint.waypoints[endPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
-    }
-  }
-
-  initRouteCodeList(routeCodeList) {
+  init(
+    scheduleList,
+    routeCodeList,
+    selectRouteCode,
+    routeCodeAfterChangeRoute,
+    selectableDecisionSectionEndPointList,
+    decisionSectionRouteCode
+  ) {
+    this.scheduleList = scheduleList;
     this.routeCodeList = routeCodeList;
+    this.selectRouteCode = selectRouteCode;
+    this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
+    this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
+    this.decisionSectionRouteCode = decisionSectionRouteCode;
   }
 
   setSelectableDecisionSectionEndPointList(
@@ -504,58 +543,27 @@ export default class Waypoint extends THREE.Group {
       lanes.length > 0 &&
       endPoint
     ) {
-      this.changeAllObjectColorToDefault();
+      this._changeAllObjectColorToDefault();
       this.selectRouteCode = selectRouteCode;
-      this.colorScheduleList();
-      this.colorSelectRouteCode();
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[endPoint].x,
-        y: this.waypoint.waypoints[endPoint].y,
-        z: this.waypoint.waypoints[endPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
+      this._updateViewer();
     }
   }
 
   updateRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
-    if (this.waypoint && this.lane && routeCodeAfterChangeRoute.routeCode) {
-      this.changeAllObjectColorToDefault();
+    if (this.waypoint && this.lane) {
+      this._changeAllObjectColorToDefault();
 
       this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
-
-      this.colorScheduleList();
-      this.colorSelectRouteCode();
-      this.colorRouteCodeAfterChangeRoute();
-
-      const endPoint = routeCodeAfterChangeRoute.endPoint;
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[endPoint].x,
-        y: this.waypoint.waypoints[endPoint].y,
-        z: this.waypoint.waypoints[endPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
+      this._updateViewer();
     }
   }
 
   updateDecisionSectionRouteCode(decisionSectionRouteCode) {
-    if (this.waypoint && this.lane && decisionSectionRouteCode.routeCode) {
-      this.changeAllObjectColorToDefault();
+    if (this.waypoint && this.lane) {
+      this._changeAllObjectColorToDefault();
 
       this.decisionSectionRouteCode = decisionSectionRouteCode;
-
-      this.colorScheduleList();
-      this.colorSelectRouteCode();
-      this.colorRouteCodeAfterChangeRoute();
-      this.colorSelectableDecisionSectionEndPointList();
-      this.colorDecisionSectionRouteCode();
-
-      const decisionSectionEndPoint = decisionSectionRouteCode.endPoint;
-      const newCameraPosition = {
-        x: this.waypoint.waypoints[decisionSectionEndPoint].x,
-        y: this.waypoint.waypoints[decisionSectionEndPoint].y,
-        z: this.waypoint.waypoints[decisionSectionEndPoint].z
-      };
-      this.updateCameraPosition(newCameraPosition);
+      this._updateViewer();
     }
   }
 

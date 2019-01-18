@@ -82,10 +82,10 @@ export function resetRouteCode() {
 
 //Schedule Editor
 
-export function setActiveStepScheduleEditor(activeStepScheduleEditor) {
+export function setScheduleEditorActiveStep(scheduleEditorActiveStep) {
   return {
-    type: REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR,
-    activeStepScheduleEditor: activeStepScheduleEditor
+    type: REDUX.ACTION_TYPE.SET_SCHEDULE_EDITOR_ACTIVE_STEP,
+    scheduleEditorActiveStep: scheduleEditorActiveStep
   };
 }
 
@@ -143,6 +143,12 @@ export function setChangeRouteActiveStepReset() {
   };
 }
 
+export function cancelSelectChangeRoute() {
+  return {
+    type: REDUX.ACTION_TYPE.CANCEL_SELECT_CHANGE_ROUTE
+  };
+}
+
 export function setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
   return {
     type: REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE,
@@ -154,6 +160,17 @@ export function setDecisionSectionEndPoint(decisionSectionEndPoint) {
   return {
     type: REDUX.ACTION_TYPE.SET_DECISION_SECTION_END_POINT,
     decisionSectionEndPoint: decisionSectionEndPoint
+  };
+}
+
+export function saveChangeRoute(
+  routeCodeAfterChangeRoute,
+  decisionSectionRouteCode
+) {
+  return {
+    type: REDUX.ACTION_TYPE.SAVE_CHANGE_ROUTE,
+    routeCodeAfterChangeRoute: routeCodeAfterChangeRoute,
+    decisionSectionRouteCode: decisionSectionRouteCode
   };
 }
 

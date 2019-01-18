@@ -20,6 +20,7 @@ import PropTypes from 'prop-types';
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
 
 import ChangeRouteList from './ChangeRouteList';
+import { scheduleEditorSteps } from '../../../../model/Redux/Page/ScheduleEditor';
 
 class CreateScheduleComponent extends React.Component {
   constructor(props) {
@@ -151,8 +152,8 @@ class CreateScheduleComponent extends React.Component {
                     size="small"
                     onClick={() => {
                       if (this.props.currentRouteCodeSchedule.routeCode) {
-                        this.props.scheduleEditorActions.setActiveStepScheduleEditor(
-                          'changeRouteEditor'
+                        this.props.scheduleEditorActions.setScheduleEditorActiveStep(
+                          scheduleEditorSteps.changeRouteEditor.id
                         );
                       }
                     }}
@@ -199,7 +200,7 @@ CreateScheduleComponent.propTypes = {
   scheduleEditorActions: PropTypes.object
 };
 const mapStateCreateSchedule = state => ({
-  activeStepSchedule: state.scheduleEditor.getActiveStepScheduleEditor(),
+  scheduleEditorActiveStep: state.scheduleEditor.getScheduleEditorActiveStep(),
   selectableRouteCode: state.scheduleEditor.getSelectableRouteCode(),
   currentRouteCodeSchedule: state.scheduleEditor.getCurrentRouteCodeSchedule(),
   checkedSendEngage: state.scheduleEditor.getCheckedSendEngage(),
