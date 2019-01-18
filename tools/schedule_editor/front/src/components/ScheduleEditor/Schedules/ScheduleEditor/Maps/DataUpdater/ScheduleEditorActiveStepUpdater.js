@@ -19,7 +19,6 @@ class ScheduleEditorActiveStepUpdater extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log(this.props);
     if (this.props.scheduleEditorActiveStep) {
       this.props.setScheduleEditorActiveStep(
         this.props.scheduleEditorActiveStep

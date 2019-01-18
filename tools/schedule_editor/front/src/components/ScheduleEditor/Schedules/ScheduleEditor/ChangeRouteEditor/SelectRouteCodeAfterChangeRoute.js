@@ -72,9 +72,6 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
   }
 
   render() {
-    console.log(changeRouteSteps);
-    console.log(this.props.changeRouteActiveStep);
-    console.log(changeRouteSteps[this.props.changeRouteActiveStep].name);
     return (
       <Card shadow={0} style={{ width: '100%', minHeight: '100px' }}>
         <CardHeader

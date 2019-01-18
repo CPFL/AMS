@@ -77,6 +77,7 @@ const ScheduleRecord = new Record({
   laneList: [],
   endPoint: '',
   isBack: false,
+  waypointList: List(),
   checkedSendEngage: false,
   waitTime: 0,
   changeRouteList: List(),
@@ -315,9 +316,15 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   //Schedule Editor
   setScheduleEditorActiveStep(scheduleEditorActiveStep) {
     if (scheduleEditorActiveStep === 'changeRouteEditor') {
-      const selectedRouteCodeWaypoints = this.get(
-        'currentRouteCodeSchedule'
-      ).toJS().waypointList;
+      let selectedRouteCodeWaypoints = null;
+      const currentEditChangeRouteList = this.get('currentEditChangeRouteList');
+      if (currentEditChangeRouteList.size > 0) {
+        selectedRouteCodeWaypoints = currentEditChangeRouteList.get(-1)
+          .routeCodeAfterChangeRoute.waypointList;
+      } else {
+        selectedRouteCodeWaypoints = this.get('currentRouteCodeSchedule').toJS()
+          .waypointList;
+      }
       if (selectedRouteCodeWaypoints.length > 10) {
         selectedRouteCodeWaypoints.splice(0, 5);
         selectedRouteCodeWaypoints.splice(
@@ -369,18 +376,36 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     return this.set('currentEditChangeRouteList', currentEditChangeRouteList);
   }
 
+  deleteLatestChangeRoute() {
+    const currentEditChangeRouteList = this.get('currentEditChangeRouteList');
+    if (currentEditChangeRouteList.size > 0) {
+      return this.set(
+        'currentEditChangeRouteList',
+        currentEditChangeRouteList.pop()
+      );
+    } else {
+      return this;
+    }
+  }
+
   saveSchedule() {
     const selectRouteCode = this.get('currentRouteCodeSchedule');
     if (selectRouteCode.routeCode !== '') {
-      const lastRoute = selectRouteCode;
+      const changeRouteList = this.get('currentEditChangeRouteList');
+      let lastRoute = selectRouteCode;
+      if (changeRouteList.size > 0) {
+        lastRoute = changeRouteList.get(-1).routeCodeAfterChangeRoute;
+      }
       const newSchedule = new ScheduleRecord()
         .set('routeCode', selectRouteCode.routeCode)
         .set('startPoint', selectRouteCode.startPoint)
         .set('laneList', selectRouteCode.laneList)
         .set('endPoint', selectRouteCode.endPoint)
         .set('isBack', selectRouteCode.isBack)
+        .set('waypointList', selectRouteCode.waypointList)
         .set('checkedSendEngage', this.get('checkedSendEngage'))
         .set('waitTime', this.get('waitTime'))
+        .set('changeRouteList', changeRouteList)
         .set('lastRoute', lastRoute);
       const newScheduleList = this.get('scheduleList').push(newSchedule);
       return this.set('scheduleList', newScheduleList)
@@ -411,7 +436,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
 
   setChangeRouteActiveStepPrevious() {
     let changeRouteActiveStep = this.get('changeRouteActiveStep') - 1;
-    console.log(changeRouteActiveStep);
     if (changeRouteActiveStep < 0) {
       changeRouteActiveStep = 0;
     }
@@ -521,9 +545,6 @@ export class ScheduleEditor extends ScheduleEditorRecord {
         'decisionSectionRouteCode',
         new RouteCodeRecord(decisionSectionRouteCode)
       );
-
-    console.log(changeRouteRecord.toJS());
-
     return this.set(
       'currentEditChangeRouteList',
       this.get('currentEditChangeRouteList').push(changeRouteRecord)
@@ -647,13 +668,20 @@ export class ScheduleEditor extends ScheduleEditorRecord {
             .set('isAddScheduleModalOpen', false);
         }
       } else {
-        const secondLatestSchedule = scheduleList.get(-2);
-        const lastRoute = new RouteCodeRecord()
-          .set('routeCode', secondLatestSchedule.routeCode)
-          .set('startPoint', secondLatestSchedule.startPoint)
-          .set('laneList', secondLatestSchedule.laneList)
-          .set('endPoint', secondLatestSchedule.endPoint)
-          .set('isBack', secondLatestSchedule.isBack);
+        const secondlySchedule = scheduleList.get(-2);
+        let lastRoute = null;
+        if (secondlySchedule.changeRouteList.size > 0) {
+          lastRoute = secondlySchedule.changeRouteList.get(-1)
+            .routeCodeAfterChangeRoute;
+        } else {
+          lastRoute = new RouteCodeRecord()
+            .set('routeCode', secondlySchedule.routeCode)
+            .set('startPoint', secondlySchedule.startPoint)
+            .set('laneList', secondlySchedule.laneList)
+            .set('endPoint', secondlySchedule.endPoint)
+            .set('isBack', secondlySchedule.isBack)
+            .set('waypointList', secondlySchedule.waypointList);
+        }
         if (
           lastSchedule.routeCode === selectedDisplayRouteMainViewer.routeCode
         ) {
@@ -694,41 +722,47 @@ export class ScheduleEditor extends ScheduleEditorRecord {
         .set('startPoint', latestSchedule.startPoint)
         .set('laneList', latestSchedule.laneList)
         .set('endPoint', latestSchedule.endPoint)
-        .set('isBack', latestSchedule.isBack);
+        .set('isBack', latestSchedule.isBack)
+        .set('waypointList', latestSchedule.waypointList);
       return this.set('isAddScheduleModalOpen', true)
         .set('scheduleEditorActiveStep', 'selectRouteCode')
-        .set('selectableRouteCodeList', 'selectRouteCode')
         .set('currentRouteCodeSchedule', currentRoute)
         .set('checkedSendEngage', latestSchedule.checkedSendEngage)
         .set('waitTime', latestSchedule.waitTime)
-        .set('currentEditChangeRouteList', List())
+        .set('currentEditChangeRouteList', latestSchedule.changeRouteList)
         .set('selectableRouteCodeList', this.get('routeCodeList'))
         .set('lastRoute', new RouteCodeRecord())
         .set('scheduleList', scheduleList.pop());
     } else if (scheduleList.size > 1) {
       const latestSchedule = scheduleList.get(-1);
-      const secondLatestSchedule = scheduleList.get(-2);
+      const secondlySchedule = scheduleList.get(-2);
 
       const currentRoute = new RouteCodeRecord()
         .set('routeCode', latestSchedule.routeCode)
         .set('startPoint', latestSchedule.startPoint)
         .set('laneList', latestSchedule.laneList)
         .set('endPoint', latestSchedule.endPoint)
-        .set('isBack', latestSchedule.isBack);
+        .set('isBack', latestSchedule.isBack)
+        .set('waypointList', latestSchedule.waypointList);
 
-      const lastRoute = new RouteCodeRecord()
-        .set('routeCode', secondLatestSchedule.routeCode)
-        .set('startPoint', secondLatestSchedule.startPoint)
-        .set('laneList', secondLatestSchedule.laneList)
-        .set('endPoint', secondLatestSchedule.endPoint)
-        .set('isBack', secondLatestSchedule.isBack);
+      let lastRoute = null;
+      if (secondlySchedule.changeRouteList.size > 0) {
+        lastRoute = secondlySchedule.changeRouteList.get(-1)
+          .routeCodeAfterChangeRoute;
+      } else {
+        lastRoute = new RouteCodeRecord()
+          .set('routeCode', secondlySchedule.routeCode)
+          .set('startPoint', secondlySchedule.startPoint)
+          .set('laneList', secondlySchedule.laneList)
+          .set('endPoint', secondlySchedule.endPoint)
+          .set('isBack', secondlySchedule.isBack)
+          .set('waypointList', secondlySchedule.waypointList);
+      }
 
       const RouteCodeList = this.get('routeCodeList').toJS();
       const selectableRouteCodeList = [];
       for (const routeCode of RouteCodeList) {
-        const endPoint = lastRoute.endPoint;
-        const routeStartPoint = routeCode.startPoint;
-        if (endPoint === routeStartPoint) {
+        if (lastRoute.endPoint === routeCode.startPoint) {
           selectableRouteCodeList.push(routeCode);
         }
       }
@@ -739,7 +773,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
         .set('currentRouteCodeSchedule', currentRoute)
         .set('checkedSendEngage', latestSchedule.checkedSendEngage)
         .set('waitTime', latestSchedule.waitTime)
-        .set('currentEditChangeRouteList', List())
+        .set('currentEditChangeRouteList', latestSchedule.changeRouteList)
         .set('selectableRouteCodeList', List(selectableRouteCodeList))
         .set('lastRoute', lastRoute)
         .set('scheduleList', scheduleList.pop());
@@ -782,7 +816,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   setIsAddScheduleModalOpen(isAddScheduleModalOpen) {
-    const lastRoute = this.get('lastRoute');
+    const lastRoute = this.get('lastRoute').toJS();
     if (lastRoute.routeCode === '') {
       return this.set('isAddScheduleModalOpen', isAddScheduleModalOpen).set(
         'selectableRouteCodeList',
@@ -792,9 +826,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
       const RouteCodeList = this.get('routeCodeList').toJS();
       const selectableRouteCodeList = [];
       for (const routeCode of RouteCodeList) {
-        const endPoint = lastRoute.endPoint;
-        const routeStartPoint = routeCode.startPoint;
-        if (endPoint === routeStartPoint) {
+        if (lastRoute.endPoint === routeCode.startPoint) {
           selectableRouteCodeList.push(routeCode);
         }
       }
@@ -871,7 +903,7 @@ export class ScheduleEditor extends ScheduleEditorRecord {
   }
 
   getCurrentEditChangeRouteList() {
-    return this.get('currentEditChangeRouteList');
+    return this.get('currentEditChangeRouteList').toJS();
   }
 
   //Route List
