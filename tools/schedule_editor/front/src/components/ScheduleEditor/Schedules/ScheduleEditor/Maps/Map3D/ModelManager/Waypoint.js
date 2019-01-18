@@ -21,6 +21,7 @@ export default class Waypoint extends THREE.Group {
     this.selectRouteCode = null;
     this.scheduleList = null;
     this.routeCodeList = null;
+    this.currentEditChangeRouteList = null;
     this.nextSelectableRouteList = null;
     this.routeCodeAfterChangeRoute = null;
     this.selectableDecisionSectionEndPointList = null;
@@ -38,7 +39,7 @@ export default class Waypoint extends THREE.Group {
       default: '#d5cdce',
       selectCandidate: '#ff0016',
       selected: '#00FF00',
-      decided: '#1121ff',
+      schedule: '#1121ff',
       changeRoute: '#fffb04',
       selectableDecisionSection: '#ff5900',
       decisionSectionRouteCode: '#3cfbff'
@@ -188,31 +189,25 @@ export default class Waypoint extends THREE.Group {
   _colorScheduleList() {
     if (this.scheduleList) {
       for (const schedule of this.scheduleList) {
-        const startPoint = schedule.startPoint;
-        const lanes = schedule.laneList;
-        const endPoint = schedule.endPoint;
-
-        if (startPoint && lanes.length > 0 && endPoint) {
-          this.waypointsList[startPoint].material.color.set(this.color.decided);
-          for (let laneID of lanes) {
-            this.laneList[laneID].material.color.set(this.color.decided);
-          }
-          this.waypointsList[endPoint].material.color.set(this.color.decided);
+        const waypointList = schedule.waypointList;
+        if (waypointList) {
+          schedule.waypointList.forEach(waypoint => {
+            this.waypointsList[waypoint].material.color.set(
+              this.color.schedule
+            );
+          });
         }
 
         for (const changeRoute of schedule.changeRouteList) {
-          const startPoint = changeRoute.routeCodeAfterChangeRoute.startPoint;
-          const lanes = changeRoute.routeCodeAfterChangeRoute.laneList;
-          const endPoint = changeRoute.routeCodeAfterChangeRoute.endPoint;
+          const waypointList =
+            changeRoute.routeCodeAfterChangeRoute.waypointList;
 
-          if (startPoint && lanes.length > 0 && endPoint) {
-            this.waypointsList[startPoint].material.color.set(
-              this.color.decided
-            );
-            for (let laneID of lanes) {
-              this.laneList[laneID].material.color.set(this.color.decided);
-            }
-            this.waypointsList[endPoint].material.color.set(this.color.decided);
+          if (waypointList) {
+            waypointList.forEach(waypoint => {
+              this.waypointsList[waypoint].material.color.set(
+                this.color.schedule
+              );
+            });
           }
         }
       }
@@ -224,6 +219,11 @@ export default class Waypoint extends THREE.Group {
       const startPoint = this.selectRouteCode.startPoint;
       const lanes = this.selectRouteCode.laneList;
       const endPoint = this.selectRouteCode.endPoint;
+      const waypointList = this.selectRouteCode.waypointList;
+
+      waypointList.forEach(waypoint => {
+        this.waypointsList[waypoint].material.color.set(this.color.default);
+      });
       this.waypointsList[startPoint].material.color.set(this.color.selected);
       for (let laneID of lanes) {
         this.laneList[laneID].material.color.set(this.color.selected);
@@ -234,18 +234,32 @@ export default class Waypoint extends THREE.Group {
       for (const routeCode of this.routeCodeList) {
         const routeStartPoint = routeCode.startPoint;
         if (endPoint === routeStartPoint) {
-          routeCode.laneList.forEach((laneID, index) => {
-            if (index > 0) {
-              this.laneList[laneID].material.color.set(
+          routeCode.waypointList.forEach((waypoint, index) => {
+            if (index !== 0) {
+              this.waypointsList[waypoint].material.color.set(
                 this.color.selectCandidate
               );
             }
           });
-          this.waypointsList[routeCode.endPoint].material.color.set(
-            this.color.selectCandidate
-          );
           this.nextSelectableRouteList.push(routeCode);
         }
+      }
+    }
+  }
+
+  _colorCurrentEditChangeRouteList() {
+    if (this.currentEditChangeRouteList) {
+      for (const changeRoute of this.currentEditChangeRouteList) {
+        changeRoute.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(
+            this.color.changeRoute
+          );
+        });
+        changeRoute.decisionSectionRouteCode.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(
+            this.color.decisionSectionRouteCode
+          );
+        });
       }
     }
   }
@@ -281,6 +295,7 @@ export default class Waypoint extends THREE.Group {
   _changeAllObjectColorToDefault() {
     this._changeScheduleListColorToDefault();
     this._changeCurrentRouteCodeColorToDefault();
+    this._changeCurrentEditChangeRouteListColorToDefault();
     this._changeRouteCodeAfterChangeRouteColorToDefault();
     this._changeSelectableDecisionSectionEndPointListColorToDefault();
     this._changeDecisionSectionRouteCodeColorToDefault();
@@ -289,32 +304,23 @@ export default class Waypoint extends THREE.Group {
   _changeScheduleListColorToDefault() {
     if (this.scheduleList) {
       for (const schedule of this.scheduleList) {
-        if (schedule.startPoint) {
-          this.waypointsList[schedule.startPoint].material.color.set(
-            this.color.default
-          );
+        const waypointList = schedule.waypointList;
+        if (waypointList) {
+          schedule.waypointList.forEach(waypoint => {
+            this.waypointsList[waypoint].material.color.set(this.color.default);
+          });
         }
-        for (const laneID of schedule.laneList) {
-          this.laneList[laneID].material.color.set(this.color.default);
-        }
-        if (schedule.endPoint) {
-          this.waypointsList[schedule.endPoint].material.color.set(
-            this.color.default
-          );
-        }
-        for (const changeRoute of schedule.changeRouteList) {
-          const startPoint = changeRoute.routeCodeAfterChangeRoute.startPoint;
-          const lanes = changeRoute.routeCodeAfterChangeRoute.laneList;
-          const endPoint = changeRoute.routeCodeAfterChangeRoute.endPoint;
 
-          if (startPoint && lanes.length > 0 && endPoint) {
-            this.waypointsList[startPoint].material.color.set(
-              this.color.default
-            );
-            for (let laneID of lanes) {
-              this.laneList[laneID].material.color.set(this.color.default);
-            }
-            this.waypointsList[endPoint].material.color.set(this.color.default);
+        for (const changeRoute of schedule.changeRouteList) {
+          const waypointList =
+            changeRoute.routeCodeAfterChangeRoute.waypointList;
+
+          if (waypointList) {
+            schedule.waypointList.forEach(waypoint => {
+              this.waypointsList[waypoint].material.color.set(
+                this.color.default
+              );
+            });
           }
         }
       }
@@ -339,19 +345,26 @@ export default class Waypoint extends THREE.Group {
     }
     if (this.nextSelectableRouteList) {
       for (const routeCode of this.nextSelectableRouteList) {
-        if (routeCode.startPoint) {
-          this.waypointsList[routeCode.startPoint].material.color.set(
-            this.color.default
+        routeCode.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(this.color.default);
+        });
+      }
+    }
+  }
+
+  _changeCurrentEditChangeRouteListColorToDefault() {
+    if (this.currentEditChangeRouteList) {
+      for (const changeRoute of this.currentEditChangeRouteList) {
+        changeRoute.routeCodeAfterChangeRoute.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(
+            this.color.changeRoute
           );
-        }
-        for (const laneID of routeCode.laneList) {
-          this.laneList[laneID].material.color.set(this.color.default);
-        }
-        if (routeCode.endPoint) {
-          this.waypointsList[routeCode.endPoint].material.color.set(
-            this.color.default
+        });
+        changeRoute.decisionSectionRouteCode.waypointList.forEach(waypoint => {
+          this.waypointsList[waypoint].material.color.set(
+            this.color.decisionSectionRouteCode
           );
-        }
+        });
       }
     }
   }
@@ -465,6 +478,7 @@ export default class Waypoint extends THREE.Group {
     if (this.selectRouteCode.routeCode) {
       this._colorScheduleList();
       this._colorSelectRouteCode();
+      this._colorCurrentEditChangeRouteList();
 
       const endPoint = this.selectRouteCode.endPoint;
       const newCameraPosition = {
@@ -540,6 +554,7 @@ export default class Waypoint extends THREE.Group {
     scheduleList,
     routeCodeList,
     selectRouteCode,
+    currentEditChangeRouteList,
     routeCodeAfterChangeRoute,
     selectableDecisionSectionEndPointList,
     decisionSectionRouteCode
@@ -547,6 +562,7 @@ export default class Waypoint extends THREE.Group {
     this.scheduleList = scheduleList;
     this.routeCodeList = routeCodeList;
     this.selectRouteCode = selectRouteCode;
+    this.currentEditChangeRouteList = currentEditChangeRouteList;
     this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
     this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
     this.decisionSectionRouteCode = decisionSectionRouteCode;
@@ -571,6 +587,15 @@ export default class Waypoint extends THREE.Group {
     ) {
       this._changeAllObjectColorToDefault();
       this.selectRouteCode = selectRouteCode;
+      this._updateViewer();
+    }
+  }
+
+  updateCurrentEditChangeRouteList(currentEditChangeRouteList) {
+    if (this.waypoint && this.lane) {
+      this._changeAllObjectColorToDefault();
+
+      this.currentEditChangeRouteList = currentEditChangeRouteList;
       this._updateViewer();
     }
   }

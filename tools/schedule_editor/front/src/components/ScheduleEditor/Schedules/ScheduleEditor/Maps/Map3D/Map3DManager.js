@@ -16,9 +16,10 @@ import Waypoint from './ModelManager/Waypoint';
 import MapDataUpdater from '../DataUpdater/MapDataUpdater';
 import ScheduleListUpdater from '../DataUpdater/ScheduleListUpdater';
 import RouteCodeListUpdater from '../DataUpdater/RouteCodeListUpdater';
-import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
-import RouteCodeAfterChangeRouteUpdater from '../DataUpdater/RouteCodeAfterChangeRouteUpdater';
 import ScheduleEditorActiveStepUpdater from '../DataUpdater/ScheduleEditorActiveStepUpdater';
+import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
+import CurrentEditChangeRouteListUpdater from '../DataUpdater/CurrentEditChangeRouteListUpdater';
+import RouteCodeAfterChangeRouteUpdater from '../DataUpdater/RouteCodeAfterChangeRouteUpdater';
 import SelectableDecisionSectionEndPointListUpdater from '../DataUpdater/SelectableDecisionSectionEndPointListUpdater';
 import DecisionSectionRouteCodeUpdater from '../DataUpdater/DecisionSectionRouteCodeUpdater';
 
@@ -40,12 +41,13 @@ class Map3DManager extends React.Component {
     this.mouse = new THREE.Vector2();
 
     this.mapData = null;
-    this.routeCode = null;
     this.scheduleList = null;
-    this.selectableDecisionSectionEndPointList = null;
-    this.routeCodeAfterChangeRoute = null;
-    this.decisionSectionRouteCode = null;
     this.scheduleEditorActiveStep = null;
+    this.routeCode = null;
+    this.currentEditChangeRouteList = null;
+    this.routeCodeAfterChangeRoute = null;
+    this.selectableDecisionSectionEndPointList = null;
+    this.decisionSectionRouteCode = null;
 
     this.initialCameraPosition = { x: 0, y: 0, z: 0 };
 
@@ -205,6 +207,7 @@ class Map3DManager extends React.Component {
       this.scheduleList,
       this.routeCodeList,
       this.routeCode,
+      this.currentEditChangeRouteList,
       this.routeCodeAfterChangeRoute,
       this.selectableDecisionSectionEndPointList,
       this.decisionSectionRouteCode
@@ -224,28 +227,32 @@ class Map3DManager extends React.Component {
       this.routeCodeList = routeCodeList;
     };
 
-    const initRouteCode = routeCode => {
-      this.routeCode = routeCode;
-    };
-
     const initScheduleList = scheduleList => {
       this.scheduleList = scheduleList;
     };
 
-    const initSelectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList => {
-      this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
+    const initScheduleEditorActiveStep = scheduleEditorActiveStep => {
+      this.scheduleEditorActiveStep = scheduleEditorActiveStep;
+    };
+
+    const initRouteCode = routeCode => {
+      this.routeCode = routeCode;
+    };
+
+    const initCurrentEditChangeRouteList = currentEditChangeRouteList => {
+      this.currentEditChangeRouteList = currentEditChangeRouteList;
     };
 
     const initRouteCodeAfterChangeRoute = routeCodeAfterChangeRoute => {
       this.routeCodeAfterChangeRoute = routeCodeAfterChangeRoute;
     };
 
-    const initDecisionSectionRouteCode = decisionSectionRouteCode => {
-      this.decisionSectionRouteCode = decisionSectionRouteCode;
+    const initSelectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList => {
+      this.selectableDecisionSectionEndPointList = selectableDecisionSectionEndPointList;
     };
 
-    const initScheduleEditorActiveStep = scheduleEditorActiveStep => {
-      this.scheduleEditorActiveStep = scheduleEditorActiveStep;
+    const initDecisionSectionRouteCode = decisionSectionRouteCode => {
+      this.decisionSectionRouteCode = decisionSectionRouteCode;
     };
 
     const setMapData = mapData => {
@@ -262,6 +269,12 @@ class Map3DManager extends React.Component {
 
     const updateCurrentRouteCode = routeCode => {
       this.waypointsModelManager.updateCurrentRouteCode(routeCode);
+    };
+
+    const updateCurrentEditChangeRouteList = currentEditChangeRouteList => {
+      this.waypointsModelManager.updateCurrentEditChangeRouteList(
+        currentEditChangeRouteList
+      );
     };
 
     const updateRouteCodeAfterChangeRoute = routeCodeAfterChangeRoute => {
@@ -291,19 +304,23 @@ class Map3DManager extends React.Component {
     return (
       <div id="route_code_map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater initMapData={initMapData} setMapData={setMapData} />
+        <RouteCodeListUpdater initRouteCodeList={initRouteCodeList} />
+        <ScheduleListUpdater initScheduleList={initScheduleList} />
+        <ScheduleEditorActiveStepUpdater
+          initScheduleEditorActiveStep={initScheduleEditorActiveStep}
+          setScheduleEditorActiveStep={setScheduleEditorActiveStep}
+        />
         <RouteCodeUpdater
           initRouteCode={initRouteCode}
           updateRouteCode={updateCurrentRouteCode}
         />
+        <CurrentEditChangeRouteListUpdater
+          initCurrentEditChangeRouteList={initCurrentEditChangeRouteList}
+          updateCurrentEditChangeRouteList={updateCurrentEditChangeRouteList}
+        />
         <RouteCodeAfterChangeRouteUpdater
           initRouteCodeAfterChangeRoute={initRouteCodeAfterChangeRoute}
           updateRouteCodeAfterChangeRoute={updateRouteCodeAfterChangeRoute}
-        />
-        <ScheduleListUpdater initScheduleList={initScheduleList} />
-        <RouteCodeListUpdater initRouteCodeList={initRouteCodeList} />
-        <ScheduleEditorActiveStepUpdater
-          initScheduleEditorActiveStep={initScheduleEditorActiveStep}
-          setScheduleEditorActiveStep={setScheduleEditorActiveStep}
         />
         <SelectableDecisionSectionEndPointListUpdater
           initSelectableDecisionSectionEndPointList={
