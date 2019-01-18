@@ -14,7 +14,8 @@ kvs = {
         "REDIS": {
             "MODULE_NAME": "redis",
         }
-    }
+    },
+    "TIMESTAMP_STRING_COEFFICIENT": 1000.0
 }
 
 pubsub = {
