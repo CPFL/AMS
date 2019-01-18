@@ -1,0 +1,25 @@
+{
+  "config": {
+    "target_self": {
+      "group": "user",
+      "id": "milee_user1"
+    },
+    "target_dispatcher": {
+      "group": "dispatcher",
+      "id": "milee_taxi"
+    }
+  },
+  "status": {
+    "vehicle_info": null,
+    "start_location": {
+      "lane_code": "8883_8897",
+      "waypoint_id": "8887"
+    },
+    "goal_location": {
+      "lane_code": "9610_9673",
+      "waypoint_id": "9655"
+    },
+    "state": null,
+    "updated_at": 0
+  }
+}

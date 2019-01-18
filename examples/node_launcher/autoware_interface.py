@@ -19,7 +19,6 @@ if __name__ == '__main__':
 
     setproctitle("ams_autoware_interface")
 
-    parser.add_argument("-IF", "--identifiable_flag", type=bool, default=False, help="use identifiable flag")
     args = parser.parse_args()
 
     if args.kvs_client_type == "manager":

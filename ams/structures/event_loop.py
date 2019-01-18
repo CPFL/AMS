@@ -17,7 +17,9 @@ topic = {
 const = {
     "NODE_NAME": "device",
     "ROLE_NAME": "device",
-    "TOPIC": topic
+    "TOPIC": topic,
+    "REQUEST_MESSAGE_TIMEOUT": 2.0,
+    "RESPONSE_MESSAGE_TIMEOUT": 2.0,
 }
 
 CONST = get_namedtuple_from_dict("CONST", const)
