@@ -1,0 +1,47 @@
+{
+  "config": {
+    "target_self": {
+      "group": "dispatcher",
+      "id": "postee_route1"
+    },
+    "target_vehicles": [
+      {
+        "group": "vehicle",
+        "id": "postee1"
+      }
+    ],
+    "vehicle_schedules": [
+      {
+        "id": "default",
+        "events": [
+          {
+            "name": "send_lane_array",
+            "route_code": "9346:9335>9354>9362>9377>9550>9553>9563>9568>9572>9587>9591>9600>9610>9673:9656"
+          },
+          {
+            "name": "send_engage"
+          },
+          {
+            "name": "send_goto_wait_order"
+          },
+          {
+            "name": "send_lane_array",
+            "route_code": "9656:9610>9673>9988>10010>10027>9335>9354:9344"
+          },
+          {
+            "name": "send_engage"
+          },
+          {
+            "name": "loop"
+          }
+        ]
+      }
+    ]
+  },
+  "status": {
+    "state": "Start",
+    "updated_at": 0.0,
+    "vehicle_status": null,
+    "traffic_signal_statuses": null
+  }
+}

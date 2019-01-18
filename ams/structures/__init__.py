@@ -28,8 +28,7 @@ from ams.structures.traffic_signal_controller import TrafficSignalController
 
 from ams.structures.autoware import Autoware
 from ams.structures.vehicle import Vehicle
+from ams.structures.user import User
 from ams.structures.dispatcher import Dispatcher
 
 from ams.structures.autoware_interface import AutowareInterface
-
-from ams.structures.user import User

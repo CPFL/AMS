@@ -27,18 +27,37 @@ const.update({
     "NODE_NAME": "vehicle",
     "ROLE_NAME": "vehicle",
     "TOPIC": topic,
+    "EVENT": {
+        "SEND_LANE_ARRAY": "send_lane_array",
+        "SEND_ENGAGE": "send_engage",
+        "SEND_GOTO_WAIT_ORDER": "send_goto_wait_order",
+        "WAIT_EVENT_SHIFT": "wait_event_shift",
+        "SHIFT_EVENT": "shift_event",
+        "OPERATE_STOP": "operate_stop"
+    },
     "STATE": {
-        "WAIT_SCHEDULE": "WaitSchedule",
         "WAITING_EVENT": "WaitingEvent",
         "WAITING_SCHEDULE": "WaitingSchedule",
         "REPLACING_SCHEDULE": "ReplacingSchedule",
         "REPLACING_SCHEDULE_SUCCEEDED": "ReplacingScheduleSucceeded",
         "REPLACING_SCHEDULE_FAILED": "ReplacingScheduleFailed",
-        "END": "End"
+        "END": "End",
+        "ON_ROUTE_TO_USER": "on_route_to_user",
+        "AT_USER_START_LOCATION": "at_user_start_location",
+        "ON_ROUTE_OF_USER": "on_route_of_user",
+        "AT_USER_GOAL_LOCATION": "at_user_goal_location"
+    },
+    "EVENT_ID_PARTS": {
+        "DELIMITER": "/",
+        "AFTER_MOVE_TO_USER_START": "after_move_to_user_start",
+        "WAIT_AT_USER_START": "wait_at_user_start",
+        "AFTER_MOVE_TO_USER_GOAL": "after_move_to_user_goal",
+        "WAIT_AT_USER_GOAL": "wait_at_user_goal"
     },
     "ACTIVATION_REQUEST_TIMEOUT": 10.0,
     "FLOAT_MAX": float_info.max,
-    "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0
+    "DEFAULT_UPPER_DISTANCE_FROM_STOPLINE": 50.0,
+    "ROUTE_CODE_MESSAGE_TIMEOUT": 5.0
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)
@@ -144,6 +163,37 @@ class Status(get_structure_superclass(status_template, status_schema)):
     Pose = Pose
 
 
+info_template = {
+    "target": Target.get_template(),
+    "state": "s0",
+    "location": Location.get_template()
+}
+
+info_schema = {
+    "target": {
+        "type": "dict",
+        "schema": Target.get_schema(),
+        "required": True,
+        "nullable": True
+    },
+    "state": {
+        "type": "string",
+        "required": True,
+        "nullable": True
+    },
+    "location": {
+        "type": "dict",
+        "schema": Location.get_schema(),
+        "required": True,
+        "nullable": True
+    }
+}
+
+
+class Info(get_structure_superclass(info_template, info_schema)):
+    Location = Location
+
+
 config_message_template = {
     "header": MessageHeader.get_template(),
     "body": Config.get_template()
@@ -244,15 +294,42 @@ class RoutePointMessage(get_structure_superclass(route_point_message_template, r
     RoutePoint = RoutePoint
 
 
+info_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": Info.get_template()
+}
+
+info_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": Info.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class InfoMessage(get_structure_superclass(info_message_template, info_message_schema)):
+    Info = Info
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     Status = StatusMessage
     RouteCode = RouteCodeMessage
     RoutePoint = RoutePointMessage
+    Info = InfoMessage
 
 
 class Vehicle(EventLoop):
     CONST = CONST
     Config = Config
     Status = Status
+    Info = Info
     Message = Message

@@ -34,7 +34,18 @@ class StateMachine(object):
         data["state"] = state
 
     @classmethod
+    def __call_hooks_of_current_state(cls, data):
+        state = data["resource"]["states"].get(data["state"], None)
+        if state is not None:
+            for hook in state["hooks"]:
+                data["callbacks"][hook["function"]](
+                    *list(map(lambda x: data["variables"][x] if isinstance(x, str) else x, hook["args"])))
+
+    @classmethod
     def update_state(cls, data, event=None):
+        if "states" in data["resource"]:
+            cls.__call_hooks_of_current_state(data)
+
         transitions = list(filter(
             lambda x: x["event"] == event and x["from"] == data["state"],
             data["resource"]["transitions"]
@@ -51,7 +62,7 @@ class StateMachine(object):
                 conditions_result = True
             else:
                 conditions_result = all(map(
-                    lambda x: not x[1] if x[0] else x[1],
+                    lambda x: (not x[1] if x[0] else x[1]) if x[1] is not None else False,
                     map(
                         lambda y: (
                             y["not"] if "not" in y else False,
