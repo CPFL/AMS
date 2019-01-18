@@ -1,0 +1,8 @@
+[
+  "python waypoint_csv_converter.py -WCP ../../examples/entre_demo/res/waypoint_csv/1.csv -WJP ../../examples/entre_demo/res/maps/waypoint.json -LJP ../../examples/entre_demo/res/maps/lane.json -EPSG EPSG:2451 -LCF True -NIC 2,15,47",
+  "python waypoint_csv_converter.py -WCP ../../examples/entre_demo/res/waypoint_csv/2.csv -WJP ../../examples/entre_demo/res/maps/2.csv.waypoint.json -LJP ../../examples/entre_demo/res/maps/2.csv.lane.json -EPSG EPSG:2451 -WCO 94 -LCF True -NIC 96,100,135",
+  "python waypoint_id_replacer.py -IWJP ../../examples/entre_demo/res/maps/2.csv.waypoint.json -ILJP ../../examples/entre_demo/res/maps/2.csv.lane.json -OWJP ../../examples/entre_demo/res/maps/2.csv.replaced.waypoint.json -OLJP ../../examples/entre_demo/res/maps/2.csv.replaced.lane.json -FWID 135 -TWID 47",
+  "python waypoint_id_replacer.py -IWJP ../../examples/entre_demo/res/maps/2.csv.replaced.waypoint.json -ILJP ../../examples/entre_demo/res/maps/2.csv.replaced.lane.json -OWJP ../../examples/entre_demo/res/maps/2.csv.replaced.waypoint.json -OLJP ../../examples/entre_demo/res/maps/2.csv.replaced.lane.json -FWID 96 -TWID 2",
+  "python map_blender.py -FWJP ../../examples/entre_demo/res/maps/2.csv.replaced.waypoint.json -FLJP ../../examples/entre_demo/res/maps/2.csv.replaced.lane.json -TWJP ../../examples/entre_demo/res/maps/waypoint.json -TLJP ../../examples/entre_demo/res/maps/lane.json",
+  "python lanes_connector.py -ILJP ../../examples/entre_demo/res/maps/lane.json -OLJP ../../examples/entre_demo/res/maps/lane.json"
+]

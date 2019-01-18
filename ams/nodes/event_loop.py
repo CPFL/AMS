@@ -55,12 +55,15 @@ class EventLoop(object):
     def set_rate(self, hz=1.0):
         self.dt = 1.0/hz
 
-    def connect_clients(self):
-        self.user_data["kvs_client"].connect()
-        logger.info(self.config.target_self)
+    def initialize_kvs(self):
         Hook.set_config(self.user_data["kvs_client"], self.config.target_self, self.config)
         if self.status is not None:
             Hook.set_status(self.user_data["kvs_client"], self.config.target_self, self.status)
+
+    def connect_clients(self):
+        self.user_data["kvs_client"].connect()
+        logger.info(self.config.target_self)
+        self.initialize_kvs()
 
         for subscriber in self.subscribers.values():
             logger.info("subscribe: {}".format(subscriber["topic"]))
@@ -82,9 +85,19 @@ class EventLoop(object):
 
         try:
             self.loop()
-
         except KeyboardInterrupt:
-            if self.user_data["pubsub_client"] is not None:
-                self.user_data["pubsub_client"].disconnect()
-            if self.user_data["ros_client"] is not None:
-                self.user_data["ros_client"].disconnect()
+            pass
+        except Exception as e:
+            logger.error(e)
+        finally:
+            self.disconnect_clients()
+
+    def disconnect_clients(self):
+        if self.user_data["pubsub_client"] is not None:
+            self.user_data["pubsub_client"].disconnect()
+        if self.user_data["kvs_client"] is not None:
+            self.user_data["kvs_client"].disconnect()
+        if self.user_data["ros_client"] is not None:
+            self.user_data["ros_client"].disconnect()
+        if self.user_data["maps_client"] is not None:
+            self.user_data["maps_client"].disconnect()

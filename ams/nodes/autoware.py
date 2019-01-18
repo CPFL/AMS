@@ -3,10 +3,10 @@
 
 from time import time, sleep
 
-from ams.helpers import Hook, Condition, Publisher, Subscriber
+from ams import logger
+from ams.helpers import Hook, Condition, Publisher, Subscriber, Target
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.nodes.event_loop import EventLoop
-from ams.structures import AutowareInterface
 from ams.structures import Autoware as Structure
 
 
@@ -99,17 +99,23 @@ class Autoware(EventLoop):
         while True:
             start_time = time()
             state_cmd = Hook.get_state_cmd(self.user_data["kvs_client"], self.user_data["target_autoware"])
-            event = state_cmd.data if state_cmd is not None else None
+            event_name = state_cmd.data if state_cmd is not None else None
             updated_flag = False
-            if event is not None:
-                updated_flag = StateMachineHelper.update_state(state_machine_data, event)
+            current_state = StateMachineHelper.get_state(state_machine_data)
+            if event_name is not None:
+                updated_flag = StateMachineHelper.update_state(state_machine_data, event_name)
             if not updated_flag:
-                StateMachineHelper.update_state(state_machine_data, None)
+                updated_flag = StateMachineHelper.update_state(state_machine_data, None)
 
-            Hook.set_decision_maker_state(
-                self.user_data["kvs_client"], self.user_data["target_autoware"],
-                self.Status.DecisionMakerState.new_data(
-                    data=StateMachineHelper.get_state(state_machine_data)))
+            if updated_flag:
+                next_state = StateMachineHelper.get_state(state_machine_data)
+                set_flag = Hook.set_decision_maker_state(
+                    self.user_data["kvs_client"], self.user_data["target_autoware"],
+                    self.Status.DecisionMakerState.new_data(data=next_state))
+                if set_flag:
+                    logger.info("{} Event: {}, State: {} -> {}".format(
+                        Target.encode(self.user_data["target_autoware"]), event_name,
+                        "/".join(current_state.split("\n")), "/".join(next_state.split("\n"))))
 
             Publisher.publish_ros_current_pose(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],

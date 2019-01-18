@@ -1,0 +1,29 @@
+{
+  "config": {
+    "target_self": {
+      "group": "vehicle",
+      "id": "milee1"
+    },
+    "target_autoware": {
+      "group": "autoware",
+      "id": "milee1"
+    },
+    "target_dispatcher": {
+      "group": "dispatcher",
+      "id": "milee_taxi"
+    },
+    "upper_distance_from_stopline": 50.0
+  },
+  "status": {
+    "state": "Start",
+    "schedule_id": null,
+    "event_id": null,
+    "on_event": false,
+    "location": null,
+    "pose": null,
+    "updated_at": 0.0,
+    "current_pose": null,
+    "route_point": null,
+    "decision_maker_state": null
+  }
+}

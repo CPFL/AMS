@@ -1,0 +1,408 @@
+{
+  "initial_state": "Start",
+  "variables": {
+    "kvs_client": null,
+    "pubsub_client": null,
+    "maps_client": null,
+    "target_dispatcher": null,
+    "target_vehicle": null,
+    "WAITING_EVENT": "WaitingEvent",
+    "WAITING_SCHEDULE": "WaitingSchedule",
+    "GOT_ON": "GotOn",
+    "GOT_OFF": "GotOff"
+  },
+  "transitions": [
+    {
+      "event": null,
+      "from": "Start",
+      "to": "StartProcessing",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "StartProcessing",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "initialize_applied_schedule",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "initialize_generated_schedule",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "applied_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "generated_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+
+
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "GeneratingVehicleSchedule",
+      "hooks": [
+        {
+          "function": "update_vehicle_info_for_user",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_vehicle_info_message_to_user",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "relevant_vehicle_located",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "generated_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "vehicle_schedule_has_all_user_events",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "GeneratingVehicleSchedule",
+      "to": "RequestingVehicleScheduleChange",
+      "hooks": [
+        {
+          "function": "generate_vehicle_schedule_from_user_statuses",
+          "args": ["kvs_client", "maps_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "generated_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "relevant_vehicle_state_is_expected",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle", "WAITING_EVENT"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RequestingVehicleScheduleChange",
+      "to": "SendingVehicleSchedule",
+      "hooks": [
+        {
+          "function": "publish_change_vehicle_schedule_event_message",
+          "args": ["pubsub_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "relevant_vehicle_state_is_expected",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle", "WAITING_SCHEDULE"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RequestingVehicleScheduleChange",
+      "to": "InitializingGeneratedVehicleSchedule",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "dispatcher_state_timeout",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle", 10]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "InitializingGeneratedVehicleSchedule",
+      "to":"WaitingEvent",
+      "hooks": [
+        {
+          "function": "initialize_generated_schedule",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "generated_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SendingVehicleSchedule",
+      "to": "SynchronizingVehicleSchedule",
+      "hooks": [
+        {
+          "function": "publish_generated_vehicle_schedule",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "vehicle_schedule_applied",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SendingVehicleSchedule",
+      "to": "WaitingEvent",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "dispatcher_state_timeout",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle", 5]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SynchronizingVehicleSchedule",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "replace_applied_schedule",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "applied_vehicle_schedule_replaced",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+
+
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "SynchronizingVehicleScheduleAsInitialized",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "vehicle_schedule_id_with_dispatcher_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "applied_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SynchronizingVehicleScheduleAsInitialized",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "initialize_applied_schedule",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "applied_schedule_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+
+
+
+
+
+
+
+
+
+
+
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "SendingShiftEvent",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "vehicle_arrived_at_user_start_location",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "SendingShiftEvent",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "vehicle_arrived_at_user_goal_location",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "user_status_in_transportation_finished_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "transportation_finished_user_status_exists_in_user_statuses",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "SendingShiftEvent",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "publish_shift_event",
+          "args": ["pubsub_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "relevant_vehicle_is_waiting_event_shift",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+
+
+
+    {
+      "event": null,
+      "from": "WaitingEvent",
+      "to": "RemovingUserStatusWithDispatcher",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "vehicle_arrived_at_user_goal_location",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "user_status_in_transportation_finished_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        },
+        {
+          "function": "transportation_finished_user_status_exists_in_user_statuses",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RemovingUserStatusWithDispatcher",
+      "to": "RemovingUserStatusWithTransportation",
+      "hooks": [
+        {
+          "function": "initialize_user_status_in_transportation_finished",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "user_status_in_transportation_finished_initialized",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        }
+      ]
+    },
+    {
+      "event": null,
+      "from": "RemovingUserStatusWithTransportation",
+      "to": "WaitingEvent",
+      "hooks": [
+        {
+          "function": "remove_transportation_finished_user_status_from_user_statuses",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"]
+        },
+        {
+          "function": "publish_dispatcher_status",
+          "args": ["pubsub_client", "kvs_client", "target_dispatcher", "target_vehicle", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "transportation_finished_user_status_exists_in_user_statuses",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle"],
+          "not": true
+        }
+      ]
+    },
+
+
+    {
+      "event": "end_node",
+      "from": "WaitingEvent",
+      "to": "EndProcessing",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "EndProcessing",
+      "to": "End",
+      "hooks": null,
+      "conditions": [
+        {
+          "function": "dispatcher_state_timeout",
+          "args": ["kvs_client", "target_dispatcher", "target_vehicle", 10]
+        }
+      ]
+    }
+  ]
+}

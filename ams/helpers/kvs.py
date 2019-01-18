@@ -11,7 +11,7 @@ class Kvs(object):
     def get_timestamp_string(timestamp=None):
         if timestamp is None:
             timestamp = time()
-        return str(int(1000.0*timestamp))
+        return str(int(CLIENT.KVS.TIMESTAMP_STRING_COEFFICIENT*timestamp))
 
     @staticmethod
     def get_key_timestamp(key):

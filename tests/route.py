@@ -178,7 +178,7 @@ class Test(unittest.TestCase):
                 "lane_code": "10121_8973"
             }
         ]
-        value = Route.get_shortest_routes(
+        value = Route.search_shortest_routes(
             start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function)
         expected = {
             'test1': {
@@ -204,7 +204,7 @@ class Test(unittest.TestCase):
                 "lane_code": "9908_9930"
             }
         ]
-        value = Route.get_shortest_routes(
+        value = Route.search_shortest_routes(
             start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function, reverse=True)
         expected = {
             'test2': {
