@@ -17,7 +17,6 @@ import AddIcon from '@material-ui/icons/Add';
 import Typography from '@material-ui/core/Typography';
 
 import PropTypes from 'prop-types';
-import { scheduleEditSteps } from '../../../../model/Redux/Page/ScheduleEditor';
 import * as ScheduleEditorActions from '../../../../redux/Actions/ScheduleEditorActions';
 
 import ChangeRouteList from './ChangeRouteList';
@@ -68,7 +67,6 @@ class SelectRouteCodeComponent extends React.Component {
   }
 
   render() {
-
     const wrapper = {
       paddingTop: '5px',
       paddingLeft: '5px',

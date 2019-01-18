@@ -6,7 +6,7 @@ import json
 from setproctitle import setproctitle
 
 from ams.helpers import Topic
-from ams.nodes import TrafficSignal
+from ams.nodes import User
 
 from argument_parser import parser
 from clients.helper import get_manager_client, get_redis_client, get_paho_client, get_aws_iot_client
@@ -14,7 +14,7 @@ from clients.helper import get_manager_client, get_redis_client, get_paho_client
 
 if __name__ == '__main__':
 
-    setproctitle("ams_traffic_signal")
+    setproctitle("ams_user")
 
     parser.add_argument(
         "-SMP", "--state_machine_path", type=str, default=None, help="state machine resource path")
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     Topic.domain = args.topic_domain
 
-    traffic_signal = TrafficSignal(initials["config"], initials["status"], args.state_machine_path)
-    traffic_signal.set_rate(args.event_loop_rate)
-    traffic_signal.set_clients(kvs_client, pubsub_client)
-    traffic_signal.start()
+    user = User(initials["config"], initials["status"], args.state_machine_path)
+    user.set_rate(args.event_loop_rate)
+    user.set_clients(kvs_client, pubsub_client)
+    user.start()

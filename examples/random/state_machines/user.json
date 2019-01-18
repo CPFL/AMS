@@ -1,0 +1,134 @@
+{
+  "initial_state": "Start",
+  "variables": {
+    "kvs_client": null,
+    "pubsub_client": null,
+    "target_user": null,
+    "target_dispatcher": null,
+    "goal_location_candidates": [
+      {
+        "lane_code": "10391_9083",
+        "waypoint_id": "10402"
+      }
+    ]
+  },
+  "transitions": [
+    {
+      "event": null,
+      "from": "Start",
+      "to": "Calling",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "Calling",
+      "to": "WaitingVehicle",
+      "hooks": [
+        {
+          "function": "publish_user_status",
+          "args": ["pubsub_client", "kvs_client", "target_user", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "user_hired_vehicle",
+          "args": ["kvs_client", "target_user"]
+        }
+      ]
+    },
+    {
+      "event": "get_on",
+      "from": "WaitingVehicle",
+      "to": "GettingOn",
+      "hooks": [
+        {
+          "function": "publish_user_status",
+          "args": ["pubsub_client", "kvs_client", "target_user", "target_dispatcher"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "GettingOn",
+      "to": "GotOn",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "GotOn",
+      "to": "WaitingDepart",
+      "hooks": [
+        {
+          "function": "publish_user_status",
+          "args": ["pubsub_client", "kvs_client", "target_user", "target_dispatcher"]
+        }
+      ],
+      "conditions": null
+    },
+
+    {
+      "event": "set_goal",
+      "from": "WaitingDepart",
+      "to": "SettingGoal",
+      "hooks": [
+        {
+          "function": "set_user_goal_at_random",
+          "args": ["kvs_client", "target_user", "goal_location_candidates"]
+        },
+        {
+          "function": "publish_user_status",
+          "args": ["pubsub_client", "kvs_client", "target_user", "target_dispatcher"]
+        }
+      ],
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "SettingGoal",
+      "to": "WaitingDepart",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": "depart",
+      "from": "WaitingDepart",
+      "to": "Moving",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": "get_off",
+      "from": "Moving",
+      "to": "GettingOff",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "GettingOff",
+      "to": "GotOff",
+      "hooks": null,
+      "conditions": null
+    },
+    {
+      "event": null,
+      "from": "GotOff",
+      "to": "End",
+      "hooks": [
+        {
+          "function": "publish_user_status",
+          "args": ["pubsub_client", "kvs_client", "target_user", "target_dispatcher"]
+        }
+      ],
+      "conditions": [
+        {
+          "function": "user_state_timeout",
+          "args": ["kvs_client", "target_user", 10]
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,8 @@
 import json
 import yaml
 
+from setproctitle import setproctitle
+
 from ams import logger
 from ams.helpers import Topic
 from ams.clients import MapsClient
@@ -14,6 +16,8 @@ from clients.helper import get_manager_client, get_redis_client, get_paho_client
 
 
 if __name__ == '__main__':
+
+    setproctitle("ams_autoware_interface")
 
     args = parser.parse_args()
 
@@ -35,7 +39,7 @@ if __name__ == '__main__':
     if args.use_ros_flag:
         from std_msgs.msg import String, Int32
         from geometry_msgs.msg import PoseStamped
-        from autoware_msgs.msg import VehicleLocation, LaneArray, traffic_light
+        from autoware_msgs.msg import VehicleLocation, LaneArray
 
         from clients.helper import get_ros_client
 
@@ -83,4 +87,3 @@ if __name__ == '__main__':
         del maps_client
         del ros_client
         del autoware_interface
-

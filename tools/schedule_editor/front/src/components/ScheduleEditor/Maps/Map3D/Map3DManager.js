@@ -1,4 +1,5 @@
 import React from 'react';
+import { addResizeListener } from 'detect-resize';
 
 import * as THREE from 'three';
 import 'three/OrbitControls';
@@ -10,9 +11,8 @@ import PCD from './ModelManager/PCD';
 import Waypoint from './ModelManager/Waypoint';
 
 import MapDataUpdater from '../DataUpdater/MapDataUpdater';
-import RouteCodeUpdater from '../DataUpdater/RouteCodeUpdater';
-
-import { addResizeListener } from 'detect-resize';
+import SelectedDisplayRouteMainViewerUpdater from '../DataUpdater/SelectedDisplayRouteMainViewerUpdater';
+import SelectScheduleDisplayMainViewerUpdater from '../DataUpdater/SelectScheduleDisplayMainViewerUpdater';
 
 export default class Map3DManager extends React.Component {
   constructor(props) {
@@ -148,14 +148,30 @@ export default class Map3DManager extends React.Component {
         this.waypointsModelManager.clear();
       }
     };
-    const updateRouteCode = (startPoint, lanes, endPoint) => {
-      this.waypointsModelManager.updateRouteCode(startPoint, lanes, endPoint);
+    const updateSelectedDisplayRouteMainViewer = selectedDisplayRouteMainViewer => {
+      this.waypointsModelManager.updateSelectedDisplayRouteMainViewer(
+        selectedDisplayRouteMainViewer
+      );
+    };
+    const updateSelectScheduleDisplayMainViewer = selectScheduleDisplayMainViewer => {
+      this.waypointsModelManager.updateSelectScheduleDisplayMainViewer(
+        selectScheduleDisplayMainViewer
+      );
     };
 
     return (
       <div id="map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater setMapData={setMapData} />
-        <RouteCodeUpdater updateRouteCode={updateRouteCode} />
+        <SelectedDisplayRouteMainViewerUpdater
+          updateSelectedDisplayRouteMainViewer={
+            updateSelectedDisplayRouteMainViewer
+          }
+        />
+        <SelectScheduleDisplayMainViewerUpdater
+          updateSelectScheduleDisplayMainViewer={
+            updateSelectScheduleDisplayMainViewer
+          }
+        />
       </div>
     );
   }

@@ -5,6 +5,8 @@ import signal
 from subprocess import Popen
 from time import sleep
 
+from setproctitle import setproctitle
+
 from ams import logger
 
 
@@ -36,6 +38,10 @@ class Launcher(object):
         command = "python ../node_launcher/traffic_signal.py -KCT redis -PSCT paho -TD sim -IFP ./initials/traffic_signal.json -SMP ./state_machines/traffic_signal.json"
         self.popen_traffic_signal = Popen(command.split(" "))
 
+        print("launch user")
+        command = "python ../node_launcher/user.py -KCT redis -PSCT paho -TD sim -IFP ./initials/user.json -SMP ./state_machines/user.json"
+        self.popen_user = Popen(command.split(" "))
+
         # print("launch shutter")
         # command = "python ../node_launcher/shutter.py -PSCT paho -TD sim -IFP ./initials/shutter.json"
         # self.popen_shutter = Popen(command.split(" "))
@@ -44,13 +50,14 @@ class Launcher(object):
         # command = "python ../node_launcher/light.py -PSCT paho -TD sim -IFP ./initials/light.json"
         # self.popen_light = Popen(command.split(" "))
 
-    def __del__(self):
+    def __delete__(self):
         self.popen_viewer.send_signal(signal.SIGINT)
         self.popen_vehicle.send_signal(signal.SIGINT)
         self.popen_vehicle1.send_signal(signal.SIGINT)
         self.popen_milee_autoware.send_signal(signal.SIGINT)
         self.popen_milee_autoware_interface.send_signal(signal.SIGINT)
         self.popen_traffic_signal.send_signal(signal.SIGINT)
+        self.popen_user.send_signal(signal.SIGINT)
         # self.popen_shutter.send_signal(signal.SIGINT)
         # self.popen_light.send_signal(signal.SIGINT)
 
@@ -59,6 +66,7 @@ class Launcher(object):
 
 
 if __name__ == '__main__':
+    setproctitle("ams_launcher")
     launcher = Launcher()
     try:
         launcher.start()

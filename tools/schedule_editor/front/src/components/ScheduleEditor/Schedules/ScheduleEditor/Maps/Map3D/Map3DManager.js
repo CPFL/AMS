@@ -226,20 +226,6 @@ class Map3DManager extends React.Component {
       this.waypointsModelManager.updateCurrentRouteCode(routeCode);
     };
 
-    const updateChangeRoute = (
-      startPoint,
-      lanes,
-      endPoint,
-      decisionSectionEndPoint
-    ) => {
-      this.waypointsModelManager.updateChangeRoute(
-        startPoint,
-        lanes,
-        endPoint,
-        decisionSectionEndPoint
-      );
-    };
-
     return (
       <div id="route_code_map_canvas" style={{ width: '100%', height: '100%' }}>
         <MapDataUpdater initMapData={initMapData} setMapData={setMapData} />

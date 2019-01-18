@@ -8,6 +8,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon/ListItemIcon';
 import DoneIcon from '@material-ui/icons/Done';
 import ListItemText from '@material-ui/core/ListItemText/ListItemText';
 import Typography from '@material-ui/core/Typography';
+import { bindActionCreators } from 'redux';
+import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 
 class ScheduleList extends React.Component {
   constructor(props) {
@@ -16,7 +18,6 @@ class ScheduleList extends React.Component {
 
   getScheduleList() {
     let scheduleList = this.props.scheduleList;
-    console.log(scheduleList);
 
     const resList = [];
     for (const schedule of scheduleList) {
@@ -39,7 +40,7 @@ class ScheduleList extends React.Component {
           <ListItemText
             primary={
               <div>
-                <Typography variant="subheading" gutterBottom>
+                <Typography variant="subheading">
                   <div style={{ wordBreak: 'break-all' }}>
                     Send Lane Array: {schedule.routeCode}
                   </div>
@@ -54,8 +55,11 @@ class ScheduleList extends React.Component {
     return resList;
   }
 
-  selectSchedule(event, item) {
-    console.log(item);
+  selectSchedule(event, schedule) {
+    this.props.scheduleEditorActions.setSelectScheduleDisplayMainViewer(
+      schedule
+    );
+    console.log(schedule);
   }
 
   render() {
@@ -68,13 +72,16 @@ class ScheduleList extends React.Component {
   }
 }
 ScheduleList.propTypes = {
-  scheduleList: PropTypes.array
+  scheduleList: PropTypes.array,
+  scheduleEditorActions: PropTypes.object
 };
 
 const mapState = state => ({
   scheduleList: state.scheduleEditor.getScheduleList()
 });
-const mapDispatch = () => ({});
+const mapDispatch = dispatch => ({
+  scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
+});
 export default connect(
   mapState,
   mapDispatch

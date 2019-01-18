@@ -103,7 +103,9 @@ class KVSClient(object):
                 pass
 
     def keys(self, pattern="*"):
-        return list(filter(lambda x: compare_keys(x, pattern), self.__d.keys()))
+        return list(set(map(
+            lambda x: Kvs.get_key_from_timestamped_key(x),
+            filter(lambda y: compare_keys(y, pattern), self.__d.keys()))))
 
     def disconnect(self):
         self.__manager.shutdown()

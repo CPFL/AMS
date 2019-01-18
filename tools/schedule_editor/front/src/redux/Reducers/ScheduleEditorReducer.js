@@ -39,22 +39,6 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.CLEAR_ROUTE_CODE_DATA) {
     return state.clearRouteCodeData();
   }
-  //Change Route Editor
-  else if (
-    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT
-  ) {
-    return state.setChangeRouteActiveStepNext(action.changeRouteActiveStep);
-  } else if (
-    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS
-  ) {
-    return state.setChangeRouteActiveStepPrevious(action.changeRouteActiveStep);
-  } else if (
-    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET
-  ) {
-    return state.setChangeRouteActiveStepReset(action.changeRouteActiveStep);
-  } else if (action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_START_POINT) {
-    return state.setChangeRouteStartPoint(action.startPoint);
-  }
   // Schedule Editor
   else if (action.type === REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR) {
     return state.setActiveStepScheduleEditor(action.activeStepScheduleEditor);
@@ -75,11 +59,68 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.SAVE_SCHEDULE) {
     return state.saveSchedule();
   }
+  //Change Route Editor
+  else if (
+    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT
+  ) {
+    return state.setChangeRouteActiveStepNext(action.changeRouteActiveStep);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS
+  ) {
+    return state.setChangeRouteActiveStepPrevious(action.changeRouteActiveStep);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET
+  ) {
+    return state.setChangeRouteActiveStepReset(action.changeRouteActiveStep);
+  } else if (action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_START_POINT) {
+    return state.setChangeRouteStartPoint(action.startPoint);
+  }
+  //Route Code List
+  else if (
+    action.type ===
+    REDUX.ACTION_TYPE.ADD_CONTINUE_ROUTE
+  ) {
+    return state.addContinueRoute(action.previousRoute);
+  }
+  else if (
+    action.type ===
+    REDUX.ACTION_TYPE.DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX
+  ) {
+    return state.deleteRouteCodeFromRouteCodeListByIndex(action.index);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_SELECT_ROUTE_CODE_DISPLAY_MAIN_VIEWER
+  ) {
+    return state.setSelectRouteCodeDisplayMainViewer(
+      action.selectRouteCodeDisplayMainViewer
+    );
+  } else if (action.type === REDUX.ACTION_TYPE.ADD_ROUTE_CODE_BY_TEXT) {
+    return state.addRouteCodeByText(action.textRouteCode);
+  }
+  //Schedule List
+  else if (
+    action.type === REDUX.ACTION_TYPE.DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST
+  ) {
+    return state.deleteLatestScheduleFromScheduleList();
+  } else if (
+    action.type === REDUX.ACTION_TYPE.OPEN_ADD_SCHEDULE_MODAL_AND_EDIT_SCHEDULE
+  ) {
+    return state.openAddScheduleModalAndEditSchedule();
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_SELECT_SCHEDULE_DISPLAY_MAIN_VIEWER
+  ) {
+    return state.setSelectScheduleDisplayMainViewer(
+      action.selectScheduleDisplayMainViewer
+    );
+  }
   // Modal
   else if (action.type === REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_OPEN) {
     return state.setIsImportDataModalOpen(action.isImportDataModalOpen);
   } else if (action.type === REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_OPEN) {
     return state.setIsAddRouteModalOpen(action.isAddRouteModalOpen);
+  } else if (
+    action.type === REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_BY_TEXT_MODAL_OPEN
+  ) {
+    return state.setIsAddRouteByTextModalOpen(action.isAddRouteByTextModalOpen);
   } else if (action.type === REDUX.ACTION_TYPE.SET_IS_ADD_SCHEDULE_MODAL_OPEN) {
     return state.setIsAddScheduleModalOpen(action.isAddScheduleModalOpen);
   }

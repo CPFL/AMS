@@ -146,6 +146,59 @@ export function setChangeRouteActiveStepReset(changeRouteActiveStep) {
   };
 }
 
+//Route Code List
+export function addContinueRoute(previousRoute) {
+  return {
+    type: REDUX.ACTION_TYPE.ADD_CONTINUE_ROUTE,
+    previousRoute: previousRoute
+  };
+}
+
+export function deleteRouteCodeFromRouteCodeListByIndex(index) {
+  return {
+    type: REDUX.ACTION_TYPE.DELETE_ROUTE_CODE_FROM_ROUTE_CODE_LIST_BY_INDEX,
+    index: index
+  };
+}
+
+export function addRouteCodeByText(textRouteCode) {
+  return {
+    type: REDUX.ACTION_TYPE.ADD_ROUTE_CODE_BY_TEXT,
+    textRouteCode: textRouteCode
+  };
+}
+
+export function setSelectRouteCodeDisplayMainViewer(
+  selectRouteCodeDisplayMainViewer
+) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_SELECT_ROUTE_CODE_DISPLAY_MAIN_VIEWER,
+    selectRouteCodeDisplayMainViewer: selectRouteCodeDisplayMainViewer
+  };
+}
+
+//Schedule List
+export function deleteLatestScheduleFromScheduleList() {
+  return {
+    type: REDUX.ACTION_TYPE.DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST
+  };
+}
+
+export function openAddScheduleModalAndEditSchedule() {
+  return {
+    type: REDUX.ACTION_TYPE.OPEN_ADD_SCHEDULE_MODAL_AND_EDIT_SCHEDULE
+  };
+}
+
+export function setSelectScheduleDisplayMainViewer(
+  selectScheduleDisplayMainViewer
+) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_SELECT_SCHEDULE_DISPLAY_MAIN_VIEWER,
+    selectScheduleDisplayMainViewer: selectScheduleDisplayMainViewer
+  };
+}
+
 //Modal
 export function setIsImportDataModalOpen(isImportDataModalOpen) {
   return {
@@ -158,6 +211,13 @@ export function setIsAddRouteModalOpen(isAddRouteModalOpen) {
   return {
     type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_MODAL_OPEN,
     isAddRouteModalOpen: isAddRouteModalOpen
+  };
+}
+
+export function setIsAddRouteByTextModalOpen(isAddRouteByTextModalOpen) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_IS_ADD_ROUTE_BY_TEXT_MODAL_OPEN,
+    isAddRouteByTextModalOpen: isAddRouteByTextModalOpen
   };
 }
 

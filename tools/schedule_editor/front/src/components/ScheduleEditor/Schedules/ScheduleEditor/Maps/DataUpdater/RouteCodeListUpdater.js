@@ -9,7 +9,6 @@ class RouteCodeListUpdater extends React.Component {
   }
 
   componentDidMount() {
-    console.log(this.props);
     if (this.props.routeCodeList) {
       this.props.initRouteCodeList(this.props.routeCodeList);
     }

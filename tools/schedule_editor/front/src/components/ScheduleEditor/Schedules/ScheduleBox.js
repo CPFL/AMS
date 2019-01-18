@@ -7,6 +7,8 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import ScheduleList from './ScheduleList';
 import AddIcon from '@material-ui/icons/Add';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 import ScheduleEditProcess from './ScheduleEditor/ScheduleEditor';
 import DialogTitle from '@material-ui/core/DialogTitle/DialogTitle';
@@ -16,6 +18,9 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import * as ScheduleEditorActions from '../../../redux/Actions/ScheduleEditorActions';
 import connect from 'react-redux/es/connect/connect';
+import CardActions from '@material-ui/core/CardActions/CardActions';
+
+import ScheduleDownloadButton from './ScheduleDownloadButton';
 
 class ScheduleBox extends React.Component {
   constructor(props) {
@@ -23,6 +28,12 @@ class ScheduleBox extends React.Component {
 
     this.openAddScheduleModal = this.openAddScheduleModal.bind(this);
     this.closeAddScheduleModal = this.closeAddScheduleModal.bind(this);
+    this.openAddScheduleModalAndEditSchedule = this.openAddScheduleModalAndEditSchedule.bind(
+      this
+    );
+    this.deleteLatestScheduleFromScheduleList = this.deleteLatestScheduleFromScheduleList.bind(
+      this
+    );
   }
 
   openAddScheduleModal() {
@@ -33,8 +44,15 @@ class ScheduleBox extends React.Component {
     this.props.scheduleEditorActions.setIsAddScheduleModalOpen(false);
   }
 
-  render() {
+  openAddScheduleModalAndEditSchedule() {
+    this.props.scheduleEditorActions.openAddScheduleModalAndEditSchedule();
+  }
 
+  deleteLatestScheduleFromScheduleList() {
+    this.props.scheduleEditorActions.deleteLatestScheduleFromScheduleList();
+  }
+
+  render() {
     const wrapper = {
       padding: '5px',
       boxSizing: 'border-box',
@@ -43,7 +61,7 @@ class ScheduleBox extends React.Component {
 
     const contentStyle = {
       boxSizing: 'border-box',
-      height: 'calc(100% - 64px)'
+      height: 'calc(100% - 64px - 52px)'
     };
 
     const modalContent = {
@@ -56,14 +74,34 @@ class ScheduleBox extends React.Component {
         <Card style={{ height: '100%' }} id="ScheduleCard">
           <CardHeader
             action={
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={this.openAddScheduleModal}
-              >
-                <AddIcon style={{ color: 'white', marginRight: '5px' }} />
-                Add Schedule
-              </Button>
+              <div>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={this.openAddScheduleModal}
+                >
+                  <AddIcon style={{ color: 'white', marginRight: '5px' }} />
+                  Add Schedule
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={this.openAddScheduleModalAndEditSchedule}
+                  style={{ marginLeft: '5px' }}
+                >
+                  <EditIcon style={{ color: 'white', marginRight: '5px' }} />
+                  Edit Latest Schedule
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={this.deleteLatestScheduleFromScheduleList}
+                  style={{ marginLeft: '5px' }}
+                >
+                  <DeleteIcon style={{ color: 'white', marginRight: '5px' }} />
+                  Delete Latest Schedule
+                </Button>
+              </div>
             }
             title="Schedule"
             id="ScheduleCardHeader"
@@ -71,6 +109,9 @@ class ScheduleBox extends React.Component {
           <CardContent style={contentStyle}>
             <ScheduleList />
           </CardContent>
+          <CardActions>
+            <ScheduleDownloadButton />
+          </CardActions>
         </Card>
         <Dialog
           open={this.props.isAddScheduleModalOpen}
@@ -100,13 +141,13 @@ ScheduleBox.propTypes = {
   isAddScheduleModalOpen: PropTypes.bool,
   scheduleEditorActions: PropTypes.object
 };
-const mapStateSelectEndPoint = state => ({
+const mapState = state => ({
   isAddScheduleModalOpen: state.scheduleEditor.getIsAddScheduleModalOpen()
 });
-const mapDispatchSelectEndPoint = dispatch => ({
+const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)
 });
 export default connect(
-  mapStateSelectEndPoint,
-  mapDispatchSelectEndPoint
+  mapState,
+  mapDispatch
 )(ScheduleBox);

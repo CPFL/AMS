@@ -4,8 +4,17 @@
 - Python 3.6.x
 - Node 10.x
 
+### USAGE
+```
+$ cd ./schedule_editor/front
+$ npm start
+#Access localhost:3000
+```
 
-### SETUP
+
+## USING DJANGO 
+
+###SETUP
 
 ```
 # Install Package

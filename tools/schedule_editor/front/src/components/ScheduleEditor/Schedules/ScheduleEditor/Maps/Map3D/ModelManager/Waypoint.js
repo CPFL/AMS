@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-import { steps } from '../../../../../../../model/Redux/Page/ScheduleEditor';
-
 export default class Waypoint extends THREE.Group {
   constructor() {
     super();
@@ -200,7 +198,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   initScheduleList(scheduleList) {
-    console.log(scheduleList);
     if (scheduleList && this.waypoint && this.lane) {
       this.changeScheduleListColorToDefault();
       this.scheduleList = scheduleList;
@@ -229,7 +226,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   initRouteCodeList(routeCodeList) {
-    console.log(routeCodeList);
     this.routeCodeList = routeCodeList;
   }
 
@@ -249,8 +245,8 @@ export default class Waypoint extends THREE.Group {
         );
       }
     }
-    if(this.nextSelectableRouteList){
-      for(const routeCode of this.nextSelectableRouteList){
+    if (this.nextSelectableRouteList) {
+      for (const routeCode of this.nextSelectableRouteList) {
         if (routeCode.startPoint) {
           this.waypointsList[routeCode.startPoint].material.color.set(
             this.color.default
@@ -269,7 +265,6 @@ export default class Waypoint extends THREE.Group {
   }
 
   updateCurrentRouteCode(selectRouteCode) {
-    console.log(selectRouteCode);
     const startPoint = selectRouteCode.startPoint;
     const lanes = selectRouteCode.laneList;
     const endPoint = selectRouteCode.endPoint;
@@ -298,7 +293,6 @@ export default class Waypoint extends THREE.Group {
       this.updateCameraPosition(newCameraPosition);
 
       this.nextSelectableRouteList = [];
-      console.log(this.routeCodeList);
       for (const routeCode of this.routeCodeList) {
         const routeStartPoint = routeCode.startPoint;
         if (endPoint === routeStartPoint) {
