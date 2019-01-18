@@ -4,12 +4,72 @@
 import yaml
 
 from ams import VERSION, AttrDict
-from ams.helpers import Topic, Hook, Event
+from ams.helpers import Topic, Hook, Event, Target
 from ams.structures import (
     Autoware, AutowareInterface, Vehicle, Dispatcher, TrafficSignal, User)
 
 
 class Publisher(object):
+
+    @classmethod
+    def get_current_pose_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.CURRENT_POSE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_vehicle_location_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_decision_maker_state_rostopic(cls, target_autoware=None):
+        rostopic = Autoware.CONST.TOPIC.DECISION_MAKER_STATE
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_lane_array_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_state_cmd_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STATE_CMD
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
+
+    @classmethod
+    def get_stop_waypoint_index_rostopic(cls, target_autoware=None):
+        rostopic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        if target_autoware is not None:
+            return Topic.CONST.DELIMITER.join([
+                rostopic,
+                Target.encode(target_autoware)
+            ])
+        return rostopic
 
     @classmethod
     def get_current_pose_topic(cls, target_autoware, target_vehicle):
@@ -41,6 +101,14 @@ class Publisher(object):
             from_target=target_autoware,
             to_target=target_vehicle,
             categories=AutowareInterface.CONST.TOPIC.CATEGORIES.ROUTE_POINT
+        )
+
+    @classmethod
+    def get_decision_maker_state_message_topic(cls, target_autoware, target_vehicle):
+        return Topic.get_topic(
+            from_target=target_autoware,
+            to_target=target_vehicle,
+            categories=AutowareInterface.CONST.TOPIC.CATEGORIES.DECISION_MAKER_STATE
         )
 
     @classmethod
@@ -92,11 +160,11 @@ class Publisher(object):
         )
 
     @classmethod
-    def get_status_topic(cls, from_target, to_target):
+    def get_status_topic(cls, from_target, to_target, sub_target=None):
         return Topic.get_topic(
             from_target=from_target,
             to_target=to_target,
-            categories=["status"]
+            categories=["status"] + ([] if sub_target is None else [Target.encode(sub_target)])
         )
 
     @classmethod
@@ -104,14 +172,6 @@ class Publisher(object):
         return Topic.get_topic(
             from_target=target_vehicle,
             categories=Vehicle.CONST.TOPIC.CATEGORIES.GEOTOPIC + list(location.geohash)
-        )
-
-    @classmethod
-    def get_transportation_status_message_topic(cls, target_dispatcher, target_vehicle):
-        return Topic.get_topic(
-            from_target=target_dispatcher,
-            to_target=target_vehicle,
-            categories=Dispatcher.CONST.TOPIC.CATEGORIES.TRANSPORTATION_STATUS
         )
 
     @classmethod
@@ -123,26 +183,55 @@ class Publisher(object):
         )
 
     @classmethod
-    def publish_ros_current_pose(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def get_event_message_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.EVENT
+        )
+
+    @classmethod
+    def get_vehicle_info_message_topic(cls, from_target, to_target):
+        return Topic.get_topic(
+            from_target=from_target,
+            to_target=to_target,
+            categories=Dispatcher.CONST.TOPIC.CATEGORIES.VEHICLE_INFO
+        )
+
+    @classmethod
+    def publish_ros_current_pose(cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_current_pose(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.CURRENT_POSE, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_current_pose_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_current_pose_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
     @classmethod
-    def publish_ros_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def publish_ros_vehicle_location(cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_vehicle_location(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.VEHICLE_LOCATION, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_vehicle_location_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_vehicle_location_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
     @classmethod
-    def publish_ros_decision_maker_state(cls, pubsub_client, kvs_client, target_autoware, wait=False):
+    def publish_ros_decision_maker_state(
+            cls, pubsub_client, kvs_client, target_autoware, wait=False, identifiable=False):
         message = AttrDict.get_dict(Hook.get_decision_maker_state(kvs_client, target_autoware))
         if message is not None:
-            pubsub_client.publish(Autoware.CONST.TOPIC.DECISION_MAKER_STATE, yaml.dump(message), wait=wait)
+            if identifiable:
+                rostopic = cls.get_decision_maker_state_rostopic(target_autoware)
+            else:
+                rostopic = cls.get_decision_maker_state_rostopic()
+            pubsub_client.publish(rostopic, yaml.dump(message), wait=wait)
             return True
         return False
 
@@ -187,6 +276,21 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
+    def publish_decision_maker_state_message(
+            cls, pubsub_client, kvs_client, target_autoware_interface, target_autoware, target_vehicle):
+        decision_maker_state = Hook.get_decision_maker_state(kvs_client, target_autoware_interface)
+        topic = cls.get_decision_maker_state_message_topic(target_autoware, target_vehicle)
+        message = AutowareInterface.Message.DecisionMakerState.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION,
+            },
+            "body": decision_maker_state
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
     def publish_config(cls, pubsub_client, kvs_client, from_target, to_target, structure):
         config = Hook.get_config(kvs_client, from_target, structure.Config)
         if config is None:
@@ -203,11 +307,11 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
-    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure):
-        status = Hook.get_status(kvs_client, from_target, structure.Status)
+    def publish_status(cls, pubsub_client, kvs_client, from_target, to_target, structure, sub_target=None):
+        status = Hook.get_status(kvs_client, from_target, structure.Status, sub_target=sub_target)
         if status is None:
             return
-        topic = cls.get_status_topic(from_target, to_target)
+        topic = cls.get_status_topic(from_target, to_target, sub_target)
         message = structure.Message.Status.new_data(**{
             "header": {
                 "id": Event.get_id(),
@@ -231,16 +335,24 @@ class Publisher(object):
         cls.publish_status(pubsub_client, kvs_client, target_user, target_dispatcher, User)
 
     @classmethod
+    def publish_dispatcher_status(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle, to_target):
+        cls.publish_status(
+            pubsub_client, kvs_client, target_dispatcher, to_target, Dispatcher, sub_target=target_vehicle)
+
+    @classmethod
     def publish_vehicle_geotopic(cls, pubsub_client, target_vehicle, vehicle_status):
         topic = cls.get_geotopic_topic(target_vehicle, vehicle_status.location)
         pubsub_client.publish(topic, target_vehicle)
 
     @classmethod
     def publish_route_code(cls, pubsub_client, kvs_client, target_vehicle, target_autoware):
-        event_id = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status).event_id
+        vehicle_status = Hook.get_status(kvs_client, target_vehicle, Vehicle.Status)
+        if vehicle_status is None:
+            return
+        event_id = vehicle_status.event_id
         if event_id is not None:
             event = Event.get_event_by_id(Hook.get_schedule(kvs_client, target_vehicle).events, event_id)
-            if event.name == Dispatcher.CONST.TRANSPORTATION.EVENT.SEND_LANE_ARRAY:
+            if event.name == Vehicle.CONST.EVENT.SEND_LANE_ARRAY:
                 if event.route_code is not None:
                     topic = cls.get_route_code_topic(target_vehicle, target_autoware)
                     message = {
@@ -272,20 +384,6 @@ class Publisher(object):
         pubsub_client.publish(topic, message)
 
     @classmethod
-    def publish_transportation_status_message(
-            cls, pubsub_client, target_dispatcher, target_vehicle, transportation_status):
-        topic = cls.get_transportation_status_message_topic(target_dispatcher, target_vehicle)
-        transportation_status_message = Dispatcher.Message.TransportationStatus.new_data(**{
-            "header": {
-                "id": Event.get_id(),
-                "time": Event.get_time(),
-                "version": VERSION
-            },
-            "body": transportation_status,
-        })
-        pubsub_client.publish(topic, transportation_status_message)
-
-    @classmethod
     def publish_schedule_message(cls, pubsub_client, from_target, to_target, schedule, schedule_target=None):
         if schedule_target is None:
             schedule_target = to_target
@@ -302,3 +400,78 @@ class Publisher(object):
             }
         })
         pubsub_client.publish(topic, schedule_message)
+
+    @classmethod
+    def publish_event_message(cls, pubsub_client, from_target, to_target, event):
+        topic = cls.get_event_message_topic(from_target, to_target)
+        message = Dispatcher.Message.Event.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION,
+            },
+            "body": {
+                "target": to_target,
+                "event": event
+            }
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
+    def publish_change_vehicle_schedule_event_message(cls, pubsub_client, target_dispatcher, target_vehicle):
+        event = Event.new_event(
+            targets=[target_dispatcher, target_vehicle],
+            name=Dispatcher.CONST.EVENT.CHANGE_SCHEDULE
+        )
+        cls.publish_event_message(pubsub_client, target_dispatcher, target_vehicle, event)
+
+    @classmethod
+    def publish_generated_vehicle_schedule(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
+        generated_vehicle_schedule = Hook.get_generated_schedule(kvs_client, target_dispatcher, target_vehicle)
+        cls.publish_schedule_message(pubsub_client, target_dispatcher, target_vehicle, generated_vehicle_schedule)
+
+    @classmethod
+    def publish_shift_event(cls, pubsub_client, from_target, to_target):
+        cls.publish_event_message(
+            pubsub_client, from_target, to_target, Event.new_event(
+                targets=[from_target, to_target],
+                name=Vehicle.CONST.EVENT.SHIFT_EVENT
+            ))
+
+    @classmethod
+    def publish_vehicle_info_message(cls, pubsub_client, kvs_client, from_target, to_target):
+        vehicle_info = Hook.get_vehicle_info(kvs_client, from_target, sub_target=to_target)
+        if vehicle_info is None:
+            return
+        topic = cls.get_vehicle_info_message_topic(from_target, to_target)
+        message = Dispatcher.Message.VehicleInfo.new_data(**{
+            "header": {
+                "id": Event.get_id(),
+                "time": Event.get_time(),
+                "version": VERSION
+            },
+            "body": vehicle_info
+        })
+        pubsub_client.publish(topic, message)
+
+    @classmethod
+    def publish_vehicle_info_message_to_user(cls, pubsub_client, kvs_client, target_dispatcher, target_vehicle):
+        dispatcher_status = Hook.get_status(kvs_client, target_dispatcher, Dispatcher.Status, target_vehicle)
+        if dispatcher_status is None:
+            return
+        for target_user in map(lambda x: x["target"], dispatcher_status.user_statuses):
+            cls.publish_vehicle_info_message(pubsub_client, kvs_client, target_dispatcher, target_user)
+
+    @classmethod
+    def publish_user_engage(cls, pubsub_client, kvs_client, target_user, structure, identifiable):
+        status = Hook.get_status(kvs_client, target_user, User.Status)
+        if status is None:
+            return
+        if status.vehicle_info is None:
+            return
+        target_autoware = Target.new_target(Autoware.CONST.NODE_NAME, status.vehicle_info.target.id)
+        if identifiable:
+            rostopic = cls.get_state_cmd_rostopic(target_autoware)
+        else:
+            rostopic = cls.get_state_cmd_rostopic()
+        pubsub_client.publish(rostopic, {"data": "engage"}, structure=structure, wait=True)

@@ -39,6 +39,7 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.CLEAR_ROUTE_CODE_DATA) {
     return state.clearRouteCodeData();
   }
+
   // Schedule Editor
   else if (action.type === REDUX.ACTION_TYPE.SET_ACTIVE_STEP_SCHEDULE_EDITOR) {
     return state.setActiveStepScheduleEditor(action.activeStepScheduleEditor);
@@ -59,24 +60,28 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.SAVE_SCHEDULE) {
     return state.saveSchedule();
   }
+
   //Change Route Editor
   else if (
     action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT
   ) {
-    return state.setChangeRouteActiveStepNext(action.changeRouteActiveStep);
+    return state.setChangeRouteActiveStepNext();
   } else if (
     action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS
   ) {
-    return state.setChangeRouteActiveStepPrevious(action.changeRouteActiveStep);
+    return state.setChangeRouteActiveStepPrevious();
   } else if (
     action.type === REDUX.ACTION_TYPE.SET_CHANGE_ROUTE_ACTIVE_STEP_RESET
   ) {
-    return state.setChangeRouteActiveStepReset(action.changeRouteActiveStep);
+    return state.setChangeRouteActiveStepReset();
   } else if (
     action.type === REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE
   ) {
     return state.setRouteCodeAfterChangeRoute(action.routeCodeAfterChangeRoute);
+  } else if (action.type === REDUX.ACTION_TYPE.SET_DECISION_SECTION_END_POINT) {
+    return state.setDecisionSectionEndPoint(action.decisionSectionEndPoint);
   }
+
   //Route Code List
   else if (action.type === REDUX.ACTION_TYPE.ADD_CONTINUE_ROUTE) {
     return state.addContinueRoute(action.previousRoute);
@@ -94,6 +99,7 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
   } else if (action.type === REDUX.ACTION_TYPE.ADD_ROUTE_CODE_BY_TEXT) {
     return state.addRouteCodeByText(action.textRouteCode);
   }
+
   //Schedule List
   else if (
     action.type === REDUX.ACTION_TYPE.DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST
@@ -110,6 +116,7 @@ export function scheduleEditorReducer(state = new ScheduleEditor(), action) {
       action.selectScheduleDisplayMainViewer
     );
   }
+
   // Modal
   else if (action.type === REDUX.ACTION_TYPE.SET_IS_IMPORT_DATA_MODAL_OPEN) {
     return state.setIsImportDataModalOpen(action.isImportDataModalOpen);

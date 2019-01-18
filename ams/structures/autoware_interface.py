@@ -23,7 +23,11 @@ const.update(event_loop_const)
 const.update({
     "NODE_NAME": "autoware_interface",
     "ROLE_NAME": "autoware_interface",
-    "TOPIC": topic
+    "TOPIC": topic,
+    "KEY_PARTS": {
+        "LANE_ARRAY_ID_ROUTE_CODE": "lane_array_id_route_code",
+        "ROUTE_CODE_LANE_ARRAY_ID": "route_code_lane_array_id"
+    }
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)
@@ -107,12 +111,40 @@ class RoutePointMessage(get_structure_superclass(route_point_message_template, r
     RoutePoint = RoutePoint
 
 
+decision_maker_state_message_template = {
+    "header": MessageHeader.get_template(),
+    "body": Autoware.ROSMessage.DecisionMakerState.get_template()
+}
+
+
+decision_maker_state_message_schema = {
+    "header": {
+        "type": "dict",
+        "schema": MessageHeader.get_schema(),
+        "required": True,
+        "nullable": False
+    },
+    "body": {
+        "type": "dict",
+        "schema": Autoware.ROSMessage.DecisionMakerState.get_schema(),
+        "required": True,
+        "nullable": False
+    }
+}
+
+
+class DecisionMakerStateMessage(get_structure_superclass(
+        decision_maker_state_message_template, decision_maker_state_message_schema)):
+    ROSMessage = Autoware.ROSMessage.DecisionMakerState
+
+
 class Message(EventLoop.Message):
     Config = ConfigMessage
     LaneArray = Autoware.ROSMessage.LaneArray
     StateCMD = Autoware.ROSMessage.StateCMD
     StopWaypointIndex = Autoware.ROSMessage.StopWaypointIndex
     RoutePoint = RoutePointMessage
+    DecisionMakerState = DecisionMakerStateMessage
 
 
 class AutowareInterface(EventLoop):

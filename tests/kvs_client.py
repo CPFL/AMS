@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import unittest
-import traceback
 
 from ams.clients import get_kvs_client_class
 
@@ -21,7 +20,6 @@ def generate_redis_client(host):
         kvs_client.set_args_of_StrictRedis()
         return kvs_client
     except ImportError:
-        traceback.print_exc()
         return None
 
 
@@ -60,6 +58,8 @@ class Test(unittest.TestCase):
             self.manager_client_for_test_keys.set(key, value)
 
         self.redis_client_for_test_connect = generate_redis_client("localhost")
+        if self.redis_client_for_test_connect is None:
+            print("redis module is not exists. skip redis_client test.")
 
         self.redis_client_for_test_set = generate_redis_client("localhost")
         if self.redis_client_for_test_set is not None:
@@ -105,7 +105,7 @@ class Test(unittest.TestCase):
 
         if self.redis_client_for_test_set is not None:
             key = "/test/set/redis"
-            value = "manager_data"
+            value = "redis_data"
             ret = self.redis_client_for_test_set.set(key, value)
             self.assertEqual(True, ret)
             self.assertEqual(value, self.redis_client_for_test_set.get(key))
@@ -117,8 +117,8 @@ class Test(unittest.TestCase):
             self.assertEqual(value, self.manager_client_for_test_get.get(key))
 
         if self.redis_client_for_test_get is not None:
-            key = "/test/set/redis"
-            value = "manager_data"
+            key = "/test/get/redis"
+            value = "redis_data"
             self.assertEqual(value, self.redis_client_for_test_get.get(key))
 
     def test_delete(self):

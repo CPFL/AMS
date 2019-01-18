@@ -13,14 +13,16 @@ class AutowareInterface(EventLoop):
     Config = Structure.Config
     Message = Structure.Message
 
-    def __init__(self, config, ros_msgs=None):
+    def __init__(self, config, ros_msgs=None, identifiable=False):
         super(AutowareInterface, self).__init__(config)
 
+        self.user_data["target_autoware_interface"] = self.config.target_self
         self.user_data["target_autoware"] = self.config.target_autoware
         self.user_data["target_vehicle"] = self.config.target_vehicle
         self.user_data["lane_array_structure"] = ros_msgs["LaneArray"]
         self.user_data["state_cmd_structure"] = ros_msgs["String"]
         self.user_data["stop_waypoint_index_structure"] = ros_msgs["Int32"]
+        self.user_data["identifiable"] = identifiable
 
         topic = Subscriber.get_route_code_message_topic(
             self.user_data["target_vehicle"], self.user_data["target_autoware"])
@@ -48,7 +50,10 @@ class AutowareInterface(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = Autoware.CONST.TOPIC.CURRENT_POSE
+        if identifiable:
+            topic = Subscriber.get_current_pose_rostopic(self.config.target_autoware)
+        else:
+            topic = Subscriber.get_current_pose_rostopic()
         self.ros_subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_current_pose_publish,
@@ -57,7 +62,10 @@ class AutowareInterface(EventLoop):
             "rate": 1.0
         }
 
-        topic = Autoware.CONST.TOPIC.VEHICLE_LOCATION
+        if identifiable:
+            topic = Subscriber.get_vehicle_location_rostopic(self.config.target_autoware)
+        else:
+            topic = Subscriber.get_vehicle_location_rostopic()
         self.ros_subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_vehicle_location_publish_route_point,
@@ -66,10 +74,13 @@ class AutowareInterface(EventLoop):
             "rate": 1.0
         }
 
-        topic = Autoware.CONST.TOPIC.DECISION_MAKER_STATE
+        if identifiable:
+            topic = Subscriber.get_decision_maker_state_rostopic(self.config.target_autoware)
+        else:
+            topic = Subscriber.get_decision_maker_state_rostopic()
         self.ros_subscribers[topic] = {
             "topic": topic,
-            "callback": Subscriber.on_decision_maker_state_publish,
+            "callback": Subscriber.on_decision_maker_state_publish_decision_maker_state_message,
             "structure": ros_msgs["String"],
             "user_data": self.user_data,
             "rate": 1.0

@@ -3,10 +3,10 @@
 
 from time import time, sleep
 
-from ams.helpers import Hook, Condition, Publisher, Subscriber
+from ams import logger
+from ams.helpers import Hook, Condition, Publisher, Subscriber, Target
 from ams.helpers import StateMachine as StateMachineHelper
 from ams.nodes.event_loop import EventLoop
-from ams.structures import AutowareInterface
 from ams.structures import Autoware as Structure
 
 
@@ -17,12 +17,16 @@ class Autoware(EventLoop):
     Message = Structure.Message
     ROSMessage = Structure.ROSMessage
 
-    def __init__(self, config, status, state_machine_path=None):
+    def __init__(self, config, status, state_machine_path=None, identifiable=False):
         super(Autoware, self).__init__(config, status)
 
         self.user_data["target_autoware"] = self.config.target_self
+        self.user_data["identifiable"] = identifiable
 
-        topic = AutowareInterface.CONST.TOPIC.LANE_ARRAY
+        if identifiable:
+            topic = Subscriber.get_lane_array_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_lane_array_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_lane_array,
@@ -30,7 +34,10 @@ class Autoware(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = AutowareInterface.CONST.TOPIC.STATE_CMD
+        if identifiable:
+            topic = Subscriber.get_state_cmd_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_state_cmd_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_state_cmd,
@@ -38,7 +45,10 @@ class Autoware(EventLoop):
             "user_data": self.user_data
         }
 
-        topic = AutowareInterface.CONST.TOPIC.STOP_WAYPOINT_INDEX
+        if identifiable:
+            topic = Subscriber.get_stop_waypoint_index_rostopic(self.config.target_self)
+        else:
+            topic = Subscriber.get_stop_waypoint_index_rostopic()
         self.subscribers[topic] = {
             "topic": topic,
             "callback": Subscriber.on_stop_waypoint_index,
@@ -89,28 +99,34 @@ class Autoware(EventLoop):
         while True:
             start_time = time()
             state_cmd = Hook.get_state_cmd(self.user_data["kvs_client"], self.user_data["target_autoware"])
-            event = state_cmd.data if state_cmd is not None else None
+            event_name = state_cmd.data if state_cmd is not None else None
             updated_flag = False
-            if event is not None:
-                updated_flag = StateMachineHelper.update_state(state_machine_data, event)
+            current_state = StateMachineHelper.get_state(state_machine_data)
+            if event_name is not None:
+                updated_flag = StateMachineHelper.update_state(state_machine_data, event_name)
             if not updated_flag:
-                StateMachineHelper.update_state(state_machine_data, None)
+                updated_flag = StateMachineHelper.update_state(state_machine_data, None)
 
-            Hook.set_decision_maker_state(
-                self.user_data["kvs_client"], self.user_data["target_autoware"],
-                self.Status.DecisionMakerState.new_data(
-                    data=StateMachineHelper.get_state(state_machine_data)))
+            if updated_flag:
+                next_state = StateMachineHelper.get_state(state_machine_data)
+                set_flag = Hook.set_decision_maker_state(
+                    self.user_data["kvs_client"], self.user_data["target_autoware"],
+                    self.Status.DecisionMakerState.new_data(data=next_state))
+                if set_flag:
+                    logger.info("{} Event: {}, State: {} -> {}".format(
+                        Target.encode(self.user_data["target_autoware"]), event_name,
+                        "/".join(current_state.split("\n")), "/".join(next_state.split("\n"))))
 
             Publisher.publish_ros_current_pose(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             Publisher.publish_ros_vehicle_location(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             Publisher.publish_ros_decision_maker_state(
                 self.user_data["pubsub_client"], self.user_data["kvs_client"],
-                self.user_data["target_autoware"], wait=True)
+                self.user_data["target_autoware"], wait=True, identifiable=self.user_data["identifiable"])
 
             sleep(max(0, self.dt - (time()-start_time)))

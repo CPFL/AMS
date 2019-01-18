@@ -25,7 +25,8 @@ const.update({
     "EVENT": {
         "END_NODE": "end_node"
     },
-    "TOPIC": topic
+    "TOPIC": topic,
+    "EVENT_MESSAGE_TIMEOUT": 5.0
 })
 
 CONST = get_namedtuple_from_dict("CONST", const)

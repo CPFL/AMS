@@ -24,21 +24,24 @@ class SelectRouteCodeAfterChangeRoute extends React.Component {
 
   confirm() {
     if (this.props.routeCodeAfterChangeRoute.routeCode) {
-      this.props.scheduleEditorActions.setChangeRouteActiveStepNext(
-        this.props.changeRouteActiveStep
-      );
+      this.props.scheduleEditorActions.setChangeRouteActiveStepNext();
     } else {
       alert('Route Code is not selected!');
     }
   }
 
   setSelectRouteCode(event) {
-    const [currentRouteCode] = this.props.selectableChangeRouteList.filter(
+    const [
+      routeCodeAfterChangeRoute
+    ] = this.props.selectableChangeRouteList.filter(
       routeCode => routeCode.routeCode === event.target.value
     );
-    this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(
-      currentRouteCode
-    );
+
+    if (routeCodeAfterChangeRoute) {
+      this.props.scheduleEditorActions.setRouteCodeAfterChangeRoute(
+        routeCodeAfterChangeRoute
+      );
+    }
   }
 
   getSelectItem() {

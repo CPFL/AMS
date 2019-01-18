@@ -16,7 +16,6 @@ class EventBranch(object):
         )
 
     validate_selective_events = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_current_event(event_branch):

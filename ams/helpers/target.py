@@ -10,6 +10,7 @@ from ams.structures import Targets as Structures
 class Target(object):
 
     CONST = TARGET
+    Structure = Structure
 
     @staticmethod
     def new_target(group, _id=None):
@@ -26,7 +27,6 @@ class Target(object):
             return node.target
 
     validate_target = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def new_targets(targets):
@@ -49,8 +49,16 @@ class Target(object):
         return list(filter(lambda x: x is not None and x.group == group, targets))
 
     @staticmethod
-    def get_code(target):
+    def target_in_targets(target, targets):
+        return 0 < len(list(filter(lambda x: Target.is_same(x, target), targets)))
+
+    @staticmethod
+    def encode(target):
         return TARGET.DELIMITER.join([
             target.group if target.group is not None else "",
             target.id if target.id is not None else ""
         ])
+
+    @staticmethod
+    def decode(target_code):
+        return Target.new_target(*target_code.split(TARGET.DELIMITER))

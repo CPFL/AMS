@@ -59,7 +59,6 @@ class ScheduleList extends React.Component {
     this.props.scheduleEditorActions.setSelectScheduleDisplayMainViewer(
       schedule
     );
-    console.log(schedule);
   }
 
   render() {

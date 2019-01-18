@@ -133,9 +133,16 @@ class Route(object):
                 sliced_goal_waypoint_id = waypoint_ids[i]
         return route
 
-    def get_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
-        return Helper.get_shortest_routes(
+    def search_shortest_routes(self, start, goals, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        return Helper.search_shortest_routes(
             start, goals,
+            self.__lane.get_lanes(), self.__lane.get_to_lanes(), self.__lane.get_from_lanes(),
+            self.__waypoint.get_waypoints(),
+            self.__getRouteCost, cost_limit, reverse)
+
+    def search_multi_destinations_shortest_route_array(self, locations, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        return Helper.search_multi_destinations_shortest_route_array(
+            locations,
             self.__lane.get_lanes(), self.__lane.get_to_lanes(), self.__lane.get_from_lanes(),
             self.__waypoint.get_waypoints(),
             self.__getRouteCost, cost_limit, reverse)
@@ -167,3 +174,6 @@ class Route(object):
     def calculate_distance_from_route_point_to_inner_route(self, route_point, inner_route_code):
         return Helper.calculate_distance_from_route_point_to_inner_route(
             route_point, inner_route_code, self.__lane.get_lanes(), self.__waypoint.get_waypoints())
+
+    def route_code_in_route_code(self, inner_route_code, outer_route_code):
+        return Helper.route_code_in_route_code(inner_route_code, outer_route_code, self.__lane.get_lanes())

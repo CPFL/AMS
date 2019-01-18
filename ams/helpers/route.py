@@ -38,7 +38,6 @@ class Route(object):
         )
 
     validate_route = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @classmethod
     def new_point_route(cls, waypoint_id, lane_code):
@@ -379,7 +378,7 @@ class Route(object):
         return is_directly_reach if not reverse else not is_directly_reach
 
     @classmethod
-    def get_shortest_routes(
+    def search_shortest_routes(
             cls, start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function,
             cost_limit=ROUTE.COST_LIMIT, reverse=False):
         """
@@ -473,13 +472,31 @@ class Route(object):
 
         if reverse:
             for route_id in shortest_routes:
-                shortest_routes[route_id]["start_waypoint_id"] = shortest_routes[route_id]["goal_waypoint_id"]
-                shortest_routes[route_id]["goal_waypoint_id"] = start["waypoint_id"]
+                shortest_routes[route_id]["waypoint_ids"][0] = shortest_routes[route_id]["waypoint_ids"][-1]
+                shortest_routes[route_id]["waypoint_ids"][-1] = start["waypoint_id"]
         else:
             for route_id in shortest_routes:
                 shortest_routes[route_id]["lane_codes"].reverse()
 
         return shortest_routes
+
+    @classmethod
+    def search_multi_destinations_shortest_route_array(
+            cls, locations, lanes, to_lanes, from_lanes, waypoints,
+            cost_function, cost_limit=ROUTE.COST_LIMIT, reverse=False):
+        route_array = []
+        for i in range(0, len(locations)-1):
+            start = locations[i]
+            goals = [locations[i+1]]
+            goals[0]["goal_id"] = 0
+            shortest_routes = cls.search_shortest_routes(
+                start, goals, lanes, to_lanes, from_lanes, waypoints, cost_function, cost_limit, reverse)
+            if 0 == len(shortest_routes):
+                return None
+            route_array.append(shortest_routes[0])
+            route_array[-1].pop("goal_id")
+            route_array[-1].pop("cost")
+        return route_array
 
     @classmethod
     def generate_filtered_network(cls, lane_codes, lanes, to_lanes, from_lanes):
@@ -593,7 +610,7 @@ class Route(object):
 
         routes = []
         for start in starts:
-            routes.extend(cls.get_shortest_routes(
+            routes.extend(cls.search_shortest_routes(
                 start, goals, filtered_lanes, filtered_to_lanes, filtered_from_lanes, waypoints, lane_cost_function
             ).values())
 
@@ -650,3 +667,16 @@ class Route(object):
         if end_index < route_point.index:
             return -length
         return length
+
+    @classmethod
+    def route_code_in_route_code(cls, inner_route_code, outer_route_code, lanes):
+        if inner_route_code == outer_route_code:
+            return True
+        inner_waypoint_ids = cls.get_waypoint_ids(inner_route_code, lanes)
+        outer_waypoint_ids = cls.get_waypoint_ids(outer_route_code, lanes)
+        if len(outer_waypoint_ids) < len(inner_waypoint_ids):
+            return False
+        for i in range(0, len(outer_waypoint_ids)-len(inner_waypoint_ids)):
+            if inner_waypoint_ids == outer_waypoint_ids[i:i+len(inner_waypoint_ids)]:
+                return True
+        return False

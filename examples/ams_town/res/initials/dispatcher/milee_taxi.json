@@ -1,0 +1,39 @@
+{
+  "config": {
+    "target_self": {
+      "group": "dispatcher",
+      "id": "milee_taxi"
+    },
+    "target_vehicles": [
+      {
+        "group": "vehicle",
+        "id": "milee1"
+      },
+      {
+        "group": "vehicle",
+        "id": "milee2"
+      }
+    ],
+    "target_users": [
+      {
+        "group": "user",
+        "id": "milee_user1"
+      },
+      {
+        "group": "user",
+        "id": "milee_user2"
+      },
+      {
+        "group": "user",
+        "id": "milee_user3"
+      }
+    ]
+  },
+  "status": {
+    "state": "Start",
+    "updated_at": 0.0,
+    "vehicle_status": null,
+    "traffic_signal_statuses": [],
+    "user_statuses": []
+  }
+}

@@ -11,7 +11,6 @@ class Position(object):
         return Structure.new_data(x=x, y=y, z=z)
 
     validate_position = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_vector(position):

@@ -4,6 +4,7 @@
 from time import time
 from uuid import uuid4 as uuid
 
+from ams.helpers import Target
 from ams.structures import Event as Structure
 from ams.structures import Events as Structures
 from ams.structures import Period
@@ -34,7 +35,6 @@ class Event(object):
         return Structures.new_data(events)
 
     validate_event = Structure.validate_data
-    get_errors = Structure.get_errors
 
     @staticmethod
     def get_id():
@@ -106,3 +106,11 @@ class Event(object):
         if next_event_index < len(events):
             return events[next_event_index]
         return None
+
+    @staticmethod
+    def generate_same_group_targets(events, group):
+        same_group_target_codes = []
+        for targets_array in filter(
+                lambda x: Target.get_same_group_targets_in_targets(group, x), map(lambda y: y.targets, events)):
+            same_group_target_codes.extend(map(Target.encode, targets_array))
+        return list(map(Target.decode, list(set(same_group_target_codes))))

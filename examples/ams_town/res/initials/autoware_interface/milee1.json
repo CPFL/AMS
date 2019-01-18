@@ -1,0 +1,16 @@
+{
+  "config": {
+    "target_self": {
+      "group": "autoware_interface",
+      "id": "milee1"
+    },
+    "target_autoware": {
+      "group": "autoware",
+      "id": "milee1"
+    },
+    "target_vehicle": {
+      "group": "vehicle",
+      "id": "milee1"
+    }
+  }
+}
