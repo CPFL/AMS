@@ -3,7 +3,7 @@
 
 from ams import get_namedtuple_from_dict, get_structure_superclass
 from ams.structures.event_loop import const as event_loop_const
-from ams.structures import Target, Location, MessageHeader, EventLoop
+from ams.structures import Target, Location, MessageHeader, EventLoop, Vehicle
 
 
 topic = {
@@ -21,6 +21,10 @@ const.update({
     "NODE_NAME": "user",
     "TOPIC": topic,
     "STATE": {
+        "CALLING": "Calling",
+        "WAITING_VEHICLE": "WaitingVehicle",
+        "GOT_ON": "GotOn",
+        "GOT_OFF": "GotOff",
         "END": "End"
     }
 })
@@ -50,16 +54,16 @@ class Config(get_structure_superclass(config_template, config_schema)):
 
 status_template = EventLoop.Status.get_template()
 status_template.update({
-    "target_vehicle": Target.get_template(),
+    "vehicle_info": Vehicle.Info.get_template(),
     "start_location": Location.get_template(),
     "goal_location": Location.get_template()
 })
 
 status_schema = EventLoop.Status.get_schema()
 status_schema.update({
-    "target_vehicle": {
+    "vehicle_info": {
         "type": "dict",
-        "schema": Target.get_schema(),
+        "schema": Vehicle.Info.get_schema(),
         "required": True,
         "nullable": True
     },
@@ -79,7 +83,8 @@ status_schema.update({
 
 
 class Status(get_structure_superclass(status_template, status_schema)):
-    pass
+    VehicleInfo = Vehicle.Info
+    Location = Location
 
 
 config_message_template = {

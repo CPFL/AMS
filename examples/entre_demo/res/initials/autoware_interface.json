@@ -1,0 +1,16 @@
+{
+  "config": {
+    "target_self": {
+      "group": "autoware_interface",
+      "id": "logiee_s"
+    },
+    "target_autoware": {
+      "group": "autoware",
+      "id": "logiee_s"
+    },
+    "target_vehicle": {
+      "group": "vehicle",
+      "id": "logiee_s"
+    }
+  }
+}

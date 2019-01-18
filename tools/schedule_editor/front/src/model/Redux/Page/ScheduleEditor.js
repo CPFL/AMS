@@ -603,25 +603,30 @@ export class ScheduleEditor extends ScheduleEditorRecord {
     );
   }
 
-  addRouteCodeByText(textRouteCode) {
-    const startPoint = textRouteCode.startPoint;
-    const laneList = textRouteCode.laneList;
-    const endPoint = textRouteCode.endPoint;
-    const isBack = textRouteCode.isBack;
-    const waypointList = this.getRouteCodeWaypointList(
-      startPoint,
-      laneList,
-      endPoint
-    );
+  addRouteCodeByText(textRouteCodeList) {
+    let routeCodeList = this.get('routeCodeList');
+    for (const textRouteCode of textRouteCodeList) {
+      const startPoint = textRouteCode.startPoint;
+      const laneList = textRouteCode.laneList;
+      const endPoint = textRouteCode.endPoint;
+      const isBack = textRouteCode.isBack;
+      const waypointList = this.getRouteCodeWaypointList(
+        startPoint,
+        laneList,
+        endPoint
+      );
 
-    const routeCodeRecord = new RouteCodeRecord()
-      .set('startPoint', startPoint)
-      .set('laneList', laneList)
-      .set('endPoint', endPoint)
-      .set('isBack', isBack)
-      .set('routeCode', textRouteCode.routeCode)
-      .set('waypointList', waypointList);
-    const routeCodeList = this.get('routeCodeList').push(routeCodeRecord);
+      const routeCodeRecord = new RouteCodeRecord()
+        .set('startPoint', startPoint)
+        .set('laneList', laneList)
+        .set('endPoint', endPoint)
+        .set('isBack', isBack)
+        .set('routeCode', textRouteCode.routeCode)
+        .set('waypointList', waypointList);
+
+      routeCodeList = routeCodeList.push(routeCodeRecord);
+    }
+
     return this.set('routeCodeList', routeCodeList).set(
       'isAddRouteByTextModalOpen',
       false
