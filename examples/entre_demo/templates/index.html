@@ -445,18 +445,18 @@
                     const currentPose = message;
                     const sceneObjectName = Topic.get_to_target_code(topic);
                     const to_name = Topic.get_to_id(topic);
-                    let daeFileName = "milee_proto_reduced_nolight.dae";
+                    let daeFileName = "milee.dae";
                     if( to_name.includes("milee") ) {
-                        daeFileName = "milee_proto_reduced_nolight.dae"
+                        daeFileName = "milee.dae"
                     }
                     else if( to_name == "logiee" ) {
                         daeFileName = "logiee.dae"
                     }
                     else if( to_name == "logiee_s") {
-                        daeFileName = "logieeS-TC.dae"
+                        daeFileName = "logiee_s.dae"
                     }
                     else if( to_name.includes("postee") ) {
-                        daeFileName = "postee_alpha_reduced_moved.dae"
+                        daeFileName = "postee.dae"
                     }
                     const sceneObject = this.amsObjects.vehicle[sceneObjectName];
                     const that = this;
