@@ -146,6 +146,13 @@ export function setChangeRouteActiveStepReset(changeRouteActiveStep) {
   };
 }
 
+export function setRouteCodeAfterChangeRoute(routeCodeAfterChangeRoute) {
+  return {
+    type: REDUX.ACTION_TYPE.SET_ROUTE_CODE_AFTER_CHANGE_ROUTE,
+    routeCodeAfterChangeRoute: routeCodeAfterChangeRoute
+  };
+}
+
 //Route Code List
 export function addContinueRoute(previousRoute) {
   return {

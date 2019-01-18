@@ -29,11 +29,7 @@ export const REDUX = {
     SET_CHANGE_ROUTE_ACTIVE_STEP_NEXT: 'setChangeRouteActiveStepNext',
     SET_CHANGE_ROUTE_ACTIVE_STEP_PREVIOUS: 'setChangeRouteActiveStepNext',
     SET_CHANGE_ROUTE_ACTIVE_STEP_RESET: 'setChangeRouteActiveStepNext',
-
-    SET_CHANGE_ROUTE_IS_BACK: 'setChangeRouteIsBack',
-    SET_CHANGE_ROUTE_START_POINT: 'setChangeRouteStartPoint',
-    SET_CHANGE_ROUTE_LANE_LIST: 'setChangeRouteLaneList',
-    SET_CHANGE_ROUTE_END_POINT: 'setChangeRouteEndPoint',
+    SET_ROUTE_CODE_AFTER_CHANGE_ROUTE: 'setRouteCodeAfterChangeRoute',
 
     //Route Code List
     ADD_CONTINUE_ROUTE: 'addContinueRoute',
@@ -43,7 +39,7 @@ export const REDUX = {
       'setSelectRouteCodeDisplayMainViewer',
     ADD_ROUTE_CODE_BY_TEXT: 'addRouteCodeByText',
 
-    //Scedule List
+    //Schedule List
     DELETE_LATEST_SCHEDULE_FROM_SCHEDULE_LIST:
       'deleteLatestScheduleFromScheduleList',
     OPEN_ADD_SCHEDULE_MODAL_AND_EDIT_SCHEDULE:
