@@ -39,7 +39,7 @@ class ImportDataModal extends React.Component {
 
     this.pcdLoader = new PCDLoader();
 
-    this.importWaypoint = this.importWaypoint.bind(this);
+    //this.importWaypoint = this.importWaypoint.bind(this);
     this.importLane = this.importLane.bind(this);
     this.importPCD = this.importPCD.bind(this);
     this.importMapData = this.importMapData.bind(this);
@@ -47,7 +47,7 @@ class ImportDataModal extends React.Component {
     this.handleClose = this.handleClose.bind(this);
   }
 
-  importWaypoint(e) {
+  importWaypoint = e => {
     const fileList = e.target.files;
     this.waypoint = {};
 
@@ -67,7 +67,7 @@ class ImportDataModal extends React.Component {
     } else {
       this.setState({ waypointLoaded: false });
     }
-  }
+  };
 
   importLane(e) {
     const fileList = e.target.files;

@@ -66,20 +66,17 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: "babel-loader",
-        include: path.join(__dirname, "src")
+        loader: "babel-loader",
+        exclude: /node_modules/,
+        include: path.join(__dirname, "src"),
+        query:{
+          presets: ['es2015', 'react'],
+          plugins: ['transform-class-properties'],
+        },
       },
       {
         test: /\.css/,
         use: ["style-loader", "css-loader"]
-      },
-      {
-        test: /\.es6$/,
-        exclude: /node_modules/,
-        loader: "babel",
-        query: {
-          presets: ["es2015"]
-        }
       }
     ]
   }
