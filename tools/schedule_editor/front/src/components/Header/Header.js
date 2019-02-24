@@ -17,10 +17,6 @@ class Header extends React.Component {
     );
   }
 
-  static propTypes = {
-    scheduleEditorActions: PropTypes.object
-  };
-
   isWaypointAndLaneLoaderOpen() {
     this.props.scheduleEditorActions.setIsImportDataModalOpen(true);
   }
@@ -49,12 +45,9 @@ class Header extends React.Component {
   }
 }
 
-/*
 Header.propTypes = {
   scheduleEditorActions: PropTypes.object
 };
-*/
-
 const mapState = () => ({});
 const mapDispatch = dispatch => ({
   scheduleEditorActions: bindActionCreators(ScheduleEditorActions, dispatch)

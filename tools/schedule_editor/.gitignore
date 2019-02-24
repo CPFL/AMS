@@ -110,3 +110,5 @@ venv.bak/
 /front-mdl/
 /ams_tools_front/static/schedule_editor
 /ams_tools_front/templates/schedule_editor
+
+/temp/

@@ -1,8 +1,8 @@
-let path = require('path');
-let webpack = require('webpack');
-let CopyWebpackPlugin = require('copy-webpack-plugin');
-let HtmlWebpackPlugin = require('html-webpack-plugin');
-let CleanWebpackPlugin = require('clean-webpack-plugin');
+let path = require("path");
+let webpack = require("webpack");
+let CopyWebpackPlugin = require("copy-webpack-plugin");
+let HtmlWebpackPlugin = require("html-webpack-plugin");
+let CleanWebpackPlugin = require("clean-webpack-plugin");
 
 let baseHref = process.env.WP_BASE_HREF
     ? process.env.WP_BASE_HREF

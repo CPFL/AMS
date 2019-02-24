@@ -63,9 +63,3 @@ export const Detector = {
   }
 };
 
-// browserify support
-/*
-if (typeof module === 'object') {
-  export Detector;
-}
-*/
